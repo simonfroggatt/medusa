@@ -1,0 +1,89 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="customers_table" class="table table-hover table-sm"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Store</th>
+                                        <th>Company</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Telephone</th>
+                                        <th width="25px"></th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+        {% include 'partials/javascript.html' %}
+        <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
+
+<script>
+    $(document).ready(function() {
+
+    $('#customers_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "responsive": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "/customer/api/customerslist/?format=datatables"
+             },
+        "deferRender": true,
+        "order": [[ 6, "desc" ]],
+        columns :[
+            {
+                data: "store",
+                sortable: false,
+                render: function ( data, type, row ) {
+                    let image_src = '{% static "images/stores/" %}' + data.thumb;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }
+            },
+            {data: "company"},
+            {data: null,
+                render: function ( data, type, row ) {
+                    return data.firstname +' '+ data.lastname
+            }},
+            {data: "email"},
+            {data: "telephone"},
+            {
+                data: null,
+                sortable: false,
+                render: function ( data, type, row ) {
+                let edit_icon = '<a href="details/' + row['customer_id'] + '"><i class="fas fa-edit table-button"></i></a>'
+                return edit_icon;
+                }
+            },
+            {
+                data: "date_added",
+                "visible": false
+            }
+
+        ]
+    } );
+} );
+</script>
+
+{% endblock javascript %}

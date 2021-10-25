@@ -1,0 +1,58 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medusa - Login</title>
+      <!-- Bootstrap Css -->
+        <link href="{% static 'css/bootstrap.min.css' %}" id="bootstrap-style" rel="stylesheet" type="text/css" />
+        <!-- Icons Css -->
+        <link href="{% static 'css/icons.min.css' %}" rel="stylesheet" type="text/css" />
+        <!-- App Css-->
+        <link href="{% static 'css/app.min.css' %}" id="app-style" rel="stylesheet" type="text/css" />
+        <!-- Dark Mode Css-->
+        <link href="{% static 'css/dark-layout.min.css' %}" id="app-style" rel="stylesheet" type="text/css" />
+
+     <link href="{% static 'css/tsg.css' %}" id="app-style" rel="stylesheet" type="text/css" />
+     <link href="{% static 'css/animate.css' %}" id="app-style" rel="stylesheet" type="text/css" />
+
+
+</head>
+
+<body class="medusa-background">
+
+<div class="d-flex align-items-center justify-content-center vh-100 animate__animated animate__fadeIn">
+
+    <div id="tsg-login" class="card rounded border-0 col-10 col-lg-4 bg-transparent">
+        <div class="card-header">
+            <h1 class="text-center">Welcome to MEDUSA</h1>
+            <p>The online portal for Total Safety Group companies, re-sellers and white label customers</p>
+        </div>
+        <div class="card-body ">
+         <form class="m-t" role="form" method="post">
+                {% csrf_token %}
+                <div class="form-group mb-2 ">
+                    <input type="email" class="form-control" placeholder="Username" required="" name="username">
+                </div>
+                <div class="form-group mb-2">
+                    <input type="password" class="form-control" placeholder="Password" required="" name="password">
+                </div>
+
+                <button type="submit" class="btn btn-primary col-12">Login</button>
+            </form>
+        </div>
+        <div class="card-footer">
+             <small>Total Safety Group &copy; 2021</small>
+        </div>
+    </div>
+</div>
+
+
+{% include 'partials/javascript.html' %}
+
+</body>
+
+</html>

@@ -14,8 +14,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from medusa import views
 
 urlpatterns = [
+    path('authentication/', include('apps.authentication.urls')),
+    path('customer/', include('apps.customer.urls')),
+    path('orders/', include('apps.sales.urls')),
+    path('', views.StarterPageView.as_view(), name='apps-pages-starter'),
+    path('dashboard', views.dashboard, name='dashboard'),  # Dashboard
+    path('password_change/', views.DashboardView.as_view(), name='change_password'),  # Change Password
     path('admin/', admin.site.urls),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

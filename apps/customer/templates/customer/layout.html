@@ -1,0 +1,114 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+
+{% block content %}
+
+    <script type="text/javascript" src="https://webservices.data-8.co.uk/javascript/predictiveaddress.js"></script>
+<link rel="stylesheet" href="https://webservices.data-8.co.uk/content/predictiveaddress.css" />
+
+    <div class="wrapper wrapper-content customer-details">
+        <div class="row">
+            <div class="col">
+
+                {% include 'customer/customer_details.html' %}
+
+            </div>
+
+        </div>
+        <div class="row" id="customer-details-tabs">
+            <div class="col">
+                 <div class="ibox">
+                     <div class="ibox-content">
+                        <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="orders-tab" data-bs-toggle="tab" href="#tab-orders" role="tab"><i
+                                class="fas fa-shopping-cart"></i>  Orders</a>
+                    </li>
+                    <li>
+                        <a class="nav-link" id="quotes-tab" data-bs-toggle="tab" href="#tab-quotes" role="tab"><i
+                                class="far fa-handshake"></i>  Quotes</a>
+                    </li>
+                            <li>
+                        <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#tab-address" role="tab">
+                            <i class="fas fa-map-marker-alt"></i>  Address Book</a>
+                    </li>
+                    <li>
+                        <a class="nav-link" id="comments-tab" data-bs-toggle="tab" href="#tab-art" role="tab"><i
+                                class="far fa-image"></i>  Artwork</a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents" role="tab"><i
+                                class="fas fa-folder-open"></i> Documents</a>
+                    </li>
+                </ul>
+                        <div class="tab-content">
+                    <div role="tabpanel" id="tab-orders" class="tab-pane fade show active">
+                        <div class="panel-body">
+                            previous order
+                        </div>
+                    </div>
+                    <div role="tabpanel" id="tab-quotes" class="tab-pane fade">
+                        <div class="panel-body">
+                            This will be where quotes will be
+                        </div>
+                    </div>
+                            <div role="tabpanel" id="tab-address" class="tab-pane fade">
+                        <div class="panel-body">
+                            {% include 'customer/customer_addressbook.html' %}
+                        </div>
+                    </div>
+                    <div role="tabpanel" id="tab-art" class="tab-pane fade">
+                        <div class="panel-body">
+                            artwork in here
+                        </div>
+                    </div>
+                    <div role="tabpanel" id="tab-documents" class="tab-pane fade">
+                        <div class="panel-body">
+                            documents in here
+                        </div>
+                    </div>
+                </div>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- address edit/create modal -->
+    <div class="modal fade" id="modal-address">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title"></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Loading Data
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-address" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascript %}
+    {% include 'partials/javascript.html' %}
+    <script type="text/javascript" src="{% static 'js/customer.js' %}"></script>
+
+
+
+{% endblock javascript %}
+
+
+

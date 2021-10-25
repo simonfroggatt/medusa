@@ -1,0 +1,10 @@
+{% load static %}
+
+{{ customer_obj.ocaddress_set.city }}
+<div class="row" id="customer-main-details">
+            {% include 'customer/customer_contact_details.html' %}
+            <div id="customer-address-details" class="col-12 col-md-8 col-xl-9">
+                {% include 'customer/customer_address_details.html' %}
+            </div>
+        </div>
+

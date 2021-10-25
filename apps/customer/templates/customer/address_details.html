@@ -1,0 +1,25 @@
+<dl class="row text-nowrap" id="address_{{ address.pk }}">
+    <dt class="col-3">Contact</dt>
+    <dd class="col-9">{{ address.firstname }} {{ address.lastname }}</dd>
+    <dt class="col-3">Company</dt>
+    <dd class="col-9">{{ address.company|default:"&nbsp;" }}</dd>
+    <dt class="col-3">Address</dt>
+    <dd class="col-9">
+        <address>
+            {% if address.branch %}
+                {{ address.branch }}<br>
+            {% endif %}
+            {{ address.address_1 }}<br>
+            {% if address.address_2 %}
+                {{ address.address_2|linebreaksbr }}<br>
+            {% endif %}
+            {{ address.city }}<br>
+            <strong>{{ address.postcode }}</strong>
+        </address>
+    </dd>
+    <dt class="col-3">Email</dt>
+    <dd class="col-9"><a
+            href="mailto:{{ address.email }}">{{ address.email }}</a></dd>
+    <dt class="col-3">Phone</dt>
+    <dd class="col-9">{{ address.telephone|default:"&nbsp;" }}</dd>
+</dl>

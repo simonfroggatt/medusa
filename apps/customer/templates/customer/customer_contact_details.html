@@ -1,0 +1,34 @@
+{% load static %}
+<div class="col-12 col-md-4 col-xl-3">
+    <div class="card h-100 mb-0 ">
+        <div class="card-body ">
+
+                <div class="row">
+                    <div class="col-9 ">
+                        <h2 class="card-title">Customer Details <img height="20px" src="
+                    {% static '/images/stores/' %}{{ customer_obj.store.thumb }}"></h2>
+                    </div>
+                    <div class="col-3">
+                        <div class="float-end">
+
+                            <a class="btn btn-primary btn-xs js-address-edit"
+                               data-url=""
+                               role="button"><i class="fas fa-edit fa-pull-right"></i></a>
+
+                        </div>
+                    </div>
+                </div>
+
+            <dl class="row text-nowrap">
+                <dt class="col-3">Name</dt>
+                <dd class="col-9">{{ customer_obj.fullname }}</dd>
+                <dt class="col-3">Email</dt>
+                <dd class="col-9"><a href="mailto:{{ customer_obj.email }}">{{ customer_obj.email }}</a></dd>
+                <dt class="col-3">Phone</dt>
+                <dd class="col-9">{{ customer_obj.telephone }}</dd>
+                <dt class="col-3">Mobile</dt>
+                <dd class="col-9">{{ customer_obj.mobile }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>

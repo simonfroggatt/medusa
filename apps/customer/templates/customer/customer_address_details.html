@@ -1,0 +1,67 @@
+{% load static %}
+<div class="row col-12">
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100 mb-0" id="payment-address">
+            <div class="card-body ">
+
+                    <div class="row">
+                        <div class="col-9 ">
+                            <h2 class="card-title"><i class="fas fa-pound-sign fa-pull-left"></i> Billing
+                                Address
+                                {% if customer_address.billing_auto %}
+                                    <i class="fas fa-magic fa-wizard"></i>{% endif %}
+                            </h2>
+                        </div>
+                        <div class="col-3">
+                            <div class="float-end">
+
+                                {% if customer_address.billing.pk %}
+                                    <a class="btn btn-primary btn-xs js-address-edit"
+                                       data-url="{% url 'customeraddressedit' customer_obj.customer_id customer_address.billing.pk %}"
+                                       role="button"><i class="fas fa-edit fa-pull-right"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+
+                <div id="customer-default-payment-address">
+                    {% include 'customer/address_details.html' with address=customer_address.billing %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100 mb-0" id="shipping-address">
+            <div class="card-body ">
+
+                    <div class="row">
+                        <div class="col-9 ">
+                            <h2 class="card-title"><i class="fas fa-shipping-fast fa-pull-left"></i> Shipping
+                                Address
+                                {% if customer_address.shipping_auto %}
+                                    <i class="fas fa-magic fa-wizard"></i>{% endif %}
+                            </h2>
+                        </div>
+                        <div class="col-3">
+                            <div class="float-end">
+
+                                {% if customer_address.shipping.pk %}
+                                    <a class="btn btn-primary btn-xs js-address-edit"
+                                       data-url="{% url 'customeraddressedit' customer_obj.customer_id customer_address.shipping.pk %}"
+                                       role="button"><i class="fas fa-edit fa-pull-right"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+
+                <div id="customer-default-shipping-address">
+                    {% include 'customer/address_details.html' with address=customer_address.shipping %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>

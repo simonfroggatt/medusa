@@ -1,0 +1,41 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update Address</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'customeraddressedit' customer_id address_id %}" class="js-address-submit"
+              class="js-address-edit-form">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6">{{ form.firstname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.lastname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.email|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.company|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.branch|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.address_1|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.address_2|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.city|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.postcode|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.default_billing|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.default_shipping|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+
+

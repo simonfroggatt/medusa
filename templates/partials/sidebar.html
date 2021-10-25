@@ -1,0 +1,178 @@
+{% block sidebar %}
+            <!-- ========== Left Sidebar Start ========== -->
+            <div class="vertical-menu">
+
+                <div data-simplebar class="h-100">
+
+                    <!--- Sidemenu -->
+                    <div id="sidebar-menu">
+                        <!-- Left Menu Start -->
+                        <ul class="metismenu list-unstyled" id="side-menu">
+                            <li class="menu-title" key="t-menu">Menu</li>
+                
+                            <li>
+                                <a href="{% url 'dashboard' %}" class="waves-effect">
+                                    <i class='bx bxs-dashboard'></i>
+                                    <span key="t-dashboard">Dashboard</span>
+                                </a>
+                            </li>
+
+                            <li class="menu-title mt-3" key="t-more">More</li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='bx bxs-grid'></i>
+                                    <span key="t-apps">Apps</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href=""><span key="t-calendar">Calendar</span></a></li>
+                                    <li><a href=""><span key="t-chat">Chat</span></a></li>
+                                    <li>
+                                        <a href="javascript: void(0);" class="has-arrow"><span key="t-email">Email</span></a>
+                                        <ul class="sub-menu" aria-expanded="true">
+                                            <li><a href="" key="t-inbox">Inbox</a></li>
+                                            <li><a href="" key="t-read-email">Read Email</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <span class="badge rounded-pill bg-success float-end">7</span>
+                                    <i class='bx bx-user-circle' ></i>
+                                    <span key="t-authentication">Authentication</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="" key="t-login">Login</a></li>
+                                    <li><a href="" key="t-register">Register</a></li>
+                                    <li><a href="" key="t-recover-password">Recover Password</a></li>
+                                    <li><a href="" key="t-lock-screen">Lock Screen</a></li>
+                                    <li><a href="" key="t-confirm-mail">Confirm Mail</a></li>
+                                    <li><a href="" key="t-email-verification">Email Verification</a></li>
+                                    <li><a href="" key="t-two-step-verification">Two Step Verification</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='bx bx-file'></i>
+                                    <span key="t-pages">Pages</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="" key="t-starter-page">Starter Page</a></li>
+                                    <li><a href="" key="t-preloader">Preloader</a></li>
+                                    <li><a href="" key="t-profile">Profile</a></li>
+                                    <li><a href="" key="t-invoice">Invoice</a></li>
+                                    <li><a href="" key="t-maintenance">Maintenance</a></li>
+                                    <li><a href="" key="t-coming-soon">Coming Soon</a></li>
+                                    <li><a href="" key="t-timeline">Timeline</a></li>
+                                    <li><a href="" key="t-pricing">Pricing</a></li>
+                                    <li><a href="" key="t-error-404">Error 404</a></li>
+                                    <li><a href="" key="t-error-500">Error 500</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="menu-title mt-3" key="t-adminkit">Admin Kit</li>
+
+                            <li>
+                                <a href="" id="ui-elements" class="waves-effect">
+                                    <i class='bx bx-briefcase'></i>
+                                    <span key="t-ui-elements">UI Elements</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='bx bxs-cube-alt'></i>
+                                    <span key="t-advancedkit">Advanced Kit</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="" key="t-sweet-alert">Sweet-Alert</a></li>
+                                    <li><a href="" key="t-range-slider">Range Slider</a></li>
+                                    <li><a href="" key="t-notifications">Notifications</a></li>
+                                    <li><a href="" key="t-carousel">Carousel</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="}" class="waves-effect">
+                                    <i class='bx bx-text'></i>
+                                    <span key="t-typography">Typography</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class='bx bxs-magic-wand' ></i>
+                                    <span class="badge rounded-pill bg-danger float-end">2</span>
+                                    <span key="t-forms">Forms</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="" key="t-form-elements">Form Elements</a></li>
+                                    <li><a href="" key="t-form-advanced">Form Advanced</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='bx bx-table' ></i>
+                                    <span key="t-tables">Tables</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="" key="t-bootstrap-tables">Bootstrap Tables</a></li>
+                                    <li><a href="" key="t-data-tables">Data Tables</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="" class="waves-effect">
+                                    <i class='bx bx-doughnut-chart' ></i>
+                                    <span key="t-charts">Charts</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='bx bx-layer' ></i>
+                                    <span key="t-icons">Icons</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="" key="t-boxicons">Boxicons</a></li>
+                                    <li><a href="" key="t-material-design">Material Design</a></li>
+                                    <li><a href="" key="t-dripicons">Dripicons</a></li>
+                                    <li><a href="" key="t-font-awesome">Font Awesome 5</a></li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="" class="waves-effect">
+                                    <i class='bx bx-map'></i>
+                                    <span key="t-maps">Maps</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='bx bx-share-alt' ></i>
+                                    <span key="t-multi-level">Multi Level</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="true">
+                                    <li><a href="javascript: void(0);" key="t-level-1-1">Level 1.1</a></li>
+                                    <li>
+                                        <a href="javascript: void(0);" class="has-arrow" key="t-level-1-2">Level 1.2</a>
+                                        <ul class="sub-menu" aria-expanded="true">
+                                            <li><a href="javascript: void(0);" key="t-level-2-1">Level 2.1</a></li>
+                                            <li><a href="javascript: void(0);" key="t-level-2-2">Level 2.2</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </div>
+                    <!-- Sidebar -->
+                </div>
+            </div>
+            <!-- Left Sidebar End -->
+{% endblock sidebar %}

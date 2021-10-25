@@ -1,0 +1,110 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Create New Address</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'customeraddresscreatesave' customer_id %}" class="js-address-submit">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6">{{ form.firstname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.lastname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.email|as_crispy_field }}</div>
+                <div class="col-md-12 form-floating">
+                    <input  class="form-control" id="addressLookup" placeholder="Lookup" required>
+                    <label for="addressLookup">Search for address</label>
+                </div>
+                <div class="col-md-12" id="address_lookup_res">
+
+                </div>
+                <div class="col-md-6">{{ form.company|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.branch|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.address_1|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.address_2|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.city|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.postcode|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.default_billing|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.default_shipping|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" class="btn btn-primary pull-right">Save</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+
+    $(function() {
+
+    var lookupFn = function() {
+        //$("#addressLookup").keyup(function () {
+            let inputVal = this.value;
+            if (inputVal.length > 3) {
+                lookUPAddress(inputVal);
+            }
+    }
+
+    function lookUPAddress(inputVal) {
+        var Key = "GE22-EN14-WD26-TD79",
+            IsMiddleware = false,
+            Origin = "",
+            Countries = "GBR",
+            Limit = "10",
+            Language = "en-gb",
+            url = 'https://services.postcodeanywhere.co.uk/Capture/Interactive/Find/v1.10/json3.ws';
+        var Container = "";
+
+        $.ajax({
+            url: url,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                Key: encodeURIComponent(Key),
+                Text: encodeURIComponent(inputVal),
+                IsMiddleware: encodeURIComponent(IsMiddleware),
+                Countries: encodeURIComponent(Countries),
+                Limit: encodeURIComponent(Limit),
+                Container: encodeURIComponent(Container),
+                Origin: encodeURIComponent(Origin),
+                Language: encodeURIComponent(Language)
+            },
+
+            success: function (response, statusText, resObject) {
+
+                let addressLists = response['Items'];
+                if (addressLists.length > 0) {
+                     let res_div = $("#address_lookup_res")
+                     var list = document.getElementById('address_lookup_res');
+                     let address_list = "";
+                    $.each(addressLists, function (key, value) {
+                        var option = document.createElement("option");
+                        option.setAttribute("data-value", value.Id)
+                        option.setAttribute("value", value.Text + " " + value.Description)
+                        option.text = value.Text + " " + value.Description;
+                        address_list += '<div id="">' + option.text + '</div>'
+                        list.innerHTML = address_list;
+                        console.log(value);
+                    });
+                }
+            }
+        });
+
+
+        console.log(inputVal);
+    }
+
+     $("#addressLookup").keyup(lookupFn);
+
+})
+
+
+</script>
