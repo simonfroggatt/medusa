@@ -39,14 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'widget_tweaks',
+    'medusa',
     'apps.authentication',
     'apps.sales',
-    'medusa',
+    'apps.products',
     'apps.customer',
+    'apps.pricing',
+    'apps.options',
+    'apps.symbols',
+    'apps.category',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
-    'bootstrap_modal_forms'
+    'rest_framework_datatables',
+    'bootstrap_modal_forms',
+    'tinymce'
 ]
 
 MIDDLEWARE = [
@@ -141,6 +148,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/authentication/static/authentication'),
                     os.path.join(BASE_DIR, 'apps/orders/static/orders'),
                     os.path.join(BASE_DIR, 'apps/customer/static/customer'),
+                    os.path.join(BASE_DIR, 'apps/products/static/products'),
+                    os.path.join(BASE_DIR, 'apps/pricing/static/pricing'),
                     ]
 
 
@@ -176,9 +185,24 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT' : "%d/%m/%Y %H:%M:%S",
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
-    'PAGE_SIZE': 20,
+    'PAGE_SIZE': 2000,
 }
+
+
+
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+MEDIA_ROOT = '/Users/simonfroggatt/Sites/totalsafetygroup_oc/stores/image/'
+MEDIA_URL = '/media/'
+
+TINYMCE_JS_URL = os.path.join(STATIC_URL, "libs/tinymce/tinymce.min.js")
+
+TINYMCE_DEFAULT_CONFIG = {
+    "menubar": "false",
+    "plugins": 'lists, link, image, media, preview',
+    "toolbar": 'h1 h2 bold italic | strikethrough Superscript Subscript | bullist numlist fontsizeselect removeformat ',
+}
+TINYMCE_COMPRESSOR = False

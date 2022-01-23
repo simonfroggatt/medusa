@@ -31,7 +31,7 @@
 {% endblock content %}
 
 {% block javascript %}
-        {% include 'partials/javascript.html' %}
+
         <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
 
 <script>
@@ -52,6 +52,9 @@
              },
         "deferRender": true,
         "order": [[ 6, "desc" ]],
+         "search": {
+            "regex": true
+        },
         columns :[
             {
                 data: "store",

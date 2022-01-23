@@ -1,0 +1,62 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                <button id="create-type" class="btn btn-primary mb-4" type="button" name="create-type">Create Value</button>
+
+                    <table id="option_type_table" class="table table-hover table-sm table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <th class="col-2">Title</th>
+                            <th class="col-2">Type</th>
+                            <th class="col-2">Dropdown</th>
+                            <th class="col-2">Description</th>
+                            <th class="col-1">Product ID</th>
+                            <th class="col-1">Price Modifier</th>
+                            <th class="col-1">Show at Checkout</th>
+                            <th class="col-1 text-end">&nbsp;</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for values in  option_values %}
+                            <tr>
+                                <td>{{ values.title }}</td>
+                                <td>{{ values.option_type }}</td>
+                                <td>{{ values.dropdown_title }}</td>
+                                <td>{{ values.descr }}</td>
+                                <td>{{ values.product_id }}</td>
+                                <td>{{ values.price_modifier }}</td>
+                                <td>{{ values.show_at_checkout }}</td>
+                            <td class="text-end">
+                                <a role="button" data-url="" class="btn btn-danger btn-sm "><i class="fas fa-trash-alt fa-sm"></i></a>
+                                <a role="button" data-url="" class="btn btn-primary btn-sm "><i class="fas fa-edit fa-sm"></i></a>
+                            </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+{% endblock javascript %}

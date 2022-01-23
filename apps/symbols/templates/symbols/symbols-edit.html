@@ -1,0 +1,68 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+<div class="modal-body">
+    <div class="container">
+        <form method="post">
+                {{ form.media }}
+            {% csrf_token %}
+
+            <div class="row">
+<div class="form-group">
+         <div class="row">
+                <div class="col-md-3"><img src="{{ symbol_image_path }}"></div>
+                <div class="col-md-3">{{ form.refenceno|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.referent|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.function|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.content|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.hazard|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.humanbehav|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.svg_path|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.category|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.standard|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.title|as_crispy_field }}</div>
+
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-danger " onclick="location.href='{{ view.get_success_url }}'">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+
+
+<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+
+<script>
+  var t1 = tinymce.init({
+      selector: 'textarea#editor',
+  })
+
+</script>
+
+
+{% endblock javascript %}
+
+
+
+
+
+

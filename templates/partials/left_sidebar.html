@@ -47,12 +47,40 @@
                                     <span>Catalogue</span>
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
-                                    <li><a href="products" >Products</a></li>
-                                    <li><a href="categories" >Categories</a></li>
-                                     <li><a href="symbols" >Symbols</a></li>
+                                    <li><a href="{%  url 'allproducts' %}" >Products</a></li>
+                                    <li><a href="{% url 'allcategories' %}" >Categories</a></li>
+                                     <li><a href="{% url 'allsymbols' %}" >Symbols</a></li>
 
                                 </ul>
                             </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='fas fa-coins'></i>
+                                    <span>Pricing</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="{%  url 'allbaseprices' %}" >Prices</a></li>
+                                    <li><a href="{%  url 'allsizes' %}" >Sizes</a></li>
+                                     <li><a href="{%  url 'allmaterials' %}" >Materials</a></li>
+
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class='fas fa-cogs'></i>
+                                    <span>Options</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="{% url 'alloptionsclass' %}" >Class</a></li>
+                                    <li><a href="{% url 'alloptionstype' %}" >Type</a></li>
+                                    <li><a href="{% url 'alloptionsvalues' %}" >Values</a></li>
+                                    <li><a href="{% url 'alloptionsgroups' %}" >Groups</a></li>
+                                </ul>
+                            </li>
+
+
 
                         </ul>
                     </div>

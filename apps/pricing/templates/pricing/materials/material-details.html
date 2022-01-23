@@ -1,0 +1,26 @@
+{% load static %}
+<h1>{{ material_obj.material_name }} ( {{ material_obj.material_id }} )</h1>
+<dl class="row text-nowrap">
+    <dt class="col-3">Code</dt>
+        <dd class="col-9">{{ material_obj.code }}</dd>
+    <dt class="col-3">Description</dt>
+        <dd class="col-9">{{ material_obj.material_desc |safe }}</dd>
+    <dt class="col-3">Description Long</dt>
+        <dd class="col-9">{{ material_obj.material_desc_full |safe }}</dd>
+    <dt class="col-3">Mounting</dt>
+        <dd class="col-9">{{ material_obj.mounting_desc |safe }}</dd>
+    <dt class="col-3">Mounting Full</dt>
+        <dd class="col-9">{{ material_obj.mounting_desc_full |safe }}</dd>
+    <dt class="col-3">Thickness</dt>
+        <dd class="col-9">{{ material_obj.thickness_desc |safe }}</dd>
+    <dt class="col-3">Thickness Long</dt>
+        <dd class="col-9">{{ material_obj.thickness_desc_full |safe }}</dd>
+    <dt class="col-3">Fixing</dt>
+        <dd class="col-9">{{ material_obj.fixing_desc |safe }}</dd>
+    <dt class="col-3">Fixing Long</dt>
+        <dd class="col-9">{{ material_obj.fixing_desc_full |safe }}</dd>
+    <dt class="col-3">Colour</dt>
+        <dd class="col-9">{{ material_obj.colour_desc |safe }}</dd>
+    <dt class="col-3">Image</dt>
+        <dd class="col-9"><img src="{{ material_obj.material_image_url }}"></dd>
+</dl>

@@ -1,0 +1,95 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+
+
+                                <table id="product-list-table"
+                                data-ajax="ajaxRequest2">
+                                <thead>
+                                    <tr>
+
+
+                                    </tr>
+                                </thead>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+    <script type="text/javascript" src="{% static 'libs/bootstrap-table/extensions/custom-view/bootstrap-table-custom-view.js' %}"></script>
+
+    <script>
+
+    $('#product-list-table').bootstrapTable({
+        pagination: true,
+        search: true,
+        //url: '/products/api/post-list/products/',
+        columns: [{
+    field: 'product_id',
+    title: 'Item ID'
+  }, {
+    field: 'model',
+    title: 'Item Name'
+  }, {
+    field: 'image',
+    title: 'Item Price'
+  }]
+
+
+})
+
+
+
+    function ajaxRequest2(params) {
+    var url = '/products/api/post-list/products/'
+    $.get(url + '?' + $.param(params.data)).then(function (res) {
+      params.success(res['results'])
+    })
+  }
+
+   function ajaxRequest(params) {
+   // data you may need
+    console.log(params.data);
+
+    $.ajax({
+        type: "GET",
+        url: "/products/api/post-list/products/",
+// You are expected to receive the generated JSON (json_encode($data))
+        dataType: "json",
+        success: function (data) {
+            let tmp = data['results'];
+            params.success({
+
+// By default, Bootstrap table wants a "rows" property with the data
+                "rows": data['results'],
+// You must provide the total item ; here let's say it is for array length
+                "total": data.length
+            })
+        },
+        error: function (er) {
+            params.error(er);
+        }
+    });
+  }
+
+
+    </script>
+
+
+{% endblock javascript %}
+

@@ -1,6 +1,6 @@
 from django import forms
 from .models import OcAddress, OcCustomer
-from bootstrap_modal_forms.forms import BSModalModelForm
+
 
 
 class AddressForm(forms.ModelForm):

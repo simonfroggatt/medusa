@@ -23,8 +23,21 @@ urlpatterns = [
     path('authentication/', include('apps.authentication.urls')),
     path('customer/', include('apps.customer.urls')),
     path('orders/', include('apps.sales.urls')),
+    path('products/', include('apps.products.urls')),
+    path('pricing/', include('apps.pricing.urls')),
+    path('options/', include('apps.options.urls')),
+    path('symbols/', include('apps.symbols.urls')),
+    path('category/', include('apps.category.urls')),
     path('', views.StarterPageView.as_view(), name='apps-pages-starter'),
     path('dashboard', views.dashboard, name='dashboard'),  # Dashboard
     path('password_change/', views.DashboardView.as_view(), name='change_password'),  # Change Password
     path('admin/', admin.site.urls),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('tinymce/', include('tinymce.urls')),
+
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
+              + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+def get_param(request, param, default=None):
+    if request.method == 'POST':
+        return request.data.get(param, default)
+    return request.query_params.get(param, default)

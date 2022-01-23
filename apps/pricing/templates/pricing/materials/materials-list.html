@@ -1,0 +1,131 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <table id="materials_table" class="table table-hover table-sm"
+                           style="width:100%">
+                        <thead>
+                        <tr >
+                            <th class="col-3">Name</th>
+                            <th class="col-2">Short Description</th>
+                            <th class="col-2">Thickness</th>
+                            <th class="col-2">Fixing Description</th>
+                            <th class="col-1">Base Color</th>
+                            <th class="col-1">Code</th>
+                            <th class="col-1 float-end">&nbsp</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="ibox">
+                <div class="ibox-content" id="material_desc">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade " tabindex="-1" role="dialog" id="modal">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+             <div class="modal-content"></div>
+         </div>
+    </div>
+
+    <button id="create-material" class="btn btn-primary" type="button" name="button">Create Size</button>
+
+{% endblock content %}
+
+{% block javascript %}
+        <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
+
+<script>
+
+    $(document).ready(function() {
+
+
+    var mat_table = $('#materials_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "/pricing/api/materials/?format=datatables"
+             },
+        "deferRender": true,
+         "search": {
+            "regex": true
+            },
+        "select": true,
+        "rowId" : 'material_id',
+        "order": [[ 7, "asc" ]],
+
+        columns :[
+
+            {data: "material_name"},
+            {data: "material_desc"},
+            {data: "thickness_desc"},
+            {data: "fixing_desc"},
+            {data: "colour_desc"},
+            {data: "code"},
+            {
+                data: null,
+                sortable: false,
+                className: 'text-end',
+                render: function ( data, type, row ) {
+                let edit_icon = '<a class="btn btn-primary btn-sm" href="'+ row['material_id'] + '/update" ><i class="fas fa-edit fa-sm"></i></a>';
+                let delete_icon = '<a class="btn btn-danger btn-sm" href="delete/' + row['material_id'] + '"><i class="fas fa-trash fa-sm"></i></a>';
+
+
+
+             //       let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="'+ row['material_id'] + '/update""><i class="fas fa-edit fa-sm"></i></a>';
+             //   let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + row['material_id'] + '"><i class="fas fa-trash fa-sm"></i></a>'
+              return delete_icon + "  " + edit_icon;
+
+                }
+            },
+            {
+                data: "material_id",
+                "visible": false
+            },
+
+        ]
+    } );
+
+   mat_table.on( 'select', function ( e, dt, type, indexes ) {
+       if (type === 'row') {
+           var mat_id = dt.row(indexes).id();
+           let ajax_url = '/pricing/materials/details/' + mat_id
+
+           $.ajax({
+               url: ajax_url,  // <-- AND HERE
+               type: 'get',
+
+               success: function (data) {
+                   // $("#modal-address .modal-title").html("Edit Address");
+                   $("#material_desc").html(data);
+               }
+           });
+
+       }
+   });
+
+} );
+</script>
+
+{% endblock javascript %}

@@ -1,0 +1,53 @@
+{% load static %}
+
+<div class="row" id="product-base-details">
+    <div class="col-2">
+                <img src="{{ product_obj.image_url }}"  height="200px" >
+    </div>
+    <div class="col-4">
+        <div class="card h-100 mb-0">
+            <div class="card-body">
+                <h2 class="card-title">Basic Information</h2>
+                <dl class="row ">
+                    <dt class="col-3">Product ID</dt>
+                    <dd class="col-9">{{ product_obj.product_id }}</dd>
+                    <dt class="col-3">Code</dt>
+                    <dd class="col-9">{{ product_obj.model }}</dd>
+                    <dt class="col-3">Name</dt>
+                    <dd class="col-9">{{ product_obj.productbasedesc.name }}</dd>
+                    <dt class="col-3">Title</dt>
+                    <dd class="col-9">{{ product_obj.productbasedesc.title }}</dd>
+                    <dt class="col-3">Description</dt>
+                    <dd class="col-9">{{ product_obj.productbasedesc.description }}</dd>
+                    <dt class="col-3">Supplier</dt>
+                    <dd class="col-9">{{ product_obj.productbasedesc.manufacturer_id }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card h-100 mb-0">
+            <div class="card-body">
+                <h2 class="card-title">SEO</h2>
+                <dl class="row">
+                    <dt class="col-3">Meta Title</dt>
+                    <dd class="col-9">{{ product_obj.meta_title }}</dd>
+                    <dt class="col-3">Meta Description</dt>
+                    <dd class="col-9">{{ product_obj.meta_description }}</dd>
+                    <dt class="col-3">Meta Keywords</dt>
+                    <dd class="col-9">{{ product_obj.productbasedesc.meta_keyword }}</dd>
+                </dl>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-3">
+        <div class="card h-100 mb-0">
+            <div class="card-body">
+                <h2 class="card-title">Visible on Sites</h2>
+
+            </div>
+        </div>
+
+    </div>
+</div>

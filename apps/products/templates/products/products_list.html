@@ -1,0 +1,214 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="product_table" class="table table-hover table-sm"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Image</th>
+                                        <th class="col-2">Code</th>
+                                        <th class="col-4">Name</th>
+                                        <th class="col-auto">Title</th>
+                                        <th width="25px">Status</th>
+                                        <th class="text-end col-1">&nbsp;</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+    <style>
+        .cards tbody tr {
+            float: left;
+            width: 20rem;
+            margin: 0.5rem;
+            border: 0.0625rem solid rgba(0,0,0,.125);
+    	    border-radius: .25rem;
+            box-shadow: 0.25rem 0.25rem 0.5rem rgba(0,0,0,0.25);
+        }
+        .cards tbody td {
+            display: block;
+        }
+        .table tbody label {
+            display: none;
+        }
+        .cards tbody label {
+        	display: inline;
+        	position: relative;
+        	font-size: 85%;
+        	top: -0.5rem;
+        	float: left;
+        	color: #808080;
+        	min-width: 4rem;
+        	margin-left: 0;
+        	margin-right: 1rem;
+        	text-align: left;
+        }
+
+        #product_table.cards .product-thumb {
+            height: 100px;
+        }
+
+        #product_table .product-thumb {
+            height: 30px;
+        }
+
+        tr.selected label {
+            color: #404040;
+        }
+
+        .table .fa {
+            font-size: 2.5rem;
+            text-align: center;
+        }
+        .cards .fa {
+            font-size: 7.5rem;
+        }
+
+    </style>
+
+{% include 'partials/javascript.html' %}
+    <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
+
+    <script>
+    $(document).ready(function() {
+
+    var product_table = $('#product_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'fB><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "responsive": true,
+        "serverSide": true,
+        "rowId" : 'product_id',
+        "ajax": {
+                 "processing": true,
+                 "url": "/products/api/post-list/products/?format=datatables",
+                "type" : "POST",
+            "beforeSend": function(xhr) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
+            }
+            },
+        "deferRender": false,
+        "order": [[ 7, "asc" ]],
+         "search": {
+            "regex": true
+        },
+        buttons: [
+                    {
+                        text: ' <i class="fa fa-id-badge fa-fw fa-lg" aria-hidden="true"></i>',
+                        className: '',
+                        action: function () {
+
+                            $("#product_table").toggleClass("cards");
+                            $("#product_table thead").toggle();
+                            $("#card-toggle .fa").toggleClass("fa-table");
+                            $("#card-toggle .fa").toggleClass("fa-id-badge");
+
+                            if($("#product_table").hasClass("cards")){
+
+                                var max = 0;
+                                $('#product_table tr').each(function() {
+                                    max = Math.max($(this).height(), max);
+                                }).height(max);
+                            } else {
+                                $("#product_table tr").each(function(){
+                                    $(this).height("auto");
+                                });
+                            }
+
+                        },
+                        attr:  {
+                            title: 'Change views',
+                            id: 'card-toggle'
+                        }
+                    }
+                ],
+        columns :[
+
+            {
+                data: "image_url",
+                name: "thumbnail",
+                searchable: "false",
+                sortable: "false",
+                render: function (data, type, row, meta ) {
+                    return '<img class="rounded mx-auto d-block product-thumb" src="'+data+'">';
+                }
+            },
+            {data: "model"},
+            {
+                data: "productbasedesc.name",
+            },
+            {data: "productbasedesc.title"},
+            {
+                data: "status",
+                name: "viewstatus",
+                searchable: "false",
+                render: function (data) {
+                    let vis_class = "icon_enabled"
+                    if(data == 0){
+                        vis_class = "icon_disable"
+                    }
+                    let vis_icon = '<i class="far fa-eye '+ vis_class+'"></i>'
+                    return vis_icon
+                }},
+            {
+                data: "product_id",
+                sortable: false,
+                className: 'text-end',
+                render: function ( data, type, row ) {
+
+                     let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
+                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + row['id'] + '"><i class="fas fa-trash fa-sm"></i></a>'
+
+
+                    return delete_icon + "  " + edit_icon;;
+                }
+            },
+            {
+                data: "productbasedesc.description",
+                "visible": false
+            },
+            {
+                data: "product_id",
+                "visible": false
+            },
+            {
+                data: "corevariants",
+                name: "corevariants.supplier_code",
+                "visible": false
+            }
+
+
+        ]
+    } );
+
+
+
+
+} );
+
+
+
+</script>
+
+{% endblock javascript %}
+

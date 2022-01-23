@@ -15,6 +15,9 @@ class OcStore(models.Model):
         managed = False
         db_table = 'oc_store'
 
+    def __str__(self):
+        return self.name
+
 
 class OcTaxRate(models.Model):
     tax_rate_id = models.AutoField(primary_key=True)
@@ -28,3 +31,23 @@ class OcTaxRate(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tax_rate'
+
+
+class OcTsgCategoryTypes(models.Model):
+    category_type_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    default_colour_rgb = models.CharField(db_column='default_colour_RGB', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    default_colour_hex = models.CharField(db_column='default_colour_HEX', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    default_text_hex = models.CharField(db_column='default_text_HEX', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    default_colour = models.CharField(max_length=20, blank=True, null=True)
+    image_path = models.CharField(max_length=255, blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_category_types'
+
+    def __str__(self):
+        return self.title
+

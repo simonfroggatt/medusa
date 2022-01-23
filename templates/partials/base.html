@@ -24,6 +24,14 @@
 
     <link href="{% static 'css/tsg.css'%}" id="app-style" rel="stylesheet" type="text/css" />
 
+    <link href="{% static 'css/bootstrap2-toggle.css'%}" id="app-style" rel="stylesheet" type="text/css" />
+
+    <link href="{% static 'libs/bootstrap-table/css/bootstrap-table.css'%}" id="bootstrap-table" rel="stylesheet" type="text/css" />
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
 </head>
 <body data-sidebar="dark" > 
 {% comment %} <body data-topbar="dark" data-layout="horizontal"> {% endcomment %}
@@ -55,7 +63,7 @@
                             <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                                 <div class="page-title-left">
                                     <ol class="breadcrumb m-0">
-                                        <li class="breadcrumb-item"><a href="javascript: void(0);">{{pageview}}</a></li>
+                                        <li class="breadcrumb-item"><a href="{{pageview_url}}">{{pageview}}</a></li>
                                         <li class="breadcrumb-item active">{{heading}}</li>
                                     </ol>
                                 </div>
@@ -80,6 +88,7 @@
         <!-- end main content-->
     </div>
     <!-- END layout-wrapper -->
+    {% include 'partials/javascript.html' %}
     {% block javascript %}
     {% endblock javascript %}
 </body>

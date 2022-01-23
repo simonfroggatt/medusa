@@ -1,0 +1,11 @@
+{% load static %}
+
+
+{% for var_option in variant_options %}
+    {{ var_option.option_class_id }}
+    {{ var_option.label }}
+    {{ var_option.descr }}
+    {{ var_option.name }}
+    {{ var_option.order_by }}
+    <br>
+{% endfor %}
