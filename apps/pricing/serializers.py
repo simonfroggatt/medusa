@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb
+from .models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 
 
 class SizesSerializer(serializers.ModelSerializer):
@@ -23,4 +23,13 @@ class BasePricesSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgSizeMaterialComb
         fields = '__all__'
-        depth = 2
+        depth = 3
+
+
+class StorePriceSerializer(serializers.ModelSerializer):
+    size_material_comb = BasePricesSerializer(read_only=True)
+
+    class Meta:
+        model = OcTsgSizeMaterialCombPrices
+        fields = ['price', 'size_material_comb']
+        depth = 1

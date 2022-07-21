@@ -4,12 +4,14 @@ from rest_framework.response import Response
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core import serializers
 from django.template.loader import render_to_string
-from .models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb
-from .serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer
+from .models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
+from .serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer
 from .forms import SizesBSForm, MaterialsBSForm, MaterialForm
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
+import json
+from django.db import connection
 
 
 def all_sizes(request):
@@ -36,6 +38,18 @@ def material_details(request, material_id):
     context = {"material_obj": material_obj}
     return render(request, template_name, context)
 
+def quick_prices(request):
+    template_name = 'dialogs/quick_price.html'
+    context = dict()
+    data = dict()
+
+    # return render(request, template_name, context)
+    data['html_dlg'] = render_to_string(template_name,
+                                         context,
+                                         request=request)
+
+    return render(request, template_name, context)
+    return JsonResponse(data)
 
 class Sizes(viewsets.ModelViewSet):
     queryset = OcTsgProductSizes.objects.all()
@@ -50,6 +64,57 @@ class Materials(viewsets.ModelViewSet):
 class BasePrices(viewsets.ModelViewSet):
     queryset = OcTsgSizeMaterialComb.objects.all()
     serializer_class = BasePricesSerializer
+
+
+class StorePrices(viewsets.ModelViewSet):
+
+    queryset = OcTsgSizeMaterialCombPrices.objects.all()
+    serializer_class = StorePriceSerializer
+
+    def retrieve(self, request, pk=None):
+        prices = OcTsgSizeMaterialCombPrices.objects.filter(store_id=pk)
+        serializer = self.get_serializer(prices, many=True)
+        return Response(serializer.data)
+
+
+class BespokePrices(viewsets.ModelViewSet):
+    queryset = OcTsgSizeMaterialComb.objects.all()
+    serializer_class = BasePricesSerializer
+
+    def retrieve(self, request, pk=None):
+        return
+
+    def list(self, request, *args, **kwargs):
+        req = self.request
+        width = int(req.query_params.get('width'))
+        height = int(req.query_params.get('height'))
+        material_id = int(req.query_params.get('material_id'))
+        margin = int(req.query_params.get('margin',10))
+        margin_diff = margin/100
+        width_upper = width * (1 + margin_diff)
+        height_upper = height * (1 + margin_diff)
+        width_lower = width * (1-margin_diff)
+        height_lower = height * (1-margin_diff)
+        sql_string = "SELECT oc_tsg_size_material_comb.id, ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) AS sq, oc_tsg_size_material_comb.price, oc_tsg_product_sizes.size_name," \
+                     "( ( %(width)s/ 1000 ) * (%(height)s / 1000 ) ) - ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) AS diff " \
+                     "FROM oc_tsg_size_material_comb INNER JOIN oc_tsg_product_sizes ON oc_tsg_size_material_comb.product_size_id = oc_tsg_product_sizes.size_id " \
+                     "INNER JOIN oc_tsg_product_material ON oc_tsg_size_material_comb.product_material_id = oc_tsg_product_material.material_id " \
+                     "WHERE oc_tsg_product_material.material_id = %(material_id)s " \
+                     "AND (" \
+                     "( ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) ) < ( (%(width_upper)s / 1000 ) * ( %(height_upper)s / 1000 ) ) " \
+                     "AND ( ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) ) > ( ( %(width_lower)s / 1000 ) * ( %(height_lower)s / 1000 ) ) " \
+                     ") ORDER BY diff LIMIT 10"
+
+        stock_prices = OcTsgSizeMaterialComb.objects.raw(sql_string, {'width': width,
+                                                                      'height': height,
+                                                                      'width_upper': width_upper,
+                                                                      'height_upper': height_upper,
+                                                                      'width_lower': width_lower,
+                                                                      'height_lower': height_lower,
+                                                                      'material_id': material_id})
+        serializer = self.get_serializer(stock_prices, many=True)
+        return Response(serializer.data)
+
 
 
 class SizeCreateView(BSModalCreateView):

@@ -9,14 +9,14 @@ class AddressForm(forms.ModelForm):
         fields = [
             'company',
             'branch',
-            'firstname',
-            'lastname',
+            'fullname',
             'telephone',
             'email',
             'address_1',
-            'address_2',
             'city',
+            'area',
             'postcode',
+            'country',
             'label',
             'default_billing',
             'default_shipping'
@@ -24,7 +24,7 @@ class AddressForm(forms.ModelForm):
 
         widgets = {
             'email': forms.EmailInput,
-            'address_2': forms.Textarea(attrs={'rows': 4}),
+            'address_1': forms.Textarea(attrs={'rows': 4}),
             'default_billing': forms.CheckboxInput,
             'default_shipping': forms.CheckboxInput()
         }

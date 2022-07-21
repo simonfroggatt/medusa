@@ -7,7 +7,7 @@ class CustomerListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcCustomer
-        fields = ['customer_id', 'company', 'firstname', 'lastname', 'email', 'telephone', 'mobile', 'store',
+        fields = ['customer_id', 'company', 'firstname', 'lastname', 'fullname', 'email', 'telephone', 'mobile', 'store',
                   'parent_company', 'date_added']
         depth = 2
 

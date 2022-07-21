@@ -1,0 +1,43 @@
+<div class="card-header order_details">
+            <div class="row">
+                    <div class="col-3">
+                        <i class="fas fa-shipping-fast"></i> Shipping
+                    </div>
+                    <div class="col-6">
+                    {% if order_obj.customer %}
+                    <button class="btn btn-warning col-12 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseShippingAddress" aria-expanded="false" aria-controls="collapseShippingAddress">
+                            Address book
+                        </button>
+                        <div class="collapse" id="collapseShippingAddress">
+                            <form method="post" id="order_shipping_addressbook" action="{% url 'ordershippingfrombook' order_obj.order_id %}">
+                            <input type="hidden" id="address_book_id_shipping" name="address_book_id_shipping" value="0">
+                            {% csrf_token %}
+                            <div class="card card-body" id="shippingList">
+                                {% for addressItem in addressItem %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="addressListItem_shipping" id="addressListItem_shipping-{{ addressItem.address_id }}" data-address-list-id-shipping="{{ addressItem.address_id }}">
+                                    <label class="form-check-label" for="flexRadioDefault1">
+                                        <strong>{{ addressItem.fullname }}</strong>, {{addressItem.address_1 }}, <strong>{{ addressItem.postcode }}</strong>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                                <button class="btn btn-success" type="button" id="js_order_shipping_address_btn">Use this address</button>
+                            </div>
+                            </form>
+                        </div>
+                    {% endif %}
+                    </div>
+                    <div class="col-3">
+                     <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <button type="button" class="btn btn-primary btn-sm js-order-address-edit"
+                                        data-url="{% url 'ordershippingaddressedit' order_obj.order_id %}"
+                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body ">
+                 <div id="order-shipping">
+                    {% include 'orders/sub_layout/shipping_address_ajax.html' %}
+                </div>
+            </div>

@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcStore, OcTsgCategoryTypes
+from medusa.models import OcStore, OcTsgCategoryTypes, OcLanguage
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 
@@ -7,35 +7,16 @@ from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPric
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     model = models.CharField(max_length=64)
-    sku = models.CharField(max_length=64)
-    upc = models.CharField(max_length=12)
-    ean = models.CharField(max_length=14)
-    jan = models.CharField(max_length=13)
-    isbn = models.CharField(max_length=17)
-    mpn = models.CharField(max_length=64)
     location = models.CharField(max_length=128)
-    quantity = models.IntegerField()
-    stock_status_id = models.IntegerField()
     image = models.CharField(max_length=255, blank=True, null=True)
     manufacturer_id = models.IntegerField()
-    shipping = models.IntegerField()
-    price = models.DecimalField(max_digits=15, decimal_places=4)
-    points = models.IntegerField()
     tax_class_id = models.IntegerField()
-    date_available = models.DateField()
-    weight = models.DecimalField(max_digits=15, decimal_places=8)
-    weight_class_id = models.IntegerField()
-    length = models.DecimalField(max_digits=15, decimal_places=8)
-    width = models.DecimalField(max_digits=15, decimal_places=8)
-    height = models.DecimalField(max_digits=15, decimal_places=8)
-    length_class_id = models.IntegerField()
-    subtract = models.IntegerField()
-    minimum = models.IntegerField()
     sort_order = models.IntegerField()
     status = models.IntegerField()
     viewed = models.IntegerField()
     date_added = models.DateTimeField()
     date_modified = models.DateTimeField()
+    mib_logo = models.IntegerField(blank=True, null=True)
     include_google_merchant = models.IntegerField(blank=True, null=True)
 
     @property
@@ -51,8 +32,28 @@ class OcProduct(models.Model):
 
 
 class OcProductDescription(models.Model):
-    product_desc_id = models.AutoField(primary_key=True)
-    language_id = models.IntegerField()
+    product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productdescbysite')
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    tag = models.TextField(blank=True, null=True)
+    meta_title = models.CharField(max_length=255, blank=True, null=True)
+    meta_description = models.CharField(max_length=255, blank=True, null=True)
+    meta_keyword = models.CharField(max_length=255, blank=True, null=True)
+    long_description = models.TextField(blank=True, null=True)
+    sign_reads = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_product_description'
+        unique_together = (('product', 'store', 'language'),)
+
+
+class OcProductDescriptionBase(models.Model):
+    product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productdescbase')
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
     name = models.CharField(max_length=255)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
@@ -65,7 +66,8 @@ class OcProductDescription(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'oc_product_description'
+        db_table = 'oc_product_description_base'
+        unique_together = (('product', 'language'),)
 
 
 class OcProductToStore(models.Model):
@@ -78,25 +80,6 @@ class OcProductToStore(models.Model):
         managed = False
         db_table = 'oc_product_to_store'
         unique_together = (('store', 'product'),)
-
-
-class OcProductBaseDescription(models.Model):
-    product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productbasedesc')
-    language_id = models.IntegerField()
-    name = models.CharField(max_length=255)
-    title = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField()
-    tag = models.TextField()
-    meta_title = models.CharField(max_length=255)
-    meta_description = models.CharField(max_length=255)
-    meta_keyword = models.CharField(max_length=255)
-    long_description = models.TextField(blank=True, null=True)
-    sign_reads = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_product_base_description'
-        ordering = ['product']
 
 
 class OcTsgProductMaterial(models.Model):
@@ -163,7 +146,7 @@ class OcTsgProductVariantCore(models.Model):
 
 class OcTsgProductVariants(models.Model):
     prod_variant_id = models.AutoField(primary_key=True)
-    prod_var_core = models.ForeignKey('OcTsgProductVariantCore', models.DO_NOTHING, related_name='prodvariants')
+    prod_var_core = models.ForeignKey(OcTsgProductVariantCore, models.DO_NOTHING, related_name='storeproductvariants')
     variant_code = models.CharField(max_length=255, blank=True, null=True)
     variant_overide_price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     alt_image = models.CharField(max_length=255, blank=True, null=True)
@@ -316,3 +299,42 @@ class OcTsgSymbols(models.Model):
     @property
     def symbol_image_url(self):
        return f"{settings.MEDIA_URL}{self.image_path}"
+
+
+class OcTsgBulkdiscountGroups(models.Model):
+    bulk_group_id = models.AutoField(primary_key=True)
+    group_name = models.CharField(max_length=255)
+    is_active = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_bulkdiscount_groups'
+
+    def __str__(self):
+        return self.group_name
+
+
+class OcTsgBulkdiscountGroupBreaks(models.Model):
+    bulk_breaks_id = models.AutoField(primary_key=True)
+    bulk_discount_group = models.ForeignKey(OcTsgBulkdiscountGroups, models.DO_NOTHING, related_name='discountgroup')
+    qty_range_min = models.IntegerField()
+    discount_percent = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_bulkdiscount_group_breaks'
+
+
+class OcTsgProductToBulkDiscounts(models.Model):
+    product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productbulkdiscounts')
+    bulk_discount_group = models.ForeignKey(OcTsgBulkdiscountGroups, models.DO_NOTHING)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_to_bulk_discounts'
+        unique_together = (('product', 'bulk_discount_group'),)
+
+
+
+

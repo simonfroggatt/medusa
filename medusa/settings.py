@@ -41,19 +41,20 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'medusa',
     'apps.authentication',
-    'apps.sales',
     'apps.products',
     'apps.customer',
     'apps.pricing',
     'apps.options',
     'apps.symbols',
     'apps.category',
+    'apps.orders',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
     'rest_framework_datatables',
     'bootstrap_modal_forms',
-    'tinymce'
+    'tinymce',
+    'pyreportjasper'
 ]
 
 MIDDLEWARE = [
@@ -197,6 +198,8 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MEDIA_ROOT = '/Users/simonfroggatt/Sites/totalsafetygroup_oc/stores/image/'
 MEDIA_URL = '/media/'
+
+REPORT_PATH = os.path.join(BASE_DIR, "static/reports")
 
 TINYMCE_JS_URL = os.path.join(STATIC_URL, "libs/tinymce/tinymce.min.js")
 

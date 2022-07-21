@@ -22,7 +22,7 @@ from medusa import views
 urlpatterns = [
     path('authentication/', include('apps.authentication.urls')),
     path('customer/', include('apps.customer.urls')),
-    path('orders/', include('apps.sales.urls')),
+    path('orders/', include('apps.orders.urls')),
     path('products/', include('apps.products.urls')),
     path('pricing/', include('apps.pricing.urls')),
     path('options/', include('apps.options.urls')),

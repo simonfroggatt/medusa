@@ -1,6 +1,21 @@
 from django.db import models
 from medusa.models import OcStore, OcTaxRate
 
+class OcTsgCountryIso(models.Model):
+    iso_id = models.IntegerField(primary_key=True)
+    iso2 = models.CharField(max_length=2, blank=True, null=True)
+    iso3 = models.CharField(max_length=3, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    status = models.IntegerField(blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_country_iso'
+
+    def __str__(self):
+        return self.name
+
 
 class OcTsgCompanyType(models.Model):
     company_type_id = models.AutoField(primary_key=True)
@@ -47,8 +62,9 @@ class OcCustomer(models.Model):
     store = models.ForeignKey(OcStore, on_delete=models.DO_NOTHING)
     language_id = models.IntegerField()
     company = models.CharField(max_length=255, blank=True, null=True)
-    firstname = models.CharField(max_length=32)
-    lastname = models.CharField(max_length=32)
+    fullname = models.CharField(max_length=255, blank=True, null=True)
+    firstname = models.CharField(max_length=32, blank=True, null=True)
+    lastname = models.CharField(max_length=32, blank=True, null=True)
     email = models.CharField(max_length=96)
     telephone = models.CharField(max_length=32)
     mobile = models.CharField(max_length=32, blank=True, null=True)
@@ -88,10 +104,9 @@ class OcTsgCompany(models.Model):
     email = models.CharField(max_length=255, blank=True, null=True)
     telephone = models.CharField(max_length=40, blank=True, null=True)
     website = models.CharField(max_length=255, blank=True, null=True)
-    address_1 = models.CharField(max_length=255, blank=True, null=True)
-    address_2 = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
-    county = models.CharField(max_length=255, blank=True, null=True)
+    area = models.CharField(max_length=255, blank=True, null=True)
     postcode = models.CharField(max_length=255, blank=True, null=True)
     xero_id = models.CharField(max_length=255, blank=True, null=True)
     payment_terms = models.ForeignKey('OcTsgPaymentTerms', models.DO_NOTHING, db_column='payment_terms', blank=True, null=True)
@@ -114,15 +129,17 @@ class OcAddress(models.Model):
     customer = models.ForeignKey('OcCustomer', models.DO_NOTHING, db_column='customer_id')
     company = models.CharField(max_length=40, blank=True, null=True)
     branch = models.CharField(max_length=255, blank=True, null=True)
+    fullname = models.CharField(max_length=255, blank=True, null=True)
     firstname = models.CharField(max_length=32)
     lastname = models.CharField(max_length=32)
     telephone = models.CharField(max_length=32)
     email = models.CharField(max_length=255)
-    address_1 = models.CharField(max_length=128)
+    address_1 = models.CharField(max_length=256)
     address_2 = models.CharField(max_length=128, blank=True, null=True)
-    city = models.CharField(max_length=128)
+    city = models.CharField(max_length=128, blank=True, null=True)
     postcode = models.CharField(max_length=10)
-    country_id = models.IntegerField(blank=True, null=True)
+    area = models.CharField(max_length=255, blank=True, null=True)
+    country = models.ForeignKey('OcTsgCountryIso', models.DO_NOTHING, blank=True, null=True)
     zone_id = models.IntegerField(blank=True, null=True)
     custom_field = models.TextField(blank=True, null=True)
     label = models.CharField(max_length=255, blank=True, null=True)
@@ -133,4 +150,7 @@ class OcAddress(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_address'
+
+
+
 

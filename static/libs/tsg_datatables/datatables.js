@@ -4,24 +4,23 @@
  *
  * To rebuild or modify this file with the latest versions of the included
  * software please visit:
- *   https://datatables.net/download/#bs5/dt-1.11.3/b-2.0.1/date-1.1.1/fc-4.0.0/r-2.2.9/sb-1.2.2/sp-1.4.0/sl-1.3.3
+ *   https://datatables.net/download/#bs5/dt-1.12.1/b-2.2.3/b-html5-2.2.3/fc-4.1.0/r-2.3.0/rr-1.2.8/sc-2.0.6/sl-1.4.0
  *
  * Included libraries:
- *   DataTables 1.11.3, Buttons 2.0.1, DateTime 1.1.1, FixedColumns 4.0.0, Responsive 2.2.9, SearchBuilder 1.2.2, SearchPanes 1.4.0, Select 1.3.3
+ *   DataTables 1.12.1, Buttons 2.2.3, HTML5 export 2.2.3, FixedColumns 4.1.0, Responsive 2.3.0, RowReorder 1.2.8, Scroller 2.0.6, Select 1.4.0
  */
 
-/*! DataTables 1.11.3
- * ©2008-2021 SpryMedia Ltd - datatables.net/license
+/*! DataTables 1.12.1
+ * ©2008-2022 SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     DataTables
  * @description Paginate, search and order HTML tables
- * @version     1.11.3
- * @file        jquery.dataTables.js
+ * @version     1.12.1
  * @author      SpryMedia Ltd
  * @contact     www.datatables.net
- * @copyright   Copyright 2008-2021 SpryMedia Ltd.
+ * @copyright   SpryMedia Ltd.
  *
  * This source file is free software, available under the following license:
  *   MIT license - http://datatables.net/license
@@ -71,38 +70,7 @@
 (function( $, window, document, undefined ) {
 	"use strict";
 
-	/**
-	 * DataTables is a plug-in for the jQuery Javascript library. It is a highly
-	 * flexible tool, based upon the foundations of progressive enhancement,
-	 * which will add advanced interaction controls to any HTML table. For a
-	 * full list of features please refer to
-	 * [DataTables.net](href="http://datatables.net).
-	 *
-	 * Note that the `DataTable` object is not a global variable but is aliased
-	 * to `jQuery.fn.DataTable` and `jQuery.fn.dataTable` through which it may
-	 * be  accessed.
-	 *
-	 *  @class
-	 *  @param {object} [init={}] Configuration object for DataTables. Options
-	 *    are defined by {@link DataTable.defaults}
-	 *  @requires jQuery 1.7+
-	 *
-	 *  @example
-	 *    // Basic initialisation
-	 *    $(document).ready( function {
-	 *      $('#example').dataTable();
-	 *    } );
-	 *
-	 *  @example
-	 *    // Initialisation with configuration options - in this case, disable
-	 *    // pagination and sorting.
-	 *    $(document).ready( function {
-	 *      $('#example').dataTable( {
-	 *        "paginate": false,
-	 *        "sort": false
-	 *      } );
-	 *    } );
-	 */
+	
 	var DataTable = function ( selector, options )
 	{
 		// When creating with `new`, create a new DataTable, returning the API instance
@@ -113,7 +81,7 @@
 			// Argument switching
 			options = selector;
 		}
-
+	
 		/**
 		 * Perform a jQuery selector action on the table's TR elements (from the tbody) and
 		 * return the resulting jQuery object.
@@ -869,24 +837,24 @@
 		 */
 		this.fnVersionCheck = _ext.fnVersionCheck;
 		
-
+	
 		var _that = this;
 		var emptyInit = options === undefined;
 		var len = this.length;
-
+	
 		if ( emptyInit ) {
 			options = {};
 		}
-
+	
 		this.oApi = this.internal = _ext.internal;
-
+	
 		// Extend with old style plug-in API methods
 		for ( var fn in DataTable.ext.internal ) {
 			if ( fn ) {
 				this[fn] = _fnExternApiFunc(fn);
 			}
 		}
-
+	
 		this.each(function() {
 			// For each initialisation we want to give it a clean initialisation
 			// object that can be bashed around
@@ -894,7 +862,7 @@
 			var oInit = len > 1 ? // optimisation for single table case
 				_fnExtend( o, options, true ) :
 				options;
-
+	
 			/*global oInit,_that,emptyInit*/
 			var i=0, iLen, j, jLen, k, kLen;
 			var sId = this.getAttribute( 'id' );
@@ -1108,7 +1076,7 @@
 					success: function ( json ) {
 						_fnCamelToHungarian( defaults.oLanguage, json );
 						_fnLanguageCompat( json );
-						$.extend( true, oLanguage, json );
+						$.extend( true, oLanguage, json, oSettings.oInit.oLanguage );
 			
 						_fnCallbackFire( oSettings, null, 'i18n', [oSettings]);
 						_fnInitialise( oSettings );
@@ -1337,7 +1305,7 @@
 		_that = null;
 		return this;
 	};
-
+	
 	
 	/*
 	 * It is useful to have variables which are scoped locally so only the
@@ -2341,8 +2309,16 @@
 				th.addClass( oOptions.sClass );
 			}
 	
+			var origClass = oCol.sClass;
+	
 			$.extend( oCol, oOptions );
 			_fnMap( oCol, oOptions, "sWidth", "sWidthOrig" );
+	
+			// Merge class from previously defined classes with this one, rather than just
+			// overwriting it in the extend above
+			if (origClass !== oCol.sClass) {
+				oCol.sClass = origClass + ' ' + oCol.sClass;
+			}
 	
 			/* iDataSort to be applied (backwards compatibility), but aDataSort will take
 			 * priority if defined
@@ -2616,9 +2592,11 @@
 				def = aoColDefs[i];
 	
 				/* Each definition can target multiple columns, as it is an array */
-				var aTargets = def.targets !== undefined ?
-					def.targets :
-					def.aTargets;
+				var aTargets = def.target !== undefined
+					? def.target
+					: def.targets !== undefined
+						? def.targets
+						: def.aTargets;
 	
 				if ( ! Array.isArray( aTargets ) )
 				{
@@ -3462,6 +3440,9 @@
 	 */
 	function _fnDraw( oSettings, ajaxComplete )
 	{
+		// Allow for state saving and a custom start position
+		_fnStart( oSettings );
+	
 		/* Provide a pre-callback function which can be used to cancel the draw is false is returned */
 		var aPreDraw = _fnCallbackFire( oSettings, 'aoPreDrawCallback', 'preDraw', [oSettings] );
 		if ( $.inArray( false, aPreDraw ) !== -1 )
@@ -3470,33 +3451,17 @@
 			return;
 		}
 	
-		var i, iLen, n;
 		var anRows = [];
 		var iRowCount = 0;
 		var asStripeClasses = oSettings.asStripeClasses;
 		var iStripes = asStripeClasses.length;
-		var iOpenRows = oSettings.aoOpenRows.length;
 		var oLang = oSettings.oLanguage;
-		var iInitDisplayStart = oSettings.iInitDisplayStart;
 		var bServerSide = _fnDataSource( oSettings ) == 'ssp';
 		var aiDisplay = oSettings.aiDisplay;
-	
-		oSettings.bDrawing = true;
-	
-		/* Check and see if we have an initial draw position from state saving */
-		if ( iInitDisplayStart !== undefined && iInitDisplayStart !== -1 )
-		{
-			oSettings._iDisplayStart = bServerSide ?
-				iInitDisplayStart :
-				iInitDisplayStart >= oSettings.fnRecordsDisplay() ?
-					0 :
-					iInitDisplayStart;
-	
-			oSettings.iInitDisplayStart = -1;
-		}
-	
 		var iDisplayStart = oSettings._iDisplayStart;
 		var iDisplayEnd = oSettings.fnDisplayEnd();
+	
+		oSettings.bDrawing = true;
 	
 		/* Server-side processing draw intercept */
 		if ( oSettings.bDeferLoading )
@@ -3900,6 +3865,28 @@
 	}
 	
 	/**
+	 * Set the start position for draw
+	 *  @param {object} oSettings dataTables settings object
+	 */
+	function _fnStart( oSettings )
+	{
+		var bServerSide = _fnDataSource( oSettings ) == 'ssp';
+		var iInitDisplayStart = oSettings.iInitDisplayStart;
+	
+		// Check and see if we have an initial draw position from state saving
+		if ( iInitDisplayStart !== undefined && iInitDisplayStart !== -1 )
+		{
+			oSettings._iDisplayStart = bServerSide ?
+				iInitDisplayStart :
+				iInitDisplayStart >= oSettings.fnRecordsDisplay() ?
+					0 :
+					iInitDisplayStart;
+	
+			oSettings.iInitDisplayStart = -1;
+		}
+	}
+	
+	/**
 	 * Create an Ajax call based on the table's settings, taking into account that
 	 * parameters can have multiple forms, and backwards compatibility.
 	 *
@@ -3942,8 +3929,8 @@
 		var ajax = oSettings.ajax;
 		var instance = oSettings.oInstance;
 		var callback = function ( json ) {
-			var status = oSettings.jqXhr
-				? oSettings.jqXhr.status
+			var status = oSettings.jqXHR
+				? oSettings.jqXHR.status
 				: null;
 	
 			if ( json === null || (typeof status === 'number' && status == 204 ) ) {
@@ -5111,6 +5098,7 @@
 				'class': settings.oClasses.sProcessing
 			} )
 			.html( settings.oLanguage.sProcessing )
+			.append('<div><div></div><div></div><div></div><div></div></div>')
 			.insertBefore( settings.nTable )[0];
 	}
 	
@@ -5360,6 +5348,7 @@
 			footerCopy = footer.clone().prependTo( table );
 			footerTrgEls = footer.find('tr'); // the original tfoot is in its own table and must be sized
 			footerSrcEls = footerCopy.find('tr');
+			footerCopy.find('[id]').removeAttr('id');
 		}
 	
 		// Clone the current header and footer elements and then place it into the inner table
@@ -5367,6 +5356,7 @@
 		headerTrgEls = header.find('tr'); // original header is in its own table
 		headerSrcEls = headerCopy.find('tr');
 		headerCopy.find('th, td').removeAttr('tabindex');
+		headerCopy.find('[id]').removeAttr('id');
 	
 	
 		/*
@@ -5440,7 +5430,7 @@
 			nToSize.style.width = headerWidths[i];
 		}, headerTrgEls );
 	
-		$(headerSrcEls).height(0);
+		$(headerSrcEls).css('height', 0);
 	
 		/* Same again with the footer if we have one */
 		if ( footer )
@@ -5487,7 +5477,7 @@
 	
 		// Sanity check that the table is of a sensible width. If not then we are going to get
 		// misalignment - try to prevent this by not allowing the table to shrink below its min width
-		if ( table.outerWidth() < sanityWidth )
+		if ( Math.round(table.outerWidth()) < Math.round(sanityWidth) )
 		{
 			// The min width depends upon if we have a vertical scrollbar visible or not */
 			correction = ((divBodyEl.scrollHeight > divBodyEl.offsetHeight ||
@@ -6493,16 +6483,27 @@
 		// Store the saved state so it might be accessed at any time
 		settings.oLoadedState = $.extend( true, {}, s );
 	
+		// Page Length
+		if ( s.length !== undefined ) {
+			// If already initialised just set the value directly so that the select element is also updated
+			if (api) {
+				api.page.len(s.length)
+			}
+			else {
+				settings._iDisplayLength   = s.length;
+			}
+		}
+	
 		// Restore key features - todo - for 1.11 this needs to be done by
 		// subscribed events
 		if ( s.start !== undefined ) {
-			settings._iDisplayStart    = s.start;
 			if(api === null) {
+				settings._iDisplayStart    = s.start;
 				settings.iInitDisplayStart = s.start;
 			}
-		}
-		if ( s.length !== undefined ) {
-			settings._iDisplayLength   = s.length;
+			else {
+				_fnPageChange(settings, s.start/settings._iDisplayLength);
+			}
 		}
 	
 		// Order
@@ -6844,7 +6845,7 @@
 		return 'dom';
 	}
 	
-
+	
 	
 	
 	/**
@@ -7236,8 +7237,10 @@
 	
 		pluck: function ( prop )
 		{
+			let fn = DataTable.util.get(prop);
+	
 			return this.map( function ( el ) {
-				return el[ prop ];
+				return fn(el);
 			} );
 		},
 	
@@ -8331,22 +8334,35 @@
 	
 	$(document).on('plugin-init.dt', function (e, context) {
 		var api = new _Api( context );
-		api.on( 'stateSaveParams', function ( e, settings, data ) {
-			var indexes = api.rows().iterator( 'row', function ( settings, idx ) {
-				return settings.aoData[idx]._detailsShow ? idx : undefined;
-			});
 	
-			data.childRows = api.rows( indexes ).ids( true ).toArray();
+		api.on( 'stateSaveParams', function ( e, settings, d ) {
+			// This could be more compact with the API, but it is a lot faster as a simple
+			// internal loop
+			var idFn = settings.rowIdFn;
+			var data = settings.aoData;
+			var ids = [];
+	
+			for (var i=0 ; i<data.length ; i++) {
+				if (data[i]._detailsShow) {
+					ids.push( '#' + idFn(data[i]._aData) );
+				}
+			}
+	
+			d.childRows = ids;
 		})
 	
 		var loaded = api.state.loaded();
 	
 		if ( loaded && loaded.childRows ) {
-			api.rows( loaded.childRows ).every( function () {
-				_fnCallbackFire( context, null, 'requestChild', [ this ] )
-			})
+			api
+				.rows( $.map(loaded.childRows, function (id){
+					return id.replace(/:/g, '\\:')
+				}) )
+				.every( function () {
+					_fnCallbackFire( context, null, 'requestChild', [ this ] )
+				});
 		}
-	})
+	});
 	
 	var __details_add = function ( ctx, row, data, klass )
 	{
@@ -8393,6 +8409,15 @@
 	};
 	
 	
+	// Make state saving of child row details async to allow them to be batch processed
+	var __details_state = DataTable.util.throttle(
+		function (ctx) {
+			_fnSaveState( ctx[0] )
+		},
+		500
+	);
+	
+	
 	var __details_remove = function ( api, idx )
 	{
 		var ctx = api.context;
@@ -8406,7 +8431,7 @@
 				row._detailsShow = undefined;
 				row._details = undefined;
 				$( row.nTr ).removeClass( 'dt-hasChild' );
-				_fnSaveState( ctx[0] );
+				__details_state( ctx );
 			}
 		}
 	};
@@ -8433,7 +8458,7 @@
 				_fnCallbackFire( ctx[0], null, 'childRow', [ show, api.row( api[0] ) ] )
 	
 				__details_events( ctx[0] );
-				_fnSaveState( ctx[0] );
+				__details_state( ctx );
 			}
 		}
 	};
@@ -8444,7 +8469,7 @@
 		var api = new _Api( settings );
 		var namespace = '.dt.DT_details';
 		var drawEvent = 'draw'+namespace;
-		var colvisEvent = 'column-visibility'+namespace;
+		var colvisEvent = 'column-sizing'+namespace;
 		var destroyEvent = 'destroy'+namespace;
 		var data = settings.aoData;
 	
@@ -9496,7 +9521,6 @@
 		remove = remove || false;
 	
 		return this.iterator( 'table', function ( settings ) {
-			var orig      = settings.nTableWrapper.parentNode;
 			var classes   = settings.oClasses;
 			var table     = settings.nTable;
 			var tbody     = settings.nTBody;
@@ -9550,6 +9574,8 @@
 			// Add the TR elements back into the table in their original order
 			jqTbody.children().detach();
 			jqTbody.append( rows );
+	
+			var orig = settings.nTableWrapper.parentNode;
 	
 			// Remove the DataTables generated nodes, events and classes
 			var removedMethod = remove ? 'remove' : 'detach';
@@ -9635,7 +9661,7 @@
 		}
 	
 		return resolved.replace( '%d', plural ); // nb: plural might be undefined,
-	} );
+	} );	
 	/**
 	 * Version string for plug-ins to check compatibility. Allowed format is
 	 * `a.b.c-d` where: a:int, b:int, c:int, d:string(dev|beta|alpha). `d` is used
@@ -9644,8 +9670,8 @@
 	 *  @type string
 	 *  @default Version number
 	 */
-	DataTable.version = "1.11.3";
-
+	DataTable.version = "1.12.1";
+	
 	/**
 	 * Private data store, containing all of the settings objects that are
 	 * created for the tables on a given page.
@@ -9659,7 +9685,7 @@
 	 *  @private
 	 */
 	DataTable.settings = [];
-
+	
 	/**
 	 * Object models container, for the various models that DataTables has
 	 * available to it. These models define the objects that are used to hold
@@ -11849,7 +11875,6 @@
 			 * Text which is displayed when the table is processing a user action
 			 * (usually a sort command or similar).
 			 *  @type string
-			 *  @default Processing...
 			 *
 			 *  @dtopt Language
 			 *  @name DataTable.defaults.language.processing
@@ -11863,7 +11888,7 @@
 			 *      } );
 			 *    } );
 			 */
-			"sProcessing": "Processing...",
+			"sProcessing": "",
 	
 	
 			/**
@@ -14017,7 +14042,7 @@
 		 */
 		"rowId": null
 	};
-
+	
 	/**
 	 * Extension object for DataTables that is used to provide all extension
 	 * options.
@@ -14069,7 +14094,7 @@
 		 *
 		 *  @type string
 		 */
-		build:"bs5/dt-1.11.3/b-2.0.1/date-1.1.1/fc-4.0.0/r-2.2.9/sb-1.2.2/sp-1.4.0/sl-1.3.3",
+		build:"bs5/dt-1.12.1/b-2.2.3/b-html5-2.2.3/fc-4.1.0/r-2.3.0/rr-1.2.8/sc-2.0.6/sl-1.4.0",
 	
 	
 		/**
@@ -15115,6 +15140,213 @@
 			d;
 	};
 	
+	// Common logic for moment, luxon or a date action
+	function __mld( dt, momentFn, luxonFn, dateFn, arg1 ) {
+		if (window.moment) {
+			return dt[momentFn]( arg1 );
+		}
+		else if (window.luxon) {
+			return dt[luxonFn]( arg1 );
+		}
+		
+		return dateFn ? dt[dateFn]( arg1 ) : dt;
+	}
+	
+	
+	var __mlWarning = false;
+	function __mldObj (d, format, locale) {
+		var dt;
+	
+		if (window.moment) {
+			dt = window.moment.utc( d, format, locale, true );
+	
+			if (! dt.isValid()) {
+				return null;
+			}
+		}
+		else if (window.luxon) {
+			dt = format
+				? window.luxon.DateTime.fromFormat( d, format )
+				: window.luxon.DateTime.fromISO( d );
+	
+			if (! dt.isValid) {
+				return null;
+			}
+	
+			dt.setLocale(locale);
+		}
+		else if (! format) {
+			// No format given, must be ISO
+			dt = new Date(d);
+		}
+		else {
+			if (! __mlWarning) {
+				alert('DataTables warning: Formatted date without Moment.js or Luxon - https://datatables.net/tn/17');
+			}
+	
+			__mlWarning = true;
+		}
+	
+		return dt;
+	}
+	
+	// Wrapper for date, datetime and time which all operate the same way with the exception of
+	// the output string for auto locale support
+	function __mlHelper (localeString) {
+		return function ( from, to, locale, def ) {
+			// Luxon and Moment support
+			// Argument shifting
+			if ( arguments.length === 0 ) {
+				locale = 'en';
+				to = null; // means toLocaleString
+				from = null; // means iso8601
+			}
+			else if ( arguments.length === 1 ) {
+				locale = 'en';
+				to = from;
+				from = null;
+			}
+			else if ( arguments.length === 2 ) {
+				locale = to;
+				to = from;
+				from = null;
+			}
+	
+			var typeName = 'datetime-' + to;
+	
+			// Add type detection and sorting specific to this date format - we need to be able to identify
+			// date type columns as such, rather than as numbers in extensions. Hence the need for this.
+			if (! DataTable.ext.type.order[typeName]) {
+				// The renderer will give the value to type detect as the type!
+				DataTable.ext.type.detect.unshift(function (d) {
+					return d === typeName ? typeName : false;
+				});
+	
+				// The renderer gives us Moment, Luxon or Date obects for the sorting, all of which have a
+				// `valueOf` which gives milliseconds epoch
+				DataTable.ext.type.order[typeName + '-asc'] = function (a, b) {
+					var x = a.valueOf();
+					var y = b.valueOf();
+	
+					return x === y
+						? 0
+						: x < y
+							? -1
+							: 1;
+				}
+	
+				DataTable.ext.type.order[typeName + '-desc'] = function (a, b) {
+					var x = a.valueOf();
+					var y = b.valueOf();
+	
+					return x === y
+						? 0
+						: x > y
+							? -1
+							: 1;
+				}
+			}
+		
+			return function ( d, type ) {
+				// Allow for a default value
+				if (d === null || d === undefined) {
+					if (def === '--now') {
+						// We treat everything as UTC further down, so no changes are
+						// made, as such need to get the local date / time as if it were
+						// UTC
+						var local = new Date();
+						d = new Date( Date.UTC(
+							local.getFullYear(), local.getMonth(), local.getDate(),
+							local.getHours(), local.getMinutes(), local.getSeconds()
+						) );
+					}
+					else {
+						d = '';
+					}
+				}
+	
+				if (type === 'type') {
+					// Typing uses the type name for fast matching
+					return typeName;
+				}
+	
+				if (d === '') {
+					return type !== 'sort'
+						? ''
+						: __mldObj('0000-01-01 00:00:00', null, locale);
+				}
+	
+				// Shortcut. If `from` and `to` are the same, we are using the renderer to
+				// format for ordering, not display - its already in the display format.
+				if ( to !== null && from === to && type !== 'sort' && type !== 'type' && ! (d instanceof Date) ) {
+					return d;
+				}
+	
+				var dt = __mldObj(d, from, locale);
+	
+				if (dt === null) {
+					return d;
+				}
+	
+				if (type === 'sort') {
+					return dt;
+				}
+				
+				var formatted = to === null
+					? __mld(dt, 'toDate', 'toJSDate', '')[localeString]()
+					: __mld(dt, 'format', 'toFormat', 'toISOString', to);
+	
+				// XSS protection
+				return type === 'display' ?
+					__htmlEscapeEntities( formatted ) :
+					formatted;
+			};
+		}
+	}
+	
+	// Based on locale, determine standard number formatting
+	// Fallback for legacy browsers is US English
+	var __thousands = ',';
+	var __decimal = '.';
+	
+	if (Intl) {
+		try {
+			var num = new Intl.NumberFormat().formatToParts(100000.1);
+		
+			for (var i=0 ; i<num.length ; i++) {
+				if (num[i].type === 'group') {
+					__thousands = num[i].value;
+				}
+				else if (num[i].type === 'decimal') {
+					__decimal = num[i].value;
+				}
+			}
+		}
+		catch (e) {
+			// noop
+		}
+	}
+	
+	// Formatted date time detection - use by declaring the formats you are going to use
+	DataTable.datetime = function ( format, locale ) {
+		var typeName = 'datetime-detect-' + format;
+	
+		if (! locale) {
+			locale = 'en';
+		}
+	
+		if (! DataTable.ext.type.order[typeName]) {
+			DataTable.ext.type.detect.unshift(function (d) {
+				var dt = __mldObj(d, format, locale);
+				return d === '' || dt ? typeName : false;
+			});
+	
+			DataTable.ext.type.order[typeName + '-pre'] = function (d) {
+				return __mldObj(d, format, locale) || 0;
+			}
+		}
+	}
+	
 	/**
 	 * Helpers for `columns.render`.
 	 *
@@ -15142,10 +15374,26 @@
 	 * @namespace
 	 */
 	DataTable.render = {
+		date: __mlHelper('toLocaleDateString'),
+		datetime: __mlHelper('toLocaleString'),
+		time: __mlHelper('toLocaleTimeString'),
 		number: function ( thousands, decimal, precision, prefix, postfix ) {
+			// Auto locale detection
+			if (thousands === null || thousands === undefined) {
+				thousands = __thousands;
+			}
+	
+			if (decimal === null || decimal === undefined) {
+				decimal = __decimal;
+			}
+	
 			return {
 				display: function ( d ) {
 					if ( typeof d !== 'number' && typeof d !== 'string' ) {
+						return d;
+					}
+	
+					if (d === '' || d === null) {
 						return d;
 					}
 	
@@ -15317,29 +15565,29 @@
 		                                // added to prevent errors
 	} );
 	
-
+	
 	// jQuery access
 	$.fn.dataTable = DataTable;
-
+	
 	// Provide access to the host jQuery object (circular reference)
 	DataTable.$ = $;
-
+	
 	// Legacy aliases
 	$.fn.dataTableSettings = DataTable.settings;
 	$.fn.dataTableExt = DataTable.ext;
-
+	
 	// With a capital `D` we return a DataTables API instance rather than a
 	// jQuery object
 	$.fn.DataTable = function ( opts ) {
 		return $(this).dataTable( opts ).api();
 	};
-
+	
 	// All properties that are available to $.fn.dataTable should also be
 	// available on $.fn.DataTable
 	$.each( DataTable, function ( prop, val ) {
 		$.fn.DataTable[ prop ] = val;
 	} );
-
+	
 	return DataTable;
 }));
 
@@ -15530,8 +15778,8 @@ return DataTable;
 }));
 
 
-/*! Buttons for DataTables 2.0.1
- * ©2016-2021 SpryMedia Ltd - datatables.net/license
+/*! Buttons for DataTables 2.2.3
+ * ©2016-2022 SpryMedia Ltd - datatables.net/license
  */
 
 (function( factory ){
@@ -15712,9 +15960,11 @@ $.extend( Buttons.prototype, {
 	 * Add a new button
 	 * @param {object} config Button configuration object, base string name or function
 	 * @param {int|string} [idx] Button index for where to insert the button
+	 * @param {boolean} [draw=true] Trigger a draw. Set a false when adding
+	 *   lots of buttons, until the last button.
 	 * @return {Buttons} Self for chaining
 	 */
-	add: function ( config, idx )
+	add: function ( config, idx, draw )
 	{
 		var buttons = this.s.buttons;
 
@@ -15736,9 +15986,13 @@ $.extend( Buttons.prototype, {
 			config !== undefined ? config.split : undefined,
 			(config === undefined || config.split === undefined || config.split.length === 0) && base !== undefined,
 			false,
-			idx );
-		this._draw();
+			idx
+		);
 
+		if (draw === undefined || draw === true) {
+			this._draw();
+		}
+	
 		return this;
 	},
 
@@ -15757,14 +16011,16 @@ $.extend( Buttons.prototype, {
 			}
 	
 			for (i=0; i<newButtons.length; i++) {
+				var newBtn = newButtons[i];
+
 				this._expandButton(
 					button.buttons,
-					newButtons[i],
-					newButtons[i] !== undefined && newButtons[i].config !== undefined && newButtons[i].config.split !== undefined,
+					newBtn,
+					newBtn !== undefined && newBtn.config !== undefined && newBtn.config.split !== undefined,
 					true,
-					newButtons[i].parentConf !== undefined && newButtons[i].parentConf.split !== undefined,
+					newBtn.parentConf !== undefined && newBtn.parentConf.split !== undefined,
 					i,
-					newButtons[i].parentConf
+					newBtn.parentConf
 				);
 			}
 		}
@@ -15850,6 +16106,40 @@ $.extend( Buttons.prototype, {
 
 		return this;
 	},
+
+	/**
+	 * Get a button's index
+	 * 
+	 * This is internally recursive
+	 * @param {element} node Button to get the index of
+	 * @return {string} Button index
+	 */
+	index: function ( node, nested, buttons )
+	{
+		if ( ! nested ) {
+			nested = '';
+			buttons = this.s.buttons;
+		}
+
+		for ( var i=0, ien=buttons.length ; i<ien ; i++ ) {
+			var inner = buttons[i].buttons;
+
+			if (buttons[i].node === node) {
+				return nested + i;
+			}
+
+			if ( inner && inner.length ) {
+				var match = this.index(node, i + '-', inner);
+
+				if (match !== null) {
+					return match;
+				}
+			}
+		}
+
+		return null;
+	},
+
 
 	/**
 	 * Get the instance name for the button set selector
@@ -15968,6 +16258,7 @@ $.extend( Buttons.prototype, {
 		if ( linerTag ) {
 			jqNode
 				.children( linerTag )
+				.eq(0)
 				.filter(':not(.dt-down-arrow)')
 				.html( text(label) );
 		}
@@ -16140,7 +16431,7 @@ $.extend( Buttons.prototype, {
 				if(built.conf.split) {
 					for(var j = 0; j < built.conf.split.length; j++) {
 						if(typeof built.conf.split[j] === "object") {
-							built.conf.split[i].parent = parentConf;
+							built.conf.split[j].parent = parentConf;
 							if(built.conf.split[j].collectionLayout === undefined) {
 								built.conf.split[j].collectionLayout = built.conf.collectionLayout;
 							}
@@ -16193,6 +16484,24 @@ $.extend( Buttons.prototype, {
 				opt;
 		};
 
+		// Spacers don't do much other than insert an element into the DOM
+		if (config.spacer) {
+			var spacer = $('<span></span>')
+				.addClass('dt-button-spacer ' + config.style + ' ' + buttonDom.spacerClass)
+				.html(text(config.text));
+
+			return {
+				conf:         config,
+				node:         spacer,
+				inserter:     spacer,
+				buttons:      [],
+				inCollection: inCollection,
+				isSplit:	  isSplit,
+				inSplit:	  inSplit,
+				collection:   null
+			};
+		}
+
 		if ( !isSplit && inSplit && splitCollectionDom ) {
 			buttonDom = splitDropdownButton;
 		}
@@ -16224,7 +16533,10 @@ $.extend( Buttons.prototype, {
 			};
 
 			var tag = config.tag || buttonDom.tag;
-			var clickBlurs = config.clickBlurs === undefined ? false : config.clickBlurs
+			var clickBlurs = config.clickBlurs === undefined
+				? true :
+				config.clickBlurs;
+
 			button = $('<'+tag+'/>')
 				.addClass( buttonDom.className )
 				.addClass( inSplit ? this.c.dom.splitDropdownButton.className : '')
@@ -16240,8 +16552,10 @@ $.extend( Buttons.prototype, {
 						button.trigger('blur');
 					}
 				} )
-				.on( 'keyup.dtb', function (e) {
+				.on( 'keypress.dtb', function (e) {
 					if ( e.keyCode === 13 ) {
+						e.preventDefault();
+
 						if ( ! button.hasClass( buttonDom.disabled ) && config.action ) {
 							action( e, dt, button, config );
 						}
@@ -16328,8 +16642,9 @@ $.extend( Buttons.prototype, {
 			var dropButtonConfig = $.extend(config, {
 				text: this.c.dom.splitDropdown.text,
 				className: this.c.dom.splitDropdown.className,
+				closeButton: false,
 				attr: {
-					'aria-haspopup': true,
+					'aria-haspopup': 'dialog',
 					'aria-expanded': false
 				},
 				align: this.c.dom.splitDropdown.align,
@@ -16353,16 +16668,18 @@ $.extend( Buttons.prototype, {
 					e.preventDefault();
 					e.stopPropagation();
 
-					if ( ! dropButton.hasClass( buttonDom.disabled ) && dropButtonConfig.action ) {
+					if ( ! dropButton.hasClass( buttonDom.disabled )) {
 						splitAction( e, dt, dropButton, dropButtonConfig );
 					}
 					if ( clickBlurs ) {
 						dropButton.trigger('blur');
 					}
 				} )
-				.on( 'keyup.dtb', function (e) {
+				.on( 'keypress.dtb', function (e) {
 					if ( e.keyCode === 13 ) {
-						if ( ! dropButton.hasClass( buttonDom.disabled ) && dropButtonConfig.action ) {
+						e.preventDefault();
+
+						if ( ! dropButton.hasClass( buttonDom.disabled ) ) {
 							splitAction( e, dt, dropButton, dropButtonConfig );
 						}
 					}
@@ -16536,6 +16853,7 @@ $.extend( Buttons.prototype, {
 	 */
 	_resolveExtends: function ( conf )
 	{
+		var that = this;
 		var dt = this.s.dt;
 		var i, ien;
 		var toConfObject = function ( base ) {
@@ -16550,7 +16868,7 @@ $.extend( Buttons.prototype, {
 				}
 
 				if ( typeof base === 'function' ) {
-					base = base( dt, conf );
+					base = base.call( that, dt, conf );
 
 					if ( ! base ) {
 						return false;
@@ -16664,6 +16982,7 @@ $.extend( Buttons.prototype, {
 			autoClose: false,
 			background: true,
 			backgroundClassName: 'dt-button-background',
+			closeButton: true,
 			contentClassName: buttonsSettings.dom.collection.className,
 			collectionLayout: '',
 			collectionTitle: '',
@@ -16671,8 +16990,6 @@ $.extend( Buttons.prototype, {
 			fade: 400,
 			popoverTitle: '',
 			rightAlignClassName: 'dt-button-right',
-			splitRightAlignClassName: 'dt-button-split-right',
-			splitLeftAlignClassName: 'dt-button-split-left',
 			tag: buttonsSettings.dom.collection.tag
 		}, inOpts );
 
@@ -16689,12 +17006,13 @@ $.extend( Buttons.prototype, {
 				}
 			);
 
-			$(dt.buttons( '[aria-haspopup="true"][aria-expanded="true"]' ).nodes())
+			$(dt.buttons( '[aria-haspopup="dialog"][aria-expanded="true"]' ).nodes())
 				.attr('aria-expanded', 'false');
 
 			$('div.dt-button-background').off( 'click.dtb-collection' );
 			Buttons.background( false, options.backgroundClassName, options.fade, hostNode );
 
+			$(window).off('resize.resize.dtb-collection');
 			$('body').off( '.dtb-collection' );
 			dt.off( 'buttons-action.b-internal' );
 			dt.off( 'destroy' );
@@ -16702,20 +17020,43 @@ $.extend( Buttons.prototype, {
 
 		if (content === false) {
 			close();
+			return;
 		}
 
-		var existingExpanded = $(dt.buttons( '[aria-haspopup="true"][aria-expanded="true"]' ).nodes());
+		var existingExpanded = $(dt.buttons( '[aria-haspopup="dialog"][aria-expanded="true"]' ).nodes());
 		if ( existingExpanded.length ) {
-			hostNode = existingExpanded.eq(0);
+			// Reuse the current position if the button that was triggered is inside an existing collection
+			if (hostNode.closest('div.dt-button-collection').length) {
+				hostNode = existingExpanded.eq(0);
+			}
 
 			close();
+		}
+
+		// Try to be smart about the layout
+		var cnt = $('.dt-button', content).length;
+		var mod = '';
+
+		if (cnt === 3) {
+			mod = 'dtb-b3';
+		}
+		else if (cnt === 2) {
+			mod = 'dtb-b2';
+		}
+		else if (cnt === 1) {
+			mod = 'dtb-b1';
 		}
 
 		var display = $('<div/>')
 			.addClass('dt-button-collection')
 			.addClass(options.collectionLayout)
 			.addClass(options.splitAlignClass)
-			.css('display', 'none');
+			.addClass(mod)
+			.css('display', 'none')
+			.attr({
+				'aria-modal': true,
+				role: 'dialog'
+			});
 
 		content = $(content)
 			.addClass(options.contentClassName)
@@ -16735,12 +17076,16 @@ $.extend( Buttons.prototype, {
 			display.prepend('<div class="dt-button-collection-title">'+options.collectionTitle+'</div>');
 		}
 
+		if (options.closeButton) {
+			display.prepend('<div class="dtb-popover-close">x</div>').addClass('dtb-collection-closeable')
+		}
+
 		_fadeIn( display.insertAfter( hostNode ), options.fade );
 
 		var tableContainer = $( hostButton.table().container() );
 		var position = display.css( 'position' );
 
-		if ( options.align === 'dt-container' ) {
+		if ( options.span === 'container' || options.align === 'dt-container' ) {
 			hostNode = hostNode.parent();
 			display.css('width', tableContainer.width());
 		}
@@ -16749,170 +17094,112 @@ $.extend( Buttons.prototype, {
 		// Useful for wide popovers such as SearchPanes
 		if (position === 'absolute') {
 			// Align relative to the host button
-			var hostPosition = hostNode.position();
-			var buttonPosition = $(hostButton.node()).position();
+			var offsetParent = $(hostNode[0].offsetParent);
+			var buttonPosition = hostNode.position();
+			var buttonOffset = hostNode.offset();
+			var tableSizes = offsetParent.offset();
+			var containerPosition = offsetParent.position();
+			var computed = window.getComputedStyle(offsetParent[0]);
+
+			tableSizes.height = offsetParent.outerHeight();
+			tableSizes.width = offsetParent.width() + parseFloat(computed.paddingLeft);
+			tableSizes.right = tableSizes.left + tableSizes.width;
+			tableSizes.bottom = tableSizes.top + tableSizes.height;
+
+			// Set the initial position so we can read height / width
+			var top = buttonPosition.top + hostNode.outerHeight();
+			var left = buttonPosition.left;
 
 			display.css( {
-				top: $($(hostButton[0].node).parent()[0]).hasClass('dt-buttons')
-					? buttonPosition.top + hostNode.outerHeight()
-					: hostPosition.top + hostNode.outerHeight(),
-				left: hostPosition.left
+				top: top,
+				left: left
 			} );
 
-			// calculate overflow when positioned beneath
-			var collectionHeight = display.outerHeight();
-			var tableBottom = tableContainer.offset().top + tableContainer.height();
-			var listBottom = buttonPosition.top + hostNode.outerHeight() + collectionHeight;
-			var bottomOverflow = listBottom - tableBottom;
+			// Get the popover position
+			computed = window.getComputedStyle(display[0]);
+			var popoverSizes = display.offset();
 
-			// calculate overflow when positioned above
-			var listTop = buttonPosition.top - collectionHeight;
-			var tableTop = tableContainer.offset().top;
-			var topOverflow = tableTop - listTop;
+			popoverSizes.height = display.outerHeight();
+			popoverSizes.width = display.outerWidth();
+			popoverSizes.right = popoverSizes.left + popoverSizes.width;
+			popoverSizes.bottom = popoverSizes.top + popoverSizes.height;
+			popoverSizes.marginTop = parseFloat(computed.marginTop);
+			popoverSizes.marginBottom = parseFloat(computed.marginBottom);
 
-			// if bottom overflow is larger, move to the top because it fits better, or if dropup is requested
-			var moveTop = buttonPosition.top - collectionHeight - 5;
-			if ( (bottomOverflow > topOverflow || options.dropup) && -moveTop < tableTop ) {
-				display.css( 'top', moveTop);
+			// First position per the class requirements - pop up and right align
+			if (options.dropup) {
+				top = buttonPosition.top - popoverSizes.height - popoverSizes.marginTop - popoverSizes.marginBottom;
 			}
 
-			// Get the size of the container (left and width - and thus also right)
-			var tableLeft = tableContainer.offset().left;
-			var tableWidth = tableContainer.width();
-			var tableRight = tableLeft + tableWidth;
+			if (options.align === 'button-right' || display.hasClass( options.rightAlignClassName )) {
+				left = buttonPosition.left - popoverSizes.width + hostNode.outerWidth(); 
+			}
 
-			// Get the size of the popover (left and width - and ...)
-			var popoverLeft = display.offset().left;
-			var popoverWidth = display.outerWidth();
+			// Container alignment - make sure it doesn't overflow the table container
+			if (options.align === 'dt-container' || options.align === 'container') {
+				if (left < buttonPosition.left) {
+					left = -buttonPosition.left;
+				}
 
-			// Foundations display dom element has a width of 0 - the true width is within the child
-			if (popoverWidth === 0) {
-				if (display.children().length > 0) {
-					popoverWidth = $(display.children()[0]).outerWidth();
+				if (left + popoverSizes.width > tableSizes.width) {
+					left = tableSizes.width - popoverSizes.width;
 				}
 			}
-			
-			var popoverRight = popoverLeft + popoverWidth;
 
-			// Get the size of the host buttons (left and width - and ...)
-			var buttonsLeft = hostNode.offset().left;
-			var buttonsWidth = hostNode.outerWidth()
-			var buttonsRight = buttonsLeft + buttonsWidth;
-
-			if (
-				display.hasClass( options.rightAlignClassName ) ||
-				display.hasClass( options.leftAlignClassName ) ||
-				display.hasClass( options.splitAlignClass ) ||
-				options.align === 'dt-container'
-			){
-				// default to the other buttons values
-				var splitButtonLeft = buttonsLeft;
-				var splitButtonWidth = buttonsWidth;
-				var splitButtonRight = buttonsRight;
-
-				// If the button is a split button then need to calculate some more values
-				if (hostNode.hasClass('dt-btn-split-wrapper') && hostNode.children('button.dt-btn-split-drop').length > 0) {
-					splitButtonLeft = hostNode.children('button.dt-btn-split-drop').offset().left;
-					splitButtonWidth = hostNode.children('button.dt-btn-split-drop').outerWidth();
-					splitButtonRight = splitButtonLeft + splitButtonWidth;
-				}
-				// You've then got all the numbers you need to do some calculations and if statements,
-				//  so we can do some quick JS maths and apply it only once
-				// If it has the right align class OR the buttons are right aligned OR the button container is floated right,
-				//  then calculate left position for the popover to align the popover to the right hand
-				//  side of the button - check to see if the left of the popover is inside the table container.
-				// If not, move the popover so it is, but not more than it means that the popover is to the right of the table container
-				var popoverShuffle = 0;
-				if ( display.hasClass( options.rightAlignClassName )) {
-					popoverShuffle = buttonsRight - popoverRight;
-					if(tableLeft > (popoverLeft + popoverShuffle)){
-						var leftGap = tableLeft - (popoverLeft + popoverShuffle);
-						var rightGap = tableRight - (popoverRight + popoverShuffle);
-		
-						if(leftGap > rightGap){
-							popoverShuffle += rightGap; 
-						}
-						else {
-							popoverShuffle += leftGap;
-						}
-					}
-				}
-				else if ( display.hasClass( options.splitRightAlignClassName )) {
-					popoverShuffle = splitButtonRight - popoverRight;
-					if(tableLeft > (popoverLeft + popoverShuffle)){
-						var leftGap = tableLeft - (popoverLeft + popoverShuffle);
-						var rightGap = tableRight - (popoverRight + popoverShuffle);
-		
-						if(leftGap > rightGap){
-							popoverShuffle += rightGap; 
-						}
-						else {
-							popoverShuffle += leftGap;
-						}
-					}
-				}
-				else if ( display.hasClass( options.splitLeftAlignClassName )) {
-					popoverShuffle = splitButtonLeft - popoverLeft;
-
-					if(tableRight < (popoverRight + popoverShuffle) || tableLeft > (popoverLeft + popoverShuffle)){
-						var leftGap = tableLeft - (popoverLeft + popoverShuffle);
-						var rightGap = tableRight - (popoverRight + popoverShuffle);
-	
-						if(leftGap > rightGap ){
-							popoverShuffle += rightGap;
-						}
-						else {
-							popoverShuffle += leftGap;
-						}
-	
-					}
-				}
-				// else attempt to left align the popover to the button. Similar to above, if the popover's right goes past the table container's right,
-				//  then move it back, but not so much that it goes past the left of the table container
-				else {
-					popoverShuffle = tableLeft - popoverLeft;
-	
-					if(tableRight < (popoverRight + popoverShuffle)){
-						var leftGap = tableLeft - (popoverLeft + popoverShuffle);
-						var rightGap = tableRight - (popoverRight + popoverShuffle);
-	
-						if(leftGap > rightGap ){
-							popoverShuffle += rightGap;
-						}
-						else {
-							popoverShuffle += leftGap;
-						}
-	
-					}
-				}
-	
-				display.css('left', display.position().left + popoverShuffle);
+			// Window adjustment
+			if (containerPosition.left + left + popoverSizes.width > $(window).width()) {
+				// Overflowing the document to the right
+				left = $(window).width() - popoverSizes.width - containerPosition.left;
 			}
-			else {
-				var top = hostNode.offset().top
-				var popoverShuffle = 0;
 
-				popoverShuffle = options.align === 'button-right'
-					? buttonsRight - popoverRight
-					: buttonsLeft - popoverLeft;
-
-				display.css('left', display.position().left + popoverShuffle);
+			if (buttonOffset.left + left < 0) {
+				// Off to the left of the document
+				left = -buttonOffset.left;
 			}
-			
-			
+
+			if (containerPosition.top + top + popoverSizes.height > $(window).height() + $(window).scrollTop()) {
+				// Pop up if otherwise we'd need the user to scroll down
+				top = buttonPosition.top - popoverSizes.height - popoverSizes.marginTop - popoverSizes.marginBottom;
+			}
+
+			if (containerPosition.top + top < $(window).scrollTop()) {
+				// Correction for when the top is beyond the top of the page
+				top = buttonPosition.top + hostNode.outerHeight();
+			}
+
+			// Calculations all done - now set it
+			display.css( {
+				top: top,
+				left: left
+			} );
 		}
 		else {
 			// Fix position - centre on screen
-			var top = display.height() / 2;
-			if ( top > $(window).height() / 2 ) {
-				top = $(window).height() / 2;
-			}
+			var position = function () {
+				var half = $(window).height() / 2;
 
-			display.css( 'marginTop', top*-1 );
+				var top = display.height() / 2;
+				if ( top > half ) {
+					top = half;
+				}
+
+				display.css( 'marginTop', top*-1 );
+			};
+
+			position();
+
+			$(window).on('resize.dtb-collection', function () {
+				position();
+			});
 		}
 
 		if ( options.background ) {
-			Buttons.background( true, options.backgroundClassName, options.fade, hostNode );
+			Buttons.background(
+				true,
+				options.backgroundClassName,
+				options.fade,
+				options.backgroundHost || hostNode
+			);
 		}
 
 		// This is bonkers, but if we don't have a click listener on the
@@ -16956,6 +17243,34 @@ $.extend( Buttons.prototype, {
 				.on( 'keyup.dtb-collection', function (e) {
 					if ( e.keyCode === 27 ) {
 						close();
+					}
+				} )
+				.on( 'keydown.dtb-collection', function (e) {
+					// Focus trap for tab key
+					var elements = $('a, button', content);
+					var active = document.activeElement;
+
+					if (e.keyCode !== 9) { // tab
+						return;
+					}
+
+					if (elements.index(active) === -1) {
+						// If current focus is not inside the popover
+						elements.first().focus();
+						e.preventDefault();
+					}
+					else if (e.shiftKey) {
+						// Reverse tabbing order when shift key is pressed
+						if (active === elements[0]) {
+							elements.last().focus();
+							e.preventDefault();
+						}
+					}
+					else {
+						if (active === elements.last()[0]) {
+							elements.first().focus();
+							e.preventDefault();
+						}
 					}
 				} );
 		}, 0);
@@ -17056,6 +17371,10 @@ Buttons.instanceSelector = function ( group, buttons )
 			// Index selector
 			ret.push( buttons[ input ].inst );
 		}
+		else if ( typeof input === 'object' ) {
+			// Actual instance selector
+			ret.push( input );
+		}
 	};
 	
 	process( group );
@@ -17128,10 +17447,12 @@ Buttons.buttonSelector = function ( insts, selector )
 		}
 		else if ( typeof selector === 'number' ) {
 			// Main button index selector
-			ret.push( {
-				inst: inst,
-				node: inst.s.buttons[ selector ].node
-			} );
+			if (inst.s.buttons[ selector ]) {
+				ret.push( {
+					inst: inst,
+					node: inst.s.buttons[ selector ].node
+				} );
+			}
 		}
 		else if ( typeof selector === 'string' ) {
 			if ( selector.indexOf( ',' ) !== -1 ) {
@@ -17258,7 +17579,8 @@ Buttons.defaults = {
 			tag: 'button',
 			className: 'dt-button',
 			active: 'active',
-			disabled: 'disabled'
+			disabled: 'disabled',
+			spacerClass: ''
 		},
 		buttonLiner: {
 			tag: 'span',
@@ -17295,7 +17617,7 @@ Buttons.defaults = {
  * @type {string}
  * @static
  */
-Buttons.version = '2.0.1';
+Buttons.version = '2.2.3';
 
 
 $.extend( _dtButtons, {
@@ -17304,6 +17626,7 @@ $.extend( _dtButtons, {
 			return dt.i18n( 'buttons.collection', 'Collection' );
 		},
 		className: 'buttons-collection',
+		closeButton: false,
 		init: function ( dt, button, config ) {
 			button.attr( 'aria-expanded', false );
 		},
@@ -17314,9 +17637,15 @@ $.extend( _dtButtons, {
 			else {
 				this.popover(config._collection, config);
 			}
+
+			// When activated using a key - auto focus on the
+			// first item in the popover
+			if (e.type === 'keypress') {
+				$('a, button', config._collection).eq(0).focus();
+			}
 		},
 		attr: {
-			'aria-haspopup': true
+			'aria-haspopup': 'dialog'
 		}
 		// Also the popover options, defined in Buttons.popover
 	},
@@ -17325,6 +17654,7 @@ $.extend( _dtButtons, {
 			return dt.i18n( 'buttons.split', 'Split' );
 		},
 		className: 'buttons-split',
+		closeButton: false,
 		init: function ( dt, button, config ) {
 			return button.attr( 'aria-expanded', false );
 		},
@@ -17332,7 +17662,7 @@ $.extend( _dtButtons, {
 			this.popover(config._collection, config);
 		},
 		attr: {
-			'aria-haspopup': true
+			'aria-haspopup': 'dialog'
 		}
 		// Also the popover options, defined in Buttons.popover
 	},
@@ -17424,6 +17754,13 @@ $.extend( _dtButtons, {
 				dt.off( 'length.dt'+conf.namespace );
 			}
 		};
+	},
+	spacer: {
+		style: 'empty',
+		spacer: true,
+		text: function ( dt ) {
+			return dt.i18n( 'buttons.spacer', '' );
+		}
 	}
 } );
 
@@ -17522,6 +17859,21 @@ DataTable.Api.register( ['buttons().disable()', 'button().disable()'], function 
 	} );
 } );
 
+// Button index
+DataTable.Api.register( 'button().index()', function () {
+	var idx = null;
+
+	this.each( function ( set ) {
+		var res = set.inst.index( set.node );
+
+		if (res !== null) {
+			idx = res;
+		}
+	} );
+
+	return idx;
+} );
+
 // Get button nodes
 DataTable.Api.registerPlural( 'buttons().nodes()', 'button().node()', function () {
 	var jq = $();
@@ -17600,7 +17952,7 @@ DataTable.Api.register( 'buttons().container()', function () {
 } );
 
 // Add a new button
-DataTable.Api.register( 'button().add()', function ( idx, conf ) {
+DataTable.Api.register( 'button().add()', function ( idx, conf, draw ) {
 	var ctx = this.context;
 
 	// Don't use `this` as it could be empty - select the instances directly
@@ -17608,7 +17960,7 @@ DataTable.Api.register( 'button().add()', function ( idx, conf ) {
 		var inst = Buttons.instanceSelector( this._groupSelector, ctx[0]._buttons );
 
 		if ( inst.length ) {
-			inst[0].add( conf, idx );
+			inst[0].add( conf, idx , draw);
 		}
 	}
 
@@ -17992,6 +18344,7 @@ $.extend( true, DataTable.Buttons.defaults, {
 		collection: {
 			tag: 'div',
 			className: 'dropdown-menu',
+			closeButton: false,
 			button: {
 				tag: 'a',
 				className: 'dt-button dropdown-item',
@@ -18002,17 +18355,20 @@ $.extend( true, DataTable.Buttons.defaults, {
 		splitWrapper: {
 			tag: 'div',
 			className: 'dt-btn-split-wrapper btn-group',
+			closeButton: false,
 		},
 		splitDropdown: {
 			tag: 'button',
 			text: '',
 			className: 'btn btn-secondary dt-btn-split-drop dropdown-toggle dropdown-toggle-split',
+			closeButton: false,
 			align: 'split-left',
 			splitAlignClass: 'dt-button-split-left'
 		},
 		splitDropdownButton: {
 			tag: 'button',
-			className: 'dt-btn-split-drop-button btn btn-secondary'
+			className: 'dt-btn-split-drop-button btn btn-secondary',
+			closeButton: false
 		}
 	},
 	buttonCreated: function ( config, button ) {
@@ -18029,1573 +18385,1473 @@ return DataTable.Buttons;
 }));
 
 
-/*! DateTime picker for DataTables.net v1.1.1
+/*!
+ * HTML5 export buttons for Buttons and DataTables.
+ * 2016 SpryMedia Ltd - datatables.net/license
  *
- * © SpryMedia Ltd, all rights reserved.
- * License: MIT datatables.net/license/mit
+ * FileSaver.js (1.3.3) - MIT license
+ * Copyright © 2016 Eli Grey - http://eligrey.com
  */
 
-/**
- * @summary     DateTime picker for DataTables.net
- * @version     1.1.1
- * @file        dataTables.dateTime.js
- * @author      SpryMedia Ltd
- * @contact     www.datatables.net/contact
- */
 (function( factory ){
 	if ( typeof define === 'function' && define.amd ) {
 		// AMD
-		define( ['jquery'], function ( $ ) {
+		define( ['jquery', 'datatables.net', 'datatables.net-buttons'], function ( $ ) {
 			return factory( $, window, document );
 		} );
 	}
 	else if ( typeof exports === 'object' ) {
 		// CommonJS
-		module.exports = function (root, $) {
+		module.exports = function (root, $, jszip, pdfmake) {
 			if ( ! root ) {
 				root = window;
 			}
 
-			return factory( $, root, root.document );
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			if ( ! $.fn.dataTable.Buttons ) {
+				require('datatables.net-buttons')(root, $);
+			}
+
+			return factory( $, root, root.document, jszip, pdfmake );
 		};
 	}
 	else {
 		// Browser
 		factory( jQuery, window, document );
 	}
-}(function( $, window, document, undefined ) {
+}(function( $, window, document, jszip, pdfmake, undefined ) {
 'use strict';
+var DataTable = $.fn.dataTable;
 
-// Supported formatting and parsing libraries:
-// * Moment
-// * Luxon
-// * DayJS
-var dateLib;
+// Allow the constructor to pass in JSZip and PDFMake from external requires.
+// Otherwise, use globally defined variables, if they are available.
+function _jsZip () {
+	return jszip || window.JSZip;
+}
+function _pdfMake () {
+	return pdfmake || window.pdfMake;
+}
 
-/*
- * This file provides a DateTime GUI picker (calendar and time input). Only the
- * format YYYY-MM-DD is supported without additional software, but the end user
- * experience can be greatly enhanced by including the momentjs, dayjs or luxon library
- * which provide date / time parsing and formatting options.
- *
- * This functionality is required because the HTML5 date and datetime input
- * types are not widely supported in desktop browsers.
- *
- * Constructed by using:
- *
- *     new DateTime( input, opts )
- *
- * where `input` is the HTML input element to use and `opts` is an object of
- * options based on the `DateTime.defaults` object.
+DataTable.Buttons.pdfMake = function (_) {
+	if ( ! _ ) {
+		return _pdfMake();
+	}
+	pdfmake = _;
+}
+
+DataTable.Buttons.jszip = function (_) {
+	if ( ! _ ) {
+		return _jsZip();
+	}
+	jszip = _;
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * FileSaver.js dependency
  */
-var DateTime = function ( input, opts ) {
-	// Attempt to auto detect the formatting library (if there is one). Having it in
-	// the constructor allows load order independence.
-	if (typeof dateLib === 'undefined') {
-		dateLib = window.moment
-			? window.moment
-			: window.dayjs
-				? window.dayjs
-				: window.luxon
-					? window.luxon
-					: null;
+
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+var _saveAs = (function(view) {
+	"use strict";
+	// IE <10 is explicitly unsupported
+	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+		return;
 	}
-
-	this.c = $.extend( true, {}, DateTime.defaults, opts );
-	var classPrefix = this.c.classPrefix;
-	var i18n = this.c.i18n;
-
-	// Only IS8601 dates are supported without moment, dayjs or luxon
-	if ( ! dateLib && this.c.format !== 'YYYY-MM-DD' ) {
-		throw "DateTime: Without momentjs, dayjs or luxon only the format 'YYYY-MM-DD' can be used";
-	}
-
-	// Min and max need to be `Date` objects in the config
-	if (typeof this.c.minDate === 'string') {
-		this.c.minDate = new Date(this.c.minDate);
-	}
-	if (typeof this.c.maxDate === 'string') {
-		this.c.maxDate = new Date(this.c.maxDate);
-	}
-
-	var timeBlock = function ( type ) {
-		return '<div class="'+classPrefix+'-timeblock">'+
-			'</div>';
-	};
-
-	var gap = function () {
-		return '<span>:</span>';
-	};
-
-	// DOM structure
-	var structure = $(
-		'<div class="'+classPrefix+'">'+
-			'<div class="'+classPrefix+'-date">'+
-				'<div class="'+classPrefix+'-title">'+
-					'<div class="'+classPrefix+'-iconLeft">'+
-						'<button title="'+i18n.previous+'">'+i18n.previous+'</button>'+
-					'</div>'+
-					'<div class="'+classPrefix+'-iconRight">'+
-						'<button title="'+i18n.next+'">'+i18n.next+'</button>'+
-					'</div>'+
-					'<div class="'+classPrefix+'-label">'+
-						'<span></span>'+
-						'<select class="'+classPrefix+'-month"></select>'+
-					'</div>'+
-					'<div class="'+classPrefix+'-label">'+
-						'<span></span>'+
-						'<select class="'+classPrefix+'-year"></select>'+
-					'</div>'+
-				'</div>'+
-				'<div class="'+classPrefix+'-buttons">'+
-					'<a class="'+classPrefix+'-clear">'+i18n.clear+'</a>'+
-					'<a class="'+classPrefix+'-today">'+i18n.today+'</a>'+
-				'</div>'+
-				'<div class="'+classPrefix+'-calendar"></div>'+
-			'</div>'+
-			'<div class="'+classPrefix+'-time">'+
-				'<div class="'+classPrefix+'-hours"></div>'+
-				'<div class="'+classPrefix+'-minutes"></div>'+
-				'<div class="'+classPrefix+'-seconds"></div>'+
-			'</div>'+
-			'<div class="'+classPrefix+'-error"></div>'+
-		'</div>'
-	);
-
-	this.dom = {
-		container: structure,
-		date:      structure.find( '.'+classPrefix+'-date' ),
-		title:     structure.find( '.'+classPrefix+'-title' ),
-		calendar:  structure.find( '.'+classPrefix+'-calendar' ),
-		time:      structure.find( '.'+classPrefix+'-time' ),
-		error:     structure.find( '.'+classPrefix+'-error' ),
-		buttons:     structure.find( '.'+classPrefix+'-buttons' ),
-		clear:     structure.find( '.'+classPrefix+'-clear' ),
-		today:     structure.find( '.'+classPrefix+'-today' ),
-		input:     $(input)
-	};
-
-	this.s = {
-		/** @type {Date} Date value that the picker has currently selected */
-		d: null,
-
-		/** @type {Date} Date of the calendar - might not match the value */
-		display: null,
-
-		/** @type {number} Used to select minutes in a range where the range base is itself unavailable */
-		minutesRange: null,
-
-		/** @type {number} Used to select minutes in a range where the range base is itself unavailable */
-		secondsRange: null,
-
-		/** @type {String} Unique namespace string for this instance */
-		namespace: 'dateime-'+(DateTime._instance++),
-
-		/** @type {Object} Parts of the picker that should be shown */
-		parts: {
-			date:    this.c.format.match( /[YMD]|L(?!T)|l/ ) !== null,
-			time:    this.c.format.match( /[Hhm]|LT|LTS/ ) !== null,
-			seconds: this.c.format.indexOf( 's' )   !== -1,
-			hours12: this.c.format.match( /[haA]/ ) !== null
+	var
+		  doc = view.document
+		  // only get URL when necessary in case Blob.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
 		}
-	};
-
-	this.dom.container
-		.append( this.dom.date )
-		.append( this.dom.time )
-		.append( this.dom.error );
-
-	this.dom.date
-		.append( this.dom.title )
-		.append( this.dom.buttons )
-		.append( this.dom.calendar );
-
-	this._constructor();
-};
-
-$.extend( DateTime.prototype, {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	 * Public
-	 */
-	
-	/**
-	 * Destroy the control
-	 */
-	destroy: function () {
-		this._hide(true);
-		this.dom.container.off().empty();
-		this.dom.input
-			.removeAttr('autocomplete')
-			.off('.datetime');
-	},
-
-	errorMsg: function ( msg ) {
-		var error = this.dom.error;
-
-		if ( msg ) {
-			error.html( msg );
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link = "download" in save_link
+		, click = function(node) {
+			var event = new MouseEvent("click");
+			node.dispatchEvent(event);
 		}
-		else {
-			error.empty();
+		, is_safari = /constructor/i.test(view.HTMLElement) || view.safari
+		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+		, throw_outside = function(ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
 		}
-
-		return this;
-	},
-
-	hide: function () {
-		this._hide();
-
-		return this;
-	},
-
-	max: function ( date ) {
-		this.c.maxDate = typeof date === 'string'
-			? new Date(date)
-			: date;
-
-		this._optionsTitle();
-		this._setCalander();
-
-		return this;
-	},
-
-	min: function ( date ) {
-		this.c.minDate = typeof date === 'string'
-			? new Date(date)
-			: date;
-
-		this._optionsTitle();
-		this._setCalander();
-
-		return this;
-	},
-
-	/**
-	 * Check if an element belongs to this control
-	 *
-	 * @param  {node} node Element to check
-	 * @return {boolean}   true if owned by this control, false otherwise
-	 */
-	owns: function ( node ) {
-		return $(node).parents().filter( this.dom.container ).length > 0;
-	},
-
-	/**
-	 * Get / set the value
-	 *
-	 * @param  {string|Date} set   Value to set
-	 * @param  {boolean} [write=true] Flag to indicate if the formatted value
-	 *   should be written into the input element
-	 */
-	val: function ( set, write ) {
-		if ( set === undefined ) {
-			return this.s.d;
-		}
-
-		if ( set instanceof Date ) {
-			this.s.d = this._dateToUtc( set );
-		}
-		else if ( set === null || set === '' ) {
-			this.s.d = null;
-		}
-		else if ( set === '--now' ) {
-			this.s.d = new Date();
-		}
-		else if ( typeof set === 'string' ) {
-			// luxon uses different method names so need to be able to call them
-			if(dateLib && dateLib == window.luxon) {
-				var luxDT = dateLib.DateTime.fromFormat(set, this.c.format)
-				this.s.d = luxDT.isValid ? luxDT.toJSDate() : null;
-			}
-			else if ( dateLib ) {
-				// Use moment, dayjs or luxon if possible (even for ISO8601 strings, since it
-				// will correctly handle 0000-00-00 and the like)
-				var m = dateLib.utc( set, this.c.format, this.c.locale, this.c.strict );
-				this.s.d = m.isValid() ? m.toDate() : null;
-			}
-			else {
-				// Else must be using ISO8601 without a date library (constructor would
-				// have thrown an error otherwise)
-				var match = set.match(/(\d{4})\-(\d{2})\-(\d{2})/ );
-				this.s.d = match ?
-					new Date( Date.UTC(match[1], match[2]-1, match[3]) ) :
-					null;
-			}
-		}
-
-		if ( write || write === undefined ) {
-			if ( this.s.d ) {
-				this._writeOutput();
-			}
-			else {
-				// The input value was not valid...
-				this.dom.input.val( set );
-			}
-		}
-
-		// Need something to display
-		this.s.display = this.s.d
-			? new Date( this.s.d.toString() )
-			: new Date();
-
-		// Set the day of the month to be 1 so changing between months doesn't
-        // run into issues when going from day 31 to 28 (for example)
-		this.s.display.setUTCDate( 1 );
-
-		// Update the display elements for the new value
-		this._setTitle();
-		this._setCalander();
-		this._setTime();
-
-		return this;
-	},
-
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	 * Constructor
-	 */
-	
-	/**
-	 * Build the control and assign initial event handlers
-	 *
-	 * @private
-	 */
-	_constructor: function () {
-		var that = this;
-		var classPrefix = this.c.classPrefix;
-		var last = this.dom.input.val();
-
-		var onChange = function () {
-			var curr = that.dom.input.val();
-
-			if (curr !== last) {
-				that.c.onChange.call( that, curr, that.s.d, that.dom.input );
-				last = curr;
-			}
-		};
-
-		if ( ! this.s.parts.date ) {
-			this.dom.date.css( 'display', 'none' );
-		}
-
-		if ( ! this.s.parts.time ) {
-			this.dom.time.css( 'display', 'none' );
-		}
-
-		if ( ! this.s.parts.seconds ) {
-			this.dom.time.children('div.'+classPrefix+'-seconds').remove();
-			this.dom.time.children('span').eq(1).remove();
-		}
-
-		if ( ! this.c.buttons.clear ) {
-			this.dom.clear.css( 'display', 'none' );
-		}
-
-		if ( ! this.c.buttons.today ) {
-			this.dom.today.css( 'display', 'none' );
-		}
-
-		// Render the options
-		this._optionsTitle();
-
-		$(document).on('i18n.dt', function (e, settings) {
-			if (settings.oLanguage.datetime) {
-				$.extend(true, that.c.i18n, settings.oLanguage.datetime);
-				that._optionsTitle();
-			}
-		});
-
-		// When attached to a hidden input, we always show the input picker, and
-		// do so inline
-		if (this.dom.input.attr('type') === 'hidden') {
-			this.dom.container.addClass('inline');
-			this.c.attachTo = 'input';
-
-			this.val( this.dom.input.val(), false );
-			this._show();
-		}
-
-		// Set the initial value
-		if (last) {
-			this.val( last, false );
-		}
-
-		// Trigger the display of the widget when clicking or focusing on the
-		// input element
-		this.dom.input
-			.attr('autocomplete', 'off')
-			.on('focus.datetime click.datetime', function () {
-				// If already visible - don't do anything
-				if ( that.dom.container.is(':visible') || that.dom.input.is(':disabled') ) {
-					return;
+		, force_saveable_type = "application/octet-stream"
+		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+		, arbitrary_revoke_timeout = 1000 * 40 // in ms
+		, revoke = function(file) {
+			var revoker = function() {
+				if (typeof file === "string") { // file is an object URL
+					get_URL().revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
 				}
-
-				// In case the value has changed by text
-				that.val( that.dom.input.val(), false );
-
-				that._show();
-			} )
-			.on('keyup.datetime', function () {
-				// Update the calendar's displayed value as the user types
-				if ( that.dom.container.is(':visible') ) {
-					that.val( that.dom.input.val(), false );
-				}
-			} );
-
-		// Main event handlers for input in the widget
-		this.dom.container
-			.on( 'change', 'select', function () {
-				var select = $(this);
-				var val = select.val();
-
-				if ( select.hasClass(classPrefix+'-month') ) {
-					// Month select
-					that._correctMonth( that.s.display, val );
-					that._setTitle();
-					that._setCalander();
-				}
-				else if ( select.hasClass(classPrefix+'-year') ) {
-					// Year select
-					that.s.display.setUTCFullYear( val );
-					that._setTitle();
-					that._setCalander();
-				}
-				else if ( select.hasClass(classPrefix+'-hours') || select.hasClass(classPrefix+'-ampm') ) {
-					// Hours - need to take account of AM/PM input if present
-					if ( that.s.parts.hours12 ) {
-						var hours = $(that.dom.container).find('.'+classPrefix+'-hours').val() * 1;
-						var pm = $(that.dom.container).find('.'+classPrefix+'-ampm').val() === 'pm';
-
-						that.s.d.setUTCHours( hours === 12 && !pm ?
-							0 :
-							pm && hours !== 12 ?
-								hours + 12 :
-								hours
-						);
-					}
-					else {
-						that.s.d.setUTCHours( val );
-					}
-
-					that._setTime();
-					that._writeOutput( true );
-
-					onChange();
-				}
-				else if ( select.hasClass(classPrefix+'-minutes') ) {
-					// Minutes select
-					that.s.d.setUTCMinutes( val );
-					that._setTime();
-					that._writeOutput( true );
-
-					onChange();
-				}
-				else if ( select.hasClass(classPrefix+'-seconds') ) {
-					// Seconds select
-					that.s.d.setSeconds( val );
-					that._setTime();
-					that._writeOutput( true );
-
-					onChange();
-				}
-
-				that.dom.input.focus();
-				that._position();
-			} )
-			.on( 'click', function (e) {
-				var d = that.s.d;
-				var nodeName = e.target.nodeName.toLowerCase();
-				var target = nodeName === 'span' ?
-					e.target.parentNode :
-					e.target;
-
-				nodeName = target.nodeName.toLowerCase();
-
-				if ( nodeName === 'select' ) {
-					return;
-				}
-
-				e.stopPropagation();
-
-				if ( nodeName === 'a' ) {
-					e.preventDefault();
-
-					if ($(target).hasClass(classPrefix+'-clear')) {
-						// Clear the value and don't change the display
-						that.s.d = null;
-						that.dom.input.val('');
-						that._writeOutput();
-						that._setCalander();
-						that._setTime();
-
-						onChange();
-					}
-					else if ($(target).hasClass(classPrefix+'-today')) {
-						// Don't change the value, but jump to the month
-						// containing today
-						that.s.display = new Date();
-
-						that._setTitle();
-						that._setCalander();
+			};
+			setTimeout(revoker, arbitrary_revoke_timeout);
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
 					}
 				}
-				if ( nodeName === 'button' ) {
-					var button = $(target);
-					var parent = button.parent();
-
-					if ( parent.hasClass('disabled') && ! parent.hasClass('range') ) {
-						button.blur();
+			}
+		}
+		, auto_bom = function(blob) {
+			// prepend BOM for UTF-8 XML and text/* types (including HTML)
+			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+			}
+			return blob;
+		}
+		, FileSaver = function(blob, name, no_auto_bom) {
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, force = type === force_saveable_type
+				, object_url
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+						// Safari doesn't allow downloading of blob urls
+						var reader = new FileReader();
+						reader.onloadend = function() {
+							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+							var popup = view.open(url, '_blank');
+							if(!popup) view.location.href = url;
+							url=undefined; // release reference before dispatching
+							filesaver.readyState = filesaver.DONE;
+							dispatch_all();
+						};
+						reader.readAsDataURL(blob);
+						filesaver.readyState = filesaver.INIT;
 						return;
 					}
-
-					if ( parent.hasClass(classPrefix+'-iconLeft') ) {
-						// Previous month
-						that.s.display.setUTCMonth( that.s.display.getUTCMonth()-1 );
-						that._setTitle();
-						that._setCalander();
-
-						that.dom.input.focus();
+					// don't create more object URLs than needed
+					if (!object_url) {
+						object_url = get_URL().createObjectURL(blob);
 					}
-					else if ( parent.hasClass(classPrefix+'-iconRight') ) {
-						// Next month
-						that._correctMonth( that.s.display, that.s.display.getUTCMonth()+1 );
-						that._setTitle();
-						that._setCalander();
-
-						that.dom.input.focus();
+					if (force) {
+						view.location.href = object_url;
+					} else {
+						var opened = view.open(object_url, "_blank");
+						if (!opened) {
+							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+							view.location.href = object_url;
+						}
 					}
-					else if ( button.parents('.'+classPrefix+'-time').length ) {
-						var val = button.data('value');
-						var unit = button.data('unit');
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+					revoke(object_url);
+				}
+			;
+			filesaver.readyState = filesaver.INIT;
 
-						d = that._needValue();
+			if (can_use_save_link) {
+				object_url = get_URL().createObjectURL(blob);
+				setTimeout(function() {
+					save_link.href = object_url;
+					save_link.download = name;
+					click(save_link);
+					dispatch_all();
+					revoke(object_url);
+					filesaver.readyState = filesaver.DONE;
+				});
+				return;
+			}
 
-						if ( unit === 'minutes' ) {
-							if ( parent.hasClass('disabled') && parent.hasClass('range') ) {
-								that.s.minutesRange = val;
-								that._setTime();
-								return;
-							}
-							else {
-								that.s.minutesRange = null;
-							}
-						}
+			fs_error();
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name, no_auto_bom) {
+			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+		}
+	;
+	// IE 10+ (native saveAs)
+	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+		return function(blob, name, no_auto_bom) {
+			name = name || blob.name || "download";
 
-						if ( unit === 'seconds' ) {
-							if ( parent.hasClass('disabled') && parent.hasClass('range') ) {
-								that.s.secondsRange = val;
-								that._setTime();
-								return;
-							}
-							else {
-								that.s.secondsRange = null;
-							}
-						}
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			return navigator.msSaveOrOpenBlob(blob, name);
+		};
+	}
 
-						// Specific to hours for 12h clock
-						if ( val === 'am' ) {
-							if ( d.getUTCHours() >= 12 ) {
-								val = d.getUTCHours() - 12;
-							}
-							else {
-								return;
-							}
-						}
-						else if ( val === 'pm' ) {
-							if ( d.getUTCHours() < 12 ) {
-								val = d.getUTCHours() + 12;
-							}
-							else {
-								return;
-							}
-						}
+	FS_proto.abort = function(){};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
 
-						var set = unit === 'hours' ?
-							'setUTCHours' :
-							unit === 'minutes' ?
-								'setUTCMinutes' :
-								'setSeconds';
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
 
-						d[set]( val );
-						that._setTime();
-						that._writeOutput( true );
-						onChange();
+	return saveAs;
+}(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+
+
+// Expose file saver on the DataTables API. Can't attach to `DataTables.Buttons`
+// since this file can be loaded before Button's core!
+DataTable.fileSave = _saveAs;
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Local (private) functions
+ */
+
+/**
+ * Get the sheet name for Excel exports.
+ *
+ * @param {object}	config Button configuration
+ */
+var _sheetname = function ( config )
+{
+	var sheetName = 'Sheet1';
+
+	if ( config.sheetName ) {
+		sheetName = config.sheetName.replace(/[\[\]\*\/\\\?\:]/g, '');
+	}
+
+	return sheetName;
+};
+
+/**
+ * Get the newline character(s)
+ *
+ * @param {object}	config Button configuration
+ * @return {string}				Newline character
+ */
+var _newLine = function ( config )
+{
+	return config.newline ?
+		config.newline :
+		navigator.userAgent.match(/Windows/) ?
+			'\r\n' :
+			'\n';
+};
+
+/**
+ * Combine the data from the `buttons.exportData` method into a string that
+ * will be used in the export file.
+ *
+ * @param	{DataTable.Api} dt		 DataTables API instance
+ * @param	{object}				config Button configuration
+ * @return {object}							 The data to export
+ */
+var _exportData = function ( dt, config )
+{
+	var newLine = _newLine( config );
+	var data = dt.buttons.exportData( config.exportOptions );
+	var boundary = config.fieldBoundary;
+	var separator = config.fieldSeparator;
+	var reBoundary = new RegExp( boundary, 'g' );
+	var escapeChar = config.escapeChar !== undefined ?
+		config.escapeChar :
+		'\\';
+	var join = function ( a ) {
+		var s = '';
+
+		// If there is a field boundary, then we might need to escape it in
+		// the source data
+		for ( var i=0, ien=a.length ; i<ien ; i++ ) {
+			if ( i > 0 ) {
+				s += separator;
+			}
+
+			s += boundary ?
+				boundary + ('' + a[i]).replace( reBoundary, escapeChar+boundary ) + boundary :
+				a[i];
+		}
+
+		return s;
+	};
+
+	var header = config.header ? join( data.header )+newLine : '';
+	var footer = config.footer && data.footer ? newLine+join( data.footer ) : '';
+	var body = [];
+
+	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+		body.push( join( data.body[i] ) );
+	}
+
+	return {
+		str: header + body.join( newLine ) + footer,
+		rows: body.length
+	};
+};
+
+/**
+ * Older versions of Safari (prior to tech preview 18) don't support the
+ * download option required.
+ *
+ * @return {Boolean} `true` if old Safari
+ */
+var _isDuffSafari = function ()
+{
+	var safari = navigator.userAgent.indexOf('Safari') !== -1 &&
+		navigator.userAgent.indexOf('Chrome') === -1 &&
+		navigator.userAgent.indexOf('Opera') === -1;
+
+	if ( ! safari ) {
+		return false;
+	}
+
+	var version = navigator.userAgent.match( /AppleWebKit\/(\d+\.\d+)/ );
+	if ( version && version.length > 1 && version[1]*1 < 603.1 ) {
+		return true;
+	}
+
+	return false;
+};
+
+/**
+ * Convert from numeric position to letter for column names in Excel
+ * @param  {int} n Column number
+ * @return {string} Column letter(s) name
+ */
+function createCellPos( n ){
+	var ordA = 'A'.charCodeAt(0);
+	var ordZ = 'Z'.charCodeAt(0);
+	var len = ordZ - ordA + 1;
+	var s = "";
+
+	while( n >= 0 ) {
+		s = String.fromCharCode(n % len + ordA) + s;
+		n = Math.floor(n / len) - 1;
+	}
+
+	return s;
+}
+
+try {
+	var _serialiser = new XMLSerializer();
+	var _ieExcel;
+}
+catch (t) {}
+
+/**
+ * Recursively add XML files from an object's structure to a ZIP file. This
+ * allows the XSLX file to be easily defined with an object's structure matching
+ * the files structure.
+ *
+ * @param {JSZip} zip ZIP package
+ * @param {object} obj Object to add (recursive)
+ */
+function _addToZip( zip, obj ) {
+	if ( _ieExcel === undefined ) {
+		// Detect if we are dealing with IE's _awful_ serialiser by seeing if it
+		// drop attributes
+		_ieExcel = _serialiser
+			.serializeToString(
+				( new window.DOMParser() ).parseFromString( excelStrings['xl/worksheets/sheet1.xml'], 'text/xml' )
+			)
+			.indexOf( 'xmlns:r' ) === -1;
+	}
+
+	$.each( obj, function ( name, val ) {
+		if ( $.isPlainObject( val ) ) {
+			var newDir = zip.folder( name );
+			_addToZip( newDir, val );
+		}
+		else {
+			if ( _ieExcel ) {
+				// IE's XML serialiser will drop some name space attributes from
+				// from the root node, so we need to save them. Do this by
+				// replacing the namespace nodes with a regular attribute that
+				// we convert back when serialised. Edge does not have this
+				// issue
+				var worksheet = val.childNodes[0];
+				var i, ien;
+				var attrs = [];
+
+				for ( i=worksheet.attributes.length-1 ; i>=0 ; i-- ) {
+					var attrName = worksheet.attributes[i].nodeName;
+					var attrValue = worksheet.attributes[i].nodeValue;
+
+					if ( attrName.indexOf( ':' ) !== -1 ) {
+						attrs.push( { name: attrName, value: attrValue } );
+
+						worksheet.removeAttribute( attrName );
+					}
+				}
+
+				for ( i=0, ien=attrs.length ; i<ien ; i++ ) {
+					var attr = val.createAttribute( attrs[i].name.replace( ':', '_dt_b_namespace_token_' ) );
+					attr.value = attrs[i].value;
+					worksheet.setAttributeNode( attr );
+				}
+			}
+
+			var str = _serialiser.serializeToString(val);
+
+			// Fix IE's XML
+			if ( _ieExcel ) {
+				// IE doesn't include the XML declaration
+				if ( str.indexOf( '<?xml' ) === -1 ) {
+					str = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+str;
+				}
+
+				// Return namespace attributes to being as such
+				str = str.replace( /_dt_b_namespace_token_/g, ':' );
+
+				// Remove testing name space that IE puts into the space preserve attr
+				str = str.replace( /xmlns:NS[\d]+="" NS[\d]+:/g, '' );
+			}
+
+			// Safari, IE and Edge will put empty name space attributes onto
+			// various elements making them useless. This strips them out
+			str = str.replace( /<([^<>]*?) xmlns=""([^<>]*?)>/g, '<$1 $2>' );
+
+			zip.file( name, str );
+		}
+	} );
+}
+
+/**
+ * Create an XML node and add any children, attributes, etc without needing to
+ * be verbose in the DOM.
+ *
+ * @param  {object} doc      XML document
+ * @param  {string} nodeName Node name
+ * @param  {object} opts     Options - can be `attr` (attributes), `children`
+ *   (child nodes) and `text` (text content)
+ * @return {node}            Created node
+ */
+function _createNode( doc, nodeName, opts ) {
+	var tempNode = doc.createElement( nodeName );
+
+	if ( opts ) {
+		if ( opts.attr ) {
+			$(tempNode).attr( opts.attr );
+		}
+
+		if ( opts.children ) {
+			$.each( opts.children, function ( key, value ) {
+				tempNode.appendChild( value );
+			} );
+		}
+
+		if ( opts.text !== null && opts.text !== undefined ) {
+			tempNode.appendChild( doc.createTextNode( opts.text ) );
+		}
+	}
+
+	return tempNode;
+}
+
+/**
+ * Get the width for an Excel column based on the contents of that column
+ * @param  {object} data Data for export
+ * @param  {int}    col  Column index
+ * @return {int}         Column width
+ */
+function _excelColWidth( data, col ) {
+	var max = data.header[col].length;
+	var len, lineSplit, str;
+
+	if ( data.footer && data.footer[col].length > max ) {
+		max = data.footer[col].length;
+	}
+
+	for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+		var point = data.body[i][col];
+		str = point !== null && point !== undefined ?
+			point.toString() :
+			'';
+
+		// If there is a newline character, workout the width of the column
+		// based on the longest line in the string
+		if ( str.indexOf('\n') !== -1 ) {
+			lineSplit = str.split('\n');
+			lineSplit.sort( function (a, b) {
+				return b.length - a.length;
+			} );
+
+			len = lineSplit[0].length;
+		}
+		else {
+			len = str.length;
+		}
+
+		if ( len > max ) {
+			max = len;
+		}
+
+		// Max width rather than having potentially massive column widths
+		if ( max > 40 ) {
+			return 54; // 40 * 1.35
+		}
+	}
+
+	max *= 1.35;
+
+	// And a min width
+	return max > 6 ? max : 6;
+}
+
+// Excel - Pre-defined strings to build a basic XLSX file
+var excelStrings = {
+	"_rels/.rels":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
+		'</Relationships>',
+
+	"xl/_rels/workbook.xml.rels":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+			'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
+			'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
+		'</Relationships>',
+
+	"[Content_Types].xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+			'<Default Extension="xml" ContentType="application/xml" />'+
+			'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />'+
+			'<Default Extension="jpeg" ContentType="image/jpeg" />'+
+			'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" />'+
+			'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" />'+
+			'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml" />'+
+		'</Types>',
+
+	"xl/workbook.xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+			'<fileVersion appName="xl" lastEdited="5" lowestEdited="5" rupBuild="24816"/>'+
+			'<workbookPr showInkAnnotation="0" autoCompressPictures="0"/>'+
+			'<bookViews>'+
+				'<workbookView xWindow="0" yWindow="0" windowWidth="25600" windowHeight="19020" tabRatio="500"/>'+
+			'</bookViews>'+
+			'<sheets>'+
+				'<sheet name="Sheet1" sheetId="1" r:id="rId1"/>'+
+			'</sheets>'+
+			'<definedNames/>'+
+		'</workbook>',
+
+	"xl/worksheets/sheet1.xml":
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+		'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
+			'<sheetData/>'+
+			'<mergeCells count="0"/>'+
+		'</worksheet>',
+
+	"xl/styles.xml":
+		'<?xml version="1.0" encoding="UTF-8"?>'+
+		'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">'+
+			'<numFmts count="6">'+
+				'<numFmt numFmtId="164" formatCode="#,##0.00_-\ [$$-45C]"/>'+
+				'<numFmt numFmtId="165" formatCode="&quot;£&quot;#,##0.00"/>'+
+				'<numFmt numFmtId="166" formatCode="[$€-2]\ #,##0.00"/>'+
+				'<numFmt numFmtId="167" formatCode="0.0%"/>'+
+				'<numFmt numFmtId="168" formatCode="#,##0;(#,##0)"/>'+
+				'<numFmt numFmtId="169" formatCode="#,##0.00;(#,##0.00)"/>'+
+			'</numFmts>'+
+			'<fonts count="5" x14ac:knownFonts="1">'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<color rgb="FFFFFFFF" />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<b />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<i />'+
+				'</font>'+
+				'<font>'+
+					'<sz val="11" />'+
+					'<name val="Calibri" />'+
+					'<u />'+
+				'</font>'+
+			'</fonts>'+
+			'<fills count="6">'+
+				'<fill>'+
+					'<patternFill patternType="none" />'+
+				'</fill>'+
+				'<fill>'+ // Excel appears to use this as a dotted background regardless of values but
+					'<patternFill patternType="none" />'+ // to be valid to the schema, use a patternFill
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="FFD9D9D9" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="FFD99795" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="ffc6efce" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+				'<fill>'+
+					'<patternFill patternType="solid">'+
+						'<fgColor rgb="ffc6cfef" />'+
+						'<bgColor indexed="64" />'+
+					'</patternFill>'+
+				'</fill>'+
+			'</fills>'+
+			'<borders count="2">'+
+				'<border>'+
+					'<left />'+
+					'<right />'+
+					'<top />'+
+					'<bottom />'+
+					'<diagonal />'+
+				'</border>'+
+				'<border diagonalUp="false" diagonalDown="false">'+
+					'<left style="thin">'+
+						'<color auto="1" />'+
+					'</left>'+
+					'<right style="thin">'+
+						'<color auto="1" />'+
+					'</right>'+
+					'<top style="thin">'+
+						'<color auto="1" />'+
+					'</top>'+
+					'<bottom style="thin">'+
+						'<color auto="1" />'+
+					'</bottom>'+
+					'<diagonal />'+
+				'</border>'+
+			'</borders>'+
+			'<cellStyleXfs count="1">'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" />'+
+			'</cellStyleXfs>'+
+			'<cellXfs count="68">'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="2" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="3" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="4" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="5" borderId="0" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="0" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="1" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="2" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="3" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="4" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="left"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="center"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="right"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment horizontal="fill"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment textRotation="90"/>'+
+				'</xf>'+
+				'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyAlignment="1">'+
+					'<alignment wrapText="1"/>'+
+				'</xf>'+
+				'<xf numFmtId="9"   fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="166" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="167" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="168" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="169" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="3" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="4" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="1" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="2" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+				'<xf numFmtId="14" fontId="0" fillId="0" borderId="0" applyFont="1" applyFill="1" applyBorder="1" xfId="0" applyNumberFormat="1"/>'+
+			'</cellXfs>'+
+			'<cellStyles count="1">'+
+				'<cellStyle name="Normal" xfId="0" builtinId="0" />'+
+			'</cellStyles>'+
+			'<dxfs count="0" />'+
+			'<tableStyles count="0" defaultTableStyle="TableStyleMedium9" defaultPivotStyle="PivotStyleMedium4" />'+
+		'</styleSheet>'
+};
+// Note we could use 3 `for` loops for the styles, but when gzipped there is
+// virtually no difference in size, since the above can be easily compressed
+
+// Pattern matching for special number formats. Perhaps this should be exposed
+// via an API in future?
+// Ref: section 3.8.30 - built in formatters in open spreadsheet
+//   https://www.ecma-international.org/news/TC45_current_work/Office%20Open%20XML%20Part%204%20-%20Markup%20Language%20Reference.pdf
+var _excelSpecials = [
+	{ match: /^\-?\d+\.\d%$/,               style: 60, fmt: function (d) { return d/100; } }, // Percent with d.p.
+	{ match: /^\-?\d+\.?\d*%$/,             style: 56, fmt: function (d) { return d/100; } }, // Percent
+	{ match: /^\-?\$[\d,]+.?\d*$/,          style: 57 }, // Dollars
+	{ match: /^\-?£[\d,]+.?\d*$/,           style: 58 }, // Pounds
+	{ match: /^\-?€[\d,]+.?\d*$/,           style: 59 }, // Euros
+	{ match: /^\-?\d+$/,                    style: 65 }, // Numbers without thousand separators
+	{ match: /^\-?\d+\.\d{2}$/,             style: 66 }, // Numbers 2 d.p. without thousands separators
+	{ match: /^\([\d,]+\)$/,                style: 61, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets
+	{ match: /^\([\d,]+\.\d{2}\)$/,         style: 62, fmt: function (d) { return -1 * d.replace(/[\(\)]/g, ''); } },  // Negative numbers indicated by brackets - 2d.p.
+	{ match: /^\-?[\d,]+$/,                 style: 63 }, // Numbers with thousand separators
+	{ match: /^\-?[\d,]+\.\d{2}$/,          style: 64 },
+	{ match: /^[\d]{4}\-[01][\d]\-[0123][\d]$/, style: 67, fmt: function (d) {return Math.round(25569 + (Date.parse(d) / (86400 * 1000)));}} //Date yyyy-mm-dd
+];
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Buttons
+ */
+
+//
+// Copy to clipboard
+//
+DataTable.ext.buttons.copyHtml5 = {
+	className: 'buttons-copy buttons-html5',
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.copy', 'Copy' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		var that = this;
+		var exportData = _exportData( dt, config );
+		var info = dt.buttons.exportInfo( config );
+		var newline = _newLine(config);
+		var output = exportData.str;
+		var hiddenDiv = $('<div/>')
+			.css( {
+				height: 1,
+				width: 1,
+				overflow: 'hidden',
+				position: 'fixed',
+				top: 0,
+				left: 0
+			} );
+
+		if ( info.title ) {
+			output = info.title + newline + newline + output;
+		}
+
+		if ( info.messageTop ) {
+			output = info.messageTop + newline + newline + output;
+		}
+
+		if ( info.messageBottom ) {
+			output = output + newline + newline + info.messageBottom;
+		}
+
+		if ( config.customize ) {
+			output = config.customize( output, config, dt );
+		}
+
+		var textarea = $('<textarea readonly/>')
+			.val( output )
+			.appendTo( hiddenDiv );
+
+		// For browsers that support the copy execCommand, try to use it
+		if ( document.queryCommandSupported('copy') ) {
+			hiddenDiv.appendTo( dt.table().container() );
+			textarea[0].focus();
+			textarea[0].select();
+
+			try {
+				var successful = document.execCommand( 'copy' );
+				hiddenDiv.remove();
+
+				if (successful) {
+					dt.buttons.info(
+						dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ),
+						dt.i18n( 'buttons.copySuccess', {
+							1: 'Copied one row to clipboard',
+							_: 'Copied %d rows to clipboard'
+						}, exportData.rows ),
+						2000
+					);
+
+					this.processing( false );
+					return;
+				}
+			}
+			catch (t) {}
+		}
+
+		// Otherwise we show the text box and instruct the user to use it
+		var message = $('<span>'+dt.i18n( 'buttons.copyKeys',
+				'Press <i>ctrl</i> or <i>\u2318</i> + <i>C</i> to copy the table data<br>to your system clipboard.<br><br>'+
+				'To cancel, click this message or press escape.' )+'</span>'
+			)
+			.append( hiddenDiv );
+
+		dt.buttons.info( dt.i18n( 'buttons.copyTitle', 'Copy to clipboard' ), message, 0 );
+
+		// Select the text so when the user activates their system clipboard
+		// it will copy that text
+		textarea[0].focus();
+		textarea[0].select();
+
+		// Event to hide the message when the user is done
+		var container = $(message).closest('.dt-button-info');
+		var close = function () {
+			container.off( 'click.buttons-copy' );
+			$(document).off( '.buttons-copy' );
+			dt.buttons.info( false );
+		};
+
+		container.on( 'click.buttons-copy', close );
+		$(document)
+			.on( 'keydown.buttons-copy', function (e) {
+				if ( e.keyCode === 27 ) { // esc
+					close();
+					that.processing( false );
+				}
+			} )
+			.on( 'copy.buttons-copy cut.buttons-copy', function () {
+				close();
+				that.processing( false );
+			} );
+	},
+
+	exportOptions: {},
+
+	fieldSeparator: '\t',
+
+	fieldBoundary: '',
+
+	header: true,
+
+	footer: false,
+
+	title: '*',
+
+	messageTop: '*',
+
+	messageBottom: '*'
+};
+
+//
+// CSV export
+//
+DataTable.ext.buttons.csvHtml5 = {
+	bom: false,
+
+	className: 'buttons-csv buttons-html5',
+
+	available: function () {
+		return window.FileReader !== undefined && window.Blob;
+	},
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.csv', 'CSV' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		// Set the text
+		var output = _exportData( dt, config ).str;
+		var info = dt.buttons.exportInfo(config);
+		var charset = config.charset;
+
+		if ( config.customize ) {
+			output = config.customize( output, config, dt );
+		}
+
+		if ( charset !== false ) {
+			if ( ! charset ) {
+				charset = document.characterSet || document.charset;
+			}
+
+			if ( charset ) {
+				charset = ';charset='+charset;
+			}
+		}
+		else {
+			charset = '';
+		}
+
+		if ( config.bom ) {
+			output = String.fromCharCode(0xFEFF) + output;
+		}
+
+		_saveAs(
+			new Blob( [output], {type: 'text/csv'+charset} ),
+			info.filename,
+			true
+		);
+
+		this.processing( false );
+	},
+
+	filename: '*',
+
+	extension: '.csv',
+
+	exportOptions: {},
+
+	fieldSeparator: ',',
+
+	fieldBoundary: '"',
+
+	escapeChar: '"',
+
+	charset: null,
+
+	header: true,
+
+	footer: false
+};
+
+//
+// Excel (xlsx) export
+//
+DataTable.ext.buttons.excelHtml5 = {
+	className: 'buttons-excel buttons-html5',
+
+	available: function () {
+		return window.FileReader !== undefined && _jsZip() !== undefined && ! _isDuffSafari() && _serialiser;
+	},
+
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.excel', 'Excel' );
+	},
+
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
+
+		var that = this;
+		var rowPos = 0;
+		var dataStartRow, dataEndRow;
+		var getXml = function ( type ) {
+			var str = excelStrings[ type ];
+
+			//str = str.replace( /xmlns:/g, 'xmlns_' ).replace( /mc:/g, 'mc_' );
+
+			return $.parseXML( str );
+		};
+		var rels = getXml('xl/worksheets/sheet1.xml');
+		var relsGet = rels.getElementsByTagName( "sheetData" )[0];
+
+		var xlsx = {
+			_rels: {
+				".rels": getXml('_rels/.rels')
+			},
+			xl: {
+				_rels: {
+					"workbook.xml.rels": getXml('xl/_rels/workbook.xml.rels')
+				},
+				"workbook.xml": getXml('xl/workbook.xml'),
+				"styles.xml": getXml('xl/styles.xml'),
+				"worksheets": {
+					"sheet1.xml": rels
+				}
+
+			},
+			"[Content_Types].xml": getXml('[Content_Types].xml')
+		};
+
+		var data = dt.buttons.exportData( config.exportOptions );
+		var currentRow, rowNode;
+		var addRow = function ( row ) {
+			currentRow = rowPos+1;
+			rowNode = _createNode( rels, "row", { attr: {r:currentRow} } );
+
+			for ( var i=0, ien=row.length ; i<ien ; i++ ) {
+				// Concat both the Cell Columns as a letter and the Row of the cell.
+				var cellId = createCellPos(i) + '' + currentRow;
+				var cell = null;
+
+				// For null, undefined of blank cell, continue so it doesn't create the _createNode
+				if ( row[i] === null || row[i] === undefined || row[i] === '' ) {
+					if ( config.createEmptyCells === true ) {
+						row[i] = '';
 					}
 					else {
-						// Calendar click
-						d = that._needValue();
-
-						// Can't be certain that the current day will exist in
-						// the new month, and likewise don't know that the
-						// new day will exist in the old month, But 1 always
-						// does, so we can change the month without worry of a
-						// recalculation being done automatically by `Date`
-						d.setUTCDate( 1 );
-						d.setUTCFullYear( button.data('year') );
-						d.setUTCMonth( button.data('month') );
-						d.setUTCDate( button.data('day') );
-
-						that._writeOutput( true );
-
-						// Don't hide if there is a time picker, since we want to
-						// be able to select a time as well.
-						if ( ! that.s.parts.time ) {
-							// This is annoying but IE has some kind of async
-							// behaviour with focus and the focus from the above
-							// write would occur after this hide - resulting in the
-							// calendar opening immediately
-							setTimeout( function () {
-								that._hide();
-							}, 10 );
-						}
-						else {
-							that._setCalander();
-						}
-
-						onChange();
+						continue;
 					}
 				}
-				else {
-					// Click anywhere else in the widget - return focus to the
-					// input element
-					that.dom.input.focus();
-				}
-			} );
-	},
 
+				var originalContent = row[i];
+				row[i] = typeof row[i].trim === 'function'
+					? row[i].trim()
+					: row[i];
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	 * Private
-	 */
+				// Special number formatting options
+				for ( var j=0, jen=_excelSpecials.length ; j<jen ; j++ ) {
+					var special = _excelSpecials[j];
 
-	/**
-	 * Compare the date part only of two dates - this is made super easy by the
-	 * toDateString method!
-	 *
-	 * @param  {Date} a Date 1
-	 * @param  {Date} b Date 2
-	 * @private
-	 */
-	_compareDates: function( a, b ) {
-		// Can't use toDateString as that converts to local time
-		// luxon uses different method names so need to be able to call them
-		return dateLib && dateLib == window.luxon
-			? dateLib.DateTime.fromJSDate(a).toISODate() === dateLib.DateTime.fromJSDate(b).toISODate()
-			: this._dateToUtcString(a) === this._dateToUtcString(b);
-	},
+					// TODO Need to provide the ability for the specials to say
+					// if they are returning a string, since at the moment it is
+					// assumed to be a number
+					if ( row[i].match && ! row[i].match(/^0\d+/) && row[i].match( special.match ) ) {
+						var val = row[i].replace(/[^\d\.\-]/g, '');
 
-	/**
-	 * When changing month, take account of the fact that some months don't have
-	 * the same number of days. For example going from January to February you
-	 * can have the 31st of Jan selected and just add a month since the date
-	 * would still be 31, and thus drop you into March.
-	 *
-	 * @param  {Date} date  Date - will be modified
-	 * @param  {integer} month Month to set
-	 * @private
-	 */
-	_correctMonth: function ( date, month ) {
-		var days = this._daysInMonth( date.getUTCFullYear(), month );
-		var correctDays = date.getUTCDate() > days;
+						if ( special.fmt ) {
+							val = special.fmt( val );
+						}
 
-		date.setUTCMonth( month );
+						cell = _createNode( rels, 'c', {
+							attr: {
+								r: cellId,
+								s: special.style
+							},
+							children: [
+								_createNode( rels, 'v', { text: val } )
+							]
+						} );
 
-		if ( correctDays ) {
-			date.setUTCDate( days );
-			date.setUTCMonth( month );
-		}
-	},
-
-	/**
-	 * Get the number of days in a method. Based on
-	 * http://stackoverflow.com/a/4881951 by Matti Virkkunen
-	 *
-	 * @param  {integer} year  Year
-	 * @param  {integer} month Month (starting at 0)
-	 * @private
-	 */
-	_daysInMonth: function ( year, month ) {
-		// 
-		var isLeap = ((year % 4) === 0 && ((year % 100) !== 0 || (year % 400) === 0));
-		var months = [31, (isLeap ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-		return months[month];
-	},
-
-	/**
-	 * Create a new date object which has the UTC values set to the local time.
-	 * This allows the local time to be used directly for the library which
-	 * always bases its calculations and display on UTC.
-	 *
-	 * @param  {Date} s Date to "convert"
-	 * @return {Date}   Shifted date
-	 */
-	_dateToUtc: function ( s ) {
-		return new Date( Date.UTC(
-			s.getFullYear(), s.getMonth(), s.getDate(),
-			s.getHours(), s.getMinutes(), s.getSeconds()
-		) );
-	},
-
-	/**
-	 * Create a UTC ISO8601 date part from a date object
-	 *
-	 * @param  {Date} d Date to "convert"
-	 * @return {string} ISO formatted date
-	 */
-	_dateToUtcString: function ( d ) {
-		// luxon uses different method names so need to be able to call them
-		return dateLib && dateLib == window.luxon
-			? dateLib.DateTime.fromJSDate(d).toISODate()
-			: d.getUTCFullYear()+'-'+
-				this._pad(d.getUTCMonth()+1)+'-'+
-				this._pad(d.getUTCDate());
-	},
-
-	/**
-	 * Hide the control and remove events related to its display
-	 *
-	 * @private
-	 */
-	_hide: function (destroy) {
-		if (! destroy && this.dom.input.attr('type') === 'hidden') {
-			return;
-		}
-
-		var namespace = this.s.namespace;
-
-		this.dom.container.detach();
-
-		$(window).off( '.'+namespace );
-		$(document).off( 'keydown.'+namespace );
-		$('div.dataTables_scrollBody').off( 'scroll.'+namespace );
-		$('div.DTE_Body_Content').off( 'scroll.'+namespace );
-		$('body').off( 'click.'+namespace );
-	},
-
-	/**
-	 * Convert a 24 hour value to a 12 hour value
-	 *
-	 * @param  {integer} val 24 hour value
-	 * @return {integer}     12 hour value
-	 * @private
-	 */
-	_hours24To12: function ( val ) {
-		return val === 0 ?
-			12 :
-			val > 12 ?
-				val - 12 :
-				val;
-	},
-
-	/**
-	 * Generate the HTML for a single day in the calendar - this is basically
-	 * and HTML cell with a button that has data attributes so we know what was
-	 * clicked on (if it is clicked on) and a bunch of classes for styling.
-	 *
-	 * @param  {object} day Day object from the `_htmlMonth` method
-	 * @return {string}     HTML cell
-	 */
-	_htmlDay: function( day )
-	{
-		if ( day.empty ) {
-			return '<td class="empty"></td>';
-		}
-
-		var classes = [ 'selectable' ];
-		var classPrefix = this.c.classPrefix;
-
-		if ( day.disabled ) {
-			classes.push( 'disabled' );
-		}
-
-		if ( day.today ) {
-			classes.push( 'now' );
-		}
-
-		if ( day.selected ) {
-			classes.push( 'selected' );
-		}
-
-		return '<td data-day="' + day.day + '" class="' + classes.join(' ') + '">' +
-				'<button class="'+classPrefix+'-button '+classPrefix+'-day" type="button" ' +'data-year="' + day.year + '" data-month="' + day.month + '" data-day="' + day.day + '">' +
-					'<span>'+day.day+'</span>'+
-				'</button>' +
-			'</td>';
-	},
-
-
-	/**
-	 * Create the HTML for a month to be displayed in the calendar table.
-	 * 
-	 * Based upon the logic used in Pikaday - MIT licensed
-	 * Copyright (c) 2014 David Bushell
-	 * https://github.com/dbushell/Pikaday
-	 *
-	 * @param  {integer} year  Year
-	 * @param  {integer} month Month (starting at 0)
-	 * @return {string} Calendar month HTML
-	 * @private
-	 */
-	_htmlMonth: function ( year, month ) {
-		var now    = this._dateToUtc( new Date() ),
-			days   = this._daysInMonth( year, month ),
-			before = new Date( Date.UTC(year, month, 1) ).getUTCDay(),
-			data   = [],
-			row    = [];
-
-		if ( this.c.firstDay > 0 ) {
-			before -= this.c.firstDay;
-
-			if (before < 0) {
-				before += 7;
-			}
-		}
-
-		var cells = days + before,
-			after = cells;
-
-		while ( after > 7 ) {
-			after -= 7;
-		}
-
-		cells += 7 - after;
-
-		var minDate = this.c.minDate;
-		var maxDate = this.c.maxDate;
-
-		if ( minDate ) {
-			minDate.setUTCHours(0);
-			minDate.setUTCMinutes(0);
-			minDate.setSeconds(0);
-		}
-
-		if ( maxDate ) {
-			maxDate.setUTCHours(23);
-			maxDate.setUTCMinutes(59);
-			maxDate.setSeconds(59);
-		}
-
-		for ( var i=0, r=0 ; i<cells ; i++ ) {
-			var day      = new Date( Date.UTC(year, month, 1 + (i - before)) ),
-				selected = this.s.d ? this._compareDates(day, this.s.d) : false,
-				today    = this._compareDates(day, now),
-				empty    = i < before || i >= (days + before),
-				disabled = (minDate && day < minDate) ||
-				           (maxDate && day > maxDate);
-
-			var disableDays = this.c.disableDays;
-			if ( Array.isArray( disableDays ) && $.inArray( day.getUTCDay(), disableDays ) !== -1 ) {
-				disabled = true;
-			}
-			else if ( typeof disableDays === 'function' && disableDays( day ) === true ) {
-				disabled = true;
-			}
-
-			var dayConfig = {
-				day:      1 + (i - before),
-				month:    month,
-				year:     year,
-				selected: selected,
-				today:    today,
-				disabled: disabled,
-				empty:    empty
-			};
-
-			row.push( this._htmlDay(dayConfig) );
-
-			if ( ++r === 7 ) {
-				if ( this.c.showWeekNumber ) {
-					row.unshift( this._htmlWeekOfYear(i - before, month, year) );
+						break;
+					}
 				}
 
-				data.push( '<tr>'+row.join('')+'</tr>' );
-				row = [];
-				r = 0;
-			}
-		}
+				if ( ! cell ) {
+					if ( typeof row[i] === 'number' || (
+						row[i].match &&
+						row[i].match(/^-?\d+(\.\d+)?([eE]\-?\d+)?$/) && // Includes exponential format
+						! row[i].match(/^0\d+/) )
+					) {
+						// Detect numbers - don't match numbers with leading zeros
+						// or a negative anywhere but the start
+						cell = _createNode( rels, 'c', {
+							attr: {
+								t: 'n',
+								r: cellId
+							},
+							children: [
+								_createNode( rels, 'v', { text: row[i] } )
+							]
+						} );
+					}
+					else {
+						// String output - replace non standard characters for text output
+						var text = ! originalContent.replace ?
+							originalContent :
+							originalContent.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
 
-		var classPrefix = this.c.classPrefix;
-		var className = classPrefix+'-table';
-		if ( this.c.showWeekNumber ) {
-			className += ' weekNumber';
-		}
+						cell = _createNode( rels, 'c', {
+							attr: {
+								t: 'inlineStr',
+								r: cellId
+							},
+							children:{
+								row: _createNode( rels, 'is', {
+									children: {
+										row: _createNode( rels, 't', {
+											text: text,
+											attr: {
+												'xml:space': 'preserve'
+											}
+										} )
+									}
+								} )
+							}
+						} );
+					}
+				}
 
-		// Show / hide month icons based on min/max
-		if ( minDate ) {
-			var underMin = minDate >= new Date( Date.UTC(year, month, 1, 0, 0, 0 ) );
-
-			this.dom.title.find('div.'+classPrefix+'-iconLeft')
-				.css( 'display', underMin ? 'none' : 'block' );
-		}
-
-		if ( maxDate ) {
-			var overMax = maxDate < new Date( Date.UTC(year, month+1, 1, 0, 0, 0 ) );
-
-			this.dom.title.find('div.'+classPrefix+'-iconRight')
-				.css( 'display', overMax ? 'none' : 'block' );
-		}
-
-		return '<table class="'+className+'">' +
-				'<thead>'+
-					this._htmlMonthHead() +
-				'</thead>'+
-				'<tbody>'+
-					data.join('') +
-				'</tbody>'+
-			'</table>';
-	},
-
-	/**
-	 * Create the calendar table's header (week days)
-	 *
-	 * @return {string} HTML cells for the row
-	 * @private
-	 */
-	_htmlMonthHead: function () {
-		var a = [];
-		var firstDay = this.c.firstDay;
-		var i18n = this.c.i18n;
-
-		// Take account of the first day shift
-		var dayName = function ( day ) {
-			day += firstDay;
-
-			while (day >= 7) {
-				day -= 7;
+				rowNode.appendChild( cell );
 			}
 
-			return i18n.weekdays[day];
+			relsGet.appendChild(rowNode);
+			rowPos++;
 		};
-		
-		// Empty cell in the header
-		if ( this.c.showWeekNumber ) {
-			a.push( '<th></th>' );
+
+		if ( config.customizeData ) {
+			config.customizeData( data );
 		}
 
-		for ( var i=0 ; i<7 ; i++ ) {
-			a.push( '<th>'+dayName( i )+'</th>' );
-		}
+		var mergeCells = function ( row, colspan ) {
+			var mergeCells = $('mergeCells', rels);
 
-		return a.join('');
-	},
-
-	/**
-	 * Create a cell that contains week of the year - ISO8601
-	 *
-	 * Based on https://stackoverflow.com/questions/6117814/ and
-	 * http://techblog.procurios.nl/k/n618/news/view/33796/14863/
-	 *
-	 * @param  {integer} d Day of month
-	 * @param  {integer} m Month of year (zero index)
-	 * @param  {integer} y Year
-	 * @return {string}   
-	 * @private
-	 */
-	_htmlWeekOfYear: function ( d, m, y ) {
-		var date = new Date( y, m, d, 0, 0, 0, 0 );
-
-		// First week of the year always has 4th January in it
-		date.setDate( date.getDate() + 4 - (date.getDay() || 7) );
-
-		var oneJan = new Date( y, 0, 1 );
-		var weekNum = Math.ceil( ( ( (date - oneJan) / 86400000) + 1)/7 );
-
-		return '<td class="'+this.c.classPrefix+'-week">' + weekNum + '</td>';
-	},
-
-	/**
-	 * Check if the instance has a date object value - it might be null.
-	 * If is doesn't set one to now.
-	 * @returns A Date object
-	 * @private
-	 */
-	_needValue: function () {
-		if ( ! this.s.d ) {
-			this.s.d = this._dateToUtc( new Date() );
-		}
-
-		return this.s.d;
-	},
-
-	/**
-	 * Create option elements from a range in an array
-	 *
-	 * @param  {string} selector Class name unique to the select element to use
-	 * @param  {array} values   Array of values
-	 * @param  {array} [labels] Array of labels. If given must be the same
-	 *   length as the values parameter.
-	 * @private
-	 */
-	_options: function ( selector, values, labels ) {
-		if ( ! labels ) {
-			labels = values;
-		}
-
-		var select = this.dom.container.find('select.'+this.c.classPrefix+'-'+selector);
-		select.empty();
-
-		for ( var i=0, ien=values.length ; i<ien ; i++ ) {
-			select.append( '<option value="'+values[i]+'">'+labels[i]+'</option>' );
-		}
-	},
-
-	/**
-	 * Set an option and update the option's span pair (since the select element
-	 * has opacity 0 for styling)
-	 *
-	 * @param  {string} selector Class name unique to the select element to use
-	 * @param  {*}      val      Value to set
-	 * @private
-	 */
-	_optionSet: function ( selector, val ) {
-		var select = this.dom.container.find('select.'+this.c.classPrefix+'-'+selector);
-		var span = select.parent().children('span');
-
-		select.val( val );
-
-		var selected = select.find('option:selected');
-		span.html( selected.length !== 0 ?
-			selected.text() :
-			this.c.i18n.unknown
-		);
-	},
-
-	/**
-	 * Create time options list.
-	 *
-	 * @param  {string} unit Time unit - hours, minutes or seconds
-	 * @param  {integer} count Count range - 12, 24 or 60
-	 * @param  {integer} val Existing value for this unit
-	 * @param  {integer[]} allowed Values allow for selection
-	 * @param  {integer} range Override range
-	 * @private
-	 */
-	_optionsTime: function ( unit, count, val, allowed, range ) {
-		var classPrefix = this.c.classPrefix;
-		var container = this.dom.container.find('div.'+classPrefix+'-'+unit);
-		var i, j;
-		var render = count === 12 ?
-			function (i) { return i; } :
-			this._pad;
-		var classPrefix = this.c.classPrefix;
-		var className = classPrefix+'-table';
-		var i18n = this.c.i18n;
-
-		if ( ! container.length ) {
-			return;
-		}
-
-		var a = '';
-		var span = 10;
-		var button = function (value, label, className) {
-			// Shift the value for PM
-			if ( count === 12 && typeof value === 'number' ) {
-				if (val >= 12 ) {
-					value += 12;
+			mergeCells[0].appendChild( _createNode( rels, 'mergeCell', {
+				attr: {
+					ref: 'A'+row+':'+createCellPos(colspan)+row
 				}
+			} ) );
+			mergeCells.attr( 'count', parseFloat(mergeCells.attr( 'count' ))+1 );
+			$('row:eq('+(row-1)+') c', rels).attr( 's', '51' ); // centre
+		};
 
-				if (value == 12) {
-					value = 0;
-				}
-				else if (value == 24) {
-					value = 12;
-				}
-			}
-
-			var selected = val === value || (value === 'am' && val < 12) || (value === 'pm' && val >= 12) ?
-				'selected' :
-				'';
-			
-			if (allowed && $.inArray(value, allowed) === -1) {
-				selected += ' disabled';
-			}
-
-			if ( className ) {
-				selected += ' '+className;
-			}
-
-			return '<td class="selectable '+selected+'">' +
-				'<button class="'+classPrefix+'-button '+classPrefix+'-day" type="button" data-unit="'+unit+'" data-value="'+value+ '">' +
-					'<span>'+label+'</span>'+
-				'</button>' +
-			'</td>';
+		// Title and top messages
+		var exportInfo = dt.buttons.exportInfo( config );
+		if ( exportInfo.title ) {
+			addRow( [exportInfo.title], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
 		}
 
-		if ( count === 12 ) {
-			// Hours with AM/PM
-			a += '<tr>';
-			
-			for ( i=1 ; i<=6 ; i++ ) {
-				a += button(i, render(i));
-			}
-			a += button('am', i18n.amPm[0]);
-
-			a += '</tr>';
-			a += '<tr>';
-
-			for ( i=7 ; i<=12 ; i++ ) {
-				a += button(i, render(i));
-			}
-			a += button('pm', i18n.amPm[1]);
-			a += '</tr>';
-
-			span = 7;
+		if ( exportInfo.messageTop ) {
+			addRow( [exportInfo.messageTop], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
 		}
-		else if ( count === 24 ) {
-			// Hours - 24
-			var c = 0;
-			for (j=0 ; j<4 ; j++ ) {
-				a += '<tr>';
-				for ( i=0 ; i<6 ; i++ ) {
-					a += button(c, render(c));
-					c++;
-				}
-				a += '</tr>';
-			}
 
-			span = 6;
+
+		// Table itself
+		if ( config.header ) {
+			addRow( data.header, rowPos );
+			$('row:last c', rels).attr( 's', '2' ); // bold
+		}
+	
+		dataStartRow = rowPos;
+
+		for ( var n=0, ie=data.body.length ; n<ie ; n++ ) {
+			addRow( data.body[n], rowPos );
+		}
+	
+		dataEndRow = rowPos;
+
+		if ( config.footer && data.footer ) {
+			addRow( data.footer, rowPos);
+			$('row:last c', rels).attr( 's', '2' ); // bold
+		}
+
+		// Below the table
+		if ( exportInfo.messageBottom ) {
+			addRow( [exportInfo.messageBottom], rowPos );
+			mergeCells( rowPos, data.header.length-1 );
+		}
+
+		// Set column widths
+		var cols = _createNode( rels, 'cols' );
+		$('worksheet', rels).prepend( cols );
+
+		for ( var i=0, ien=data.header.length ; i<ien ; i++ ) {
+			cols.appendChild( _createNode( rels, 'col', {
+				attr: {
+					min: i+1,
+					max: i+1,
+					width: _excelColWidth( data, i ),
+					customWidth: 1
+				}
+			} ) );
+		}
+
+		// Workbook modifications
+		var workbook = xlsx.xl['workbook.xml'];
+
+		$( 'sheets sheet', workbook ).attr( 'name', _sheetname( config ) );
+
+		// Auto filter for columns
+		if ( config.autoFilter ) {
+			$('mergeCells', rels).before( _createNode( rels, 'autoFilter', {
+				attr: {
+					ref: 'A'+dataStartRow+':'+createCellPos(data.header.length-1)+dataEndRow
+				}
+			} ) );
+
+			$('definedNames', workbook).append( _createNode( workbook, 'definedName', {
+				attr: {
+					name: '_xlnm._FilterDatabase',
+					localSheetId: '0',
+					hidden: 1
+				},
+				text: _sheetname(config)+'!$A$'+dataStartRow+':'+createCellPos(data.header.length-1)+dataEndRow
+			} ) );
+		}
+
+		// Let the developer customise the document if they want to
+		if ( config.customize ) {
+			config.customize( xlsx, config, dt );
+		}
+
+		// Excel doesn't like an empty mergeCells tag
+		if ( $('mergeCells', rels).children().length === 0 ) {
+			$('mergeCells', rels).remove();
+		}
+
+		var jszip = _jsZip();
+		var zip = new jszip();
+		var zipConfig = {
+			type: 'blob',
+			mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+		};
+
+		_addToZip( zip, xlsx );
+
+		if ( zip.generateAsync ) {
+			// JSZip 3+
+			zip
+				.generateAsync( zipConfig )
+				.then( function ( blob ) {
+					_saveAs( blob, exportInfo.filename );
+					that.processing( false );
+				} );
 		}
 		else {
-			// Minutes and seconds
-			a += '<tr>';
-			for (j=0 ; j<60 ; j+=10 ) {
-				a += button(j, render(j), 'range');
-			}
-			a += '</tr>';
-			
-			// Slight hack to allow for the different number of columns
-			a += '</tbody></thead><table class="'+className+' '+className+'-nospace"><tbody>';
-
-			var start = range !== null ?
-				range :
-				Math.floor( val / 10 )*10;
-
-			a += '<tr>';
-			for (j=start+1 ; j<start+10 ; j++ ) {
-				a += button(j, render(j));
-			}
-			a += '</tr>';
-
-			span = 6;
-		}
-
-		container
-			.empty()
-			.append(
-				'<table class="'+className+'">'+
-					'<thead><tr><th colspan="'+span+'">'+
-						i18n[unit] +
-					'</th></tr></thead>'+
-					'<tbody>'+
-						a+
-					'</tbody>'+
-				'</table>'
+			// JSZip 2.5
+			_saveAs(
+				zip.generate( zipConfig ),
+				exportInfo.filename
 			);
-	},
-
-	/**
-	 * Create the options for the month and year
-	 *
-	 * @param  {integer} year  Year
-	 * @param  {integer} month Month (starting at 0)
-	 * @private
-	 */
-	_optionsTitle: function () {
-		var i18n = this.c.i18n;
-		var min = this.c.minDate;
-		var max = this.c.maxDate;
-		var minYear = min ? min.getFullYear() : null;
-		var maxYear = max ? max.getFullYear() : null;
-
-		var i = minYear !== null ? minYear : new Date().getFullYear() - this.c.yearRange;
-		var j = maxYear !== null ? maxYear : new Date().getFullYear() + this.c.yearRange;
-
-		this._options( 'month', this._range( 0, 11 ), i18n.months );
-		this._options( 'year', this._range( i, j ) );
-	},
-
-	/**
-	 * Simple two digit pad
-	 *
-	 * @param  {integer} i      Value that might need padding
-	 * @return {string|integer} Padded value
-	 * @private
-	 */
-	_pad: function ( i ) {
-		return i<10 ? '0'+i : i;
-	},
-
-	/**
-	 * Position the calendar to look attached to the input element
-	 * @private
-	 */
-	_position: function () {
-		var offset = this.c.attachTo === 'input' ? this.dom.input.position() : this.dom.input.offset();
-		var container = this.dom.container;
-		var inputHeight = this.dom.input.outerHeight();
-
-		if (container.hasClass('inline')) {
-			container.insertAfter( this.dom.input );
-			return;
-		}
-
-		if ( this.s.parts.date && this.s.parts.time && $(window).width() > 550 ) {
-			container.addClass('horizontal');
-		}
-		else {
-			container.removeClass('horizontal');
-		}
-
-		if(this.c.attachTo === 'input') {
-			container
-				.css( {
-					top: offset.top + inputHeight,
-					left: offset.left
-				} )
-				.insertAfter( this.dom.input );
-		}
-		else {
-			container
-				.css( {
-					top: offset.top + inputHeight,
-					left: offset.left
-				} )
-				.appendTo( 'body' );
-		}
-
-		var calHeight = container.outerHeight();
-		var calWidth = container.outerWidth();
-		var scrollTop = $(window).scrollTop();
-
-		// Correct to the bottom
-		if ( offset.top + inputHeight + calHeight - scrollTop > $(window).height() ) {
-			var newTop = offset.top - calHeight;
-
-			container.css( 'top', newTop < 0 ? 0 : newTop );
-		}
-
-		// Correct to the right
-		if ( calWidth + offset.left > $(window).width() ) {
-			var newLeft = $(window).width() - calWidth;
-
-			// Account for elements which are inside a position absolute element
-			if (this.c.attachTo === 'input') {
-				newLeft -= $(container).offsetParent().offset().left;
-			}
-
-			container.css( 'left', newLeft < 0 ? 0 : newLeft );
+			this.processing( false );
 		}
 	},
 
-	/**
-	 * Create a simple array with a range of values
-	 *
-	 * @param  {integer} start   Start value (inclusive)
-	 * @param  {integer} end     End value (inclusive)
-	 * @param  {integer} [inc=1] Increment value
-	 * @return {array}           Created array
-	 * @private
-	 */
-	_range: function ( start, end, inc ) {
-		var a = [];
+	filename: '*',
 
-		if ( ! inc ) {
-			inc = 1;
-		}
+	extension: '.xlsx',
 
-		for ( var i=start ; i<=end ; i+=inc ) {
-			a.push( i );
-		}
+	exportOptions: {},
 
-		return a;
+	header: true,
+
+	footer: false,
+
+	title: '*',
+
+	messageTop: '*',
+
+	messageBottom: '*',
+
+	createEmptyCells: false,
+
+	autoFilter: false,
+
+	sheetName: ''
+};
+
+//
+// PDF export - using pdfMake - http://pdfmake.org
+//
+DataTable.ext.buttons.pdfHtml5 = {
+	className: 'buttons-pdf buttons-html5',
+
+	available: function () {
+		return window.FileReader !== undefined && _pdfMake();
 	},
 
-	/**
-	 * Redraw the calendar based on the display date - this is a destructive
-	 * operation
-	 *
-	 * @private
-	 */
-	_setCalander: function () {
-		if ( this.s.display ) {
-			this.dom.calendar
-				.empty()
-				.append( this._htmlMonth(
-					this.s.display.getUTCFullYear(),
-					this.s.display.getUTCMonth()
-				) );
-		}
+	text: function ( dt ) {
+		return dt.i18n( 'buttons.pdf', 'PDF' );
 	},
 
-	/**
-	 * Set the month and year for the calendar based on the current display date
-	 *
-	 * @private
-	 */
-	_setTitle: function () {
-		this._optionSet( 'month', this.s.display.getUTCMonth() );
-		this._optionSet( 'year', this.s.display.getUTCFullYear() );
-	},
+	action: function ( e, dt, button, config ) {
+		this.processing( true );
 
-	/**
-	 * Set the time based on the current value of the widget
-	 *
-	 * @private
-	 */
-	_setTime: function () {
 		var that = this;
-		var d = this.s.d;
-		
-		// luxon uses different method names so need to be able to call them. This happens a few time later in this method too
-		var luxDT = null
-		if (dateLib && dateLib == window.luxon) {
-			luxDT = dateLib.DateTime.fromJSDate(d);
+		var data = dt.buttons.exportData( config.exportOptions );
+		var info = dt.buttons.exportInfo( config );
+		var rows = [];
+
+		if ( config.header ) {
+			rows.push( $.map( data.header, function ( d ) {
+				return {
+					text: typeof d === 'string' ? d : d+'',
+					style: 'tableHeader'
+				};
+			} ) );
 		}
 
-		var hours = luxDT != null
-			? luxDT.hour
-			: d
-				? d.getUTCHours()
-				: 0;
-
-		var allowed = function ( prop ) { // Backwards compt with `Increment` option
-			return that.c[prop+'Available'] ?
-				that.c[prop+'Available'] :
-				that._range( 0, 59, that.c[prop+'Increment'] );
-		}
-
-		this._optionsTime( 'hours', this.s.parts.hours12 ? 12 : 24, hours, this.c.hoursAvailable )
-		this._optionsTime(
-			'minutes',
-			60,
-			luxDT != null
-				? luxDT.minute
-				: d
-					? d.getUTCMinutes()
-					: 0, allowed('minutes'),
-			this.s.minutesRange
-		);
-		this._optionsTime(
-			'seconds',
-			60,
-			luxDT != null
-				? luxDT.second
-				: d
-					? d.getSeconds()
-					: 0,
-			allowed('seconds'),
-			this.s.secondsRange
-		);
-	},
-
-	/**
-	 * Show the widget and add events to the document required only while it
-	 * is displayed
-	 * 
-	 * @private
-	 */
-	_show: function () {
-		var that = this;
-		var namespace = this.s.namespace;
-
-		this._position();
-
-		// Need to reposition on scroll
-		$(window).on( 'scroll.'+namespace+' resize.'+namespace, function () {
-			that._position();
-		} );
-
-		$('div.DTE_Body_Content').on( 'scroll.'+namespace, function () {
-			that._position();
-		} );
-
-		$('div.dataTables_scrollBody').on( 'scroll.'+namespace, function () {
-			that._position();
-		} );
-
-		var offsetParent = this.dom.input[0].offsetParent;
-
-		if ( offsetParent !== document.body ) {
-			$(offsetParent).on( 'scroll.'+namespace, function () {
-				that._position();
-			} );
-		}
-
-		// On tab focus will move to a different field (no keyboard navigation
-		// in the date picker - this might need to be changed).
-		$(document).on( 'keydown.'+namespace, function (e) {
-			if (
-				e.keyCode === 9  || // tab
-				e.keyCode === 27 || // esc
-				e.keyCode === 13    // return
-			) {
-				that._hide();
-			}
-		} );
-
-		// Hide if clicking outside of the widget - but in a different click
-		// event from the one that was used to trigger the show (bubble and
-		// inline)
-		setTimeout( function () {
-			$('body').on( 'click.'+namespace, function (e) {
-				var parents = $(e.target).parents();
-
-				if ( ! parents.filter( that.dom.container ).length && e.target !== that.dom.input[0] ) {
-					that._hide();
+		for ( var i=0, ien=data.body.length ; i<ien ; i++ ) {
+			rows.push( $.map( data.body[i], function ( d ) {
+				if ( d === null || d === undefined ) {
+					d = '';
 				}
+				return {
+					text: typeof d === 'string' ? d : d+'',
+					style: i % 2 ? 'tableBodyEven' : 'tableBodyOdd'
+				};
+			} ) );
+		}
+
+		if ( config.footer && data.footer) {
+			rows.push( $.map( data.footer, function ( d ) {
+				return {
+					text: typeof d === 'string' ? d : d+'',
+					style: 'tableFooter'
+				};
+			} ) );
+		}
+
+		var doc = {
+			pageSize: config.pageSize,
+			pageOrientation: config.orientation,
+			content: [
+				{
+					table: {
+						headerRows: 1,
+						body: rows
+					},
+					layout: 'noBorders'
+				}
+			],
+			styles: {
+				tableHeader: {
+					bold: true,
+					fontSize: 11,
+					color: 'white',
+					fillColor: '#2d4154',
+					alignment: 'center'
+				},
+				tableBodyEven: {},
+				tableBodyOdd: {
+					fillColor: '#f3f3f3'
+				},
+				tableFooter: {
+					bold: true,
+					fontSize: 11,
+					color: 'white',
+					fillColor: '#2d4154'
+				},
+				title: {
+					alignment: 'center',
+					fontSize: 15
+				},
+				message: {}
+			},
+			defaultStyle: {
+				fontSize: 10
+			}
+		};
+
+		if ( info.messageTop ) {
+			doc.content.unshift( {
+				text: info.messageTop,
+				style: 'message',
+				margin: [ 0, 0, 0, 12 ]
 			} );
-		}, 10 );
+		}
+
+		if ( info.messageBottom ) {
+			doc.content.push( {
+				text: info.messageBottom,
+				style: 'message',
+				margin: [ 0, 0, 0, 12 ]
+			} );
+		}
+
+		if ( info.title ) {
+			doc.content.unshift( {
+				text: info.title,
+				style: 'title',
+				margin: [ 0, 0, 0, 12 ]
+			} );
+		}
+
+		if ( config.customize ) {
+			config.customize( doc, config, dt );
+		}
+
+		var pdf = _pdfMake().createPdf( doc );
+
+		if ( config.download === 'open' && ! _isDuffSafari() ) {
+			pdf.open();
+		}
+		else {
+			pdf.download( info.filename );
+		}
+
+		this.processing( false );
 	},
 
-	/**
-	 * Write the formatted string to the input element this control is attached
-	 * to
-	 *
-	 * @private
-	 */
-	_writeOutput: function ( focus ) {
-		var date = this.s.d;
-		var out = '';
+	title: '*',
 
-		// Use moment, dayjs or luxon if possible - otherwise it must be ISO8601 (or the
-		// constructor would have thrown an error)
-		// luxon uses different method names so need to be able to call them.
-		if (date) {
-			out = dateLib && dateLib == window.luxon
-			? dateLib.DateTime.fromJSDate(this.s.d).toFormat(this.c.format)
-			: dateLib ?
-				dateLib.utc( date, undefined, this.c.locale, this.c.strict ).format( this.c.format ) :
-				date.getUTCFullYear() +'-'+
-					this._pad(date.getUTCMonth() + 1) +'-'+
-					this._pad(date.getUTCDate());
-		}
+	filename: '*',
 
-		this.dom.input
-			.val( out )
-			.trigger('change', {write: date});
-		
-		if ( this.dom.input.attr('type') === 'hidden' ) {
-			this.val(out, false);
-		}
+	extension: '.pdf',
 
-		if ( focus ) {
-			this.dom.input.focus();
-		}
-	}
-} );
+	exportOptions: {},
 
-/**
- * Use a specificmoment compatible date library
- */
-DateTime.use = function (lib) {
-	dateLib = lib;
+	orientation: 'portrait',
+
+	pageSize: 'A4',
+
+	header: true,
+
+	footer: false,
+
+	messageTop: '*',
+
+	messageBottom: '*',
+
+	customize: null,
+
+	download: 'download'
 };
 
-/**
- * For generating unique namespaces
- *
- * @type {Number}
- * @private
- */
-DateTime._instance = 0;
 
-/**
- * Defaults for the date time picker
- *
- * @type {Object}
- */
-DateTime.defaults = {
-	attachTo: 'body',
-
-	buttons: {
-		clear: false,
-		today: false
-	},
-
-	// Not documented - could be an internal property
-	classPrefix: 'dt-datetime',
-
-	// function or array of ints
-	disableDays: null,
-
-	// first day of the week (0: Sunday, 1: Monday, etc)
-	firstDay: 1,
-
-	format: 'YYYY-MM-DD',
-
-	hoursAvailable: null,
-
-	i18n: {
-		clear:    'Clear',
-		previous: 'Previous',
-		next:     'Next',
-		months:   [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ],
-		weekdays: [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
-		amPm:     [ 'am', 'pm' ],
-		hours:    'Hour',
-		minutes:  'Minute',
-		seconds:  'Second',
-		unknown:  '-',
-		today:    'Today'
-	},
-
-	maxDate: null,
-
-	minDate: null,
-
-	minutesAvailable: null,
-
-	minutesIncrement: 1, // deprecated
-
-	strict: true,
-
-	locale: 'en',
-
-	onChange: function () {},
-
-	secondsAvailable: null,
-
-	secondsIncrement: 1, // deprecated
-
-	// show the ISO week number at the head of the row
-	showWeekNumber: false,
-
-	// overruled by max / min date
-	yearRange: 25
-};
-
-DateTime.version = '1.1.1';
-
-// Global export - if no conflicts
-if (! window.DateTime) {
-	window.DateTime = DateTime;
-}
-
-// Make available via jQuery
-$.fn.dtDateTime = function (options) {
-	return this.each(function() {
-		new DateTime(this, options);
-	});
-}
-
-// Attach to DataTables if present
-if ($.fn.dataTable) {
-	$.fn.dataTable.DateTime = DateTime;
-	$.fn.DataTable.DateTime = DateTime;
-
-	if ($.fn.dataTable.Editor) {
-		$.fn.dataTable.Editor.DateTime = DateTime;
-	}
-}
-
-return DateTime;
-
+return DataTable.Buttons;
 }));
 
 
-/*! FixedColumns 4.0.0
- * 2019-2021 SpryMedia Ltd - datatables.net/license
+/*! FixedColumns 4.1.0
+ * 2019-2022 SpryMedia Ltd - datatables.net/license
  */
 (function () {
     'use strict';
@@ -19618,25 +19874,20 @@ return DateTime;
             // Get options from user
             this.c = $.extend(true, {}, FixedColumns.defaults, opts);
             // Backwards compatibility for deprecated leftColumns
-            if (opts.left === undefined && this.c.leftColumns !== undefined) {
+            if ((!opts || opts.left === undefined) && this.c.leftColumns !== undefined) {
                 this.c.left = this.c.leftColumns;
             }
             // Backwards compatibility for deprecated rightColumns
-            if (opts.right === undefined && this.c.rightColumns !== undefined) {
+            if ((!opts || opts.right === undefined) && this.c.rightColumns !== undefined) {
                 this.c.right = this.c.rightColumns;
             }
             this.s = {
                 barWidth: 0,
                 dt: table,
-                rtl: $(table.table().node()).css('direction') === 'rtl'
+                rtl: $('body').css('direction') === 'rtl'
             };
-            // Set the bar width if vertical scrolling is enabled
-            if (this.s.dt.settings()[0].oInit.scrollY === true) {
-                this.s.barWidth = this.s.dt.settings()[0].oBrowser.barWidth;
-            }
             // Common CSS for all blockers
             var blockerCSS = {
-                'background-color': 'white',
                 'bottom': '0px',
                 'display': 'block',
                 'position': 'absolute',
@@ -19672,18 +19923,19 @@ return DateTime;
                 this._setKeyTableListener();
             }
             else {
-                table.one('preInit.dt', function () {
+                table.one('init.dt', function () {
                     // Fixed Columns Initialisation
                     _this._addStyles();
                     _this._setKeyTableListener();
                 });
             }
+            table.on('column-sizing.dt', function () { return _this._addStyles(); });
             // Make class available through dt object
             table.settings()[0]._fixedColumns = this;
             return this;
         }
         /**
-         * Getter/Setter for the fixedColumns.left property
+         * Getter/Setter for the `fixedColumns.left` property
          *
          * @param newVal Optional. If present this will be the new value for the number of left fixed columns
          * @returns The number of left fixed columns
@@ -19698,7 +19950,7 @@ return DateTime;
             return this.c.left;
         };
         /**
-         * Getter/Setter for the fixedColumns.left property
+         * Getter/Setter for the `fixedColumns.left` property
          *
          * @param newVal Optional. If present this will be the new value for the number of right fixed columns
          * @returns The number of right fixed columns
@@ -19716,6 +19968,21 @@ return DateTime;
          * Iterates over the columns, fixing the appropriate ones to the left and right
          */
         FixedColumns.prototype._addStyles = function () {
+            // Set the bar width if vertical scrolling is enabled
+            if (this.s.dt.settings()[0].oScroll.sY) {
+                var scroll_1 = $(this.s.dt.table().node()).closest('div.dataTables_scrollBody')[0];
+                var barWidth = this.s.dt.settings()[0].oBrowser.barWidth;
+                if (scroll_1.offsetWidth - scroll_1.clientWidth >= barWidth) {
+                    this.s.barWidth = barWidth;
+                }
+                else {
+                    this.s.barWidth = 0;
+                }
+                this.dom.rightTopBlocker.css('width', this.s.barWidth + 1);
+                this.dom.leftTopBlocker.css('width', this.s.barWidth + 1);
+                this.dom.rightBottomBlocker.css('width', this.s.barWidth + 1);
+                this.dom.leftBottomBlocker.css('width', this.s.barWidth + 1);
+            }
             var parentDiv = null;
             // Get the header and it's height
             var header = this.s.dt.column(0).header();
@@ -19740,12 +20007,21 @@ return DateTime;
             var numCols = this.s.dt.columns().data().toArray().length;
             // Tracker for the number of pixels should be left to the left of the table
             var distLeft = 0;
+            // Sometimes the headers have slightly different widths so need to track them individually
+            var headLeft = 0;
             // Get all of the row elements in the table
             var rows = $(this.s.dt.table().node()).children('tbody').children('tr');
             var invisibles = 0;
+            // When working from right to left we need to know how many are invisible before a point,
+            // without including those that are invisible after
+            var prevInvisible = new Map();
             // Iterate over all of the columns
             for (var i = 0; i < numCols; i++) {
                 var column = this.s.dt.column(i);
+                // Set the map for the previous column
+                if (i > 0) {
+                    prevInvisible.set(i - 1, invisibles);
+                }
                 if (!column.visible()) {
                     invisibles++;
                     continue;
@@ -19754,14 +20030,26 @@ return DateTime;
                 var colHeader = $(column.header());
                 var colFooter = $(column.footer());
                 // If i is less than the value of left then this column should be fixed left
-                if (i < this.c.left) {
+                if (i - invisibles < this.c.left) {
                     $(this.s.dt.table().node()).addClass(this.classes.tableFixedLeft);
                     parentDiv.addClass(this.classes.tableFixedLeft);
                     // Add the width of the previous node - only if we are on atleast the second column
-                    if (i !== 0) {
-                        var prevCol = this.s.dt.column(i - 1);
-                        if (prevCol.visible()) {
-                            distLeft += $(prevCol.nodes()[0]).outerWidth();
+                    if (i - invisibles > 0) {
+                        var prevIdx = i;
+                        // Simply using the number of hidden columns doesn't work here,
+                        // if the first is hidden then this would be thrown off
+                        while (prevIdx + 1 < numCols) {
+                            var prevCol = this.s.dt.column(prevIdx - 1, { page: 'current' });
+                            if (prevCol.visible()) {
+                                distLeft += $(prevCol.nodes()[0]).outerWidth();
+                                headLeft += prevCol.header() ?
+                                    $(prevCol.header()).outerWidth() :
+                                    prevCol.footer() ?
+                                        $(prevCol.header()).outerWidth() :
+                                        0;
+                                break;
+                            }
+                            prevIdx--;
                         }
                     }
                     // Iterate over all of the rows, fixing the cell to the left
@@ -19773,10 +20061,10 @@ return DateTime;
                     }
                     // Add the css for the header and the footer
                     colHeader
-                        .css(this._getCellCSS(true, distLeft, 'left'))
+                        .css(this._getCellCSS(true, headLeft, 'left'))
                         .addClass(this.classes.fixedLeft);
                     colFooter
-                        .css(this._getCellCSS(true, distLeft, 'left'))
+                        .css(this._getCellCSS(true, headLeft, 'left'))
                         .addClass(this.classes.fixedLeft);
                 }
                 else {
@@ -19828,46 +20116,67 @@ return DateTime;
                 }
             }
             var distRight = 0;
-            invisibles = 0;
+            var headRight = 0;
+            // Counter for the number of invisible columns so far
+            var rightInvisibles = 0;
             for (var i = numCols - 1; i >= 0; i--) {
                 var column = this.s.dt.column(i);
+                // If a column is invisible just skip it
+                if (!column.visible()) {
+                    rightInvisibles++;
+                    continue;
+                }
                 // Get the columns header and footer element
                 var colHeader = $(column.header());
                 var colFooter = $(column.footer());
-                if (!column.visible()) {
-                    invisibles++;
-                    continue;
+                // Get the number of visible columns that came before this one
+                var prev = prevInvisible.get(i);
+                if (prev === undefined) {
+                    // If it wasn't set then it was the last column so just use the final value
+                    prev = invisibles;
                 }
-                if (i >= numCols - this.c.right) {
+                if (i + rightInvisibles >= numCols - this.c.right) {
                     $(this.s.dt.table().node()).addClass(this.classes.tableFixedRight);
-                    parentDiv.addClass(this.classes.tableFixedLeft);
+                    parentDiv.addClass(this.classes.tableFixedRight);
                     // Add the widht of the previous node, only if we are on atleast the second column
-                    if (i !== numCols - 1) {
-                        var prevCol = this.s.dt.column(i + 1);
-                        if (prevCol.visible()) {
-                            distRight += $(prevCol.nodes()[0]).outerWidth();
+                    if (i + 1 + rightInvisibles < numCols) {
+                        var prevIdx = i;
+                        // Simply using the number of hidden columns doesn't work here,
+                        // if the first is hidden then this would be thrown off
+                        while (prevIdx + 1 < numCols) {
+                            var prevCol = this.s.dt.column(prevIdx + 1, { page: 'current' });
+                            if (prevCol.visible()) {
+                                distRight += $(prevCol.nodes()[0]).outerWidth();
+                                headRight += prevCol.header() ?
+                                    $(prevCol.header()).outerWidth() :
+                                    prevCol.footer() ?
+                                        $(prevCol.header()).outerWidth() :
+                                        0;
+                                break;
+                            }
+                            prevIdx++;
                         }
                     }
                     // Iterate over all of the rows, fixing the cell to the right
                     for (var _b = 0, rows_3 = rows; _b < rows_3.length; _b++) {
                         var row = rows_3[_b];
-                        $($(row).children()[i + invisibles])
+                        $($(row).children()[i - prev])
                             .css(this._getCellCSS(false, distRight, 'right'))
                             .addClass(this.classes.fixedRight);
                     }
                     // Add the css for the header and the footer
                     colHeader
-                        .css(this._getCellCSS(true, distRight, 'right'))
+                        .css(this._getCellCSS(true, headRight, 'right'))
                         .addClass(this.classes.fixedRight);
                     colFooter
-                        .css(this._getCellCSS(true, distRight, 'right'))
+                        .css(this._getCellCSS(true, headRight, 'right'))
                         .addClass(this.classes.fixedRight);
                 }
                 else {
                     // Iteriate through all of the rows, making sure they aren't currently trying to fix right
                     for (var _c = 0, rows_4 = rows; _c < rows_4.length; _c++) {
                         var row = rows_4[_c];
-                        var cell = $($(row).children()[i + invisibles]);
+                        var cell = $($(row).children()[i - prev]);
                         // If the cell is trying to fix to the right, remove the class and the css
                         if (cell.hasClass(this.classes.fixedRight)) {
                             cell
@@ -19922,25 +20231,25 @@ return DateTime;
          */
         FixedColumns.prototype._getCellCSS = function (header, dist, lr) {
             if (lr === 'left') {
-                return !this.s.rtl ?
-                    {
+                return this.s.rtl
+                    ? {
+                        position: 'sticky',
+                        right: dist + 'px'
+                    }
+                    : {
                         left: dist + 'px',
                         position: 'sticky'
-                    } :
-                    {
-                        position: 'sticky',
-                        right: dist + (header ? this.s.barWidth : 0) + 'px'
                     };
             }
             else {
-                return !this.s.rtl ?
-                    {
+                return this.s.rtl
+                    ? {
+                        left: dist + (header ? this.s.barWidth : 0) + 'px',
+                        position: 'sticky'
+                    }
+                    : {
                         position: 'sticky',
                         right: dist + (header ? this.s.barWidth : 0) + 'px'
-                    } :
-                    {
-                        left: dist + 'px',
-                        position: 'sticky'
                     };
             }
         };
@@ -20016,11 +20325,15 @@ return DateTime;
             this.s.dt.on('column-reorder', function () {
                 _this._addStyles();
             });
-            this.s.dt.on('column-visibility', function () {
-                _this._addStyles();
+            this.s.dt.on('column-visibility', function (e, settings, column, state, recalc) {
+                if (recalc && !settings.bDestroying) {
+                    setTimeout(function () {
+                        _this._addStyles();
+                    }, 50);
+                }
             });
         };
-        FixedColumns.version = '4.0.0';
+        FixedColumns.version = '4.1.0';
         FixedColumns.classes = {
             fixedLeft: 'dtfc-fixed-left',
             fixedRight: 'dtfc-fixed-right',
@@ -20041,8 +20354,8 @@ return DateTime;
         return FixedColumns;
     }());
 
-    /*! FixedColumns 4.0.0
-     * 2019-2021 SpryMedia Ltd - datatables.net/license
+    /*! FixedColumns 4.1.0
+     * 2019-2022 SpryMedia Ltd - datatables.net/license
      */
     // DataTables extensions common UMD. Note that this allows for AMD, CommonJS
     // (with window and jQuery being allowed as parameters to the returned
@@ -20137,7 +20450,7 @@ return DateTime;
         }
         // Attach a listener to the document which listens for DataTables initialisation
         // events so we can automatically initialise
-        $(document).on('init.dt.dtfc', function (e, settings) {
+        $(document).on('plugin-init.dt', function (e, settings) {
             if (e.namespace !== 'dt') {
                 return;
             }
@@ -20150,21 +20463,20 @@ return DateTime;
         });
     }));
 
-}());
+})();
 
 
-/*! Responsive 2.2.9
- * 2014-2021 SpryMedia Ltd - datatables.net/license
+/*! Responsive 2.3.0
+ * 2014-2022 SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     Responsive
  * @description Responsive tables plug-in for DataTables
- * @version     2.2.9
- * @file        dataTables.responsive.js
+ * @version     2.3.0
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
  * @contact     www.sprymedia.co.uk/contact
- * @copyright   Copyright 2014-2021 SpryMedia Ltd.
+ * @copyright   SpryMedia Ltd.
  *
  * This source file is free software, available under the following license:
  *   MIT license - http://datatables.net/license/mit
@@ -20403,6 +20715,19 @@ $.extend( Responsive.prototype, {
 			that._resize();
 		});
 
+		// DT2 let's us tell it if we are hiding columns
+		dt.on( 'column-calc.dt', function (e, d) {
+			var curr = that.s.current;
+
+			for (var i=0 ; i<curr.length ; i++) {
+				var idx = d.visible.indexOf(i);
+
+				if (curr[i] === false && idx >= 0) {
+					d.visible.splice(idx, 1);
+				}
+			}
+		} );
+
 		// On Ajax reload we want to reopen any child rows which are displayed
 		// by responsive
 		dt.on( 'preXhr.dtr', function () {
@@ -20618,7 +20943,7 @@ $.extend( Responsive.prototype, {
 				includeIn: [],
 				auto:      false,
 				control:   false,
-				never:     className.match(/\bnever\b/) ? true : false,
+				never:     className.match(/\b(dtr\-)?never\b/) ? true : false,
 				priority:  priority
 			};
 		} );
@@ -20679,7 +21004,7 @@ $.extend( Responsive.prototype, {
 			for ( var k=0, ken=classNames.length ; k<ken ; k++ ) {
 				var className = classNames[k].trim();
 
-				if ( className === 'all' ) {
+				if ( className === 'all' || className === 'dtr-all' ) {
 					// Include in all
 					hasClass = true;
 					col.includeIn = $.map( breakpoints, function (a) {
@@ -20687,7 +21012,7 @@ $.extend( Responsive.prototype, {
 					} );
 					return;
 				}
-				else if ( className === 'none' || col.never ) {
+				else if ( className === 'none' || className === 'dtr-none' || col.never ) {
 					// Include in none (default) and no auto
 					hasClass = true;
 					return;
@@ -20775,8 +21100,12 @@ $.extend( Responsive.prototype, {
 		var details = this.c.details;
 
 		if ( details && details.type !== false ) {
+			var renderer = typeof details.renderer === 'string'
+				? Responsive.renderer[details.renderer]()
+				: details.renderer;
+
 			var res = details.display( row, update, function () {
-				return details.renderer(
+				return renderer(
 					dt, row[0], that._detailsObj(row[0])
 				);
 			} );
@@ -21167,9 +21496,17 @@ $.extend( Responsive.prototype, {
 		var dt = this.s.dt;
 		var display = showHide ? '' : 'none'; // empty string will remove the attr
 
-		$( dt.column( col ).header() ).css( 'display', display );
-		$( dt.column( col ).footer() ).css( 'display', display );
-		dt.column( col ).nodes().to$().css( 'display', display );
+		$( dt.column( col ).header() )
+			.css( 'display', display )
+			.toggleClass('dtr-hidden', !showHide);
+
+		$( dt.column( col ).footer() )
+			.css( 'display', display )
+			.toggleClass('dtr-hidden', !showHide);
+
+		dt.column( col ).nodes().to$()
+			.css( 'display', display )
+			.toggleClass('dtr-hidden', !showHide);
 
 		// If the are child nodes stored, we might need to reinsert them
 		if ( ! $.isEmptyObject( _childNodeStore ) ) {
@@ -21598,7 +21935,7 @@ Api.registerPlural( 'columns().responsiveHidden()', 'column().responsiveHidden()
  * @name Responsive.version
  * @static
  */
-Responsive.version = '2.2.9';
+Responsive.version = '2.3.0';
 
 
 $.fn.dataTable.Responsive = Responsive;
@@ -21683,12 +22020,20 @@ var _modal = $(
 );
 var modal;
 
-// Need to wait for the document to be ready for Boostrap 5 to be able to initialise to modal
-$(function () {
-	modal = new bootstrap.Modal(_modal[0]);
-});
+// Note this could be undefined at the time of initialisation - the
+// DataTable.Responsive.bootstrap function can be used to set a different
+// bootstrap object
+var _bs = window.bootstrap;
+
+DataTable.Responsive.bootstrap = function (bs) {
+	_bs = bs;
+}
 
 _display.modal = function ( options ) {
+	if (! modal) {
+		modal = new _bs.Modal(_modal[0]);
+	}
+
 	return function ( row, update, render ) {
 		if ( ! $.fn.modal ) {
 			_original( row, update, render );
@@ -21724,7014 +22069,2150 @@ return DataTable.Responsive;
 }));
 
 
-/*! SearchBuilder 1.2.2
- * ©SpryMedia Ltd - datatables.net/license/mit
+/*! RowReorder 1.2.8
+ * 2015-2020 SpryMedia Ltd - datatables.net/license
  */
-(function () {
-    'use strict';
 
-    var $$2;
-    var dataTable$2;
-    // eslint-disable-next-line no-extra-parens
-    var moment = window.moment;
-    // eslint-disable-next-line no-extra-parens
-    var luxon = window.luxon;
-    /**
-     * Sets the value of jQuery for use in the file
-     *
-     * @param jq the instance of jQuery to be set
-     */
-    function setJQuery$2(jq) {
-        $$2 = jq;
-        dataTable$2 = jq.fn.dataTable;
-    }
-    /**
-     * The Criteria class is used within SearchBuilder to represent a search criteria
-     */
-    var Criteria = /** @class */ (function () {
-        function Criteria(table, opts, topGroup, index, depth) {
-            var _this = this;
-            if (index === void 0) { index = 0; }
-            if (depth === void 0) { depth = 1; }
-            // Check that the required version of DataTables is included
-            if (!dataTable$2 || !dataTable$2.versionCheck || !dataTable$2.versionCheck('1.10.0')) {
-                throw new Error('SearchPane requires DataTables 1.10 or newer');
-            }
-            this.classes = $$2.extend(true, {}, Criteria.classes);
-            // Get options from user and any extra conditions/column types defined by plug-ins
-            this.c = $$2.extend(true, {}, Criteria.defaults, $$2.fn.dataTable.ext.searchBuilder, opts);
-            var i18n = this.c.i18n;
-            this.s = {
-                condition: undefined,
-                conditions: {},
-                data: undefined,
-                dataIdx: -1,
-                dataPoints: [],
-                dateFormat: false,
-                depth: depth,
-                dt: table,
-                filled: false,
-                index: index,
-                origData: undefined,
-                topGroup: topGroup,
-                type: '',
-                value: []
-            };
-            this.dom = {
-                buttons: $$2('<div/>')
-                    .addClass(this.classes.buttonContainer),
-                condition: $$2('<select disabled/>')
-                    .addClass(this.classes.condition)
-                    .addClass(this.classes.dropDown)
-                    .addClass(this.classes.italic)
-                    .attr('autocomplete', 'hacking'),
-                conditionTitle: $$2('<option value="" disabled selected hidden/>')
-                    .text(this.s.dt.i18n('searchBuilder.condition', i18n.condition)),
-                container: $$2('<div/>')
-                    .addClass(this.classes.container),
-                data: $$2('<select/>')
-                    .addClass(this.classes.data)
-                    .addClass(this.classes.dropDown)
-                    .addClass(this.classes.italic),
-                dataTitle: $$2('<option value="" disabled selected hidden/>')
-                    .text(this.s.dt.i18n('searchBuilder.data', i18n.data)),
-                defaultValue: $$2('<select disabled/>')
-                    .addClass(this.classes.value)
-                    .addClass(this.classes.dropDown)
-                    .addClass(this.classes.select),
-                "delete": $$2('<button>&times</button>')
-                    .addClass(this.classes["delete"])
-                    .addClass(this.classes.button)
-                    .attr('title', this.s.dt.i18n('searchBuilder.deleteTitle', i18n.deleteTitle))
-                    .attr('type', 'button'),
-                // eslint-disable-next-line no-useless-escape
-                left: $$2('<button>\<</button>')
-                    .addClass(this.classes.left)
-                    .addClass(this.classes.button)
-                    .attr('title', this.s.dt.i18n('searchBuilder.leftTitle', i18n.leftTitle))
-                    .attr('type', 'button'),
-                // eslint-disable-next-line no-useless-escape
-                right: $$2('<button>\></button>')
-                    .addClass(this.classes.right)
-                    .addClass(this.classes.button)
-                    .attr('title', this.s.dt.i18n('searchBuilder.rightTitle', i18n.rightTitle))
-                    .attr('type', 'button'),
-                value: [
-                    $$2('<select disabled/>')
-                        .addClass(this.classes.value)
-                        .addClass(this.classes.dropDown)
-                        .addClass(this.classes.italic)
-                        .addClass(this.classes.select)
-                ],
-                valueTitle: $$2('<option value="--valueTitle--" selected/>')
-                    .text(this.s.dt.i18n('searchBuilder.value', i18n.value))
-            };
-            // If the greyscale option is selected then add the class to add the grey colour to SearchBuilder
-            if (this.c.greyscale) {
-                this.dom.data.addClass(this.classes.greyscale);
-                this.dom.condition.addClass(this.classes.greyscale);
-                this.dom.defaultValue.addClass(this.classes.greyscale);
-                for (var _i = 0, _a = this.dom.value; _i < _a.length; _i++) {
-                    var val = _a[_i];
-                    val.addClass(this.classes.greyscale);
-                }
-            }
-            // For responsive design, adjust the criterias properties on the following events
-            this.s.dt.on('draw.dtsb', function () {
-                _this._adjustCriteria();
-            });
-            this.s.dt.on('buttons-action.dtsb', function () {
-                _this._adjustCriteria();
-            });
-            $$2(window).on('resize.dtsb', dataTable$2.util.throttle(function () {
-                _this._adjustCriteria();
-            }));
-            this._buildCriteria();
-            return this;
-        }
-        /**
-         * Adds the left button to the criteria
-         */
-        Criteria.prototype.updateArrows = function (hasSiblings, redraw) {
-            if (hasSiblings === void 0) { hasSiblings = false; }
-            if (redraw === void 0) { redraw = true; }
-            // Empty the container and append all of the elements in the correct order
-            this.dom.container.children().detach();
-            this.dom.container
-                .append(this.dom.data)
-                .append(this.dom.condition)
-                .append(this.dom.value[0]);
-            this.setListeners();
-            // Trigger the inserted events for the value elements as they are inserted
-            if (this.dom.value[0] !== undefined) {
-                this.dom.value[0].trigger('dtsb-inserted');
-            }
-            for (var i = 1; i < this.dom.value.length; i++) {
-                this.dom.container.append(this.dom.value[i]);
-                this.dom.value[i].trigger('dtsb-inserted');
-            }
-            // If this is a top level criteria then don't let it move left
-            if (this.s.depth > 1) {
-                this.dom.buttons.append(this.dom.left);
-            }
-            // If the depthLimit of the query has been hit then don't add the right button
-            if ((this.c.depthLimit === false || this.s.depth < this.c.depthLimit) && hasSiblings) {
-                this.dom.buttons.append(this.dom.right);
-            }
-            else {
-                this.dom.right.remove();
-            }
-            this.dom.buttons.append(this.dom["delete"]);
-            this.dom.container.append(this.dom.buttons);
-            if (redraw) {
-                // A different combination of arrows and selectors may lead to a need for responsive to be triggered
-                this._adjustCriteria();
-            }
-        };
-        /**
-         * Destroys the criteria, removing listeners and container from the dom
-         */
-        Criteria.prototype.destroy = function () {
-            // Turn off listeners
-            this.dom.data.off('.dtsb');
-            this.dom.condition.off('.dtsb');
-            this.dom["delete"].off('.dtsb');
-            for (var _i = 0, _a = this.dom.value; _i < _a.length; _i++) {
-                var val = _a[_i];
-                val.off('.dtsb');
-            }
-            // Remove container from the dom
-            this.dom.container.remove();
-        };
-        /**
-         * Passes in the data for the row and compares it against this single criteria
-         *
-         * @param rowData The data for the row to be compared
-         * @returns boolean Whether the criteria has passed
-         */
-        Criteria.prototype.search = function (rowData, rowIdx) {
-            var condition = this.s.conditions[this.s.condition];
-            if (this.s.condition !== undefined && condition !== undefined) {
-                var filter = rowData[this.s.dataIdx];
-                // This check is in place for if a custom decimal character is in place
-                if (this.s.type.includes('num') &&
-                    (this.s.dt.settings()[0].oLanguage.sDecimal !== '' ||
-                        this.s.dt.settings()[0].oLanguage.sThousands !== '')) {
-                    var splitRD = [rowData[this.s.dataIdx]];
-                    if (this.s.dt.settings()[0].oLanguage.sDecimal !== '') {
-                        splitRD = rowData[this.s.dataIdx].split(this.s.dt.settings()[0].oLanguage.sDecimal);
-                    }
-                    if (this.s.dt.settings()[0].oLanguage.sThousands !== '') {
-                        for (var i = 0; i < splitRD.length; i++) {
-                            splitRD[i] = splitRD[i].replace(this.s.dt.settings()[0].oLanguage.sThousands, ',');
-                        }
-                    }
-                    filter = splitRD.join('.');
-                }
-                // If orthogonal data is in place we need to get it's values for searching
-                if (this.c.orthogonal.search !== 'filter') {
-                    var settings = this.s.dt.settings()[0];
-                    filter = settings.oApi._fnGetCellData(settings, rowIdx, this.s.dataIdx, typeof this.c.orthogonal === 'string' ?
-                        this.c.orthogonal :
-                        this.c.orthogonal.search);
-                }
-                if (this.s.type === 'array') {
-                    // Make sure we are working with an array
-                    if (!Array.isArray(filter)) {
-                        filter = [filter];
-                    }
-                    filter.sort();
-                    for (var _i = 0, filter_1 = filter; _i < filter_1.length; _i++) {
-                        var filt = filter_1[_i];
-                        if (filt) {
-                            filt = filt.replace(/[\r\n\u2028]/g, ' ');
-                        }
-                    }
-                }
-                else if (filter !== null) {
-                    filter = filter.replace(/[\r\n\u2028]/g, ' ');
-                }
-                if (this.s.type.includes('html')) {
-                    filter = filter.replace(/(<([^>]+)>)/ig, '');
-                }
-                // Not ideal, but jqueries .val() returns an empty string even
-                // when the value set is null, so we shall assume the two are equal
-                if (filter === null) {
-                    filter = '';
-                }
-                return condition.search(filter, this.s.value, this);
-            }
-        };
-        /**
-         * Gets the details required to rebuild the criteria
-         */
-        Criteria.prototype.getDetails = function (deFormatDates) {
-            if (deFormatDates === void 0) { deFormatDates = false; }
-            // This check is in place for if a custom decimal character is in place
-            if (this.s.type !== null &&
-                this.s.type.includes('num') &&
-                (this.s.dt.settings()[0].oLanguage.sDecimal !== '' || this.s.dt.settings()[0].oLanguage.sThousands !== '')) {
-                for (var i = 0; i < this.s.value.length; i++) {
-                    var splitRD = [this.s.value[i].toString()];
-                    if (this.s.dt.settings()[0].oLanguage.sDecimal !== '') {
-                        splitRD = this.s.value[i].split(this.s.dt.settings()[0].oLanguage.sDecimal);
-                    }
-                    if (this.s.dt.settings()[0].oLanguage.sThousands !== '') {
-                        for (var j = 0; j < splitRD.length; j++) {
-                            splitRD[j] = splitRD[j].replace(this.s.dt.settings()[0].oLanguage.sThousands, ',');
-                        }
-                    }
-                    this.s.value[i] = splitRD.join('.');
-                }
-            }
-            else if (this.s.type !== null && deFormatDates) {
-                if (this.s.type.includes('date') ||
-                    this.s.type.includes('time')) {
-                    for (var i = 0; i < this.s.value.length; i++) {
-                        if (this.s.value[i].match(/^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])$/g) === null) {
-                            this.s.value[i] = '';
-                        }
-                    }
-                }
-                else if (this.s.type.includes('moment')) {
-                    for (var i = 0; i < this.s.value.length; i++) {
-                        this.s.value[i] = moment(this.s.value[i], this.s.dateFormat).toISOString();
-                    }
-                }
-                else if (this.s.type.includes('luxon')) {
-                    for (var i = 0; i < this.s.value.length; i++) {
-                        this.s.value[i] = luxon.DateTime.fromFormat(this.s.value[i], this.s.dateFormat).toISO();
-                    }
-                }
-            }
-            if (this.s.type.includes('num') && this.s.dt.page.info().serverSide) {
-                for (var i = 0; i < this.s.value.length; i++) {
-                    this.s.value[i] = this.s.value[i].replace(/[^0-9.]/g, '');
-                }
-            }
-            return {
-                condition: this.s.condition,
-                data: this.s.data,
-                origData: this.s.origData,
-                type: this.s.type,
-                value: this.s.value.map(function (a) { return a.toString(); })
-            };
-        };
-        /**
-         * Getter for the node for the container of the criteria
-         *
-         * @returns JQuery<HTMLElement> the node for the container
-         */
-        Criteria.prototype.getNode = function () {
-            return this.dom.container;
-        };
-        /**
-         * Populates the criteria data, condition and value(s) as far as has been selected
-         */
-        Criteria.prototype.populate = function () {
-            this._populateData();
-            // If the column index has been found attempt to select a condition
-            if (this.s.dataIdx !== -1) {
-                this._populateCondition();
-                // If the condittion has been found attempt to select the values
-                if (this.s.condition !== undefined) {
-                    this._populateValue();
-                }
-            }
-        };
-        /**
-         * Rebuilds the criteria based upon the details passed in
-         *
-         * @param loadedCriteria the details required to rebuild the criteria
-         */
-        Criteria.prototype.rebuild = function (loadedCriteria) {
-            // Check to see if the previously selected data exists, if so select it
-            var foundData = false;
-            var dataIdx;
-            this._populateData();
-            // If a data selection has previously been made attempt to find and select it
-            if (loadedCriteria.data !== undefined) {
-                var italic_1 = this.classes.italic;
-                var data_1 = this.dom.data;
-                this.dom.data.children('option').each(function () {
-                    if ($$2(this).text() === loadedCriteria.data) {
-                        $$2(this).prop('selected', true);
-                        data_1.removeClass(italic_1);
-                        foundData = true;
-                        dataIdx = $$2(this).val();
-                    }
-                    else {
-                        $$2(this).removeProp('selected');
-                    }
-                });
-            }
-            // If the data has been found and selected then the condition can be populated and searched
-            if (foundData) {
-                this.s.data = loadedCriteria.data;
-                this.s.origData = loadedCriteria.origData;
-                this.s.dataIdx = dataIdx;
-                this.c.orthogonal = this._getOptions().orthogonal;
-                this.dom.dataTitle.remove();
-                this._populateCondition();
-                this.dom.conditionTitle.remove();
-                var condition = void 0;
-                // Check to see if the previously selected condition exists, if so select it
-                var options = this.dom.condition.children('option');
-                // eslint-disable-next-line @typescript-eslint/prefer-for-of
-                for (var i = 0; i < options.length; i++) {
-                    var option = $$2(options[i]);
-                    if (loadedCriteria.condition !== undefined &&
-                        option.val() === loadedCriteria.condition &&
-                        typeof loadedCriteria.condition === 'string') {
-                        option.prop('selected', true);
-                        condition = option.val();
-                    }
-                    else {
-                        option.removeProp('selected');
-                    }
-                }
-                this.s.condition = condition;
-                // If the condition has been found and selected then the value can be populated and searched
-                if (this.s.condition !== undefined) {
-                    this.dom.conditionTitle.removeProp('selected');
-                    this.dom.conditionTitle.remove();
-                    this.dom.condition.removeClass(this.classes.italic);
-                    // eslint-disable-next-line @typescript-eslint/prefer-for-of
-                    for (var i = 0; i < options.length; i++) {
-                        var option = $$2(options[i]);
-                        if (option.val() !== this.s.condition) {
-                            option.removeProp('selected');
-                        }
-                    }
-                    this._populateValue(loadedCriteria);
-                }
-                else {
-                    this.dom.conditionTitle.prependTo(this.dom.condition).prop('selected', true);
-                }
-            }
-        };
-        /**
-         * Sets the listeners for the criteria
-         */
-        Criteria.prototype.setListeners = function () {
-            var _this = this;
-            this.dom.data
-                .unbind('change')
-                .on('change.dtsb', function () {
-                _this.dom.dataTitle.removeProp('selected');
-                // Need to go over every option to identify the correct selection
-                var options = _this.dom.data.children('option.' + _this.classes.option);
-                // eslint-disable-next-line @typescript-eslint/prefer-for-of
-                for (var i = 0; i < options.length; i++) {
-                    var option = $$2(options[i]);
-                    if (option.val() === _this.dom.data.val()) {
-                        _this.dom.data.removeClass(_this.classes.italic);
-                        option.prop('selected', true);
-                        _this.s.dataIdx = +option.val();
-                        _this.s.data = option.text();
-                        _this.s.origData = option.prop('origData');
-                        _this.c.orthogonal = _this._getOptions().orthogonal;
-                        // When the data is changed, the values in condition and
-                        // value may also change so need to renew them
-                        _this._clearCondition();
-                        _this._clearValue();
-                        _this._populateCondition();
-                        // If this criteria was previously active in the search then
-                        // remove it from the search and trigger a new search
-                        if (_this.s.filled) {
-                            _this.s.filled = false;
-                            _this.s.dt.draw();
-                            _this.setListeners();
-                        }
-                        _this.s.dt.state.save();
-                    }
-                    else {
-                        option.removeProp('selected');
-                    }
-                }
-            });
-            this.dom.condition
-                .unbind('change')
-                .on('change.dtsb', function () {
-                _this.dom.conditionTitle.removeProp('selected');
-                // Need to go over every option to identify the correct selection
-                var options = _this.dom.condition.children('option.' + _this.classes.option);
-                // eslint-disable-next-line @typescript-eslint/prefer-for-of
-                for (var i = 0; i < options.length; i++) {
-                    var option = $$2(options[i]);
-                    if (option.val() === _this.dom.condition.val()) {
-                        _this.dom.condition.removeClass(_this.classes.italic);
-                        option.prop('selected', true);
-                        var condDisp = option.val();
-                        // Find the condition that has been selected and store it internally
-                        for (var _i = 0, _a = Object.keys(_this.s.conditions); _i < _a.length; _i++) {
-                            var cond = _a[_i];
-                            if (cond === condDisp) {
-                                _this.s.condition = condDisp;
-                                break;
-                            }
-                        }
-                        // When the condition is changed, the value selector may switch between
-                        // a select element and an input element
-                        _this._clearValue();
-                        _this._populateValue();
-                        for (var _b = 0, _c = _this.dom.value; _b < _c.length; _b++) {
-                            var val = _c[_b];
-                            // If this criteria was previously active in the search then remove
-                            // it from the search and trigger a new search
-                            if (_this.s.filled && val !== undefined && _this.dom.container.has(val[0]).length !== 0) {
-                                _this.s.filled = false;
-                                _this.s.dt.draw();
-                                _this.setListeners();
-                            }
-                        }
-                        if (_this.dom.value.length === 0 ||
-                            _this.dom.value.length === 1 && _this.dom.value[0] === undefined) {
-                            _this.s.dt.draw();
-                        }
-                    }
-                    else {
-                        option.removeProp('selected');
-                    }
-                }
-            });
-        };
-        /**
-         * Adjusts the criteria to make SearchBuilder responsive
-         */
-        Criteria.prototype._adjustCriteria = function () {
-            // If this criteria is not present then don't bother adjusting it
-            if ($$2(document).has(this.dom.container).length === 0) {
-                return;
-            }
-            var valRight;
-            var valWidth;
-            var outmostval = this.dom.value[this.dom.value.length - 1];
-            // Calculate the width and right value of the outmost value element
-            if (outmostval !== undefined && this.dom.container.has(outmostval[0]).length !== 0) {
-                valWidth = outmostval.outerWidth(true);
-                valRight = outmostval.offset().left + valWidth;
-            }
-            else {
-                return;
-            }
-            var leftOffset = this.dom.left.offset();
-            var rightOffset = this.dom.right.offset();
-            var clearOffset = this.dom["delete"].offset();
-            var hasLeft = this.dom.container.has(this.dom.left[0]).length !== 0;
-            var hasRight = this.dom.container.has(this.dom.right[0]).length !== 0;
-            var buttonsLeft = hasLeft ?
-                leftOffset.left :
-                hasRight ?
-                    rightOffset.left :
-                    clearOffset.left;
-            // Perform the responsive calculations and redraw where necessary
-            if ((buttonsLeft - valRight < 15 ||
-                hasLeft && leftOffset.top !== clearOffset.top ||
-                hasRight && rightOffset.top !== clearOffset.top) &&
-                !this.dom.container.parent().hasClass(this.classes.vertical)) {
-                this.dom.container.parent().addClass(this.classes.vertical);
-                this.s.topGroup.trigger('dtsb-redrawContents');
-            }
-            else if (buttonsLeft -
-                (this.dom.data.offset().left +
-                    this.dom.data.outerWidth(true) +
-                    this.dom.condition.outerWidth(true) +
-                    valWidth) > 15
-                && this.dom.container.parent().hasClass(this.classes.vertical)) {
-                this.dom.container.parent().removeClass(this.classes.vertical);
-                this.s.topGroup.trigger('dtsb-redrawContents');
-            }
-        };
-        /**
-         * Builds the elements of the dom together
-         */
-        Criteria.prototype._buildCriteria = function () {
-            // Append Titles for select elements
-            this.dom.data.append(this.dom.dataTitle);
-            this.dom.condition.append(this.dom.conditionTitle);
-            // Add elements to container
-            this.dom.container
-                .append(this.dom.data)
-                .append(this.dom.condition);
-            for (var _i = 0, _a = this.dom.value; _i < _a.length; _i++) {
-                var val = _a[_i];
-                val.append(this.dom.valueTitle);
-                this.dom.container.append(val);
-            }
-            // Add buttons to container
-            this.dom.container
-                .append(this.dom["delete"])
-                .append(this.dom.right);
-            this.setListeners();
-        };
-        /**
-         * Clears the condition select element
-         */
-        Criteria.prototype._clearCondition = function () {
-            this.dom.condition.empty();
-            this.dom.conditionTitle.prop('selected', true).attr('disabled', 'true');
-            this.dom.condition.prepend(this.dom.conditionTitle).prop('selectedIndex', 0);
-            this.s.conditions = {};
-            this.s.condition = undefined;
-        };
-        /**
-         * Clears the value elements
-         */
-        Criteria.prototype._clearValue = function () {
-            if (this.s.condition !== undefined) {
-                if (this.dom.value.length > 0 && this.dom.value[0] !== undefined) {
-                    var _loop_1 = function (val) {
-                        if (val !== undefined) {
-                            // Timeout is annoying but because of IOS
-                            setTimeout(function () {
-                                val.remove();
-                            }, 50);
-                        }
-                    };
-                    // Remove all of the value elements
-                    for (var _i = 0, _a = this.dom.value; _i < _a.length; _i++) {
-                        var val = _a[_i];
-                        _loop_1(val);
-                    }
-                }
-                // Call the init function to get the value elements for this condition
-                this.dom.value = [].concat(this.s.conditions[this.s.condition].init(this, Criteria.updateListener));
-                if (this.dom.value.length > 0 && this.dom.value[0] !== undefined) {
-                    this.dom.value[0].insertAfter(this.dom.condition).trigger('dtsb-inserted');
-                    // Insert all of the value elements
-                    for (var i = 1; i < this.dom.value.length; i++) {
-                        this.dom.value[i].insertAfter(this.dom.value[i - 1]).trigger('dtsb-inserted');
-                    }
-                }
-            }
-            else {
-                var _loop_2 = function (val) {
-                    if (val !== undefined) {
-                        // Timeout is annoying but because of IOS
-                        setTimeout(function () {
-                            val.remove();
-                        }, 50);
-                    }
-                };
-                // Remove all of the value elements
-                for (var _b = 0, _c = this.dom.value; _b < _c.length; _b++) {
-                    var val = _c[_b];
-                    _loop_2(val);
-                }
-                // Append the default valueTitle to the default select element
-                this.dom.valueTitle
-                    .prop('selected', true);
-                this.dom.defaultValue
-                    .append(this.dom.valueTitle)
-                    .insertAfter(this.dom.condition);
-            }
-            this.s.value = [];
-            this.dom.value = [
-                $$2('<select disabled/>')
-                    .addClass(this.classes.value)
-                    .addClass(this.classes.dropDown)
-                    .addClass(this.classes.italic)
-                    .addClass(this.classes.select)
-                    .append(this.dom.valueTitle.clone())
-            ];
-        };
-        /**
-         * Gets the options for the column
-         *
-         * @returns {object} The options for the column
-         */
-        Criteria.prototype._getOptions = function () {
-            var table = this.s.dt;
-            return $$2.extend(true, {}, Criteria.defaults, table.settings()[0].aoColumns[this.s.dataIdx].searchBuilder);
-        };
-        /**
-         * Populates the condition dropdown
-         */
-        Criteria.prototype._populateCondition = function () {
-            var conditionOpts = [];
-            var conditionsLength = Object.keys(this.s.conditions).length;
-            // If there are no conditions stored then we need to get them from the appropriate type
-            if (conditionsLength === 0) {
-                var column = +this.dom.data.children('option:selected').val();
-                this.s.type = this.s.dt.columns().type().toArray()[column];
-                var colInits = this.s.dt.settings()[0].aoColumns;
-                if (colInits !== undefined) {
-                    var colInit = colInits[column];
-                    if (colInit.searchBuilderType !== undefined && colInit.searchBuilderType !== null) {
-                        this.s.type = colInit.searchBuilderType;
-                    }
-                    else if (this.s.type === undefined || this.s.type === null) {
-                        this.s.type = colInit.sType;
-                    }
-                }
-                // If the column type is still unknown, call a draw to try reading it again
-                if (this.s.type === null || this.s.type === undefined) {
-                    $$2.fn.dataTable.ext.oApi._fnColumnTypes(this.s.dt.settings()[0]);
-                    this.s.type = this.s.dt.columns().type().toArray()[column];
-                }
-                // Enable the condition element
-                this.dom.condition
-                    .removeAttr('disabled')
-                    .empty()
-                    .append(this.dom.conditionTitle)
-                    .addClass(this.classes.italic);
-                this.dom.conditionTitle
-                    .prop('selected', true);
-                var decimal = this.s.dt.settings()[0].oLanguage.sDecimal;
-                // This check is in place for if a custom decimal character is in place
-                if (decimal !== '' && this.s.type.indexOf(decimal) === this.s.type.length - decimal.length) {
-                    if (this.s.type.includes('num-fmt')) {
-                        this.s.type = this.s.type.replace(decimal, '');
-                    }
-                    else if (this.s.type.includes('num')) {
-                        this.s.type = this.s.type.replace(decimal, '');
-                    }
-                }
-                // Select which conditions are going to be used based on the column type
-                var conditionObj = this.c.conditions[this.s.type] !== undefined ?
-                    this.c.conditions[this.s.type] :
-                    this.s.type.includes('moment') ?
-                        this.c.conditions.moment :
-                        this.s.type.includes('luxon') ?
-                            this.c.conditions.luxon :
-                            this.c.conditions.string;
-                // If it is a moment format then extract the date format
-                if (this.s.type.includes('moment')) {
-                    this.s.dateFormat = this.s.type.replace(/moment-/g, '');
-                }
-                else if (this.s.type.includes('luxon')) {
-                    this.s.dateFormat = this.s.type.replace(/luxon-/g, '');
-                }
-                // Add all of the conditions to the select element
-                for (var _i = 0, _a = Object.keys(conditionObj); _i < _a.length; _i++) {
-                    var condition = _a[_i];
-                    if (conditionObj[condition] !== null) {
-                        // Serverside processing does not supply the options for the select elements
-                        // Instead input elements need to be used for these instead
-                        if (this.s.dt.page.info().serverSide && conditionObj[condition].init === Criteria.initSelect) {
-                            conditionObj[condition].init = Criteria.initInput;
-                            conditionObj[condition].inputValue = Criteria.inputValueInput;
-                            conditionObj[condition].isInputValid = Criteria.isInputValidInput;
-                        }
-                        this.s.conditions[condition] = conditionObj[condition];
-                        var condName = conditionObj[condition].conditionName;
-                        if (typeof condName === 'function') {
-                            condName = condName(this.s.dt, this.c.i18n);
-                        }
-                        conditionOpts.push($$2('<option>', {
-                            text: condName,
-                            value: condition
-                        })
-                            .addClass(this.classes.option)
-                            .addClass(this.classes.notItalic));
-                    }
-                }
-            }
-            // Otherwise we can just load them in
-            else if (conditionsLength > 0) {
-                this.dom.condition.empty().removeAttr('disabled').addClass(this.classes.italic);
-                for (var _b = 0, _c = Object.keys(this.s.conditions); _b < _c.length; _b++) {
-                    var condition = _c[_b];
-                    var condName = this.s.conditions[condition].conditionName;
-                    if (typeof condName === 'function') {
-                        condName = condName(this.s.dt, this.c.i18n);
-                    }
-                    var newOpt = $$2('<option>', {
-                        text: condName,
-                        value: condition
-                    })
-                        .addClass(this.classes.option)
-                        .addClass(this.classes.notItalic);
-                    if (this.s.condition !== undefined && this.s.condition === condName) {
-                        newOpt.prop('selected', true);
-                        this.dom.condition.removeClass(this.classes.italic);
-                    }
-                    conditionOpts.push(newOpt);
-                }
-            }
-            else {
-                this.dom.condition
-                    .attr('disabled', 'true')
-                    .addClass(this.classes.italic);
-                return;
-            }
-            for (var _d = 0, conditionOpts_1 = conditionOpts; _d < conditionOpts_1.length; _d++) {
-                var opt = conditionOpts_1[_d];
-                this.dom.condition.append(opt);
-            }
-            this.dom.condition.prop('selectedIndex', 0);
-        };
-        /**
-         * Populates the data select element
-         */
-        Criteria.prototype._populateData = function () {
-            var _this = this;
-            this.dom.data.empty().append(this.dom.dataTitle);
-            // If there are no datas stored then we need to get them from the table
-            if (this.s.dataPoints.length === 0) {
-                this.s.dt.columns().every(function (index) {
-                    // Need to check that the column can be filtered on before adding it
-                    if (_this.c.columns === true ||
-                        _this.s.dt.columns(_this.c.columns).indexes().toArray().includes(index)) {
-                        var found = false;
-                        for (var _i = 0, _a = _this.s.dataPoints; _i < _a.length; _i++) {
-                            var val = _a[_i];
-                            if (val.index === index) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            var col = _this.s.dt.settings()[0].aoColumns[index];
-                            var opt = {
-                                index: index,
-                                origData: col.data,
-                                text: (col.searchBuilderTitle === undefined ?
-                                    col.sTitle :
-                                    col.searchBuilderTitle).replace(/(<([^>]+)>)/ig, '')
-                            };
-                            _this.s.dataPoints.push(opt);
-                            _this.dom.data.append($$2('<option>', {
-                                text: opt.text,
-                                value: opt.index
-                            })
-                                .addClass(_this.classes.option)
-                                .addClass(_this.classes.notItalic)
-                                .prop('origData', col.data)
-                                .prop('selected', _this.s.dataIdx === opt.index ? true : false));
-                            if (_this.s.dataIdx === opt.index) {
-                                _this.dom.dataTitle.removeProp('selected');
-                            }
-                        }
-                    }
-                });
-            }
-            // Otherwise we can just load them in
-            else {
-                var _loop_3 = function (data) {
-                    this_1.s.dt.columns().every(function (index) {
-                        var col = _this.s.dt.settings()[0].aoColumns[index];
-                        if ((col.searchBuilderTitle === undefined ?
-                            col.sTitle :
-                            col.searchBuilderTitle).replace(/(<([^>]+)>)/ig, '') === data.text) {
-                            data.index = index;
-                            data.origData = col.data;
-                        }
-                    });
-                    var newOpt = $$2('<option>', {
-                        text: data.text.replace(/(<([^>]+)>)/ig, ''),
-                        value: data.index
-                    })
-                        .addClass(this_1.classes.option)
-                        .addClass(this_1.classes.notItalic)
-                        .prop('origData', data.origData);
-                    if (this_1.s.data === data.text) {
-                        this_1.s.dataIdx = data.index;
-                        this_1.dom.dataTitle.removeProp('selected');
-                        newOpt.prop('selected', true);
-                        this_1.dom.data.removeClass(this_1.classes.italic);
-                    }
-                    this_1.dom.data.append(newOpt);
-                };
-                var this_1 = this;
-                for (var _i = 0, _a = this.s.dataPoints; _i < _a.length; _i++) {
-                    var data = _a[_i];
-                    _loop_3(data);
-                }
-            }
-        };
-        /**
-         * Populates the Value select element
-         *
-         * @param loadedCriteria optional, used to reload criteria from predefined filters
-         */
-        Criteria.prototype._populateValue = function (loadedCriteria) {
-            var _this = this;
-            var prevFilled = this.s.filled;
-            this.s.filled = false;
-            // Remove any previous value elements
-            // Timeout is annoying but because of IOS
-            setTimeout(function () {
-                _this.dom.defaultValue.remove();
-            }, 50);
-            var _loop_4 = function (val) {
-                // Timeout is annoying but because of IOS
-                setTimeout(function () {
-                    if (val !== undefined) {
-                        val.remove();
-                    }
-                }, 50);
-            };
-            for (var _i = 0, _a = this.dom.value; _i < _a.length; _i++) {
-                var val = _a[_i];
-                _loop_4(val);
-            }
-            var children = this.dom.container.children();
-            if (children.length > 3) {
-                for (var i = 2; i < children.length - 1; i++) {
-                    $$2(children[i]).remove();
-                }
-            }
-            // Find the column with the title matching the data for the criteria and take note of the index
-            if (loadedCriteria !== undefined) {
-                this.s.dt.columns().every(function (index) {
-                    if (_this.s.dt.settings()[0].aoColumns[index].sTitle === loadedCriteria.data) {
-                        _this.s.dataIdx = index;
-                    }
-                });
-            }
-            // Initialise the value elements based on the condition
-            this.dom.value = [].concat(this.s.conditions[this.s.condition].init(this, Criteria.updateListener, loadedCriteria !== undefined ? loadedCriteria.value : undefined));
-            if (loadedCriteria !== undefined && loadedCriteria.value !== undefined) {
-                this.s.value = loadedCriteria.value;
-            }
-            // Insert value elements and trigger the inserted event
-            if (this.dom.value[0] !== undefined) {
-                this.dom.value[0]
-                    .insertAfter(this.dom.condition)
-                    .trigger('dtsb-inserted');
-            }
-            for (var i = 1; i < this.dom.value.length; i++) {
-                this.dom.value[i]
-                    .insertAfter(this.dom.value[i - 1])
-                    .trigger('dtsb-inserted');
-            }
-            // Check if the criteria can be used in a search
-            this.s.filled = this.s.conditions[this.s.condition].isInputValid(this.dom.value, this);
-            this.setListeners();
-            // If it can and this is different to before then trigger a draw
-            if (prevFilled !== this.s.filled) {
-                this.s.dt.draw();
-                this.setListeners();
-            }
-        };
-        /**
-         * Provides throttling capabilities to SearchBuilder without having to use dt's _fnThrottle function
-         * This is because that function is not quite suitable for our needs as it runs initially rather than waiting
-         *
-         * @param args arguments supplied to the throttle function
-         * @returns Function that is to be run that implements the throttling
-         */
-        Criteria.prototype._throttle = function (fn, frequency) {
-            if (frequency === void 0) { frequency = 200; }
-            var last = null;
-            var timer = null;
-            var that = this;
-            if (frequency === null) {
-                frequency = 200;
-            }
-            return function () {
-                var args = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    args[_i] = arguments[_i];
-                }
-                var now = +new Date();
-                if (last !== null && now < last + frequency) {
-                    clearTimeout(timer);
-                }
-                else {
-                    last = now;
-                }
-                timer = setTimeout(function () {
-                    last = null;
-                    fn.apply(that, args);
-                }, frequency);
-            };
-        };
-        Criteria.version = '1.1.0';
-        Criteria.classes = {
-            button: 'dtsb-button',
-            buttonContainer: 'dtsb-buttonContainer',
-            condition: 'dtsb-condition',
-            container: 'dtsb-criteria',
-            data: 'dtsb-data',
-            "delete": 'dtsb-delete',
-            dropDown: 'dtsb-dropDown',
-            greyscale: 'dtsb-greyscale',
-            input: 'dtsb-input',
-            italic: 'dtsb-italic',
-            joiner: 'dtsp-joiner',
-            left: 'dtsb-left',
-            notItalic: 'dtsb-notItalic',
-            option: 'dtsb-option',
-            right: 'dtsb-right',
-            select: 'dtsb-select',
-            value: 'dtsb-value',
-            vertical: 'dtsb-vertical'
-        };
-        /**
-         * Default initialisation function for select conditions
-         */
-        Criteria.initSelect = function (that, fn, preDefined, array) {
-            if (preDefined === void 0) { preDefined = null; }
-            if (array === void 0) { array = false; }
-            var column = that.dom.data.children('option:selected').val();
-            var indexArray = that.s.dt.rows().indexes().toArray();
-            var settings = that.s.dt.settings()[0];
-            // Declare select element to be used with all of the default classes and listeners.
-            var el = $$2('<select/>')
-                .addClass(Criteria.classes.value)
-                .addClass(Criteria.classes.dropDown)
-                .addClass(Criteria.classes.italic)
-                .addClass(Criteria.classes.select)
-                .append(that.dom.valueTitle)
-                .on('change.dtsb', function () {
-                $$2(this).removeClass(Criteria.classes.italic);
-                fn(that, this);
-            });
-            if (that.c.greyscale) {
-                el.addClass(Criteria.classes.greyscale);
-            }
-            var added = [];
-            var options = [];
-            // Add all of the options from the table to the select element.
-            // Only add one option for each possible value
-            for (var _i = 0, indexArray_1 = indexArray; _i < indexArray_1.length; _i++) {
-                var index = indexArray_1[_i];
-                var filter = settings.oApi._fnGetCellData(settings, index, column, typeof that.c.orthogonal === 'string' ?
-                    that.c.orthogonal :
-                    that.c.orthogonal.search);
-                var value = {
-                    filter: typeof filter === 'string' ?
-                        filter.replace(/[\r\n\u2028]/g, ' ') : // Need to replace certain characters to match search values
-                        filter,
-                    index: index,
-                    text: settings.oApi._fnGetCellData(settings, index, column, typeof that.c.orthogonal === 'string' ?
-                        that.c.orthogonal :
-                        that.c.orthogonal.display)
-                };
-                // If we are dealing with an array type, either make sure we are working with arrays, or sort them
-                if (that.s.type === 'array') {
-                    value.filter = !Array.isArray(value.filter) ?
-                        [value.filter] :
-                        value.filter = value.filter.sort();
-                    value.text = !Array.isArray(value.text) ?
-                        [value.text] :
-                        value.text = value.text.sort();
-                }
-                // Function to add an option to the select element
-                var addOption = function (filt, text) {
-                    // Add text and value, stripping out any html if that is the column type
-                    var opt = $$2('<option>', {
-                        type: Array.isArray(filt) ? 'Array' : 'String',
-                        value: that.s.type.includes('html') && filt !== null && typeof filt === 'string' ?
-                            filt.replace(/(<([^>]+)>)/ig, '') :
-                            filt
-                    })
-                        .addClass(that.classes.option)
-                        .addClass(that.classes.notItalic)
-                        // Have to add the text this way so that special html characters are not escaped - &amp; etc.
-                        .html(typeof text === 'string' ?
-                        text.replace(/(<([^>]+)>)/ig, '') :
-                        text);
-                    var val = opt.val();
-                    // Check that this value has not already been added
-                    if (added.indexOf(val) === -1) {
-                        added.push(val);
-                        options.push(opt);
-                        if (preDefined !== null && Array.isArray(preDefined[0])) {
-                            preDefined[0] = preDefined[0].sort().join(',');
-                        }
-                        // If this value was previously selected as indicated by preDefined, then select it again
-                        if (preDefined !== null && opt.val() === preDefined[0]) {
-                            opt.prop('selected', true);
-                            el.removeClass(Criteria.classes.italic);
-                        }
-                    }
-                };
-                // If this is to add the individual values within the array we need to loop over the array
-                if (array) {
-                    for (var i = 0; i < value.filter.length; i++) {
-                        addOption(value.filter[i], value.text[i]);
-                    }
-                }
-                // Otherwise the value that is in the cell is to be added
-                else {
-                    addOption(value.filter, value.text);
-                }
-            }
-            options.sort(function (a, b) {
-                if (that.s.type === 'array' ||
-                    that.s.type === 'string' ||
-                    that.s.type === 'html') {
-                    if (a.val() < b.val()) {
-                        return -1;
-                    }
-                    else if (a.val() > b.val()) {
-                        return 1;
-                    }
-                    else {
-                        return 0;
-                    }
-                }
-                else if (that.s.type === 'num' ||
-                    that.s.type === 'html-num') {
-                    if (+a.val().replace(/(<([^>]+)>)/ig, '') < +b.val().replace(/(<([^>]+)>)/ig, '')) {
-                        return -1;
-                    }
-                    else if (+a.val().replace(/(<([^>]+)>)/ig, '') > +b.val().replace(/(<([^>]+)>)/ig, '')) {
-                        return 1;
-                    }
-                    else {
-                        return 0;
-                    }
-                }
-                else if (that.s.type === 'num-fmt' || that.s.type === 'html-num-fmt') {
-                    if (+a.val().replace(/[^0-9.]/g, '') < +b.val().replace(/[^0-9.]/g, '')) {
-                        return -1;
-                    }
-                    else if (+a.val().replace(/[^0-9.]/g, '') > +b.val().replace(/[^0-9.]/g, '')) {
-                        return 1;
-                    }
-                    else {
-                        return 0;
-                    }
-                }
-            });
-            for (var _a = 0, options_1 = options; _a < options_1.length; _a++) {
-                var opt = options_1[_a];
-                el.append(opt);
-            }
-            return el;
-        };
-        /**
-         * Default initialisation function for select array conditions
-         *
-         * This exists because there needs to be different select functionality for contains/without and equals/not
-         */
-        Criteria.initSelectArray = function (that, fn, preDefined) {
-            if (preDefined === void 0) { preDefined = null; }
-            return Criteria.initSelect(that, fn, preDefined, true);
-        };
-        /**
-         * Default initialisation function for input conditions
-         */
-        Criteria.initInput = function (that, fn, preDefined) {
-            if (preDefined === void 0) { preDefined = null; }
-            // Declare the input element
-            var searchDelay = that.s.dt.settings()[0].searchDelay;
-            var el = $$2('<input/>')
-                .addClass(Criteria.classes.value)
-                .addClass(Criteria.classes.input)
-                .on('input.dtsb keypress.dtsb', that._throttle(function (e) {
-                var code = e.keyCode || e.which;
-                if (!that.c.enterSearch &&
-                    !(that.s.dt.settings()[0].oInit.search !== undefined &&
-                        that.s.dt.settings()[0].oInit.search["return"]) ||
-                    code === 13) {
-                    return fn(that, this);
-                }
-            }, searchDelay === null ? 100 : searchDelay));
-            if (that.c.greyscale) {
-                el.addClass(Criteria.classes.greyscale);
-            }
-            // If there is a preDefined value then add it
-            if (preDefined !== null) {
-                el.val(preDefined[0]);
-            }
-            // This is add responsive functionality to the logic button without redrawing everything else
-            that.s.dt.one('draw.dtsb', function () {
-                that.s.topGroup.trigger('dtsb-redrawLogic');
-            });
-            return el;
-        };
-        /**
-         * Default initialisation function for conditions requiring 2 inputs
-         */
-        Criteria.init2Input = function (that, fn, preDefined) {
-            if (preDefined === void 0) { preDefined = null; }
-            // Declare all of the necessary jQuery elements
-            var searchDelay = that.s.dt.settings()[0].searchDelay;
-            var els = [
-                $$2('<input/>')
-                    .addClass(Criteria.classes.value)
-                    .addClass(Criteria.classes.input)
-                    .on('input.dtsb keypress.dtsb', that._throttle(function (e) {
-                    var code = e.keyCode || e.which;
-                    if (!that.c.enterSearch &&
-                        !(that.s.dt.settings()[0].oInit.search !== undefined &&
-                            that.s.dt.settings()[0].oInit.search["return"]) ||
-                        code === 13) {
-                        return fn(that, this);
-                    }
-                }, searchDelay === null ? 100 : searchDelay)),
-                $$2('<span>')
-                    .addClass(that.classes.joiner)
-                    .text(that.s.dt.i18n('searchBuilder.valueJoiner', that.c.i18n.valueJoiner)),
-                $$2('<input/>')
-                    .addClass(Criteria.classes.value)
-                    .addClass(Criteria.classes.input)
-                    .on('input.dtsb keypress.dtsb', that._throttle(function (e) {
-                    var code = e.keyCode || e.which;
-                    if (!that.c.enterSearch &&
-                        !(that.s.dt.settings()[0].oInit.search !== undefined &&
-                            that.s.dt.settings()[0].oInit.search["return"]) ||
-                        code === 13) {
-                        return fn(that, this);
-                    }
-                }, searchDelay === null ? 100 : searchDelay))
-            ];
-            if (that.c.greyscale) {
-                els[0].addClass(Criteria.classes.greyscale);
-                els[2].addClass(Criteria.classes.greyscale);
-            }
-            // If there is a preDefined value then add it
-            if (preDefined !== null) {
-                els[0].val(preDefined[0]);
-                els[2].val(preDefined[1]);
-            }
-            // This is add responsive functionality to the logic button without redrawing everything else
-            that.s.dt.one('draw.dtsb', function () {
-                that.s.topGroup.trigger('dtsb-redrawLogic');
-            });
-            return els;
-        };
-        /**
-         * Default initialisation function for date conditions
-         */
-        Criteria.initDate = function (that, fn, preDefined) {
-            if (preDefined === void 0) { preDefined = null; }
-            var searchDelay = that.s.dt.settings()[0].searchDelay;
-            // Declare date element using DataTables dateTime plugin
-            var el = $$2('<input/>')
-                .addClass(Criteria.classes.value)
-                .addClass(Criteria.classes.input)
-                .dtDateTime({
-                attachTo: 'input',
-                format: that.s.dateFormat ? that.s.dateFormat : undefined
-            })
-                .on('change.dtsb', that._throttle(function () {
-                return fn(that, this);
-            }, searchDelay === null ? 100 : searchDelay))
-                .on('input.dtsb keypress.dtsb', that.c.enterSearch ||
-                that.s.dt.settings()[0].oInit.search !== undefined &&
-                    that.s.dt.settings()[0].oInit.search["return"] ?
-                function (e) {
-                    that._throttle(function () {
-                        var code = e.keyCode || e.which;
-                        if (code === 13) {
-                            return fn(that, this);
-                        }
-                    }, searchDelay === null ? 100 : searchDelay);
-                } :
-                that._throttle(function () {
-                    return fn(that, this);
-                }, searchDelay === null ? 100 : searchDelay));
-            if (that.c.greyscale) {
-                el.addClass(Criteria.classes.greyscale);
-            }
-            // If there is a preDefined value then add it
-            if (preDefined !== null) {
-                el.val(preDefined[0]);
-            }
-            // This is add responsive functionality to the logic button without redrawing everything else
-            that.s.dt.one('draw.dtsb', function () {
-                that.s.topGroup.trigger('dtsb-redrawLogic');
-            });
-            return el;
-        };
-        Criteria.initNoValue = function (that) {
-            // This is add responsive functionality to the logic button without redrawing everything else
-            that.s.dt.one('draw.dtsb', function () {
-                that.s.topGroup.trigger('dtsb-redrawLogic');
-            });
-        };
-        Criteria.init2Date = function (that, fn, preDefined) {
-            var _this = this;
-            if (preDefined === void 0) { preDefined = null; }
-            var searchDelay = that.s.dt.settings()[0].searchDelay;
-            // Declare all of the date elements that are required using DataTables dateTime plugin
-            var els = [
-                $$2('<input/>')
-                    .addClass(Criteria.classes.value)
-                    .addClass(Criteria.classes.input)
-                    .dtDateTime({
-                    attachTo: 'input',
-                    format: that.s.dateFormat ? that.s.dateFormat : undefined
-                })
-                    .on('change.dtsb', searchDelay !== null ?
-                    that.s.dt.settings()[0].oApi._fnThrottle(function () {
-                        return fn(that, this);
-                    }, searchDelay) :
-                    function () {
-                        fn(that, _this);
-                    })
-                    .on('input.dtsb keypress.dtsb', !that.c.enterSearch &&
-                    !(that.s.dt.settings()[0].oInit.search !== undefined &&
-                        that.s.dt.settings()[0].oInit.search["return"]) &&
-                    searchDelay !== null ?
-                    that.s.dt.settings()[0].oApi._fnThrottle(function () {
-                        return fn(that, this);
-                    }, searchDelay) :
-                    that.c.enterSearch ||
-                        that.s.dt.settings()[0].oInit.search !== undefined &&
-                            that.s.dt.settings()[0].oInit.search["return"] ?
-                        function (e) {
-                            var code = e.keyCode || e.which;
-                            if (code === 13) {
-                                fn(that, _this);
-                            }
-                        } :
-                        function () {
-                            fn(that, _this);
-                        }),
-                $$2('<span>')
-                    .addClass(that.classes.joiner)
-                    .text(that.s.dt.i18n('searchBuilder.valueJoiner', that.c.i18n.valueJoiner)),
-                $$2('<input/>')
-                    .addClass(Criteria.classes.value)
-                    .addClass(Criteria.classes.input)
-                    .dtDateTime({
-                    attachTo: 'input',
-                    format: that.s.dateFormat ? that.s.dateFormat : undefined
-                })
-                    .on('change.dtsb', searchDelay !== null ?
-                    that.s.dt.settings()[0].oApi._fnThrottle(function () {
-                        return fn(that, this);
-                    }, searchDelay) :
-                    function () {
-                        fn(that, _this);
-                    })
-                    .on('input.dtsb keypress.dtsb', !that.c.enterSearch &&
-                    !(that.s.dt.settings()[0].oInit.search !== undefined &&
-                        that.s.dt.settings()[0].oInit.search["return"]) &&
-                    searchDelay !== null ?
-                    that.s.dt.settings()[0].oApi._fnThrottle(function () {
-                        return fn(that, this);
-                    }, searchDelay) :
-                    that.c.enterSearch ||
-                        that.s.dt.settings()[0].oInit.search !== undefined &&
-                            that.s.dt.settings()[0].oInit.search["return"] ?
-                        function (e) {
-                            var code = e.keyCode || e.which;
-                            if (code === 13) {
-                                fn(that, _this);
-                            }
-                        } :
-                        function () {
-                            fn(that, _this);
-                        })
-            ];
-            if (that.c.greyscale) {
-                els[0].addClass(Criteria.classes.greyscale);
-                els[2].addClass(Criteria.classes.greyscale);
-            }
-            // If there are and preDefined values then add them
-            if (preDefined !== null && preDefined.length > 0) {
-                els[0].val(preDefined[0]);
-                els[2].val(preDefined[1]);
-            }
-            // This is add responsive functionality to the logic button without redrawing everything else
-            that.s.dt.one('draw.dtsb', function () {
-                that.s.topGroup.trigger('dtsb-redrawLogic');
-            });
-            return els;
-        };
-        /**
-         * Default function for select elements to validate condition
-         */
-        Criteria.isInputValidSelect = function (el) {
-            var allFilled = true;
-            // Check each element to make sure that the selections are valid
-            for (var _i = 0, el_1 = el; _i < el_1.length; _i++) {
-                var element = el_1[_i];
-                if (element.children('option:selected').length ===
-                    element.children('option').length -
-                        element.children('option.' + Criteria.classes.notItalic).length &&
-                    element.children('option:selected').length === 1 &&
-                    element.children('option:selected')[0] === element.children('option:hidden')[0]) {
-                    allFilled = false;
-                }
-            }
-            return allFilled;
-        };
-        /**
-         * Default function for input and date elements to validate condition
-         */
-        Criteria.isInputValidInput = function (el) {
-            var allFilled = true;
-            // Check each element to make sure that the inputs are valid
-            for (var _i = 0, el_2 = el; _i < el_2.length; _i++) {
-                var element = el_2[_i];
-                if (element.is('input') && element.val().length === 0) {
-                    allFilled = false;
-                }
-            }
-            return allFilled;
-        };
-        /**
-         * Default function for getting select conditions
-         */
-        Criteria.inputValueSelect = function (el) {
-            var values = [];
-            // Go through the select elements and push each selected option to the return array
-            for (var _i = 0, el_3 = el; _i < el_3.length; _i++) {
-                var element = el_3[_i];
-                if (element.is('select')) {
-                    var val = element.children('option:selected').val();
-                    // If the type of the option is an array we need to split it up and sort it
-                    values.push(element.children('option:selected').attr('type') === 'Array' ?
-                        val.split(',').sort() :
-                        val);
-                }
-            }
-            return values;
-        };
-        /**
-         * Default function for getting input conditions
-         */
-        Criteria.inputValueInput = function (el) {
-            var values = [];
-            // Go through the input elements and push each value to the return array
-            for (var _i = 0, el_4 = el; _i < el_4.length; _i++) {
-                var element = el_4[_i];
-                if (element.is('input')) {
-                    values.push(element.val());
-                }
-            }
-            return values;
-        };
-        /**
-         * Function that is run on each element as a call back when a search should be triggered
-         */
-        Criteria.updateListener = function (that, el) {
-            // When the value is changed the criteria is now complete so can be included in searches
-            // Get the condition from the map based on the key that has been selected for the condition
-            var condition = that.s.conditions[that.s.condition];
-            that.s.filled = condition.isInputValid(that.dom.value, that);
-            that.s.value = condition.inputValue(that.dom.value, that);
-            if (!that.s.filled) {
-                that.s.dt.draw();
-                return;
-            }
-            if (!Array.isArray(that.s.value)) {
-                that.s.value = [that.s.value];
-            }
-            for (var i = 0; i < that.s.value.length; i++) {
-                // If the value is an array we need to sort it
-                if (Array.isArray(that.s.value[i])) {
-                    that.s.value[i].sort();
-                }
-                // Otherwise replace the decimal place character for i18n
-                else if (that.s.type.includes('num') &&
-                    (that.s.dt.settings()[0].oLanguage.sDecimal !== '' ||
-                        that.s.dt.settings()[0].oLanguage.sThousands !== '')) {
-                    var splitRD = [that.s.value[i].toString()];
-                    if (that.s.dt.settings()[0].oLanguage.sDecimal !== '') {
-                        splitRD = that.s.value[i].split(that.s.dt.settings()[0].oLanguage.sDecimal);
-                    }
-                    if (that.s.dt.settings()[0].oLanguage.sThousands !== '') {
-                        for (var j = 0; j < splitRD.length; j++) {
-                            splitRD[j] = splitRD[j].replace(that.s.dt.settings()[0].oLanguage.sThousands, ',');
-                        }
-                    }
-                    that.s.value[i] = splitRD.join('.');
-                }
-            }
-            // Take note of the cursor position so that we can refocus there later
-            var idx = null;
-            var cursorPos = null;
-            for (var i = 0; i < that.dom.value.length; i++) {
-                if (el === that.dom.value[i][0]) {
-                    idx = i;
-                    if (el.selectionStart !== undefined) {
-                        cursorPos = el.selectionStart;
-                    }
-                }
-            }
-            // Trigger a search
-            that.s.dt.draw();
-            // Refocus the element and set the correct cursor position
-            if (idx !== null) {
-                that.dom.value[idx].removeClass(that.classes.italic);
-                that.dom.value[idx].focus();
-                if (cursorPos !== null) {
-                    that.dom.value[idx][0].setSelectionRange(cursorPos, cursorPos);
-                }
-            }
-        };
-        // The order of the conditions will make eslint sad :(
-        // Has to be in this order so that they are displayed correctly in select elements
-        // Also have to disable member ordering for this as the private methods used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.dateConditions = {
-            '=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.equals', i18n.conditions.date.equals);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    value = value.replace(/(\/|-|,)/g, '-');
-                    return value === comparison[0];
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.not', i18n.conditions.date.not);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    value = value.replace(/(\/|-|,)/g, '-');
-                    return value !== comparison[0];
-                }
-            },
-            '<': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.before', i18n.conditions.date.before);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    value = value.replace(/(\/|-|,)/g, '-');
-                    return value < comparison[0];
-                }
-            },
-            '>': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.after', i18n.conditions.date.after);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    value = value.replace(/(\/|-|,)/g, '-');
-                    return value > comparison[0];
-                }
-            },
-            'between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.between', i18n.conditions.date.between);
-                },
-                init: Criteria.init2Date,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    value = value.replace(/(\/|-|,)/g, '-');
-                    if (comparison[0] < comparison[1]) {
-                        return comparison[0] <= value && value <= comparison[1];
-                    }
-                    else {
-                        return comparison[1] <= value && value <= comparison[0];
-                    }
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.notBetween', i18n.conditions.date.notBetween);
-                },
-                init: Criteria.init2Date,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    value = value.replace(/(\/|-|,)/g, '-');
-                    if (comparison[0] < comparison[1]) {
-                        return !(comparison[0] <= value && value <= comparison[1]);
-                    }
-                    else {
-                        return !(comparison[1] <= value && value <= comparison[0]);
-                    }
-                }
-            },
-            'null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.empty', i18n.conditions.date.empty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value === null || value === undefined || value.length === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.notEmpty', i18n.conditions.date.notEmpty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return !(value === null || value === undefined || value.length === 0);
-                }
-            }
-        };
-        // The order of the conditions will make eslint sad :(
-        // Has to be in this order so that they are displayed correctly in select elements
-        // Also have to disable member ordering for this as the private methods used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.momentDateConditions = {
-            '=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.equals', i18n.conditions.date.equals);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return moment(value, that.s.dateFormat).valueOf() ===
-                        moment(comparison[0], that.s.dateFormat).valueOf();
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.not', i18n.conditions.date.not);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return moment(value, that.s.dateFormat).valueOf() !==
-                        moment(comparison[0], that.s.dateFormat).valueOf();
-                }
-            },
-            '<': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.before', i18n.conditions.date.before);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return moment(value, that.s.dateFormat).valueOf() < moment(comparison[0], that.s.dateFormat).valueOf();
-                }
-            },
-            '>': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.after', i18n.conditions.date.after);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return moment(value, that.s.dateFormat).valueOf() > moment(comparison[0], that.s.dateFormat).valueOf();
-                }
-            },
-            'between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.between', i18n.conditions.date.between);
-                },
-                init: Criteria.init2Date,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    var val = moment(value, that.s.dateFormat).valueOf();
-                    var comp0 = moment(comparison[0], that.s.dateFormat).valueOf();
-                    var comp1 = moment(comparison[1], that.s.dateFormat).valueOf();
-                    if (comp0 < comp1) {
-                        return comp0 <= val && val <= comp1;
-                    }
-                    else {
-                        return comp1 <= val && val <= comp0;
-                    }
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.notBetween', i18n.conditions.date.notBetween);
-                },
-                init: Criteria.init2Date,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    var val = moment(value, that.s.dateFormat).valueOf();
-                    var comp0 = moment(comparison[0], that.s.dateFormat).valueOf();
-                    var comp1 = moment(comparison[1], that.s.dateFormat).valueOf();
-                    if (comp0 < comp1) {
-                        return !(+comp0 <= +val && +val <= +comp1);
-                    }
-                    else {
-                        return !(+comp1 <= +val && +val <= +comp0);
-                    }
-                }
-            },
-            'null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.empty', i18n.conditions.date.empty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value === null || value === undefined || value.length === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.notEmpty', i18n.conditions.date.notEmpty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return !(value === null || value === undefined || value.length === 0);
-                }
-            }
-        };
-        // The order of the conditions will make eslint sad :(
-        // Has to be in this order so that they are displayed correctly in select elements
-        // Also have to disable member ordering for this as the private methods used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.luxonDateConditions = {
-            '=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.equals', i18n.conditions.date.equals);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return luxon.DateTime.fromFormat(value, that.s.dateFormat).ts
-                        === luxon.DateTime.fromFormat(comparison[0], that.s.dateFormat).ts;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.not', i18n.conditions.date.not);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return luxon.DateTime.fromFormat(value, that.s.dateFormat).ts
-                        !== luxon.DateTime.fromFormat(comparison[0], that.s.dateFormat).ts;
-                }
-            },
-            '<': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.before', i18n.conditions.date.before);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return luxon.DateTime.fromFormat(value, that.s.dateFormat).ts
-                        < luxon.DateTime.fromFormat(comparison[0], that.s.dateFormat).ts;
-                }
-            },
-            '>': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.after', i18n.conditions.date.after);
-                },
-                init: Criteria.initDate,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    return luxon.DateTime.fromFormat(value, that.s.dateFormat).ts
-                        > luxon.DateTime.fromFormat(comparison[0], that.s.dateFormat).ts;
-                }
-            },
-            'between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.between', i18n.conditions.date.between);
-                },
-                init: Criteria.init2Date,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    var val = luxon.DateTime.fromFormat(value, that.s.dateFormat).ts;
-                    var comp0 = luxon.DateTime.fromFormat(comparison[0], that.s.dateFormat).ts;
-                    var comp1 = luxon.DateTime.fromFormat(comparison[1], that.s.dateFormat).ts;
-                    if (comp0 < comp1) {
-                        return comp0 <= val && val <= comp1;
-                    }
-                    else {
-                        return comp1 <= val && val <= comp0;
-                    }
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.notBetween', i18n.conditions.date.notBetween);
-                },
-                init: Criteria.init2Date,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison, that) {
-                    var val = luxon.DateTime.fromFormat(value, that.s.dateFormat).ts;
-                    var comp0 = luxon.DateTime.fromFormat(comparison[0], that.s.dateFormat).ts;
-                    var comp1 = luxon.DateTime.fromFormat(comparison[1], that.s.dateFormat).ts;
-                    if (comp0 < comp1) {
-                        return !(+comp0 <= +val && +val <= +comp1);
-                    }
-                    else {
-                        return !(+comp1 <= +val && +val <= +comp0);
-                    }
-                }
-            },
-            'null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.empty', i18n.conditions.date.empty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value === null || value === undefined || value.length === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.date.notEmpty', i18n.conditions.date.notEmpty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return !(value === null || value === undefined || value.length === 0);
-                }
-            }
-        };
-        // The order of the conditions will make eslint sad :(
-        // Has to be in this order so that they are displayed correctly in select elements
-        // Also have to disable member ordering for this as the private methods used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.numConditions = {
-            '=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.equals', i18n.conditions.number.equals);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    return +value === +comparison[0];
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.not', i18n.conditions.number.not);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    return +value !== +comparison[0];
-                }
-            },
-            '<': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.lt', i18n.conditions.number.lt);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return +value < +comparison[0];
-                }
-            },
-            '<=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.lte', i18n.conditions.number.lte);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return +value <= +comparison[0];
-                }
-            },
-            '>=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.gte', i18n.conditions.number.gte);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return +value >= +comparison[0];
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '>': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.gt', i18n.conditions.number.gt);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return +value > +comparison[0];
-                }
-            },
-            'between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.between', i18n.conditions.number.between);
-                },
-                init: Criteria.init2Input,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    if (+comparison[0] < +comparison[1]) {
-                        return +comparison[0] <= +value && +value <= +comparison[1];
-                    }
-                    else {
-                        return +comparison[1] <= +value && +value <= +comparison[0];
-                    }
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.notBetween', i18n.conditions.number.notBetween);
-                },
-                init: Criteria.init2Input,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    if (+comparison[0] < +comparison[1]) {
-                        return !(+comparison[0] <= +value && +value <= +comparison[1]);
-                    }
-                    else {
-                        return !(+comparison[1] <= +value && +value <= +comparison[0]);
-                    }
-                }
-            },
-            'null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.empty', i18n.conditions.number.empty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value === null || value === undefined || value.length === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.notEmpty', i18n.conditions.number.notEmpty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return !(value === null || value === undefined || value.length === 0);
-                }
-            }
-        };
-        // The order of the conditions will make eslint sad :(
-        // Has to be in this order so that they are displayed correctly in select elements
-        // Also have to disable member ordering for this as the private methods used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.numFmtConditions = {
-            '=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.equals', i18n.conditions.number.equals);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    return +val === +comp;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.not', i18n.conditions.number.not);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    return +val !== +comp;
-                }
-            },
-            '<': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.lt', i18n.conditions.number.lt);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    return +val < +comp;
-                }
-            },
-            '<=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.lte', i18n.conditions.number.lte);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    return +val <= +comp;
-                }
-            },
-            '>=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.gte', i18n.conditions.number.gte);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    return +val >= +comp;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '>': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.gt', i18n.conditions.number.gt);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    return +val > +comp;
-                }
-            },
-            'between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.between', i18n.conditions.number.between);
-                },
-                init: Criteria.init2Input,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp0 = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    var comp1 = comparison[1].indexOf('-') === 0 ?
-                        '-' + comparison[1].replace(/[^0-9.]/g, '') :
-                        comparison[1].replace(/[^0-9.]/g, '');
-                    if (+comp0 < +comp1) {
-                        return +comp0 <= +val && +val <= +comp1;
-                    }
-                    else {
-                        return +comp1 <= +val && +val <= +comp0;
-                    }
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!between': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.notBetween', i18n.conditions.number.notBetween);
-                },
-                init: Criteria.init2Input,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    var val = value.indexOf('-') === 0 ?
-                        '-' + value.replace(/[^0-9.]/g, '') :
-                        value.replace(/[^0-9.]/g, '');
-                    var comp0 = comparison[0].indexOf('-') === 0 ?
-                        '-' + comparison[0].replace(/[^0-9.]/g, '') :
-                        comparison[0].replace(/[^0-9.]/g, '');
-                    var comp1 = comparison[1].indexOf('-') === 0 ?
-                        '-' + comparison[1].replace(/[^0-9.]/g, '') :
-                        comparison[1].replace(/[^0-9.]/g, '');
-                    if (+comp0 < +comp1) {
-                        return !(+comp0 <= +val && +val <= +comp1);
-                    }
-                    else {
-                        return !(+comp1 <= +val && +val <= +comp0);
-                    }
-                }
-            },
-            'null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.empty', i18n.conditions.number.empty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value === null || value === undefined || value.length === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.number.notEmpty', i18n.conditions.number.notEmpty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return !(value === null || value === undefined || value.length === 0);
-                }
-            }
-        };
-        // The order of the conditions will make eslint sad :(
-        // Has to be in this order so that they are displayed correctly in select elements
-        // Also have to disable member ordering for this as the private methods used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.stringConditions = {
-            '=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.string.equals', i18n.conditions.string.equals);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    return value === comparison[0];
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.string.not', i18n.conditions.string.not);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return value !== comparison[0];
-                }
-            },
-            'starts': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.string.startsWith', i18n.conditions.string.startsWith);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return value.toLowerCase().indexOf(comparison[0].toLowerCase()) === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            'contains': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.string.contains', i18n.conditions.string.contains);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return value.toLowerCase().includes(comparison[0].toLowerCase());
-                }
-            },
-            'ends': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.string.endsWith', i18n.conditions.string.endsWith);
-                },
-                init: Criteria.initInput,
-                inputValue: Criteria.inputValueInput,
-                isInputValid: Criteria.isInputValidInput,
-                search: function (value, comparison) {
-                    return value.toLowerCase().endsWith(comparison[0].toLowerCase());
-                }
-            },
-            'null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.string.empty', i18n.conditions.string.empty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value === null || value === undefined || value.length === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.string.notEmpty', i18n.conditions.string.notEmpty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return !(value === null || value === undefined || value.length === 0);
-                }
-            }
-        };
-        // The order of the conditions will make eslint sad :(
-        // Also have to disable member ordering for this as the private methods used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.arrayConditions = {
-            'contains': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.array.contains', i18n.conditions.array.contains);
-                },
-                init: Criteria.initSelectArray,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    return value.includes(comparison[0]);
-                }
-            },
-            'without': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.array.without', i18n.conditions.array.without);
-                },
-                init: Criteria.initSelectArray,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    return value.indexOf(comparison[0]) === -1;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.array.equals', i18n.conditions.array.equals);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    if (value.length === comparison[0].length) {
-                        for (var i = 0; i < value.length; i++) {
-                            if (value[i] !== comparison[0][i]) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
-                    return false;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!=': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.array.not', i18n.conditions.array.not);
-                },
-                init: Criteria.initSelect,
-                inputValue: Criteria.inputValueSelect,
-                isInputValid: Criteria.isInputValidSelect,
-                search: function (value, comparison) {
-                    if (value.length === comparison[0].length) {
-                        for (var i = 0; i < value.length; i++) {
-                            if (value[i] !== comparison[0][i]) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-                    return true;
-                }
-            },
-            'null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.array.empty', i18n.conditions.array.empty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value === null || value === undefined || value.length === 0;
-                }
-            },
-            // eslint-disable-next-line sort-keys
-            '!null': {
-                conditionName: function (dt, i18n) {
-                    return dt.i18n('searchBuilder.conditions.array.notEmpty', i18n.conditions.array.notEmpty);
-                },
-                init: Criteria.initNoValue,
-                inputValue: function () {
-                    return;
-                },
-                isInputValid: function () {
-                    return true;
-                },
-                search: function (value) {
-                    return value !== null && value !== undefined && value.length !== 0;
-                }
-            }
-        };
-        // eslint will be sad because we have to disable member ordering for this as the
-        // private static properties used are not yet declared otherwise
-        // eslint-disable-next-line @typescript-eslint/member-ordering
-        Criteria.defaults = {
-            columns: true,
-            conditions: {
-                'array': Criteria.arrayConditions,
-                'date': Criteria.dateConditions,
-                'html': Criteria.stringConditions,
-                'html-num': Criteria.numConditions,
-                'html-num-fmt': Criteria.numFmtConditions,
-                'luxon': Criteria.luxonDateConditions,
-                'moment': Criteria.momentDateConditions,
-                'num': Criteria.numConditions,
-                'num-fmt': Criteria.numFmtConditions,
-                'string': Criteria.stringConditions
-            },
-            depthLimit: false,
-            enterSearch: false,
-            filterChanged: undefined,
-            greyscale: false,
-            i18n: {
-                add: 'Add Condition',
-                button: {
-                    0: 'Search Builder',
-                    _: 'Search Builder (%d)'
-                },
-                clearAll: 'Clear All',
-                condition: 'Condition',
-                data: 'Data',
-                deleteTitle: 'Delete filtering rule',
-                leftTitle: 'Outdent criteria',
-                logicAnd: 'And',
-                logicOr: 'Or',
-                rightTitle: 'Indent criteria',
-                title: {
-                    0: 'Custom Search Builder',
-                    _: 'Custom Search Builder (%d)'
-                },
-                value: 'Value',
-                valueJoiner: 'and'
-            },
-            logic: 'AND',
-            orthogonal: {
-                display: 'display',
-                search: 'filter'
-            },
-            preDefined: false
-        };
-        return Criteria;
-    }());
-
-    var $$1;
-    var dataTable$1;
-    /**
-     * Sets the value of jQuery for use in the file
-     *
-     * @param jq the instance of jQuery to be set
-     */
-    function setJQuery$1(jq) {
-        $$1 = jq;
-        dataTable$1 = jq.fn.dataTable;
-    }
-    /**
-     * The Group class is used within SearchBuilder to represent a group of criteria
-     */
-    var Group = /** @class */ (function () {
-        function Group(table, opts, topGroup, index, isChild, depth) {
-            if (index === void 0) { index = 0; }
-            if (isChild === void 0) { isChild = false; }
-            if (depth === void 0) { depth = 1; }
-            // Check that the required version of DataTables is included
-            if (!dataTable$1 || !dataTable$1.versionCheck || !dataTable$1.versionCheck('1.10.0')) {
-                throw new Error('SearchBuilder requires DataTables 1.10 or newer');
-            }
-            this.classes = $$1.extend(true, {}, Group.classes);
-            // Get options from user
-            this.c = $$1.extend(true, {}, Group.defaults, opts);
-            this.s = {
-                criteria: [],
-                depth: depth,
-                dt: table,
-                index: index,
-                isChild: isChild,
-                logic: undefined,
-                opts: opts,
-                preventRedraw: false,
-                toDrop: undefined,
-                topGroup: topGroup
-            };
-            this.dom = {
-                add: $$1('<button/>')
-                    .addClass(this.classes.add)
-                    .addClass(this.classes.button)
-                    .attr('type', 'button'),
-                clear: $$1('<button>&times</button>')
-                    .addClass(this.classes.button)
-                    .addClass(this.classes.clearGroup)
-                    .attr('type', 'button'),
-                container: $$1('<div/>')
-                    .addClass(this.classes.group),
-                logic: $$1('<button><div/></button>')
-                    .addClass(this.classes.logic)
-                    .addClass(this.classes.button)
-                    .attr('type', 'button'),
-                logicContainer: $$1('<div/>')
-                    .addClass(this.classes.logicContainer)
-            };
-            // A reference to the top level group is maintained throughout any subgroups and criteria that may be created
-            if (this.s.topGroup === undefined) {
-                this.s.topGroup = this.dom.container;
-            }
-            this._setup();
-            return this;
-        }
-        /**
-         * Destroys the groups buttons, clears the internal criteria and removes it from the dom
-         */
-        Group.prototype.destroy = function () {
-            // Turn off listeners
-            this.dom.add.off('.dtsb');
-            this.dom.logic.off('.dtsb');
-            // Trigger event for groups at a higher level to pick up on
-            this.dom.container
-                .trigger('dtsb-destroy')
-                .remove();
-            this.s.criteria = [];
-        };
-        /**
-         * Gets the details required to rebuild the group
-         */
-        // Eslint upset at empty object but needs to be done
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        Group.prototype.getDetails = function (deFormatDates) {
-            if (deFormatDates === void 0) { deFormatDates = false; }
-            if (this.s.criteria.length === 0) {
-                return {};
-            }
-            var details = {
-                criteria: [],
-                logic: this.s.logic
-            };
-            // NOTE here crit could be either a subgroup or a criteria
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                details.criteria.push(crit.criteria.getDetails(deFormatDates));
-            }
-            return details;
-        };
-        /**
-         * Getter for the node for the container of the group
-         *
-         * @returns Node for the container of the group
-         */
-        Group.prototype.getNode = function () {
-            return this.dom.container;
-        };
-        /**
-         * Rebuilds the group based upon the details passed in
-         *
-         * @param loadedDetails the details required to rebuild the group
-         */
-        Group.prototype.rebuild = function (loadedDetails) {
-            // If no criteria are stored then just return
-            if (loadedDetails.criteria === undefined ||
-                loadedDetails.criteria === null ||
-                Array.isArray(loadedDetails.criteria) && loadedDetails.criteria.length === 0) {
-                return;
-            }
-            this.s.logic = loadedDetails.logic;
-            this.dom.logic.children().first().text(this.s.logic === 'OR'
-                ? this.s.dt.i18n('searchBuilder.logicOr', this.c.i18n.logicOr)
-                : this.s.dt.i18n('searchBuilder.logicAnd', this.c.i18n.logicAnd));
-            // Add all of the criteria, be it a sub group or a criteria
-            if (Array.isArray(loadedDetails.criteria)) {
-                for (var _i = 0, _a = loadedDetails.criteria; _i < _a.length; _i++) {
-                    var crit = _a[_i];
-                    if (crit.logic !== undefined) {
-                        this._addPrevGroup(crit);
-                    }
-                    else if (crit.logic === undefined) {
-                        this._addPrevCriteria(crit);
-                    }
-                }
-            }
-            // For all of the criteria children, update the arrows incase they require changing and set the listeners
-            for (var _b = 0, _c = this.s.criteria; _b < _c.length; _b++) {
-                var crit = _c[_b];
-                if (crit.criteria instanceof Criteria) {
-                    crit.criteria.updateArrows(this.s.criteria.length > 1, false);
-                    this._setCriteriaListeners(crit.criteria);
-                }
-            }
-        };
-        /**
-         * Redraws the Contents of the searchBuilder Groups and Criteria
-         */
-        Group.prototype.redrawContents = function () {
-            if (this.s.preventRedraw) {
-                return;
-            }
-            // Clear the container out and add the basic elements
-            this.dom.container.children().detach();
-            this.dom.container
-                .append(this.dom.logicContainer)
-                .append(this.dom.add);
-            // Sort the criteria by index so that they appear in the correct order
-            this.s.criteria.sort(function (a, b) {
-                if (a.criteria.s.index < b.criteria.s.index) {
-                    return -1;
-                }
-                else if (a.criteria.s.index > b.criteria.s.index) {
-                    return 1;
-                }
-                return 0;
-            });
-            this.setListeners();
-            for (var i = 0; i < this.s.criteria.length; i++) {
-                var crit = this.s.criteria[i].criteria;
-                if (crit instanceof Criteria) {
-                    // Reset the index to the new value
-                    this.s.criteria[i].index = i;
-                    this.s.criteria[i].criteria.s.index = i;
-                    // Add to the group
-                    this.s.criteria[i].criteria.dom.container.insertBefore(this.dom.add);
-                    // Set listeners for various points
-                    this._setCriteriaListeners(crit);
-                    this.s.criteria[i].criteria.rebuild(this.s.criteria[i].criteria.getDetails());
-                }
-                else if (crit instanceof Group && crit.s.criteria.length > 0) {
-                    // Reset the index to the new value
-                    this.s.criteria[i].index = i;
-                    this.s.criteria[i].criteria.s.index = i;
-                    // Add the sub group to the group
-                    this.s.criteria[i].criteria.dom.container.insertBefore(this.dom.add);
-                    // Redraw the contents of the group
-                    crit.redrawContents();
-                    this._setGroupListeners(crit);
-                }
-                else {
-                    // The group is empty so remove it
-                    this.s.criteria.splice(i, 1);
-                    i--;
-                }
-            }
-            this.setupLogic();
-        };
-        /**
-         * Resizes the logic button only rather than the entire dom.
-         */
-        Group.prototype.redrawLogic = function () {
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                if (crit instanceof Group) {
-                    crit.redrawLogic();
-                }
-            }
-            this.setupLogic();
-        };
-        /**
-         * Search method, checking the row data against the criteria in the group
-         *
-         * @param rowData The row data to be compared
-         * @returns boolean The result of the search
-         */
-        Group.prototype.search = function (rowData, rowIdx) {
-            if (this.s.logic === 'AND') {
-                return this._andSearch(rowData, rowIdx);
-            }
-            else if (this.s.logic === 'OR') {
-                return this._orSearch(rowData, rowIdx);
-            }
-            return true;
-        };
-        /**
-         * Locates the groups logic button to the correct location on the page
-         */
-        Group.prototype.setupLogic = function () {
-            // Remove logic button
-            this.dom.logicContainer.remove();
-            this.dom.clear.remove();
-            // If there are no criteria in the group then keep the logic removed and return
-            if (this.s.criteria.length < 1) {
-                if (!this.s.isChild) {
-                    this.dom.container.trigger('dtsb-destroy');
-                    // Set criteria left margin
-                    this.dom.container.css('margin-left', 0);
-                }
-                return;
-            }
-            // Set width, take 2 for the border
-            var height = this.dom.container.height() - 1;
-            this.dom.clear.height('0px');
-            this.dom.logicContainer.append(this.dom.clear).width(height);
-            // Prepend logic button
-            this.dom.container.prepend(this.dom.logicContainer);
-            this._setLogicListener();
-            // Set criteria left margin
-            this.dom.container.css('margin-left', this.dom.logicContainer.outerHeight(true));
-            var logicOffset = this.dom.logicContainer.offset();
-            // Set horizontal alignment
-            var currentLeft = logicOffset.left;
-            var groupLeft = this.dom.container.offset().left;
-            var shuffleLeft = currentLeft - groupLeft;
-            var newPos = currentLeft - shuffleLeft - this.dom.logicContainer.outerHeight(true);
-            this.dom.logicContainer.offset({ left: newPos });
-            // Set vertical alignment
-            var firstCrit = this.dom.logicContainer.next();
-            var currentTop = logicOffset.top;
-            var firstTop = $$1(firstCrit).offset().top;
-            var shuffleTop = currentTop - firstTop;
-            var newTop = currentTop - shuffleTop;
-            this.dom.logicContainer.offset({ top: newTop });
-            this.dom.clear.outerHeight(this.dom.logicContainer.height());
-            this._setClearListener();
-        };
-        /**
-         * Sets listeners on the groups elements
-         */
-        Group.prototype.setListeners = function () {
-            var _this = this;
-            this.dom.add.unbind('click');
-            this.dom.add.on('click.dtsb', function () {
-                // If this is the parent group then the logic button has not been added yet
-                if (!_this.s.isChild) {
-                    _this.dom.container.prepend(_this.dom.logicContainer);
-                }
-                _this.addCriteria();
-                _this.dom.container.trigger('dtsb-add');
-                _this.s.dt.state.save();
-                return false;
-            });
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                crit.criteria.setListeners();
-            }
-            this._setClearListener();
-            this._setLogicListener();
-        };
-        /**
-         * Adds a criteria to the group
-         *
-         * @param crit Instance of Criteria to be added to the group
-         */
-        Group.prototype.addCriteria = function (crit, redraw) {
-            if (crit === void 0) { crit = null; }
-            if (redraw === void 0) { redraw = true; }
-            var index = crit === null ? this.s.criteria.length : crit.s.index;
-            var criteria = new Criteria(this.s.dt, this.s.opts, this.s.topGroup, index, this.s.depth);
-            // If a Criteria has been passed in then set the values to continue that
-            if (crit !== null) {
-                criteria.c = crit.c;
-                criteria.s = crit.s;
-                criteria.s.depth = this.s.depth;
-                criteria.classes = crit.classes;
-            }
-            criteria.populate();
-            var inserted = false;
-            for (var i = 0; i < this.s.criteria.length; i++) {
-                if (i === 0 && this.s.criteria[i].criteria.s.index > criteria.s.index) {
-                    // Add the node for the criteria at the start of the group
-                    criteria.getNode().insertBefore(this.s.criteria[i].criteria.dom.container);
-                    inserted = true;
-                }
-                else if (i < this.s.criteria.length - 1 &&
-                    this.s.criteria[i].criteria.s.index < criteria.s.index &&
-                    this.s.criteria[i + 1].criteria.s.index > criteria.s.index) {
-                    // Add the node for the criteria in the correct location
-                    criteria.getNode().insertAfter(this.s.criteria[i].criteria.dom.container);
-                    inserted = true;
-                }
-            }
-            if (!inserted) {
-                criteria.getNode().insertBefore(this.dom.add);
-            }
-            // Add the details for this criteria to the array
-            this.s.criteria.push({
-                criteria: criteria,
-                index: index
-            });
-            this.s.criteria = this.s.criteria.sort(function (a, b) { return a.criteria.s.index - b.criteria.s.index; });
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var opt = _a[_i];
-                if (opt.criteria instanceof Criteria) {
-                    opt.criteria.updateArrows(this.s.criteria.length > 1, redraw);
-                }
-            }
-            this._setCriteriaListeners(criteria);
-            criteria.setListeners();
-            this.setupLogic();
-        };
-        /**
-         * Checks the group to see if it has any filled criteria
-         */
-        Group.prototype.checkFilled = function () {
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                if (crit.criteria instanceof Criteria && crit.criteria.s.filled ||
-                    crit.criteria instanceof Group && crit.criteria.checkFilled()) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        /**
-         * Gets the count for the number of criteria in this group and any sub groups
-         */
-        Group.prototype.count = function () {
-            var count = 0;
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                if (crit.criteria instanceof Group) {
-                    count += crit.criteria.count();
-                }
-                else {
-                    count++;
-                }
-            }
-            return count;
-        };
-        /**
-         * Rebuilds a sub group that previously existed
-         *
-         * @param loadedGroup The details of a group within this group
-         */
-        Group.prototype._addPrevGroup = function (loadedGroup) {
-            var idx = this.s.criteria.length;
-            var group = new Group(this.s.dt, this.c, this.s.topGroup, idx, true, this.s.depth + 1);
-            // Add the new group to the criteria array
-            this.s.criteria.push({
-                criteria: group,
-                index: idx,
-                logic: group.s.logic
-            });
-            // Rebuild it with the previous conditions for that group
-            group.rebuild(loadedGroup);
-            this.s.criteria[idx].criteria = group;
-            this.s.topGroup.trigger('dtsb-redrawContents');
-            this._setGroupListeners(group);
-        };
-        /**
-         * Rebuilds a criteria of this group that previously existed
-         *
-         * @param loadedCriteria The details of a criteria within the group
-         */
-        Group.prototype._addPrevCriteria = function (loadedCriteria) {
-            var idx = this.s.criteria.length;
-            var criteria = new Criteria(this.s.dt, this.s.opts, this.s.topGroup, idx, this.s.depth);
-            criteria.populate();
-            // Add the new criteria to the criteria array
-            this.s.criteria.push({
-                criteria: criteria,
-                index: idx
-            });
-            // Rebuild it with the previous conditions for that criteria
-            criteria.rebuild(loadedCriteria);
-            this.s.criteria[idx].criteria = criteria;
-            this.s.topGroup.trigger('dtsb-redrawContents');
-        };
-        /**
-         * Checks And the criteria using AND logic
-         *
-         * @param rowData The row data to be checked against the search criteria
-         * @returns boolean The result of the AND search
-         */
-        Group.prototype._andSearch = function (rowData, rowIdx) {
-            // If there are no criteria then return true for this group
-            if (this.s.criteria.length === 0) {
-                return true;
-            }
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                // If the criteria is not complete then skip it
-                if (crit.criteria instanceof Criteria && !crit.criteria.s.filled) {
-                    continue;
-                }
-                // Otherwise if a single one fails return false
-                else if (!crit.criteria.search(rowData, rowIdx)) {
-                    return false;
-                }
-            }
-            // If we get to here then everything has passed, so return true for the group
-            return true;
-        };
-        /**
-         * Checks And the criteria using OR logic
-         *
-         * @param rowData The row data to be checked against the search criteria
-         * @returns boolean The result of the OR search
-         */
-        Group.prototype._orSearch = function (rowData, rowIdx) {
-            // If there are no criteria in the group then return true
-            if (this.s.criteria.length === 0) {
-                return true;
-            }
-            // This will check to make sure that at least one criteria in the group is complete
-            var filledfound = false;
-            for (var _i = 0, _a = this.s.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                if (crit.criteria instanceof Criteria && crit.criteria.s.filled) {
-                    // A completed criteria has been found so set the flag
-                    filledfound = true;
-                    // If the search passes then return true
-                    if (crit.criteria.search(rowData, rowIdx)) {
-                        return true;
-                    }
-                }
-                else if (crit.criteria instanceof Group && crit.criteria.checkFilled()) {
-                    filledfound = true;
-                    if (crit.criteria.search(rowData, rowIdx)) {
-                        return true;
-                    }
-                }
-            }
-            // If we get here we need to return the inverse of filledfound,
-            //  as if any have been found and we are here then none have passed
-            return !filledfound;
-        };
-        /**
-         * Removes a criteria from the group
-         *
-         * @param criteria The criteria instance to be removed
-         */
-        Group.prototype._removeCriteria = function (criteria, group) {
-            if (group === void 0) { group = false; }
-            // If removing a criteria and there is only then then just destroy the group
-            if (this.s.criteria.length <= 1 && this.s.isChild) {
-                this.destroy();
-            }
-            else {
-                // Otherwise splice the given criteria out and redo the indexes
-                var last = void 0;
-                for (var i = 0; i < this.s.criteria.length; i++) {
-                    if (this.s.criteria[i].index === criteria.s.index &&
-                        (!group || this.s.criteria[i].criteria instanceof Group)) {
-                        last = i;
-                    }
-                }
-                // We want to remove the last element with the desired index, as its replacement will be inserted before it
-                if (last !== undefined) {
-                    this.s.criteria.splice(last, 1);
-                }
-                for (var i = 0; i < this.s.criteria.length; i++) {
-                    this.s.criteria[i].index = i;
-                    this.s.criteria[i].criteria.s.index = i;
-                }
-            }
-        };
-        /**
-         * Sets the listeners in group for a criteria
-         *
-         * @param criteria The criteria for the listeners to be set on
-         */
-        Group.prototype._setCriteriaListeners = function (criteria) {
-            var _this = this;
-            criteria.dom["delete"]
-                .unbind('click')
-                .on('click.dtsb', function () {
-                _this._removeCriteria(criteria);
-                criteria.dom.container.remove();
-                for (var _i = 0, _a = _this.s.criteria; _i < _a.length; _i++) {
-                    var crit = _a[_i];
-                    if (crit.criteria instanceof Criteria) {
-                        crit.criteria.updateArrows(_this.s.criteria.length > 1);
-                    }
-                }
-                criteria.destroy();
-                _this.s.dt.draw();
-                _this.s.topGroup.trigger('dtsb-redrawContents');
-                _this.s.topGroup.trigger('dtsb-updateTitle');
-                return false;
-            });
-            criteria.dom.right
-                .unbind('click')
-                .on('click.dtsb', function () {
-                var idx = criteria.s.index;
-                var group = new Group(_this.s.dt, _this.s.opts, _this.s.topGroup, criteria.s.index, true, _this.s.depth + 1);
-                // Add the criteria that is to be moved to the new group
-                group.addCriteria(criteria);
-                // Update the details in the current groups criteria array
-                _this.s.criteria[idx].criteria = group;
-                _this.s.criteria[idx].logic = 'AND';
-                _this.s.topGroup.trigger('dtsb-redrawContents');
-                _this._setGroupListeners(group);
-                return false;
-            });
-            criteria.dom.left
-                .unbind('click')
-                .on('click.dtsb', function () {
-                _this.s.toDrop = new Criteria(_this.s.dt, _this.s.opts, _this.s.topGroup, criteria.s.index);
-                _this.s.toDrop.s = criteria.s;
-                _this.s.toDrop.c = criteria.c;
-                _this.s.toDrop.classes = criteria.classes;
-                _this.s.toDrop.populate();
-                // The dropCriteria event mutates the reference to the index so need to store it
-                var index = _this.s.toDrop.s.index;
-                _this.dom.container.trigger('dtsb-dropCriteria');
-                criteria.s.index = index;
-                _this._removeCriteria(criteria);
-                // By tracking the top level group we can directly trigger a redraw on it,
-                //  bubbling is also possible, but that is slow with deep levelled groups
-                _this.s.topGroup.trigger('dtsb-redrawContents');
-                _this.s.dt.draw();
-                return false;
-            });
-        };
-        /**
-         * Set's the listeners for the group clear button
-         */
-        Group.prototype._setClearListener = function () {
-            var _this = this;
-            this.dom.clear
-                .unbind('click')
-                .on('click.dtsb', function () {
-                if (!_this.s.isChild) {
-                    _this.dom.container.trigger('dtsb-clearContents');
-                    return false;
-                }
-                _this.destroy();
-                _this.s.topGroup.trigger('dtsb-updateTitle');
-                _this.s.topGroup.trigger('dtsb-redrawContents');
-                return false;
-            });
-        };
-        /**
-         * Sets listeners for sub groups of this group
-         *
-         * @param group The sub group that the listeners are to be set on
-         */
-        Group.prototype._setGroupListeners = function (group) {
-            var _this = this;
-            // Set listeners for the new group
-            group.dom.add
-                .unbind('click')
-                .on('click.dtsb', function () {
-                _this.setupLogic();
-                _this.dom.container.trigger('dtsb-add');
-                return false;
-            });
-            group.dom.container
-                .unbind('dtsb-add')
-                .on('dtsb-add.dtsb', function () {
-                _this.setupLogic();
-                _this.dom.container.trigger('dtsb-add');
-                return false;
-            });
-            group.dom.container
-                .unbind('dtsb-destroy')
-                .on('dtsb-destroy.dtsb', function () {
-                _this._removeCriteria(group, true);
-                group.dom.container.remove();
-                _this.setupLogic();
-                return false;
-            });
-            group.dom.container
-                .unbind('dtsb-dropCriteria')
-                .on('dtsb-dropCriteria.dtsb', function () {
-                var toDrop = group.s.toDrop;
-                toDrop.s.index = group.s.index;
-                toDrop.updateArrows(_this.s.criteria.length > 1, false);
-                _this.addCriteria(toDrop, false);
-                return false;
-            });
-            group.setListeners();
-        };
-        /**
-         * Sets up the Group instance, setting listeners and appending elements
-         */
-        Group.prototype._setup = function () {
-            this.setListeners();
-            this.dom.add.text(this.s.dt.i18n('searchBuilder.add', this.c.i18n.add));
-            this.dom.logic.children().first().text(this.c.logic === 'OR'
-                ? this.s.dt.i18n('searchBuilder.logicOr', this.c.i18n.logicOr)
-                : this.s.dt.i18n('searchBuilder.logicAnd', this.c.i18n.logicAnd));
-            this.s.logic = this.c.logic === 'OR' ? 'OR' : 'AND';
-            if (this.c.greyscale) {
-                this.dom.logic.addClass(this.classes.greyscale);
-            }
-            this.dom.logicContainer.append(this.dom.logic).append(this.dom.clear);
-            // Only append the logic button immediately if this is a sub group,
-            //  otherwise it will be prepended later when adding a criteria
-            if (this.s.isChild) {
-                this.dom.container.append(this.dom.logicContainer);
-            }
-            this.dom.container.append(this.dom.add);
-        };
-        /**
-         * Sets the listener for the logic button
-         */
-        Group.prototype._setLogicListener = function () {
-            var _this = this;
-            this.dom.logic
-                .unbind('click')
-                .on('click.dtsb', function () {
-                _this._toggleLogic();
-                _this.s.dt.draw();
-                for (var _i = 0, _a = _this.s.criteria; _i < _a.length; _i++) {
-                    var crit = _a[_i];
-                    crit.criteria.setListeners();
-                }
-            });
-        };
-        /**
-         * Toggles the logic for the group
-         */
-        Group.prototype._toggleLogic = function () {
-            if (this.s.logic === 'OR') {
-                this.s.logic = 'AND';
-                this.dom.logic.children().first().text(this.s.dt.i18n('searchBuilder.logicAnd', this.c.i18n.logicAnd));
-            }
-            else if (this.s.logic === 'AND') {
-                this.s.logic = 'OR';
-                this.dom.logic.children().first().text(this.s.dt.i18n('searchBuilder.logicOr', this.c.i18n.logicOr));
-            }
-        };
-        Group.version = '1.1.0';
-        Group.classes = {
-            add: 'dtsb-add',
-            button: 'dtsb-button',
-            clearGroup: 'dtsb-clearGroup',
-            greyscale: 'dtsb-greyscale',
-            group: 'dtsb-group',
-            inputButton: 'dtsb-iptbtn',
-            logic: 'dtsb-logic',
-            logicContainer: 'dtsb-logicContainer'
-        };
-        Group.defaults = {
-            columns: true,
-            conditions: {
-                'date': Criteria.dateConditions,
-                'html': Criteria.stringConditions,
-                'html-num': Criteria.numConditions,
-                'html-num-fmt': Criteria.numFmtConditions,
-                'luxon': Criteria.luxonDateConditions,
-                'moment': Criteria.momentDateConditions,
-                'num': Criteria.numConditions,
-                'num-fmt': Criteria.numFmtConditions,
-                'string': Criteria.stringConditions
-            },
-            depthLimit: false,
-            enterSearch: false,
-            filterChanged: undefined,
-            greyscale: false,
-            i18n: {
-                add: 'Add Condition',
-                button: {
-                    0: 'Search Builder',
-                    _: 'Search Builder (%d)'
-                },
-                clearAll: 'Clear All',
-                condition: 'Condition',
-                data: 'Data',
-                deleteTitle: 'Delete filtering rule',
-                leftTitle: 'Outdent criteria',
-                logicAnd: 'And',
-                logicOr: 'Or',
-                rightTitle: 'Indent criteria',
-                title: {
-                    0: 'Custom Search Builder',
-                    _: 'Custom Search Builder (%d)'
-                },
-                value: 'Value',
-                valueJoiner: 'and'
-            },
-            logic: 'AND',
-            orthogonal: {
-                display: 'display',
-                search: 'filter'
-            },
-            preDefined: false
-        };
-        return Group;
-    }());
-
-    var $;
-    var dataTable;
-    /**
-     * Sets the value of jQuery for use in the file
-     *
-     * @param jq the instance of jQuery to be set
-     */
-    function setJQuery(jq) {
-        $ = jq;
-        dataTable = jq.fn.DataTable;
-    }
-    /**
-     * SearchBuilder class for DataTables.
-     * Allows for complex search queries to be constructed and implemented on a DataTable
-     */
-    var SearchBuilder = /** @class */ (function () {
-        function SearchBuilder(builderSettings, opts) {
-            var _this = this;
-            // Check that the required version of DataTables is included
-            if (!dataTable || !dataTable.versionCheck || !dataTable.versionCheck('1.10.0')) {
-                throw new Error('SearchBuilder requires DataTables 1.10 or newer');
-            }
-            var table = new dataTable.Api(builderSettings);
-            this.classes = $.extend(true, {}, SearchBuilder.classes);
-            // Get options from user
-            this.c = $.extend(true, {}, SearchBuilder.defaults, opts);
-            this.dom = {
-                clearAll: $('<button type="button">' + table.i18n('searchBuilder.clearAll', this.c.i18n.clearAll) + '</button>')
-                    .addClass(this.classes.clearAll)
-                    .addClass(this.classes.button)
-                    .attr('type', 'button'),
-                container: $('<div/>')
-                    .addClass(this.classes.container),
-                title: $('<div/>')
-                    .addClass(this.classes.title),
-                titleRow: $('<div/>')
-                    .addClass(this.classes.titleRow),
-                topGroup: undefined
-            };
-            this.s = {
-                dt: table,
-                opts: opts,
-                search: undefined,
-                topGroup: undefined
-            };
-            // If searchbuilder is already defined for this table then return
-            if (table.settings()[0]._searchBuilder !== undefined) {
-                return;
-            }
-            table.settings()[0]._searchBuilder = this;
-            // Run the remaining setup when the table is initialised
-            if (this.s.dt.settings()[0]._bInitComplete) {
-                this._setUp();
-            }
-            else {
-                table.one('init.dt', function () {
-                    _this._setUp();
-                });
-            }
-            return this;
-        }
-        /**
-         * Gets the details required to rebuild the SearchBuilder as it currently is
-         */
-        // eslint upset at empty object but that is what it is
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        SearchBuilder.prototype.getDetails = function (deFormatDates) {
-            if (deFormatDates === void 0) { deFormatDates = false; }
-            return this.s.topGroup.getDetails(deFormatDates);
-        };
-        /**
-         * Getter for the node of the container for the searchBuilder
-         *
-         * @returns JQuery<HTMLElement> the node of the container
-         */
-        SearchBuilder.prototype.getNode = function () {
-            return this.dom.container;
-        };
-        /**
-         * Rebuilds the SearchBuilder to a state that is provided
-         *
-         * @param details The details required to perform a rebuild
-         */
-        SearchBuilder.prototype.rebuild = function (details) {
-            this.dom.clearAll.click();
-            // If there are no details to rebuild then return
-            if (details === undefined || details === null) {
-                return this;
-            }
-            this.s.topGroup.s.preventRedraw = true;
-            this.s.topGroup.rebuild(details);
-            this.s.topGroup.s.preventRedraw = false;
-            this.s.topGroup.redrawContents();
-            this.s.dt.draw(false);
-            this.s.topGroup.setListeners();
-            return this;
-        };
-        /**
-         * Applies the defaults to preDefined criteria
-         *
-         * @param preDef the array of criteria to be processed.
-         */
-        SearchBuilder.prototype._applyPreDefDefaults = function (preDef) {
-            var _this = this;
-            if (preDef.criteria !== undefined && preDef.logic === undefined) {
-                preDef.logic = 'AND';
-            }
-            var _loop_1 = function (crit) {
-                // Apply the defaults to any further criteria
-                if (crit.criteria !== undefined) {
-                    crit = this_1._applyPreDefDefaults(crit);
-                }
-                else {
-                    this_1.s.dt.columns().every(function (index) {
-                        if (_this.s.dt.settings()[0].aoColumns[index].sTitle === crit.data) {
-                            crit.dataIdx = index;
-                        }
-                    });
-                }
-            };
-            var this_1 = this;
-            for (var _i = 0, _a = preDef.criteria; _i < _a.length; _i++) {
-                var crit = _a[_i];
-                _loop_1(crit);
-            }
-            return preDef;
-        };
-        /**
-         * Set's up the SearchBuilder
-         */
-        SearchBuilder.prototype._setUp = function (loadState) {
-            var _this = this;
-            if (loadState === void 0) { loadState = true; }
-            // Register an Api method for getting the column type
-            $.fn.DataTable.Api.registerPlural('columns().type()', 'column().type()', function () {
-                return this.iterator('column', function (settings, column) {
-                    return settings.aoColumns[column].sType;
-                }, 1);
-            });
-            // Check that DateTime is included, If not need to check if it could be used
-            // eslint-disable-next-line no-extra-parens
-            if (!dataTable.DateTime) {
-                var types = this.s.dt.columns().type().toArray();
-                if (types === undefined || types.includes(undefined) || types.includes(null)) {
-                    types = [];
-                    for (var _i = 0, _a = this.s.dt.settings()[0].aoColumns; _i < _a.length; _i++) {
-                        var colInit = _a[_i];
-                        types.push(colInit.searchBuilderType !== undefined ? colInit.searchBuilderType : colInit.sType);
-                    }
-                }
-                var columnIdxs = this.s.dt.columns().toArray();
-                // If the types are not yet set then draw to see if they can be retrieved then
-                if (types === undefined || types.includes(undefined) || types.includes(null)) {
-                    $.fn.dataTable.ext.oApi._fnColumnTypes(this.s.dt.settings()[0]);
-                    types = this.s.dt.columns().type().toArray();
-                }
-                for (var i = 0; i < columnIdxs[0].length; i++) {
-                    var column = columnIdxs[0][i];
-                    var type = types[column];
-                    if (
-                    // Check if this column can be filtered
-                    (this.c.columns === true ||
-                        Array.isArray(this.c.columns) &&
-                            this.c.columns.includes(i)) &&
-                        // Check if the type is one of the restricted types
-                        (type.includes('date') ||
-                            type.includes('moment') ||
-                            type.includes('luxon'))) {
-                        alert('SearchBuilder Requires DateTime when used with dates.');
-                        throw new Error('SearchBuilder requires DateTime');
-                    }
-                }
-            }
-            this.s.topGroup = new Group(this.s.dt, this.c, undefined);
-            this._setClearListener();
-            this.s.dt.on('stateSaveParams.dtsb', function (e, settings, data) {
-                data.searchBuilder = _this.getDetails();
-                data.page = _this.s.dt.page();
-            });
-            this.s.dt.on('stateLoadParams.dtsb', function (e, settings, data) {
-                _this.rebuild(data.searchBuilder);
-            });
-            this._build();
-            this.s.dt.on('preXhr.dtsb', function (e, settings, data) {
-                if (_this.s.dt.page.info().serverSide) {
-                    data.searchBuilder = _this._collapseArray(_this.getDetails(true));
-                }
-            });
-            if (loadState) {
-                var loadedState = this.s.dt.state.loaded();
-                // If the loaded State is not null rebuild based on it for statesave
-                if (loadedState !== null && loadedState.searchBuilder !== undefined) {
-                    this.s.topGroup.rebuild(loadedState.searchBuilder);
-                    this.s.topGroup.dom.container.trigger('dtsb-redrawContents');
-                    this.s.dt.page(loadedState.page).draw('page');
-                    this.s.topGroup.setListeners();
-                }
-                // Otherwise load any predefined options
-                else if (this.c.preDefined !== false) {
-                    this.c.preDefined = this._applyPreDefDefaults(this.c.preDefined);
-                    this.rebuild(this.c.preDefined);
-                }
-            }
-            this._setEmptyListener();
-            this.s.dt.state.save();
-        };
-        SearchBuilder.prototype._collapseArray = function (criteria) {
-            if (criteria.logic === undefined) {
-                if (criteria.value !== undefined) {
-                    criteria.value.sort(function (a, b) {
-                        if (!isNaN(+a)) {
-                            a = +a;
-                            b = +b;
-                        }
-                        if (a < b) {
-                            return -1;
-                        }
-                        else if (b < a) {
-                            return 1;
-                        }
-                        else {
-                            return 0;
-                        }
-                    });
-                    criteria.value1 = criteria.value[0];
-                    criteria.value2 = criteria.value[1];
-                }
-            }
-            else {
-                for (var i = 0; i < criteria.criteria.length; i++) {
-                    criteria.criteria[i] = this._collapseArray(criteria.criteria[i]);
-                }
-            }
-            return criteria;
-        };
-        /**
-         * Updates the title of the SearchBuilder
-         *
-         * @param count the number of filters in the SearchBuilder
-         */
-        SearchBuilder.prototype._updateTitle = function (count) {
-            this.dom.title.html(this.s.dt.i18n('searchBuilder.title', this.c.i18n.title, count));
-        };
-        /**
-         * Builds all of the dom elements together
-         */
-        SearchBuilder.prototype._build = function () {
-            var _this = this;
-            // Empty and setup the container
-            this.dom.clearAll.remove();
-            this.dom.container.empty();
-            var count = this.s.topGroup.count();
-            this._updateTitle(count);
-            this.dom.titleRow.append(this.dom.title);
-            this.dom.container.append(this.dom.titleRow);
-            this.dom.topGroup = this.s.topGroup.getNode();
-            this.dom.container.append(this.dom.topGroup);
-            this._setRedrawListener();
-            var tableNode = this.s.dt.table(0).node();
-            if (!$.fn.dataTable.ext.search.includes(this.s.search)) {
-                // Custom search function for SearchBuilder
-                this.s.search = function (settings, searchData, dataIndex) {
-                    if (settings.nTable !== tableNode) {
-                        return true;
-                    }
-                    return _this.s.topGroup.search(searchData, dataIndex);
-                };
-                // Add SearchBuilder search function to the dataTables search array
-                $.fn.dataTable.ext.search.push(this.s.search);
-            }
-            this.s.dt.on('destroy.dtsb', function () {
-                _this.dom.container.remove();
-                _this.dom.clearAll.remove();
-                var searchIdx = $.fn.dataTable.ext.search.indexOf(_this.s.search);
-                while (searchIdx !== -1) {
-                    $.fn.dataTable.ext.search.splice(searchIdx, 1);
-                    searchIdx = $.fn.dataTable.ext.search.indexOf(_this.s.search);
-                }
-                _this.s.dt.off('.dtsb');
-                $(_this.s.dt.table().node()).off('.dtsb');
-            });
-        };
-        /**
-         * Checks if the clearAll button should be added or not
-         */
-        SearchBuilder.prototype._checkClear = function () {
-            if (this.s.topGroup.s.criteria.length > 0) {
-                this.dom.clearAll.insertAfter(this.dom.title);
-                this._setClearListener();
-            }
-            else {
-                this.dom.clearAll.remove();
-            }
-        };
-        /**
-         * Update the count in the title/button
-         *
-         * @param count Number of filters applied
-         */
-        SearchBuilder.prototype._filterChanged = function (count) {
-            var fn = this.c.filterChanged;
-            if (typeof fn === 'function') {
-                fn(count, this.s.dt.i18n('searchBuilder.button', this.c.i18n.button, count));
-            }
-        };
-        /**
-         * Set the listener for the clear button
-         */
-        SearchBuilder.prototype._setClearListener = function () {
-            var _this = this;
-            this.dom.clearAll.unbind('click');
-            this.dom.clearAll.on('click.dtsb', function () {
-                _this.s.topGroup = new Group(_this.s.dt, _this.c, undefined);
-                _this._build();
-                _this.s.dt.draw();
-                _this.s.topGroup.setListeners();
-                _this.dom.clearAll.remove();
-                _this._setEmptyListener();
-                _this._filterChanged(0);
-                return false;
-            });
-        };
-        /**
-         * Set the listener for the Redraw event
-         */
-        SearchBuilder.prototype._setRedrawListener = function () {
-            var _this = this;
-            this.s.topGroup.dom.container.unbind('dtsb-redrawContents');
-            this.s.topGroup.dom.container.on('dtsb-redrawContents.dtsb', function () {
-                _this._checkClear();
-                _this.s.topGroup.redrawContents();
-                _this.s.topGroup.setupLogic();
-                _this._setEmptyListener();
-                var count = _this.s.topGroup.count();
-                _this._updateTitle(count);
-                _this._filterChanged(count);
-                _this.s.dt.draw();
-                _this.s.dt.state.save();
-            });
-            this.s.topGroup.dom.container.unbind('dtsb-redrawLogic');
-            this.s.topGroup.dom.container.on('dtsb-redrawLogic.dtsb', function () {
-                _this.s.topGroup.redrawLogic();
-                var count = _this.s.topGroup.count();
-                _this._updateTitle(count);
-                _this._filterChanged(count);
-            });
-            this.s.topGroup.dom.container.unbind('dtsb-add');
-            this.s.topGroup.dom.container.on('dtsb-add.dtsb', function () {
-                var count = _this.s.topGroup.count();
-                _this._updateTitle(count);
-                _this._filterChanged(count);
-            });
-            this.s.dt.on('postEdit.dtsb postCreate.dtsb postRemove.dtsb', function () {
-                _this.s.topGroup.redrawContents();
-            });
-            this.s.topGroup.dom.container.unbind('dtsb-clearContents');
-            this.s.topGroup.dom.container.on('dtsb-clearContents.dtsb', function () {
-                _this._setUp(false);
-                _this._filterChanged(0);
-                _this.s.dt.draw();
-            });
-            this.s.topGroup.dom.container.on('dtsb-updateTitle.dtsb', function () {
-                var count = _this.s.topGroup.count();
-                _this._updateTitle(count);
-                _this._filterChanged(count);
-            });
-        };
-        /**
-         * Sets listeners to check whether clearAll should be added or removed
-         */
-        SearchBuilder.prototype._setEmptyListener = function () {
-            var _this = this;
-            this.s.topGroup.dom.add.on('click.dtsb', function () {
-                _this._checkClear();
-            });
-            this.s.topGroup.dom.container.on('dtsb-destroy.dtsb', function () {
-                _this.dom.clearAll.remove();
-            });
-        };
-        SearchBuilder.version = '1.2.2';
-        SearchBuilder.classes = {
-            button: 'dtsb-button',
-            clearAll: 'dtsb-clearAll',
-            container: 'dtsb-searchBuilder',
-            inputButton: 'dtsb-iptbtn',
-            title: 'dtsb-title',
-            titleRow: 'dtsb-titleRow'
-        };
-        SearchBuilder.defaults = {
-            columns: true,
-            conditions: {
-                'date': Criteria.dateConditions,
-                'html': Criteria.stringConditions,
-                'html-num': Criteria.numConditions,
-                'html-num-fmt': Criteria.numFmtConditions,
-                'luxon': Criteria.luxonDateConditions,
-                'moment': Criteria.momentDateConditions,
-                'num': Criteria.numConditions,
-                'num-fmt': Criteria.numFmtConditions,
-                'string': Criteria.stringConditions
-            },
-            depthLimit: false,
-            enterSearch: false,
-            filterChanged: undefined,
-            greyscale: false,
-            i18n: {
-                add: 'Add Condition',
-                button: {
-                    0: 'Search Builder',
-                    _: 'Search Builder (%d)'
-                },
-                clearAll: 'Clear All',
-                condition: 'Condition',
-                conditions: {
-                    array: {
-                        contains: 'Contains',
-                        empty: 'Empty',
-                        equals: 'Equals',
-                        not: 'Not',
-                        notEmpty: 'Not Empty',
-                        without: 'Without'
-                    },
-                    date: {
-                        after: 'After',
-                        before: 'Before',
-                        between: 'Between',
-                        empty: 'Empty',
-                        equals: 'Equals',
-                        not: 'Not',
-                        notBetween: 'Not Between',
-                        notEmpty: 'Not Empty'
-                    },
-                    // eslint-disable-next-line id-blacklist
-                    number: {
-                        between: 'Between',
-                        empty: 'Empty',
-                        equals: 'Equals',
-                        gt: 'Greater Than',
-                        gte: 'Greater Than Equal To',
-                        lt: 'Less Than',
-                        lte: 'Less Than Equal To',
-                        not: 'Not',
-                        notBetween: 'Not Between',
-                        notEmpty: 'Not Empty'
-                    },
-                    // eslint-disable-next-line id-blacklist
-                    string: {
-                        contains: 'Contains',
-                        empty: 'Empty',
-                        endsWith: 'Ends With',
-                        equals: 'Equals',
-                        not: 'Not',
-                        notEmpty: 'Not Empty',
-                        startsWith: 'Starts With'
-                    }
-                },
-                data: 'Data',
-                deleteTitle: 'Delete filtering rule',
-                leftTitle: 'Outdent criteria',
-                logicAnd: 'And',
-                logicOr: 'Or',
-                rightTitle: 'Indent criteria',
-                title: {
-                    0: 'Custom Search Builder',
-                    _: 'Custom Search Builder (%d)'
-                },
-                value: 'Value',
-                valueJoiner: 'and'
-            },
-            logic: 'AND',
-            orthogonal: {
-                display: 'display',
-                search: 'filter'
-            },
-            preDefined: false
-        };
-        return SearchBuilder;
-    }());
-
-    /*! SearchBuilder 1.2.2
-     * ©SpryMedia Ltd - datatables.net/license/mit
-     */
-    // DataTables extensions common UMD. Note that this allows for AMD, CommonJS
-    // (with window and jQuery being allowed as parameters to the returned
-    // function) or just default browser loading.
-    (function (factory) {
-        if (typeof define === 'function' && define.amd) {
-            // AMD
-            define(['jquery', 'datatables.net'], function ($) {
-                return factory($, window, document);
-            });
-        }
-        else if (typeof exports === 'object') {
-            // CommonJS
-            module.exports = function (root, $) {
-                if (!root) {
-                    root = window;
-                }
-                if (!$ || !$.fn.dataTable) {
-                    // eslint-disable-next-line @typescript-eslint/no-var-requires
-                    $ = require('datatables.net')(root, $).$;
-                }
-                return factory($, root, root.document);
-            };
-        }
-        else {
-            // Browser - assume jQuery has already been loaded
-            // eslint-disable-next-line no-extra-parens
-            factory(window.jQuery, window, document);
-        }
-    }(function ($, window, document) {
-        setJQuery($);
-        setJQuery$1($);
-        setJQuery$2($);
-        var dataTable = $.fn.dataTable;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.dataTable.SearchBuilder = SearchBuilder;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.DataTable.SearchBuilder = SearchBuilder;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.dataTable.Group = Group;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.DataTable.Group = Group;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.dataTable.Criteria = Criteria;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.DataTable.Criteria = Criteria;
-        // eslint-disable-next-line no-extra-parens
-        var apiRegister = $.fn.dataTable.Api.register;
-        // Set up object for plugins
-        $.fn.dataTable.ext.searchBuilder = {
-            conditions: {}
-        };
-        $.fn.dataTable.ext.buttons.searchBuilder = {
-            action: function (e, dt, node, config) {
-                this.popover(config._searchBuilder.getNode(), {
-                    align: 'dt-container'
-                });
-                // Need to redraw the contents to calculate the correct positions for the elements
-                if (config._searchBuilder.s.topGroup !== undefined) {
-                    config._searchBuilder.s.topGroup.dom.container.trigger('dtsb-redrawContents');
-                }
-                if (config._searchBuilder.s.topGroup.s.criteria.length === 0) {
-                    $('.' + $.fn.dataTable.Group.classes.add).click();
-                }
-            },
-            config: {},
-            init: function (dt, node, config) {
-                var sb = new $.fn.dataTable.SearchBuilder(dt, $.extend({
-                    filterChanged: function (count, text) {
-                        dt.button(node).text(text);
-                    }
-                }, config.config));
-                dt.button(node).text(config.text || dt.i18n('searchBuilder.button', sb.c.i18n.button, 0));
-                config._searchBuilder = sb;
-            },
-            text: null
-        };
-        apiRegister('searchBuilder.getDetails()', function (deFormatDates) {
-            if (deFormatDates === void 0) { deFormatDates = false; }
-            var ctx = this.context[0];
-            // If SearchBuilder has not been initialised on this instance then return
-            return ctx._searchBuilder ?
-                ctx._searchBuilder.getDetails(deFormatDates) :
-                null;
-        });
-        apiRegister('searchBuilder.rebuild()', function (details) {
-            var ctx = this.context[0];
-            // If SearchBuilder has not been initialised on this instance then return
-            if (ctx._searchBuilder === undefined) {
-                return null;
-            }
-            ctx._searchBuilder.rebuild(details);
-            return this;
-        });
-        apiRegister('searchBuilder.container()', function () {
-            var ctx = this.context[0];
-            // If SearchBuilder has not been initialised on this instance then return
-            return ctx._searchBuilder ?
-                ctx._searchBuilder.getNode() :
-                null;
-        });
-        /**
-         * Init function for SearchBuilder
-         *
-         * @param settings the settings to be applied
-         * @param options the options for SearchBuilder
-         * @returns JQUERY<HTMLElement> Returns the node of the SearchBuilder
-         */
-        function _init(settings, options) {
-            var api = new dataTable.Api(settings);
-            var opts = options
-                ? options
-                : api.init().searchBuilder || dataTable.defaults.searchBuilder;
-            var searchBuilder = new SearchBuilder(api, opts);
-            var node = searchBuilder.getNode();
-            return node;
-        }
-        // Attach a listener to the document which listens for DataTables initialisation
-        // events so we can automatically initialise
-        $(document).on('preInit.dt.dtsp', function (e, settings) {
-            if (e.namespace !== 'dt') {
-                return;
-            }
-            if (settings.oInit.searchBuilder ||
-                dataTable.defaults.searchBuilder) {
-                if (!settings._searchBuilder) {
-                    _init(settings);
-                }
-            }
-        });
-        // DataTables `dom` feature option
-        dataTable.ext.feature.push({
-            cFeature: 'Q',
-            fnInit: _init
-        });
-        // DataTables 2 layout feature
-        if (dataTable.ext.features) {
-            dataTable.ext.features.register('searchBuilder', _init);
-        }
-    }));
-
-}());
-
-
-/*! Bootstrap 5 ui integration for DataTables' SearchBuilder
- * ©2016 SpryMedia Ltd - datatables.net/license
+/**
+ * @summary     RowReorder
+ * @description Row reordering extension for DataTables
+ * @version     1.2.8
+ * @file        dataTables.rowReorder.js
+ * @author      SpryMedia Ltd (www.sprymedia.co.uk)
+ * @contact     www.sprymedia.co.uk/contact
+ * @copyright   Copyright 2015-2020 SpryMedia Ltd.
+ *
+ * This source file is free software, available under the following license:
+ *   MIT license - http://datatables.net/license/mit
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
+ *
+ * For details please refer to: http://www.datatables.net
  */
-(function (factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD
-        define(['jquery', 'datatables.net-bs5', 'datatables.net-searchbuilder'], function ($) {
-            return factory($);
-        });
-    }
-    else if (typeof exports === 'object') {
-        // CommonJS
-        module.exports = function (root, $) {
-            if (!root) {
-                root = window;
-            }
-            if (!$ || !$.fn.dataTable) {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                $ = require('datatables.net-bs5')(root, $).$;
-            }
-            if (!$.fn.dataTable.searchBuilder) {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                require('datatables.net-searchbuilder')(root, $);
-            }
-            return factory($);
-        };
-    }
-    else {
-        // Browser
-        factory(jQuery);
-    }
-}(function ($) {
-    'use strict';
-    var dataTable = $.fn.dataTable;
-    $.extend(true, dataTable.SearchBuilder.classes, {
-        clearAll: 'btn btn-light dtsb-clearAll'
-    });
-    $.extend(true, dataTable.Group.classes, {
-        add: 'btn btn-light dtsb-add',
-        clearGroup: 'btn btn-light dtsb-clearGroup',
-        logic: 'btn btn-light dtsb-logic'
-    });
-    $.extend(true, dataTable.Criteria.classes, {
-        condition: 'form-select dtsb-condition',
-        data: 'dtsb-data form-select',
-        "delete": 'btn btn-light dtsb-delete',
-        input: 'form-control dtsb-input',
-        left: 'btn btn-light dtsb-left',
-        right: 'btn btn-light dtsb-right',
-        select: 'form-select',
-        value: 'dtsb-value'
-    });
-    return dataTable.searchPanes;
+
+(function( factory ){
+	if ( typeof define === 'function' && define.amd ) {
+		// AMD
+		define( ['jquery', 'datatables.net'], function ( $ ) {
+			return factory( $, window, document );
+		} );
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+
+/**
+ * RowReorder provides the ability in DataTables to click and drag rows to
+ * reorder them. When a row is dropped the data for the rows effected will be
+ * updated to reflect the change. Normally this data point should also be the
+ * column being sorted upon in the DataTable but this does not need to be the
+ * case. RowReorder implements a "data swap" method - so the rows being
+ * reordered take the value of the data point from the row that used to occupy
+ * the row's new position.
+ *
+ * Initialisation is done by either:
+ *
+ * * `rowReorder` parameter in the DataTable initialisation object
+ * * `new $.fn.dataTable.RowReorder( table, opts )` after DataTables
+ *   initialisation.
+ * 
+ *  @class
+ *  @param {object} settings DataTables settings object for the host table
+ *  @param {object} [opts] Configuration options
+ *  @requires jQuery 1.7+
+ *  @requires DataTables 1.10.7+
+ */
+var RowReorder = function ( dt, opts ) {
+	// Sanity check that we are using DataTables 1.10 or newer
+	if ( ! DataTable.versionCheck || ! DataTable.versionCheck( '1.10.8' ) ) {
+		throw 'DataTables RowReorder requires DataTables 1.10.8 or newer';
+	}
+
+	// User and defaults configuration object
+	this.c = $.extend( true, {},
+		DataTable.defaults.rowReorder,
+		RowReorder.defaults,
+		opts
+	);
+
+	// Internal settings
+	this.s = {
+		/** @type {integer} Scroll body top cache */
+		bodyTop: null,
+
+		/** @type {DataTable.Api} DataTables' API instance */
+		dt: new DataTable.Api( dt ),
+
+		/** @type {function} Data fetch function */
+		getDataFn: DataTable.ext.oApi._fnGetObjectDataFn( this.c.dataSrc ),
+
+		/** @type {array} Pixel positions for row insertion calculation */
+		middles: null,
+
+		/** @type {Object} Cached dimension information for use in the mouse move event handler */
+		scroll: {},
+
+		/** @type {integer} Interval object used for smooth scrolling */
+		scrollInterval: null,
+
+		/** @type {function} Data set function */
+		setDataFn: DataTable.ext.oApi._fnSetObjectDataFn( this.c.dataSrc ),
+
+		/** @type {Object} Mouse down information */
+		start: {
+			top: 0,
+			left: 0,
+			offsetTop: 0,
+			offsetLeft: 0,
+			nodes: []
+		},
+
+		/** @type {integer} Window height cached value */
+		windowHeight: 0,
+
+		/** @type {integer} Document outer height cached value */
+		documentOuterHeight: 0,
+
+		/** @type {integer} DOM clone outer height cached value */
+		domCloneOuterHeight: 0
+	};
+
+	// DOM items
+	this.dom = {
+		/** @type {jQuery} Cloned row being moved around */
+		clone: null,
+
+		/** @type {jQuery} DataTables scrolling container */
+		dtScroll: $('div.dataTables_scrollBody', this.s.dt.table().container())
+	};
+
+	// Check if row reorder has already been initialised on this table
+	var settings = this.s.dt.settings()[0];
+	var exisiting = settings.rowreorder;
+
+	if ( exisiting ) {
+		return exisiting;
+	}
+
+	if ( !this.dom.dtScroll.length ) {
+		this.dom.dtScroll = $(this.s.dt.table().container(), 'tbody')
+	}
+
+	settings.rowreorder = this;
+	this._constructor();
+};
+
+
+$.extend( RowReorder.prototype, {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Constructor
+	 */
+
+	/**
+	 * Initialise the RowReorder instance
+	 *
+	 * @private
+	 */
+	_constructor: function ()
+	{
+		var that = this;
+		var dt = this.s.dt;
+		var table = $( dt.table().node() );
+
+		// Need to be able to calculate the row positions relative to the table
+		if ( table.css('position') === 'static' ) {
+			table.css( 'position', 'relative' );
+		}
+
+		// listen for mouse down on the target column - we have to implement
+		// this rather than using HTML5 drag and drop as drag and drop doesn't
+		// appear to work on table rows at this time. Also mobile browsers are
+		// not supported.
+		// Use `table().container()` rather than just the table node for IE8 -
+		// otherwise it only works once...
+		$(dt.table().container()).on( 'mousedown.rowReorder touchstart.rowReorder', this.c.selector, function (e) {
+			if ( ! that.c.enable ) {
+				return;
+			}
+
+			// Ignore excluded children of the selector
+			if ( $(e.target).is(that.c.excludedChildren) ) {
+				return true;
+			}
+
+			var tr = $(this).closest('tr');
+			var row = dt.row( tr );
+
+			// Double check that it is a DataTable row
+			if ( row.any() ) {
+				that._emitEvent( 'pre-row-reorder', {
+					node: row.node(),
+					index: row.index()
+				} );
+
+				that._mouseDown( e, tr );
+				return false;
+			}
+		} );
+
+		dt.on( 'destroy.rowReorder', function () {
+			$(dt.table().container()).off( '.rowReorder' );
+			dt.off( '.rowReorder' );
+		} );
+	},
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Private methods
+	 */
+	
+	/**
+	 * Cache the measurements that RowReorder needs in the mouse move handler
+	 * to attempt to speed things up, rather than reading from the DOM.
+	 *
+	 * @private
+	 */
+	_cachePositions: function ()
+	{
+		var dt = this.s.dt;
+
+		// Frustratingly, if we add `position:relative` to the tbody, the
+		// position is still relatively to the parent. So we need to adjust
+		// for that
+		var headerHeight = $( dt.table().node() ).find('thead').outerHeight();
+
+		// Need to pass the nodes through jQuery to get them in document order,
+		// not what DataTables thinks it is, since we have been altering the
+		// order
+		var nodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+		var middles = $.map( nodes, function ( node, i ) {
+			var top = $(node).position().top - headerHeight;
+
+			return (top + top + $(node).outerHeight() ) / 2;
+		} );
+
+		this.s.middles = middles;
+		this.s.bodyTop = $( dt.table().body() ).offset().top;
+		this.s.windowHeight = $(window).height();
+		this.s.documentOuterHeight = $(document).outerHeight();
+	},
+
+
+	/**
+	 * Clone a row so it can be floated around the screen
+	 *
+	 * @param  {jQuery} target Node to be cloned
+	 * @private
+	 */
+	_clone: function ( target )
+	{
+		var dt = this.s.dt;
+		var clone = $( dt.table().node().cloneNode(false) )
+			.addClass( 'dt-rowReorder-float' )
+			.append('<tbody/>')
+			.append( target.clone( false ) );
+
+		// Match the table and column widths - read all sizes before setting
+		// to reduce reflows
+		var tableWidth = target.outerWidth();
+		var tableHeight = target.outerHeight();
+		var sizes = target.children().map( function () {
+			return $(this).width();
+		} );
+
+		clone
+			.width( tableWidth )
+			.height( tableHeight )
+			.find('tr').children().each( function (i) {
+				this.style.width = sizes[i]+'px';
+			} );
+
+		// Insert into the document to have it floating around
+		clone.appendTo( 'body' );
+
+		this.dom.clone = clone;
+		this.s.domCloneOuterHeight = clone.outerHeight();
+	},
+
+
+	/**
+	 * Update the cloned item's position in the document
+	 *
+	 * @param  {object} e Event giving the mouse's position
+	 * @private
+	 */
+	_clonePosition: function ( e )
+	{
+		var start = this.s.start;
+		var topDiff = this._eventToPage( e, 'Y' ) - start.top;
+		var leftDiff = this._eventToPage( e, 'X' ) - start.left;
+		var snap = this.c.snapX;
+		var left;
+		var top = topDiff + start.offsetTop;
+
+		if ( snap === true ) {
+			left = start.offsetLeft;
+		}
+		else if ( typeof snap === 'number' ) {
+			left = start.offsetLeft + snap;
+		}
+		else {
+			left = leftDiff + start.offsetLeft;
+		}
+
+		if(top < 0) {
+			top = 0
+		}
+		else if(top + this.s.domCloneOuterHeight > this.s.documentOuterHeight) {
+			top = this.s.documentOuterHeight - this.s.domCloneOuterHeight;
+		}
+
+		this.dom.clone.css( {
+			top: top,
+			left: left
+		} );
+	},
+
+
+	/**
+	 * Emit an event on the DataTable for listeners
+	 *
+	 * @param  {string} name Event name
+	 * @param  {array} args Event arguments
+	 * @private
+	 */
+	_emitEvent: function ( name, args )
+	{
+		this.s.dt.iterator( 'table', function ( ctx, i ) {
+			$(ctx.nTable).triggerHandler( name+'.dt', args );
+		} );
+	},
+
+
+	/**
+	 * Get pageX/Y position from an event, regardless of if it is a mouse or
+	 * touch event.
+	 *
+	 * @param  {object} e Event
+	 * @param  {string} pos X or Y (must be a capital)
+	 * @private
+	 */
+	_eventToPage: function ( e, pos )
+	{
+		if ( e.type.indexOf( 'touch' ) !== -1 ) {
+			return e.originalEvent.touches[0][ 'page'+pos ];
+		}
+
+		return e[ 'page'+pos ];
+	},
+
+
+	/**
+	 * Mouse down event handler. Read initial positions and add event handlers
+	 * for the move.
+	 *
+	 * @param  {object} e      Mouse event
+	 * @param  {jQuery} target TR element that is to be moved
+	 * @private
+	 */
+	_mouseDown: function ( e, target )
+	{
+		var that = this;
+		var dt = this.s.dt;
+		var start = this.s.start;
+
+		var offset = target.offset();
+		start.top = this._eventToPage( e, 'Y' );
+		start.left = this._eventToPage( e, 'X' );
+		start.offsetTop = offset.top;
+		start.offsetLeft = offset.left;
+		start.nodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+
+		this._cachePositions();
+		this._clone( target );
+		this._clonePosition( e );
+
+		this.dom.target = target;
+		target.addClass( 'dt-rowReorder-moving' );
+
+		$( document )
+			.on( 'mouseup.rowReorder touchend.rowReorder', function (e) {
+				that._mouseUp(e);
+			} )
+			.on( 'mousemove.rowReorder touchmove.rowReorder', function (e) {
+				that._mouseMove(e);
+			} );
+
+		// Check if window is x-scrolling - if not, disable it for the duration
+		// of the drag
+		if ( $(window).width() === $(document).width() ) {
+			$(document.body).addClass( 'dt-rowReorder-noOverflow' );
+		}
+
+		// Cache scrolling information so mouse move doesn't need to read.
+		// This assumes that the window and DT scroller will not change size
+		// during an row drag, which I think is a fair assumption
+		var scrollWrapper = this.dom.dtScroll;
+		this.s.scroll = {
+			windowHeight: $(window).height(),
+			windowWidth:  $(window).width(),
+			dtTop:        scrollWrapper.length ? scrollWrapper.offset().top : null,
+			dtLeft:       scrollWrapper.length ? scrollWrapper.offset().left : null,
+			dtHeight:     scrollWrapper.length ? scrollWrapper.outerHeight() : null,
+			dtWidth:      scrollWrapper.length ? scrollWrapper.outerWidth() : null
+		};
+	},
+
+
+	/**
+	 * Mouse move event handler - move the cloned row and shuffle the table's
+	 * rows if required.
+	 *
+	 * @param  {object} e Mouse event
+	 * @private
+	 */
+	_mouseMove: function ( e )
+	{
+		this._clonePosition( e );
+
+		// Transform the mouse position into a position in the table's body
+		var bodyY = this._eventToPage( e, 'Y' ) - this.s.bodyTop;
+		var middles = this.s.middles;
+		var insertPoint = null;
+		var dt = this.s.dt;
+
+		// Determine where the row should be inserted based on the mouse
+		// position
+		for ( var i=0, ien=middles.length ; i<ien ; i++ ) {
+			if ( bodyY < middles[i] ) {
+				insertPoint = i;
+				break;
+			}
+		}
+
+		if ( insertPoint === null ) {
+			insertPoint = middles.length;
+		}
+
+		// Perform the DOM shuffle if it has changed from last time
+		if ( this.s.lastInsert === null || this.s.lastInsert !== insertPoint ) {
+			var nodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+
+			if ( insertPoint > this.s.lastInsert ) {
+				this.dom.target.insertAfter( nodes[ insertPoint-1 ] );
+			}
+			else {
+				this.dom.target.insertBefore( nodes[ insertPoint ] );
+			}
+
+			this._cachePositions();
+
+			this.s.lastInsert = insertPoint;
+		}
+
+		this._shiftScroll( e );
+	},
+
+
+	/**
+	 * Mouse up event handler - release the event handlers and perform the
+	 * table updates
+	 *
+	 * @param  {object} e Mouse event
+	 * @private
+	 */
+	_mouseUp: function ( e )
+	{
+		var that = this;
+		var dt = this.s.dt;
+		var i, ien;
+		var dataSrc = this.c.dataSrc;
+
+		this.dom.clone.remove();
+		this.dom.clone = null;
+
+		this.dom.target.removeClass( 'dt-rowReorder-moving' );
+		//this.dom.target = null;
+
+		$(document).off( '.rowReorder' );
+		$(document.body).removeClass( 'dt-rowReorder-noOverflow' );
+
+		clearInterval( this.s.scrollInterval );
+		this.s.scrollInterval = null;
+
+		// Calculate the difference
+		var startNodes = this.s.start.nodes;
+		var endNodes = $.unique( dt.rows( { page: 'current' } ).nodes().toArray() );
+		var idDiff = {};
+		var fullDiff = [];
+		var diffNodes = [];
+		var getDataFn = this.s.getDataFn;
+		var setDataFn = this.s.setDataFn;
+
+		for ( i=0, ien=startNodes.length ; i<ien ; i++ ) {
+			if ( startNodes[i] !== endNodes[i] ) {
+				var id = dt.row( endNodes[i] ).id();
+				var endRowData = dt.row( endNodes[i] ).data();
+				var startRowData = dt.row( startNodes[i] ).data();
+
+				if ( id ) {
+					idDiff[ id ] = getDataFn( startRowData );
+				}
+
+				fullDiff.push( {
+					node: endNodes[i],
+					oldData: getDataFn( endRowData ),
+					newData: getDataFn( startRowData ),
+					newPosition: i,
+					oldPosition: $.inArray( endNodes[i], startNodes )
+				} );
+
+				diffNodes.push( endNodes[i] );
+			}
+		}
+		
+		// Create event args
+		var eventArgs = [ fullDiff, {
+			dataSrc:       dataSrc,
+			nodes:         diffNodes,
+			values:        idDiff,
+			triggerRow:    dt.row( this.dom.target ),
+			originalEvent: e
+		} ];
+		
+		// Emit event
+		this._emitEvent( 'row-reorder', eventArgs );
+
+		var update = function () {
+			if ( that.c.update ) {
+				for ( i=0, ien=fullDiff.length ; i<ien ; i++ ) {
+					var row = dt.row( fullDiff[i].node );
+					var rowData = row.data();
+
+					setDataFn( rowData, fullDiff[i].newData );
+
+					// Invalidate the cell that has the same data source as the dataSrc
+					dt.columns().every( function () {
+						if ( this.dataSrc() === dataSrc ) {
+							dt.cell( fullDiff[i].node, this.index() ).invalidate( 'data' );
+						}
+					} );
+				}
+
+				// Trigger row reordered event
+				that._emitEvent( 'row-reordered', eventArgs );
+
+				dt.draw( false );
+			}
+		};
+
+		// Editor interface
+		if ( this.c.editor ) {
+			// Disable user interaction while Editor is submitting
+			this.c.enable = false;
+
+			this.c.editor
+				.edit(
+					diffNodes,
+					false,
+					$.extend( {submit: 'changed'}, this.c.formOptions )
+				)
+				.multiSet( dataSrc, idDiff )
+				.one( 'preSubmitCancelled.rowReorder', function () {
+					that.c.enable = true;
+					that.c.editor.off( '.rowReorder' );
+					dt.draw( false );
+				} )
+				.one( 'submitUnsuccessful.rowReorder', function () {
+					dt.draw( false );
+				} )
+				.one( 'submitSuccess.rowReorder', function () {
+					update();
+				} )
+				.one( 'submitComplete', function () {
+					that.c.enable = true;
+					that.c.editor.off( '.rowReorder' );
+				} )
+				.submit();
+		}
+		else {
+			update();
+		}
+	},
+
+
+	/**
+	 * Move the window and DataTables scrolling during a drag to scroll new
+	 * content into view.
+	 *
+	 * This matches the `_shiftScroll` method used in AutoFill, but only
+	 * horizontal scrolling is considered here.
+	 *
+	 * @param  {object} e Mouse move event object
+	 * @private
+	 */
+	_shiftScroll: function ( e )
+	{
+		var that = this;
+		var dt = this.s.dt;
+		var scroll = this.s.scroll;
+		var runInterval = false;
+		var scrollSpeed = 5;
+		var buffer = 65;
+		var
+			windowY = e.pageY - document.body.scrollTop,
+			windowVert,
+			dtVert;
+
+		// Window calculations - based on the mouse position in the window,
+		// regardless of scrolling
+		if ( windowY < $(window).scrollTop() + buffer ) {
+			windowVert = scrollSpeed * -1;
+		}
+		else if ( windowY > scroll.windowHeight + $(window).scrollTop() - buffer ) {
+			windowVert = scrollSpeed;
+		}
+
+		// DataTables scrolling calculations - based on the table's position in
+		// the document and the mouse position on the page
+		if ( scroll.dtTop !== null && e.pageY < scroll.dtTop + buffer ) {
+			dtVert = scrollSpeed * -1;
+		}
+		else if ( scroll.dtTop !== null && e.pageY > scroll.dtTop + scroll.dtHeight - buffer ) {
+			dtVert = scrollSpeed;
+		}
+
+		// This is where it gets interesting. We want to continue scrolling
+		// without requiring a mouse move, so we need an interval to be
+		// triggered. The interval should continue until it is no longer needed,
+		// but it must also use the latest scroll commands (for example consider
+		// that the mouse might move from scrolling up to scrolling left, all
+		// with the same interval running. We use the `scroll` object to "pass"
+		// this information to the interval. Can't use local variables as they
+		// wouldn't be the ones that are used by an already existing interval!
+		if ( windowVert || dtVert ) {
+			scroll.windowVert = windowVert;
+			scroll.dtVert = dtVert;
+			runInterval = true;
+		}
+		else if ( this.s.scrollInterval ) {
+			// Don't need to scroll - remove any existing timer
+			clearInterval( this.s.scrollInterval );
+			this.s.scrollInterval = null;
+		}
+
+		// If we need to run the interval to scroll and there is no existing
+		// interval (if there is an existing one, it will continue to run)
+		if ( ! this.s.scrollInterval && runInterval ) {
+			this.s.scrollInterval = setInterval( function () {
+				// Don't need to worry about setting scroll <0 or beyond the
+				// scroll bound as the browser will just reject that.
+				if ( scroll.windowVert ) {
+					var top = $(document).scrollTop();
+					$(document).scrollTop(top + scroll.windowVert);
+
+					if ( top !== $(document).scrollTop() ) {
+						var move = parseFloat(that.dom.clone.css("top"));
+						that.dom.clone.css("top", move + scroll.windowVert);					
+					}
+				}
+
+				// DataTables scrolling
+				if ( scroll.dtVert ) {
+					var scroller = that.dom.dtScroll[0];
+
+					if ( scroll.dtVert ) {
+						scroller.scrollTop += scroll.dtVert;
+					}
+				}
+			}, 20 );
+		}
+	}
+} );
+
+
+
+/**
+ * RowReorder default settings for initialisation
+ *
+ * @namespace
+ * @name RowReorder.defaults
+ * @static
+ */
+RowReorder.defaults = {
+	/**
+	 * Data point in the host row's data source object for where to get and set
+	 * the data to reorder. This will normally also be the sorting column.
+	 *
+	 * @type {Number}
+	 */
+	dataSrc: 0,
+
+	/**
+	 * Editor instance that will be used to perform the update
+	 *
+	 * @type {DataTable.Editor}
+	 */
+	editor: null,
+
+	/**
+	 * Enable / disable RowReorder's user interaction
+	 * @type {Boolean}
+	 */
+	enable: true,
+
+	/**
+	 * Form options to pass to Editor when submitting a change in the row order.
+	 * See the Editor `from-options` object for details of the options
+	 * available.
+	 * @type {Object}
+	 */
+	formOptions: {},
+
+	/**
+	 * Drag handle selector. This defines the element that when dragged will
+	 * reorder a row.
+	 *
+	 * @type {String}
+	 */
+	selector: 'td:first-child',
+
+	/**
+	 * Optionally lock the dragged row's x-position. This can be `true` to
+	 * fix the position match the host table's, `false` to allow free movement
+	 * of the row, or a number to define an offset from the host table.
+	 *
+	 * @type {Boolean|number}
+	 */
+	snapX: false,
+
+	/**
+	 * Update the table's data on drop
+	 *
+	 * @type {Boolean}
+	 */
+	update: true,
+
+	/**
+	 * Selector for children of the drag handle selector that mouseDown events
+	 * will be passed through to and drag will not activate
+	 *
+	 * @type {String}
+	 */
+	excludedChildren: 'a'
+};
+
+
+/*
+ * API
+ */
+var Api = $.fn.dataTable.Api;
+
+// Doesn't do anything - work around for a bug in DT... Not documented
+Api.register( 'rowReorder()', function () {
+	return this;
+} );
+
+Api.register( 'rowReorder.enable()', function ( toggle ) {
+	if ( toggle === undefined ) {
+		toggle = true;
+	}
+
+	return this.iterator( 'table', function ( ctx ) {
+		if ( ctx.rowreorder ) {
+			ctx.rowreorder.c.enable = toggle;
+		}
+	} );
+} );
+
+Api.register( 'rowReorder.disable()', function () {
+	return this.iterator( 'table', function ( ctx ) {
+		if ( ctx.rowreorder ) {
+			ctx.rowreorder.c.enable = false;
+		}
+	} );
+} );
+
+
+/**
+ * Version information
+ *
+ * @name RowReorder.version
+ * @static
+ */
+RowReorder.version = '1.2.8';
+
+
+$.fn.dataTable.RowReorder = RowReorder;
+$.fn.DataTable.RowReorder = RowReorder;
+
+// Attach a listener to the document which listens for DataTables initialisation
+// events so we can automatically initialise
+$(document).on( 'init.dt.dtr', function (e, settings, json) {
+	if ( e.namespace !== 'dt' ) {
+		return;
+	}
+
+	var init = settings.oInit.rowReorder;
+	var defaults = DataTable.defaults.rowReorder;
+
+	if ( init || defaults ) {
+		var opts = $.extend( {}, init, defaults );
+
+		if ( init !== false ) {
+			new RowReorder( settings, opts  );
+		}
+	}
+} );
+
+
+return RowReorder;
 }));
 
 
-/*! SearchPanes 1.4.0
- * 2019-2020 SpryMedia Ltd - datatables.net/license
+/*! Scroller 2.0.6
+ * ©2011-2022 SpryMedia Ltd - datatables.net/license
  */
-(function () {
-    'use strict';
 
-    var $;
-    var dataTable;
-    function setJQuery(jq) {
-        $ = jq;
-        dataTable = jq.fn.dataTable;
-    }
-    var SearchPane = /** @class */ (function () {
-        /**
-         * Creates the panes, sets up the search function
-         *
-         * @param paneSettings The settings for the searchPanes
-         * @param opts The options for the default features
-         * @param idx the index of the column for this pane
-         * @returns {object} the pane that has been created, including the table and the index of the pane
-         */
-        function SearchPane(paneSettings, opts, idx, layout, panesContainer, panes) {
-            var _this = this;
-            if (panes === void 0) { panes = null; }
-            // Check that the required version of DataTables is included
-            if (!dataTable || !dataTable.versionCheck || !dataTable.versionCheck('1.10.0')) {
-                throw new Error('SearchPane requires DataTables 1.10 or newer');
-            }
-            // Check that Select is included
-            // eslint-disable-next-line no-extra-parens
-            if (!dataTable.select) {
-                throw new Error('SearchPane requires Select');
-            }
-            var table = new dataTable.Api(paneSettings);
-            this.classes = $.extend(true, {}, SearchPane.classes);
-            // Get options from user
-            this.c = $.extend(true, {}, SearchPane.defaults, opts);
-            if (opts !== undefined && opts.hideCount !== undefined && opts.viewCount === undefined) {
-                this.c.viewCount = !this.c.hideCount;
-            }
-            this.customPaneSettings = panes;
-            this.s = {
-                cascadeRegen: false,
-                clearing: false,
-                colOpts: [],
-                deselect: false,
-                displayed: false,
-                dt: table,
-                dtPane: undefined,
-                filteringActive: false,
-                firstSet: true,
-                forceViewTotal: false,
-                index: idx,
-                indexes: [],
-                lastCascade: false,
-                lastSelect: false,
-                listSet: false,
-                name: undefined,
-                redraw: false,
-                rowData: {
-                    arrayFilter: [],
-                    arrayOriginal: [],
-                    arrayTotals: [],
-                    bins: {},
-                    binsOriginal: {},
-                    binsTotal: {},
-                    filterMap: new Map(),
-                    totalOptions: 0
-                },
-                scrollTop: 0,
-                searchFunction: undefined,
-                selectPresent: false,
-                serverSelect: [],
-                serverSelecting: false,
-                showFiltered: false,
-                tableLength: null,
-                updating: false
-            };
-            var rowLength = table.columns().eq(0).toArray().length;
-            this.colExists = this.s.index < rowLength;
-            // Add extra elements to DOM object including clear and hide buttons
-            this.c.layout = layout;
-            var layVal = parseInt(layout.split('-')[1], 10);
-            this.dom = {
-                buttonGroup: $('<div/>').addClass(this.classes.buttonGroup),
-                clear: $('<button type="button">&#215;</button>')
-                    .addClass(this.classes.disabledButton)
-                    .attr('disabled', 'true')
-                    .addClass(this.classes.paneButton)
-                    .addClass(this.classes.clearButton),
-                collapseButton: $('<button type="button"><span class="dtsp-caret">&#x5e;</span></button>')
-                    .addClass(this.classes.paneButton)
-                    .addClass(this.classes.collapseButton),
-                container: $('<div/>')
-                    .addClass(this.classes.container)
-                    .addClass(this.classes.layout +
-                    (layVal < 10 ? layout : layout.split('-')[0] + '-9')),
-                countButton: $('<button type="button"></button>')
-                    .addClass(this.classes.paneButton)
-                    .addClass(this.classes.countButton),
-                dtP: $('<table><thead><tr><th>' +
-                    (this.colExists
-                        ? $(table.column(this.colExists ? this.s.index : 0).header()).text()
-                        : this.customPaneSettings.header || 'Custom Pane') + '</th><th/></tr></thead></table>'),
-                lower: $('<div/>').addClass(this.classes.subRow2).addClass(this.classes.narrowButton),
-                nameButton: $('<button type="button"></button>')
-                    .addClass(this.classes.paneButton)
-                    .addClass(this.classes.nameButton),
-                panesContainer: panesContainer,
-                searchBox: $('<input/>').addClass(this.classes.paneInputButton).addClass(this.classes.search),
-                searchButton: $('<button type = "button" class="' + this.classes.searchIcon + '"></button>')
-                    .addClass(this.classes.paneButton),
-                searchCont: $('<div/>').addClass(this.classes.searchCont),
-                searchLabelCont: $('<div/>').addClass(this.classes.searchLabelCont),
-                topRow: $('<div/>').addClass(this.classes.topRow),
-                upper: $('<div/>').addClass(this.classes.subRow1).addClass(this.classes.narrowSearch)
-            };
-            this.s.displayed = false;
-            table = this.s.dt;
-            this.selections = [];
-            this.s.colOpts = this.colExists ? this._getOptions() : this._getBonusOptions();
-            var colOpts = this.s.colOpts;
-            var clear = $('<button type="button">X</button>').addClass(this.classes.paneButton);
-            clear.text(table.i18n('searchPanes.clearPane', this.c.i18n.clearPane));
-            this.dom.container.addClass(colOpts.className);
-            this.dom.container.addClass(this.customPaneSettings !== null && this.customPaneSettings.className !== undefined
-                ? this.customPaneSettings.className
-                : '');
-            // Set the value of name incase ordering is desired
-            if (this.s.colOpts.name !== undefined) {
-                this.s.name = this.s.colOpts.name;
-            }
-            else if (this.customPaneSettings !== null && this.customPaneSettings.name !== undefined) {
-                this.s.name = this.customPaneSettings.name;
-            }
-            else {
-                this.s.name = this.colExists ?
-                    $(table.column(this.s.index).header()).text() :
-                    this.customPaneSettings.header || 'Custom Pane';
-            }
-            $(panesContainer).append(this.dom.container);
-            var tableNode = table.table(0).node();
-            // Custom search function for table
-            this.s.searchFunction = function (settings, searchData, dataIndex, origData) {
-                // If no data has been selected then show all
-                if (_this.selections.length === 0) {
-                    return true;
-                }
-                if (settings.nTable !== tableNode) {
-                    return true;
-                }
-                var filter = null;
-                if (_this.colExists) {
-                    // Get the current filtered data
-                    filter = searchData[_this.s.index];
-                    if (colOpts.orthogonal.filter !== 'filter') {
-                        // get the filter value from the map
-                        filter = _this.s.rowData.filterMap.get(dataIndex);
-                        if (filter instanceof $.fn.dataTable.Api) {
-                            // eslint-disable-next-line no-extra-parens
-                            filter = filter.toArray();
-                        }
-                    }
-                }
-                return _this._search(filter, dataIndex);
-            };
-            $.fn.dataTable.ext.search.push(this.s.searchFunction);
-            // If the clear button for this pane is clicked clear the selections
-            if (this.c.clear) {
-                clear.on('click', function () {
-                    var searches = _this.dom.container.find('.' + _this.classes.search.replace(/\s+/g, '.'));
-                    searches.each(function () {
-                        $(this).val('');
-                        $(this).trigger('input');
-                    });
-                    _this.clearPane();
-                });
-            }
-            // Sometimes the top row of the panes containing the search box and ordering buttons appears
-            //  weird if the width of the panes is lower than expected, this fixes the design.
-            // Equally this may occur when the table is resized.
-            table.on('draw.dtsp', function () {
-                _this.adjustTopRow();
-            });
-            table.on('buttons-action', function () {
-                _this.adjustTopRow();
-            });
-            // When column-reorder is present and the columns are moved, it is necessary to
-            //  reassign all of the panes indexes to the new index of the column.
-            table.on('column-reorder.dtsp', function (e, settings, details) {
-                _this.s.index = details.mapping[_this.s.index];
-            });
-            return this;
-        }
-        /**
-         * Adds a row to the panes table
-         *
-         * @param display the value to be displayed to the user
-         * @param filter the value to be filtered on when searchpanes is implemented
-         * @param shown the number of rows in the table that are currently visible matching this criteria
-         * @param total the total number of rows in the table that match this criteria
-         * @param sort the value to be sorted in the pane table
-         * @param type the value of which the type is to be derived from
-         */
-        SearchPane.prototype.addRow = function (display, filter, shown, total, sort, type, className) {
-            var index;
-            for (var _i = 0, _a = this.s.indexes; _i < _a.length; _i++) {
-                var entry = _a[_i];
-                if (entry.filter === filter) {
-                    index = entry.index;
-                }
-            }
-            if (index === undefined) {
-                index = this.s.indexes.length;
-                this.s.indexes.push({ filter: filter, index: index });
-            }
-            return this.s.dtPane.row.add({
-                className: className,
-                display: display !== '' ?
-                    display :
-                    this.emptyMessage(),
-                filter: filter,
-                index: index,
-                shown: shown,
-                sort: sort,
-                total: total,
-                type: type
-            });
-        };
-        /**
-         * Adjusts the layout of the top row when the screen is resized
-         */
-        SearchPane.prototype.adjustTopRow = function () {
-            var subContainers = this.dom.container.find('.' + this.classes.subRowsContainer.replace(/\s+/g, '.'));
-            var subRow1 = this.dom.container.find('.' + this.classes.subRow1.replace(/\s+/g, '.'));
-            var subRow2 = this.dom.container.find('.' + this.classes.subRow2.replace(/\s+/g, '.'));
-            var topRow = this.dom.container.find('.' + this.classes.topRow.replace(/\s+/g, '.'));
-            // If the width is 0 then it is safe to assume that the pane has not yet been displayed.
-            //  Even if it has, if the width is 0 it won't make a difference if it has the narrow class or not
-            if (($(subContainers[0]).width() < 252 || $(topRow[0]).width() < 252) && $(subContainers[0]).width() !== 0) {
-                $(subContainers[0]).addClass(this.classes.narrow);
-                $(subRow1[0]).addClass(this.classes.narrowSub).removeClass(this.classes.narrowSearch);
-                $(subRow2[0]).addClass(this.classes.narrowSub).removeClass(this.classes.narrowButton);
-            }
-            else {
-                $(subContainers[0]).removeClass(this.classes.narrow);
-                $(subRow1[0]).removeClass(this.classes.narrowSub).addClass(this.classes.narrowSearch);
-                $(subRow2[0]).removeClass(this.classes.narrowSub).addClass(this.classes.narrowButton);
-            }
-        };
-        /**
-         * In the case of a rebuild there is potential for new data to have been included or removed
-         * so all of the rowData must be reset as a precaution.
-         */
-        SearchPane.prototype.clearData = function () {
-            this.s.rowData = {
-                arrayFilter: [],
-                arrayOriginal: [],
-                arrayTotals: [],
-                bins: {},
-                binsOriginal: {},
-                binsTotal: {},
-                filterMap: new Map(),
-                totalOptions: 0
-            };
-        };
-        /**
-         * Clear the selections in the pane
-         */
-        SearchPane.prototype.clearPane = function () {
-            // Deselect all rows which are selected and update the table and filter count.
-            this.s.dtPane.rows({ selected: true }).deselect();
-            this.updateTable();
-            return this;
-        };
-        /**
-         * Collapses the pane so that only the header is displayed
-         */
-        SearchPane.prototype.collapse = function () {
-            var _this = this;
-            if (!this.s.displayed ||
-                (!this.c.collapse && this.s.colOpts.collapse !== true ||
-                    this.s.colOpts.collapse === false)) {
-                return;
-            }
-            this.dom.collapseButton.addClass(this.classes.rotated);
-            $(this.s.dtPane.table().container()).addClass(this.classes.hidden);
-            this.dom.topRow.addClass(this.classes.bordered);
-            this.dom.countButton.addClass(this.classes.disabledButton);
-            this.dom.nameButton.addClass(this.classes.disabledButton);
-            this.dom.searchButton.addClass(this.classes.disabledButton);
-            this.dom.topRow.one('click', function () {
-                _this.show();
-            });
-        };
-        /**
-         * Strips all of the SearchPanes elements from the document and turns all of the listeners for the buttons off
-         */
-        SearchPane.prototype.destroy = function () {
-            if (this.s.dtPane !== undefined) {
-                this.s.dtPane.off('.dtsp');
-            }
-            this.dom.nameButton.off('.dtsp');
-            this.dom.collapseButton.off('.dtsp');
-            this.dom.countButton.off('.dtsp');
-            this.dom.clear.off('.dtsp');
-            this.dom.searchButton.off('.dtsp');
-            this.dom.container.remove();
-            var searchIdx = $.fn.dataTable.ext.search.indexOf(this.s.searchFunction);
-            while (searchIdx !== -1) {
-                $.fn.dataTable.ext.search.splice(searchIdx, 1);
-                searchIdx = $.fn.dataTable.ext.search.indexOf(this.s.searchFunction);
-            }
-            // If the datatables have been defined for the panes then also destroy these
-            if (this.s.dtPane !== undefined) {
-                this.s.dtPane.destroy();
-            }
-            this.s.listSet = false;
-        };
-        /**
-         * Getting the legacy message is a little complex due a legacy parameter
-         */
-        SearchPane.prototype.emptyMessage = function () {
-            var def = this.c.i18n.emptyMessage;
-            // Legacy parameter support
-            if (this.c.emptyMessage) {
-                def = this.c.emptyMessage;
-            }
-            // Override per column
-            if (this.s.colOpts.emptyMessage !== false && this.s.colOpts.emptyMessage !== null) {
-                def = this.s.colOpts.emptyMessage;
-            }
-            return this.s.dt.i18n('searchPanes.emptyMessage', def);
-        };
-        /**
-         * Updates the number of filters that have been applied in the title
-         */
-        SearchPane.prototype.getPaneCount = function () {
-            return this.s.dtPane !== undefined ?
-                this.s.dtPane.rows({ selected: true }).data().toArray().length :
-                0;
-        };
-        /**
-         * Rebuilds the panes from the start having deleted the old ones
-         *
-         * @param? last boolean to indicate if this is the last pane a selection was made in
-         * @param? dataIn data to be used in buildPane
-         * @param? init Whether this is the initial draw or not
-         * @param? maintainSelection Whether the current selections are to be maintained over rebuild
-         */
-        SearchPane.prototype.rebuildPane = function (last, dataIn, init, maintainSelection) {
-            if (last === void 0) { last = false; }
-            if (dataIn === void 0) { dataIn = null; }
-            if (init === void 0) { init = null; }
-            if (maintainSelection === void 0) { maintainSelection = false; }
-            this.clearData();
-            var selectedRows = [];
-            this.s.serverSelect = [];
-            var prevEl = null;
-            // When rebuilding strip all of the HTML Elements out of the container and start from scratch
-            if (this.s.dtPane !== undefined) {
-                if (maintainSelection) {
-                    if (!this.s.dt.page.info().serverSide) {
-                        selectedRows = this.s.dtPane.rows({ selected: true }).data().toArray();
-                    }
-                    else {
-                        this.s.serverSelect = this.s.dtPane.rows({ selected: true }).data().toArray();
-                    }
-                }
-                this.s.dtPane.clear().destroy();
-                prevEl = this.dom.container.prev();
-                this.destroy();
-                this.s.dtPane = undefined;
-                $.fn.dataTable.ext.search.push(this.s.searchFunction);
-            }
-            this.dom.container.removeClass(this.classes.hidden);
-            this.s.displayed = false;
-            this._buildPane(!this.s.dt.page.info().serverSide ?
-                selectedRows :
-                this.s.serverSelect, last, dataIn, init, prevEl);
-            return this;
-        };
-        /**
-         * removes the pane from the page and sets the displayed property to false.
-         */
-        SearchPane.prototype.removePane = function () {
-            this.s.displayed = false;
-            this.dom.container.hide();
-        };
-        /**
-         * Resizes the pane based on the layout that is passed in
-         *
-         * @param layout the layout to be applied to this pane
-         */
-        SearchPane.prototype.resize = function (layout) {
-            this.c.layout = layout;
-            var layVal = parseInt(layout.split('-')[1], 10);
-            this.dom.container
-                .removeClass()
-                .addClass(this.classes.container)
-                .addClass(this.classes.layout +
-                (layVal < 10 ? layout : layout.split('-')[0] + '-9'))
-                .addClass(this.s.colOpts.className)
-                .addClass(this.customPaneSettings !== null && this.customPaneSettings.className !== undefined
-                ? this.customPaneSettings.className
-                : '')
-                .addClass(this.classes.show);
-            this.adjustTopRow();
-        };
-        /**
-         * Sets the cascadeRegen property of the pane. Accessible from above because as SearchPanes.ts
-         * deals with the rebuilds.
-         *
-         * @param val the boolean value that the cascadeRegen property is to be set to
-         */
-        SearchPane.prototype.setCascadeRegen = function (val) {
-            this.s.cascadeRegen = val;
-        };
-        /**
-         * This function allows the clearing property to be assigned. This is used when implementing cascadePane.
-         * In setting this to true for the clearing of the panes selection on the deselects it forces the pane to
-         * repopulate from the entire dataset not just the displayed values.
-         *
-         * @param val the boolean value which the clearing property is to be assigned
-         */
-        SearchPane.prototype.setClear = function (val) {
-            this.s.clearing = val;
-        };
-        /**
-         * Expands the pane from the collapsed state
-         */
-        SearchPane.prototype.show = function () {
-            if (!this.s.displayed) {
-                return;
-            }
-            this.dom.collapseButton.removeClass(this.classes.rotated);
-            $(this.s.dtPane.table().container()).removeClass(this.classes.hidden);
-            this.dom.topRow.removeClass(this.classes.bordered);
-            this.dom.countButton.removeClass(this.classes.disabledButton);
-            this.dom.nameButton.removeClass(this.classes.disabledButton);
-            this.dom.searchButton.removeClass(this.classes.disabledButton);
-        };
-        /**
-         * Updates the values of all of the panes
-         *
-         * @param draw whether this has been triggered by a draw event or not
-         */
-        SearchPane.prototype.updatePane = function (draw) {
-            if (draw === void 0) { draw = false; }
-            this.s.updating = true;
-            this._updateCommon(draw);
-            this.s.updating = false;
-        };
-        /**
-         * Updates the panes if one of the options to do so has been set to true
-         * rather than the filtered message when using viewTotal.
-         */
-        SearchPane.prototype.updateTable = function () {
-            var selectedRows = this.s.dtPane.rows({ selected: true }).data().toArray();
-            this.selections = selectedRows;
-            this._searchExtras();
-            // If either of the options that effect how the panes are displayed are selected then update the Panes
-            if (this.c.cascadePanes || this.c.viewTotal) {
-                this.updatePane();
-            }
-        };
-        /**
-         * Sets the listeners for the pane.
-         *
-         * Having it in it's own function makes it easier to only set them once
-         */
-        SearchPane.prototype._setListeners = function () {
-            var _this = this;
-            var rowData = this.s.rowData;
-            var t0;
-            // When an item is selected on the pane, add these to the array which holds selected items.
-            // Custom search will perform.
-            this.s.dtPane.off('select.dtsp');
-            this.s.dtPane.on('select.dtsp', function () {
-                clearTimeout(t0);
-                if (_this.s.dt.page.info().serverSide && !_this.s.updating) {
-                    if (!_this.s.serverSelecting) {
-                        _this.s.serverSelect = _this.s.dtPane.rows({ selected: true }).data().toArray();
-                        _this.s.scrollTop = $(_this.s.dtPane.table().node()).parent()[0].scrollTop;
-                        _this.s.selectPresent = true;
-                        _this.s.dt.draw(false);
-                    }
-                }
-                else if (!_this.s.updating) {
-                    _this.s.selectPresent = true;
-                    _this._makeSelection();
-                    _this.s.selectPresent = false;
-                }
-                _this.dom.clear.removeClass(_this.classes.disabledButton).removeAttr('disabled');
-            });
-            // When an item is deselected on the pane, re add the currently selected items to the array
-            // which holds selected items. Custom search will be performed.
-            this.s.dtPane.off('deselect.dtsp');
-            this.s.dtPane.on('deselect.dtsp', function () {
-                t0 = setTimeout(function () {
-                    _this.s.scrollTop = $(_this.s.dtPane.table().node()).parent()[0].scrollTop;
-                    if (_this.s.dt.page.info().serverSide && !_this.s.updating) {
-                        if (!_this.s.serverSelecting) {
-                            _this.s.serverSelect = _this.s.dtPane.rows({ selected: true }).data().toArray();
-                            _this.s.deselect = true;
-                            _this.s.dt.draw(false);
-                        }
-                    }
-                    else {
-                        _this.s.deselect = true;
-                        _this._makeSelection();
-                        _this.s.deselect = false;
-                    }
-                    if (_this.s.dtPane.rows({ selected: true }).data().toArray().length === 0) {
-                        _this.dom.clear.addClass(_this.classes.disabledButton).attr('disabled', 'true');
-                    }
-                }, 50);
-            });
-            // If we attempty to turn off this event then it will ruin behaviour in other panes
-            //  so need to make sure that it is only done once
-            if (this.s.firstSet) {
-                this.s.firstSet = false;
-                // When saving the state store all of the selected rows for preselection next time around
-                this.s.dt.on('stateSaveParams.dtsp', function (e, settings, data) {
-                    // If the data being passed in is empty then state clear must have occured
-                    // so clear the panes state as well
-                    if ($.isEmptyObject(data)) {
-                        _this.s.dtPane.state.clear();
-                        return;
-                    }
-                    var selected = [];
-                    var searchTerm;
-                    var order;
-                    var bins;
-                    var arrayFilter;
-                    var collapsed;
-                    // Get all of the data needed for the state save from the pane
-                    if (_this.s.dtPane !== undefined) {
-                        selected = _this.s.dtPane
-                            .rows({ selected: true })
-                            .data()
-                            .map(function (item) { return item.filter.toString(); })
-                            .toArray();
-                        searchTerm = _this.dom.searchBox.val();
-                        order = _this.s.dtPane.order();
-                        bins = rowData.binsOriginal;
-                        arrayFilter = rowData.arrayOriginal;
-                        collapsed = _this.dom.collapseButton.hasClass(_this.classes.rotated);
-                    }
-                    if (data.searchPanes === undefined) {
-                        data.searchPanes = {};
-                    }
-                    if (data.searchPanes.panes === undefined) {
-                        data.searchPanes.panes = [];
-                    }
-                    for (var i = 0; i < data.searchPanes.panes.length; i++) {
-                        if (data.searchPanes.panes[i].id === _this.s.index) {
-                            data.searchPanes.panes.splice(i, 1);
-                            i--;
-                        }
-                    }
-                    // Add the panes data to the state object
-                    data.searchPanes.panes.push({
-                        arrayFilter: arrayFilter,
-                        bins: bins,
-                        collapsed: collapsed,
-                        id: _this.s.index,
-                        order: order,
-                        searchTerm: searchTerm,
-                        selected: selected
-                    });
-                });
-            }
-            this.s.dtPane.off('user-select.dtsp');
-            this.s.dtPane.on('user-select.dtsp', function (e, _dt, type, cell, originalEvent) {
-                originalEvent.stopPropagation();
-            });
-            this.s.dtPane.off('draw.dtsp');
-            this.s.dtPane.on('draw.dtsp', function () {
-                _this.adjustTopRow();
-            });
-            // When the button to order by the name of the options is clicked then
-            //  change the ordering to whatever it isn't currently
-            this.dom.nameButton.off('click.dtsp');
-            this.dom.nameButton.on('click.dtsp', function () {
-                var currentOrder = _this.s.dtPane.order()[0][1];
-                _this.s.dtPane.order([0, currentOrder === 'asc' ? 'desc' : 'asc']).draw();
-                // This state save is required so that the ordering of the panes is maintained
-                _this.s.dt.state.save();
-            });
-            // When the button to order by the number of entries in the column is clicked then
-            //  change the ordering to whatever it isn't currently
-            this.dom.countButton.off('click.dtsp');
-            this.dom.countButton.on('click.dtsp', function () {
-                var currentOrder = _this.s.dtPane.order()[0][1];
-                _this.s.dtPane.order([1, currentOrder === 'asc' ? 'desc' : 'asc']).draw();
-                // This state save is required so that the ordering of the panes is maintained
-                _this.s.dt.state.save();
-            });
-            // When the button to order by the number of entries in the column is clicked then
-            //  change the ordering to whatever it isn't currently
-            this.dom.collapseButton.off('click.dtsp');
-            this.dom.collapseButton.on('click.dtsp', function (e) {
-                e.stopPropagation();
-                var container = $(_this.s.dtPane.table().container());
-                // Toggle the classes
-                _this.dom.collapseButton.toggleClass(_this.classes.rotated);
-                container.toggleClass(_this.classes.hidden);
-                _this.dom.topRow.toggleClass(_this.classes.bordered);
-                _this.dom.countButton.toggleClass(_this.classes.disabledButton);
-                _this.dom.nameButton.toggleClass(_this.classes.disabledButton);
-                _this.dom.searchButton.toggleClass(_this.classes.disabledButton);
-                if (container.hasClass(_this.classes.hidden)) {
-                    _this.dom.topRow.on('click', function () { return _this.dom.collapseButton.click(); });
-                }
-                else {
-                    _this.dom.topRow.off('click');
-                }
-                _this.s.dt.state.save();
-                return;
-            });
-            // When the clear button is clicked reset the pane
-            this.dom.clear.off('click.dtsp');
-            this.dom.clear.on('click.dtsp', function () {
-                var searches = _this.dom.container.find('.' + _this.classes.search.replace(/ /g, '.'));
-                searches.each(function () {
-                    // set the value of the search box to be an empty string and then search on that, effectively reseting
-                    $(this).val('');
-                    $(this).trigger('input');
-                });
-                _this.clearPane();
-            });
-            // When the search button is clicked then draw focus to the search box
-            this.dom.searchButton.off('click.dtsp');
-            this.dom.searchButton.on('click.dtsp', function () {
-                _this.dom.searchBox.focus();
-            });
-            // When a character is inputted into the searchbox search the pane for matching values.
-            // Doing it this way means that no button has to be clicked to trigger a search, it is done asynchronously
-            this.dom.searchBox.off('click.dtsp');
-            this.dom.searchBox.on('input.dtsp', function () {
-                var searchval = _this.dom.searchBox.val();
-                _this.s.dtPane.search(searchval).draw();
-                if (typeof searchval === 'string' &&
-                    (searchval.length > 0 ||
-                        searchval.length === 0 && _this.s.dtPane.rows({ selected: true }).data().toArray().length > 0)) {
-                    _this.dom.clear.removeClass(_this.classes.disabledButton).removeAttr('disabled');
-                }
-                else {
-                    _this.dom.clear.addClass(_this.classes.disabledButton).attr('disabled', 'true');
-                }
-                // This state save is required so that the searching on the panes is maintained
-                _this.s.dt.state.save();
-            });
-            return true;
-        };
-        /**
-         * Takes in potentially undetected rows and adds them to the array if they are not yet featured
-         *
-         * @param filter the filter value of the potential row
-         * @param display the display value of the potential row
-         * @param sort the sort value of the potential row
-         * @param type the type value of the potential row
-         * @param arrayFilter the array to be populated
-         * @param bins the bins to be populated
-         */
-        SearchPane.prototype._addOption = function (filter, display, sort, type, arrayFilter, bins) {
-            // If the filter is an array then take a note of this, and add the elements to the arrayFilter array
-            if (Array.isArray(filter) || filter instanceof dataTable.Api) {
-                // Convert to an array so that we can work with it
-                if (filter instanceof dataTable.Api) {
-                    filter = filter.toArray();
-                    display = display.toArray();
-                }
-                if (filter.length === display.length) {
-                    for (var i = 0; i < filter.length; i++) {
-                        // If we haven't seen this row before add it
-                        if (!bins[filter[i]]) {
-                            bins[filter[i]] = 1;
-                            arrayFilter.push({
-                                display: display[i],
-                                filter: filter[i],
-                                sort: sort[i],
-                                type: type[i]
-                            });
-                        }
-                        // Otherwise just increment the count
-                        else {
-                            bins[filter[i]]++;
-                        }
-                        this.s.rowData.totalOptions++;
-                    }
-                    return;
-                }
-                else {
-                    throw new Error('display and filter not the same length');
-                }
-            }
-            // If the values were affected by othogonal data and are not an array then check if it is already present
-            else if (typeof this.s.colOpts.orthogonal === 'string') {
-                if (!bins[filter]) {
-                    bins[filter] = 1;
-                    arrayFilter.push({
-                        display: display,
-                        filter: filter,
-                        sort: sort,
-                        type: type
-                    });
-                    this.s.rowData.totalOptions++;
-                }
-                else {
-                    bins[filter]++;
-                    this.s.rowData.totalOptions++;
-                    return;
-                }
-            }
-            // Otherwise we must just be adding an option
-            else {
-                arrayFilter.push({
-                    display: display,
-                    filter: filter,
-                    sort: sort,
-                    type: type
-                });
-            }
-        };
-        /**
-         * Method to construct the actual pane.
-         *
-         * @param selectedRows previously selected Rows to be reselected
-         * @last boolean to indicate whether this pane was the last one to have a selection made
-         */
-        SearchPane.prototype._buildPane = function (selectedRows, last, dataIn, init, prevEl) {
-            var _this = this;
-            if (selectedRows === void 0) { selectedRows = []; }
-            if (last === void 0) { last = false; }
-            if (dataIn === void 0) { dataIn = null; }
-            if (init === void 0) { init = null; }
-            if (prevEl === void 0) { prevEl = null; }
-            // Aliases
-            this.selections = [];
-            var table = this.s.dt;
-            var column = table.column(this.colExists ? this.s.index : 0);
-            var colOpts = this.s.colOpts;
-            var rowData = this.s.rowData;
-            // Other Variables
-            var countMessage = table.i18n('searchPanes.count', this.c.i18n.count);
-            var filteredMessage = table.i18n('searchPanes.countFiltered', this.c.i18n.countFiltered);
-            var loadedFilter = table.state.loaded();
-            // If the listeners have not been set yet then using the latest state may result in funny errors
-            if (this.s.listSet) {
-                loadedFilter = table.state();
-            }
-            // If it is not a custom pane in place
-            if (this.colExists) {
-                var idx = -1;
-                if (loadedFilter && loadedFilter.searchPanes && loadedFilter.searchPanes.panes) {
-                    for (var i = 0; i < loadedFilter.searchPanes.panes.length; i++) {
-                        if (loadedFilter.searchPanes.panes[i].id === this.s.index) {
-                            idx = i;
-                            break;
-                        }
-                    }
-                }
-                // Perform checks that do not require populate pane to run
-                if ((colOpts.show === false ||
-                    colOpts.show !== undefined && colOpts.show !== true) &&
-                    idx === -1) {
-                    this.dom.container.addClass(this.classes.hidden);
-                    this.s.displayed = false;
-                    return false;
-                }
-                else if (colOpts.show === true || idx !== -1) {
-                    this.s.displayed = true;
-                }
-                if (!this.s.dt.page.info().serverSide &&
-                    (dataIn === null ||
-                        dataIn.searchPanes === null ||
-                        dataIn.searchPanes.options === null)) {
-                    // Only run populatePane if the data has not been collected yet
-                    if (rowData.arrayFilter.length === 0) {
-                        this._populatePane(last);
-                        this.s.rowData.totalOptions = 0;
-                        this._detailsPane();
-                        rowData.arrayOriginal = rowData.arrayTotals;
-                        rowData.binsOriginal = rowData.binsTotal;
-                    }
-                    var binLength = Object.keys(rowData.binsOriginal).length;
-                    var uniqueRatio = this._uniqueRatio(binLength, table.rows()[0].length);
-                    // Don't show the pane if there isn't enough variance in the data, or there is only 1 entry
-                    //  for that pane
-                    if (this.s.displayed === false &&
-                        ((colOpts.show === undefined && colOpts.threshold === null ?
-                            uniqueRatio > this.c.threshold :
-                            uniqueRatio > colOpts.threshold) ||
-                            colOpts.show !== true && binLength <= 1)) {
-                        this.dom.container.addClass(this.classes.hidden);
-                        this.s.displayed = false;
-                        return;
-                    }
-                    // If the option viewTotal is true then find
-                    // the total count for the whole table to display alongside the displayed count
-                    if (this.c.viewTotal && rowData.arrayTotals.length === 0) {
-                        this.s.rowData.totalOptions = 0;
-                        this._detailsPane();
-                    }
-                    else {
-                        rowData.binsTotal = rowData.bins;
-                    }
-                    this.dom.container.addClass(this.classes.show);
-                    this.s.displayed = true;
-                }
-                else if (dataIn !== null && dataIn.searchPanes !== null && dataIn.searchPanes.options !== null) {
-                    if (dataIn.tableLength !== undefined) {
-                        this.s.tableLength = dataIn.tableLength;
-                        this.s.rowData.totalOptions = this.s.tableLength;
-                    }
-                    else if (this.s.tableLength === null || table.rows()[0].length > this.s.tableLength) {
-                        this.s.tableLength = table.rows()[0].length;
-                        this.s.rowData.totalOptions = this.s.tableLength;
-                    }
-                    var colTitle = table.column(this.s.index).dataSrc();
-                    if (dataIn.searchPanes.options[colTitle] !== undefined) {
-                        for (var _i = 0, _a = dataIn.searchPanes.options[colTitle]; _i < _a.length; _i++) {
-                            var dataPoint = _a[_i];
-                            this.s.rowData.arrayFilter.push({
-                                display: dataPoint.label,
-                                filter: dataPoint.value,
-                                sort: dataPoint.label,
-                                type: dataPoint.label
-                            });
-                            this.s.rowData.bins[dataPoint.value] = this.c.viewTotal || this.c.cascadePanes ?
-                                dataPoint.count :
-                                dataPoint.total;
-                            this.s.rowData.binsTotal[dataPoint.value] = dataPoint.total;
-                        }
-                    }
-                    var binLength = Object.keys(rowData.binsTotal).length;
-                    var uniqueRatio = this._uniqueRatio(binLength, this.s.tableLength);
-                    // Don't show the pane if there isnt enough variance in the data, or there is only 1 entry for that pane
-                    if (this.s.displayed === false &&
-                        ((colOpts.show === undefined && colOpts.threshold === null ?
-                            uniqueRatio > this.c.threshold :
-                            uniqueRatio > colOpts.threshold) ||
-                            colOpts.show !== true && binLength <= 1)) {
-                        this.dom.container.addClass(this.classes.hidden);
-                        this.s.displayed = false;
-                        return;
-                    }
-                    this.s.rowData.arrayOriginal = this.s.rowData.arrayFilter;
-                    this.s.rowData.binsOriginal = this.s.rowData.bins;
-                    this.s.displayed = true;
-                }
-            }
-            else {
-                this.s.displayed = true;
-            }
-            // If the variance is accceptable then display the search pane
-            this._displayPane();
-            if (!this.s.listSet) {
-                // Here, when the state is loaded if the data object on the original table is empty,
-                //  then a state.clear() must have occurred, so delete all of the panes tables state objects too.
-                this.dom.dtP.on('stateLoadParams.dt', function (e, settings, data) {
-                    if ($.isEmptyObject(table.state.loaded())) {
-                        $.each(data, function (index, value) {
-                            delete data[index];
-                        });
-                    }
-                });
-            }
-            // Add the container to the document in its original location
-            if (prevEl !== null && this.dom.panesContainer.has(prevEl).length > 0) {
-                this.dom.container.insertAfter(prevEl);
-            }
-            else {
-                this.dom.panesContainer.prepend(this.dom.container);
-            }
-            // Declare the datatable for the pane
-            var errMode = $.fn.dataTable.ext.errMode;
-            $.fn.dataTable.ext.errMode = 'none';
-            // eslint-disable-next-line no-extra-parens
-            var haveScroller = dataTable.Scroller;
-            this.s.dtPane = this.dom.dtP.DataTable($.extend(true, {
-                columnDefs: [
-                    {
-                        className: 'dtsp-nameColumn',
-                        data: 'display',
-                        render: function (data, type, row) {
-                            if (type === 'sort') {
-                                return row.sort;
-                            }
-                            else if (type === 'type') {
-                                return row.type;
-                            }
-                            var message;
-                            message =
-                                (_this.s.filteringActive || _this.s.showFiltered) && _this.c.viewTotal ||
-                                    _this.c.viewTotal && _this.s.forceViewTotal ?
-                                    filteredMessage.replace(/{total}/, row.total) :
-                                    countMessage.replace(/{total}/, row.total);
-                            message = message.replace(/{shown}/, row.shown);
-                            while (message.includes('{total}')) {
-                                message = message.replace(/{total}/, row.total);
-                            }
-                            while (message.includes('{shown}')) {
-                                message = message.replace(/{shown}/, row.shown);
-                            }
-                            // We are displaying the count in the same columne as the name of the search option.
-                            // This is so that there is not need to call columns.adjust()
-                            //  which in turn speeds up the code
-                            var pill = '<span class="' + _this.classes.pill + '">' + message + '</span>';
-                            if (!_this.c.viewCount || !colOpts.viewCount) {
-                                pill = '';
-                            }
-                            if (type === 'filter') {
-                                return typeof data === 'string' && data.match(/<[^>]*>/) !== null ?
-                                    data.replace(/<[^>]*>/g, '') :
-                                    data;
-                            }
-                            return '<div class="' + _this.classes.nameCont + '"><span title="' +
-                                (typeof data === 'string' && data.match(/<[^>]*>/) !== null ?
-                                    data.replace(/<[^>]*>/g, '') :
-                                    data) +
-                                '" class="' + _this.classes.name + '">' +
-                                data + '</span>' +
-                                pill + '</div>';
-                        },
-                        targets: 0,
-                        // Accessing the private datatables property to set type based on the original table.
-                        // This is null if not defined by the user, meaning that automatic type detection
-                        //  would take place
-                        type: table.settings()[0].aoColumns[this.s.index] !== undefined ?
-                            table.settings()[0].aoColumns[this.s.index]._sManualType :
-                            null
-                    },
-                    {
-                        className: 'dtsp-countColumn ' + this.classes.badgePill,
-                        data: 'shown',
-                        orderData: [1, 2],
-                        searchable: false,
-                        targets: 1,
-                        visible: false
-                    },
-                    {
-                        data: 'total',
-                        searchable: false,
-                        targets: 2,
-                        visible: false
-                    }
-                ],
-                deferRender: true,
-                dom: 't',
-                info: false,
-                language: this.s.dt.settings()[0].oLanguage,
-                paging: haveScroller ? true : false,
-                scrollX: false,
-                scrollY: '200px',
-                scroller: haveScroller ? true : false,
-                select: true,
-                stateSave: table.settings()[0].oFeatures.bStateSave ? true : false
-            }, this.c.dtOpts, colOpts !== undefined ? colOpts.dtOpts : {}, this.s.colOpts.options !== undefined || !this.colExists ?
-                {
-                    createdRow: function (row, data, dataIndex) {
-                        $(row).addClass(data.className);
-                    }
-                } :
-                undefined, this.customPaneSettings !== null && this.customPaneSettings.dtOpts !== undefined ?
-                this.customPaneSettings.dtOpts :
-                {}, $.fn.dataTable.versionCheck('2')
-                ? {
-                    layout: {
-                        bottomLeft: null,
-                        bottomRight: null,
-                        topLeft: null,
-                        topRight: null
-                    }
-                }
-                : {}));
-            this.dom.dtP.addClass(this.classes.table);
-            // Getting column titles is a little messy
-            var headerText = 'Custom Pane';
-            if (this.customPaneSettings && this.customPaneSettings.header) {
-                headerText = this.customPaneSettings.header;
-            }
-            else if (colOpts.header) {
-                headerText = colOpts.header;
-            }
-            else if (this.colExists) {
-                headerText = $.fn.dataTable.versionCheck('2')
-                    ? table.column(this.s.index).title()
-                    : table.settings()[0].aoColumns[this.s.index].sTitle;
-            }
-            this.dom.searchBox.attr('placeholder', headerText);
-            // As the pane table is not in the document yet we must initialise select ourselves
-            // eslint-disable-next-line no-extra-parens
-            $.fn.dataTable.select.init(this.s.dtPane);
-            $.fn.dataTable.ext.errMode = errMode;
-            // If it is not a custom pane
-            if (this.colExists) {
-                // On initialisation, do we need to set a filtering value from a
-                // saved state or init option?
-                var search = column.search();
-                search = search ? search.substr(1, search.length - 2).split('|') : [];
-                // Count the number of empty cells
-                var count_1 = 0;
-                rowData.arrayFilter.forEach(function (element) {
-                    if (element.filter === '') {
-                        count_1++;
-                    }
-                });
-                // Add all of the search options to the pane
-                for (var i = 0, ien = rowData.arrayFilter.length; i < ien; i++) {
-                    var selected = false;
-                    for (var _b = 0, _c = this.s.serverSelect; _b < _c.length; _b++) {
-                        var option = _c[_b];
-                        if (option.filter === rowData.arrayFilter[i].filter) {
-                            selected = true;
-                        }
-                    }
-                    if (this.s.dt.page.info().serverSide &&
-                        (!this.c.cascadePanes ||
-                            this.c.cascadePanes && rowData.bins[rowData.arrayFilter[i].filter] !== 0 ||
-                            this.c.cascadePanes && init !== null ||
-                            selected)) {
-                        var row = this.addRow(rowData.arrayFilter[i].display, rowData.arrayFilter[i].filter, init ?
-                            rowData.binsTotal[rowData.arrayFilter[i].filter] :
-                            rowData.bins[rowData.arrayFilter[i].filter], this.c.viewTotal || init
-                            ? String(rowData.binsTotal[rowData.arrayFilter[i].filter])
-                            : rowData.bins[rowData.arrayFilter[i].filter], rowData.arrayFilter[i].sort, rowData.arrayFilter[i].type);
-                        for (var _d = 0, _e = this.s.serverSelect; _d < _e.length; _d++) {
-                            var option = _e[_d];
-                            if (option.filter === rowData.arrayFilter[i].filter) {
-                                this.s.serverSelecting = true;
-                                row.select();
-                                this.s.serverSelecting = false;
-                            }
-                        }
-                    }
-                    else if (!this.s.dt.page.info().serverSide &&
-                        rowData.arrayFilter[i] &&
-                        (rowData.bins[rowData.arrayFilter[i].filter] !== undefined || !this.c.cascadePanes)) {
-                        this.addRow(rowData.arrayFilter[i].display, rowData.arrayFilter[i].filter, rowData.bins[rowData.arrayFilter[i].filter], rowData.binsTotal[rowData.arrayFilter[i].filter], rowData.arrayFilter[i].sort, rowData.arrayFilter[i].type);
-                    }
-                    else if (!this.s.dt.page.info().serverSide) {
-                        // Just pass an empty string as the message will be calculated based on that in addRow()
-                        this.addRow('', count_1, count_1, '', '', '');
-                    }
-                }
-            }
-            // eslint-disable-next-line no-extra-parens
-            dataTable.select.init(this.s.dtPane);
-            // If there are custom options set or it is a custom pane then get them
-            if (colOpts.options !== undefined ||
-                this.customPaneSettings !== null && this.customPaneSettings.options !== undefined) {
-                this._getComparisonRows();
-            }
-            // Display the pane
-            this.s.dtPane.draw();
-            this.s.dtPane.table().node().parentNode.scrollTop = this.s.scrollTop;
-            this.adjustTopRow();
-            if (!this.s.listSet) {
-                this._setListeners();
-                this.s.listSet = true;
-            }
-            for (var _f = 0, selectedRows_1 = selectedRows; _f < selectedRows_1.length; _f++) {
-                var selection = selectedRows_1[_f];
-                if (selection !== undefined) {
-                    for (var _g = 0, _h = this.s.dtPane.rows().indexes().toArray(); _g < _h.length; _g++) {
-                        var row = _h[_g];
-                        if (this.s.dtPane.row(row).data() !== undefined &&
-                            selection.filter === this.s.dtPane.row(row).data().filter) {
-                            // If this is happening when serverSide processing is happening then
-                            //  different behaviour is needed
-                            if (this.s.dt.page.info().serverSide) {
-                                this.s.serverSelecting = true;
-                                this.s.dtPane.row(row).select();
-                                this.s.serverSelecting = false;
-                            }
-                            else {
-                                this.s.dtPane.row(row).select();
-                            }
-                        }
-                    }
-                }
-            }
-            //  If SSP and the table is ready, apply the search for the pane
-            if (this.s.dt.page.info().serverSide) {
-                this.s.dtPane.search(this.dom.searchBox.val()).draw();
-            }
-            if ((this.c.initCollapsed && this.s.colOpts.initCollapsed !== false ||
-                this.s.colOpts.initCollapsed) &&
-                (this.c.collapse && this.s.colOpts.collapse !== false ||
-                    this.s.colOpts.collapse)) {
-                this.collapse();
-            }
-            // Reload the selection, searchbox entry and ordering from the previous state
-            // Need to check here if SSP that this is the first draw, otherwise it will infinite loop
-            if (loadedFilter &&
-                loadedFilter.searchPanes &&
-                loadedFilter.searchPanes.panes &&
-                (dataIn === null ||
-                    dataIn.draw === 1)) {
-                if (!this.c.cascadePanes) {
-                    this._reloadSelect(loadedFilter);
-                }
-                for (var _j = 0, _k = loadedFilter.searchPanes.panes; _j < _k.length; _j++) {
-                    var pane = _k[_j];
-                    if (pane.id === this.s.index) {
-                        // Save some time by only triggering an input if there is a value
-                        if (pane.searchTerm && pane.searchTerm.length > 0) {
-                            this.dom.searchBox.val(pane.searchTerm);
-                            this.dom.searchBox.trigger('input');
-                        }
-                        this.s.dtPane.order(pane.order).draw();
-                        // Is the pane to be hidden or shown?
-                        if (pane.collapsed) {
-                            this.collapse();
-                        }
-                        else {
-                            this.show();
-                        }
-                    }
-                }
-            }
-            return true;
-        };
-        /**
-         * Update the array which holds the display and filter values for the table
-         */
-        SearchPane.prototype._detailsPane = function () {
-            var table = this.s.dt;
-            this.s.rowData.arrayTotals = [];
-            this.s.rowData.binsTotal = {};
-            var settings = this.s.dt.settings()[0];
-            var indexArray = table.rows().indexes();
-            if (!this.s.dt.page.info().serverSide) {
-                for (var _i = 0, indexArray_1 = indexArray; _i < indexArray_1.length; _i++) {
-                    var rowIdx = indexArray_1[_i];
-                    this._populatePaneArray(rowIdx, this.s.rowData.arrayTotals, settings, this.s.rowData.binsTotal);
-                }
-            }
-        };
-        /**
-         * Appends all of the HTML elements to their relevant parent Elements
-         */
-        SearchPane.prototype._displayPane = function () {
-            var container = this.dom.container;
-            var colOpts = this.s.colOpts;
-            var layVal = parseInt(this.c.layout.split('-')[1], 10);
-            // Empty everything to start again
-            this.dom.topRow.empty();
-            this.dom.dtP.empty();
-            this.dom.topRow.addClass(this.classes.topRow);
-            // If there are more than 3 columns defined then make there be a smaller gap between the panes
-            if (layVal > 3) {
-                this.dom.container.addClass(this.classes.smallGap);
-            }
-            this.dom.topRow.addClass(this.classes.subRowsContainer);
-            this.dom.upper.appendTo(this.dom.topRow);
-            this.dom.lower.appendTo(this.dom.topRow);
-            this.dom.searchCont.appendTo(this.dom.upper);
-            this.dom.buttonGroup.appendTo(this.dom.lower);
-            // If no selections have been made in the pane then disable the clear button
-            if (this.c.dtOpts.searching === false ||
-                colOpts.dtOpts !== undefined && colOpts.dtOpts.searching === false ||
-                (!this.c.controls || !colOpts.controls) ||
-                this.customPaneSettings !== null &&
-                    this.customPaneSettings.dtOpts !== undefined &&
-                    this.customPaneSettings.dtOpts.searching !== undefined &&
-                    !this.customPaneSettings.dtOpts.searching) {
-                this.dom.searchBox
-                    .removeClass(this.classes.paneInputButton)
-                    .addClass(this.classes.disabledButton)
-                    .attr('disabled', 'true');
-            }
-            this.dom.searchBox.appendTo(this.dom.searchCont);
-            // Create the contents of the searchCont div. Worth noting that this function will change when using semantic ui
-            this._searchContSetup();
-            // If the clear button is allowed to show then display it
-            if (this.c.clear && this.c.controls && colOpts.controls) {
-                this.dom.clear.appendTo(this.dom.buttonGroup);
-            }
-            if (this.c.orderable && colOpts.orderable && this.c.controls && colOpts.controls) {
-                this.dom.nameButton.appendTo(this.dom.buttonGroup);
-            }
-            // If the count column is hidden then don't display the ordering button for it
-            if (this.c.viewCount &&
-                colOpts.viewCount &&
-                this.c.orderable &&
-                colOpts.orderable &&
-                this.c.controls &&
-                colOpts.controls) {
-                this.dom.countButton.appendTo(this.dom.buttonGroup);
-            }
-            if ((this.c.collapse && this.s.colOpts.collapse !== false ||
-                this.s.colOpts.collapse) &&
-                this.c.controls && colOpts.controls) {
-                this.dom.collapseButton.appendTo(this.dom.buttonGroup);
-            }
-            this.dom.topRow.prependTo(this.dom.container);
-            container.append(this.dom.dtP);
-            container.show();
-        };
-        /**
-         * Gets the options for the row for the customPanes
-         *
-         * @returns {object} The options for the row extended to include the options from the user.
-         */
-        SearchPane.prototype._getBonusOptions = function () {
-            // We need to reset the thresholds as if they have a value in colOpts then that value will be used
-            var defaultMutator = {
-                orthogonal: {
-                    threshold: null
-                },
-                threshold: null
-            };
-            return $.extend(true, {}, SearchPane.defaults, defaultMutator, this.c !== undefined ? this.c : {});
-        };
-        /**
-         * Adds the custom options to the pane
-         *
-         * @returns {Array} Returns the array of rows which have been added to the pane
-         */
-        SearchPane.prototype._getComparisonRows = function () {
-            var colOpts = this.s.colOpts;
-            // Find the appropriate options depending on whether this is a pane for a specific column or a custom pane
-            var options = colOpts.options !== undefined
-                ? colOpts.options
-                : this.customPaneSettings !== null && this.customPaneSettings.options !== undefined
-                    ? this.customPaneSettings.options
-                    : undefined;
-            if (options === undefined) {
-                return;
-            }
-            var tableVals = this.s.dt.rows({ search: 'applied' }).data().toArray();
-            var appRows = this.s.dt.rows({ search: 'applied' });
-            var tableValsTotal = this.s.dt.rows().data().toArray();
-            var allRows = this.s.dt.rows();
-            var rows = [];
-            // Clear all of the other rows from the pane, only custom options are to be displayed when they are defined
-            this.s.dtPane.clear();
-            for (var _i = 0, options_1 = options; _i < options_1.length; _i++) {
-                var comp = options_1[_i];
-                // Initialise the object which is to be placed in the row
-                var insert = comp.label !== '' ?
-                    comp.label :
-                    this.emptyMessage();
-                var comparisonObj = {
-                    className: comp.className,
-                    display: insert,
-                    filter: typeof comp.value === 'function' ? comp.value : [],
-                    shown: 0,
-                    sort: insert,
-                    total: 0,
-                    type: insert
-                };
-                // If a custom function is in place
-                if (typeof comp.value === 'function') {
-                    // Count the number of times the function evaluates to true for the data currently being displayed
-                    for (var tVal = 0; tVal < tableVals.length; tVal++) {
-                        if (comp.value.call(this.s.dt, tableVals[tVal], appRows[0][tVal])) {
-                            comparisonObj.shown++;
-                        }
-                    }
-                    // Count the number of times the function evaluates to true for the original data in the Table
-                    for (var i = 0; i < tableValsTotal.length; i++) {
-                        if (comp.value.call(this.s.dt, tableValsTotal[i], allRows[0][i])) {
-                            comparisonObj.total++;
-                        }
-                    }
-                    // Update the comparisonObj
-                    if (typeof comparisonObj.filter !== 'function') {
-                        comparisonObj.filter.push(comp.filter);
-                    }
-                }
-                // If cascadePanes is not active or if it is and the comparisonObj should be shown then add it to the pane
-                if (!this.c.cascadePanes || this.c.cascadePanes && comparisonObj.shown !== 0) {
-                    rows.push(this.addRow(comparisonObj.display, comparisonObj.filter, comparisonObj.shown, comparisonObj.total, comparisonObj.sort, comparisonObj.type, comparisonObj.className));
-                }
-            }
-            return rows;
-        };
-        /**
-         * Gets the options for the row for the customPanes
-         *
-         * @returns {object} The options for the row extended to include the options from the user.
-         */
-        SearchPane.prototype._getOptions = function () {
-            var table = this.s.dt;
-            // We need to reset the thresholds as if they have a value in colOpts then that value will be used
-            var defaultMutator = {
-                collapse: null,
-                emptyMessage: false,
-                initCollapsed: null,
-                orthogonal: {
-                    threshold: null
-                },
-                threshold: null
-            };
-            var columnOptions = table.settings()[0].aoColumns[this.s.index].searchPanes;
-            var colOpts = $.extend(true, {}, SearchPane.defaults, defaultMutator, columnOptions);
-            if (columnOptions !== undefined &&
-                columnOptions.hideCount !== undefined &&
-                columnOptions.viewCount === undefined) {
-                colOpts.viewCount = !columnOptions.hideCount;
-            }
-            return colOpts;
-        };
-        /**
-         * This method allows for changes to the panes and table to be made when a selection or a deselection occurs
-         *
-         * @param select Denotes whether a selection has been made or not
-         */
-        SearchPane.prototype._makeSelection = function () {
-            this.updateTable();
-            this.s.updating = true;
-            this.s.dt.draw();
-            this.s.updating = false;
-        };
-        /**
-         * Fill the array with the values that are currently being displayed in the table
-         *
-         * @param last boolean to indicate whether this was the last pane a selection was made in
-         */
-        SearchPane.prototype._populatePane = function (last) {
-            if (last === void 0) { last = false; }
-            var table = this.s.dt;
-            this.s.rowData.arrayFilter = [];
-            this.s.rowData.bins = {};
-            var settings = this.s.dt.settings()[0];
-            // If cascadePanes or viewTotal are active it is necessary to get the data which is currently
-            // being displayed for their functionality.
-            // Also make sure that this was not the last pane to have a selection made
-            if (!this.s.dt.page.info().serverSide) {
-                var indexArray = (this.c.cascadePanes || this.c.viewTotal) && (!this.s.clearing && !last) ?
-                    table.rows({ search: 'applied' }).indexes() :
-                    table.rows().indexes();
-                for (var _i = 0, _a = indexArray.toArray(); _i < _a.length; _i++) {
-                    var index = _a[_i];
-                    this._populatePaneArray(index, this.s.rowData.arrayFilter, settings);
-                }
-            }
-        };
-        /**
-         * Populates an array with all of the data for the table
-         *
-         * @param rowIdx The current row index to be compared
-         * @param arrayFilter The array that is to be populated with row Details
-         * @param bins The bins object that is to be populated with the row counts
-         */
-        SearchPane.prototype._populatePaneArray = function (rowIdx, arrayFilter, settings, bins) {
-            if (bins === void 0) { bins = this.s.rowData.bins; }
-            var colOpts = this.s.colOpts;
-            // Retrieve the rendered data from the cell using the fnGetCellData function
-            // rather than the cell().render API method for optimisation
-            if (typeof colOpts.orthogonal === 'string') {
-                var rendered = settings.oApi._fnGetCellData(settings, rowIdx, this.s.index, colOpts.orthogonal);
-                this.s.rowData.filterMap.set(rowIdx, rendered);
-                this._addOption(rendered, rendered, rendered, rendered, arrayFilter, bins);
-            }
-            else {
-                var filter = settings.oApi._fnGetCellData(settings, rowIdx, this.s.index, colOpts.orthogonal.search);
-                // Null and empty string are to be considered the same value
-                if (filter === null) {
-                    filter = '';
-                }
-                if (typeof filter === 'string') {
-                    filter = filter.replace(/<[^>]*>/g, '');
-                }
-                this.s.rowData.filterMap.set(rowIdx, filter);
-                if (!bins[filter]) {
-                    bins[filter] = 1;
-                    this._addOption(filter, settings.oApi._fnGetCellData(settings, rowIdx, this.s.index, colOpts.orthogonal.display), settings.oApi._fnGetCellData(settings, rowIdx, this.s.index, colOpts.orthogonal.sort), settings.oApi._fnGetCellData(settings, rowIdx, this.s.index, colOpts.orthogonal.type), arrayFilter, bins);
-                    this.s.rowData.totalOptions++;
-                }
-                else {
-                    bins[filter]++;
-                    this.s.rowData.totalOptions++;
-                    return;
-                }
-            }
-        };
-        /**
-         * Reloads all of the previous selects into the panes
-         *
-         * @param loadedFilter The loaded filters from a previous state
-         */
-        SearchPane.prototype._reloadSelect = function (loadedFilter) {
-            // If the state was not saved don't selected any
-            if (loadedFilter === undefined) {
-                return;
-            }
-            var idx;
-            // For each pane, check that the loadedFilter list exists and is not null,
-            // find the id of each search item and set it to be selected.
-            for (var i = 0; i < loadedFilter.searchPanes.panes.length; i++) {
-                if (loadedFilter.searchPanes.panes[i].id === this.s.index) {
-                    idx = i;
-                    break;
-                }
-            }
-            if (idx !== undefined) {
-                var table = this.s.dtPane;
-                var rows = table.rows({ order: 'index' }).data().map(function (item) { return item.filter !== null ?
-                    item.filter.toString() :
-                    null; }).toArray();
-                for (var _i = 0, _a = loadedFilter.searchPanes.panes[idx].selected; _i < _a.length; _i++) {
-                    var filter = _a[_i];
-                    var id = -1;
-                    if (filter !== null) {
-                        id = rows.indexOf(filter.toString());
-                    }
-                    if (id > -1) {
-                        this.s.serverSelecting = true;
-                        table.row(id).select();
-                        this.s.serverSelecting = false;
-                    }
-                }
-            }
-        };
-        /**
-         * This method decides whether a row should contribute to the pane or not
-         *
-         * @param filter the value that the row is to be filtered on
-         * @param dataIndex the row index
-         */
-        SearchPane.prototype._search = function (filter, dataIndex) {
-            var colOpts = this.s.colOpts;
-            var table = this.s.dt;
-            // For each item selected in the pane, check if it is available in the cell
-            for (var _i = 0, _a = this.selections; _i < _a.length; _i++) {
-                var colSelect = _a[_i];
-                if (typeof colSelect.filter === 'string' && typeof filter === 'string') {
-                    // The filter value will not have the &amp; in place but a &,
-                    // so we need to do a replace to make sure that they will match
-                    colSelect.filter = colSelect.filter
-                        .replace(/&amp;/g, '&')
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&quot;/g, '"');
-                }
-                // if the filter is an array then is the column present in it
-                if (Array.isArray(filter)) {
-                    if (filter.includes(colSelect.filter)) {
-                        return true;
-                    }
-                }
-                // if the filter is a function then does it meet the criteria of that function or not
-                else if (typeof colSelect.filter === 'function') {
-                    if (colSelect.filter.call(table, table.row(dataIndex).data(), dataIndex)) {
-                        if (colOpts.combiner === 'or') {
-                            return true;
-                        }
-                    }
-                    // If the combiner is an "and" then we need to check against all possible selections
-                    // so if it fails here then the and is not met and return false
-                    else if (colOpts.combiner === 'and') {
-                        return false;
-                    }
-                }
-                // otherwise if the two filter values are equal then return true
-                else if (filter === colSelect.filter ||
-                    // Loose type checking incase number type in column comparing to a string
-                    // eslint-disable-next-line eqeqeq
-                    !(typeof filter === 'string' && filter.length === 0) && filter == colSelect.filter ||
-                    colSelect.filter === null && typeof filter === 'string' && filter === '') {
-                    return true;
-                }
-            }
-            // If the combiner is an and then we need to check against all possible selections
-            // so return true here if so because it would have returned false earlier if it had failed
-            if (colOpts.combiner === 'and') {
-                return true;
-            }
-            // Otherwise it hasn't matched with anything by this point so it must be false
-            else {
-                return false;
-            }
-        };
-        /**
-         * Creates the contents of the searchCont div
-         *
-         * NOTE This is overridden when semantic ui styling in order to integrate the search button into the text box.
-         */
-        SearchPane.prototype._searchContSetup = function () {
-            if (this.c.controls && this.s.colOpts.controls) {
-                this.dom.searchButton.appendTo(this.dom.searchLabelCont);
-            }
-            if (!(this.c.dtOpts.searching === false ||
-                this.s.colOpts.dtOpts.searching === false ||
-                this.customPaneSettings !== null &&
-                    this.customPaneSettings.dtOpts !== undefined &&
-                    this.customPaneSettings.dtOpts.searching !== undefined &&
-                    !this.customPaneSettings.dtOpts.searching)) {
-                this.dom.searchLabelCont.appendTo(this.dom.searchCont);
-            }
-        };
-        /**
-         * Adds outline to the pane when a selection has been made
-         */
-        SearchPane.prototype._searchExtras = function () {
-            var updating = this.s.updating;
-            this.s.updating = true;
-            var filters = this.s.dtPane.rows({ selected: true }).data().pluck('filter').toArray();
-            var nullIndex = filters.indexOf(this.emptyMessage());
-            var container = $(this.s.dtPane.table().container());
-            // If null index is found then search for empty cells as a filter.
-            if (nullIndex > -1) {
-                filters[nullIndex] = '';
-            }
-            // If a filter has been applied then outline the respective pane, remove it when it no longer is.
-            if (filters.length > 0) {
-                container.addClass(this.classes.selected);
-            }
-            else if (filters.length === 0) {
-                container.removeClass(this.classes.selected);
-            }
-            this.s.updating = updating;
-        };
-        /**
-         * Finds the ratio of the number of different options in the table to the number of rows
-         *
-         * @param bins the number of different options in the table
-         * @param rowCount the total number of rows in the table
-         * @returns {number} returns the ratio
-         */
-        SearchPane.prototype._uniqueRatio = function (bins, rowCount) {
-            if (rowCount > 0 &&
-                (this.s.rowData.totalOptions > 0 && !this.s.dt.page.info().serverSide ||
-                    this.s.dt.page.info().serverSide && this.s.tableLength > 0)) {
-                return bins / this.s.rowData.totalOptions;
-            }
-            else {
-                return 1;
-            }
-        };
-        /**
-         * updates the options within the pane
-         *
-         * @param draw a flag to define whether this has been called due to a draw event or not
-         */
-        SearchPane.prototype._updateCommon = function (draw) {
-            if (draw === void 0) { draw = false; }
-            // Update the panes if doing a deselect. if doing a select then
-            // update all of the panes except for the one causing the change
-            if (!this.s.dt.page.info().serverSide &&
-                this.s.dtPane !== undefined &&
-                (!this.s.filteringActive || this.c.cascadePanes || draw === true) &&
-                (this.c.cascadePanes !== true || this.s.selectPresent !== true) &&
-                (!this.s.lastSelect || !this.s.lastCascade)) {
-                var colOpts = this.s.colOpts;
-                var selected = this.s.dtPane.rows({ selected: true }).data().toArray();
-                var rowData = this.s.rowData;
-                // Clear the pane in preparation for adding the updated search options
-                this.s.dtPane.clear();
-                // If it is not a custom pane
-                if (this.colExists) {
-                    // Only run populatePane if the data has not been collected yet
-                    if (rowData.arrayFilter.length === 0) {
-                        this._populatePane(!this.s.filteringActive);
-                    }
-                    // If cascadePanes is active and the table has returned to its default state then
-                    // there is a need to update certain parts ofthe rowData.
-                    else if (this.c.cascadePanes &&
-                        this.s.dt.rows().data().toArray().length ===
-                            this.s.dt.rows({ search: 'applied' }).data().toArray().length) {
-                        rowData.arrayFilter = rowData.arrayOriginal;
-                        rowData.bins = rowData.binsOriginal;
-                    }
-                    // Otherwise if viewTotal or cascadePanes is active then the data from the table must be read.
-                    else if (this.c.viewTotal || this.c.cascadePanes) {
-                        this._populatePane(!this.s.filteringActive);
-                    }
-                    // If the viewTotal option is selected then find the totals for the table
-                    if (this.c.viewTotal) {
-                        this._detailsPane();
-                    }
-                    else {
-                        rowData.binsTotal = rowData.bins;
-                    }
-                    if (this.c.viewTotal && !this.c.cascadePanes) {
-                        rowData.arrayFilter = rowData.arrayTotals;
-                    }
-                    var _loop_1 = function (dataP) {
-                        // If both view Total and cascadePanes have been selected and the count of the row
-                        // is not 0 then add it to pane
-                        // Do this also if the viewTotal option has been selected and cascadePanes has not
-                        if (dataP &&
-                            (rowData.bins[dataP.filter] !== undefined &&
-                                rowData.bins[dataP.filter] !== 0 &&
-                                this_1.c.cascadePanes ||
-                                !this_1.c.cascadePanes ||
-                                this_1.s.clearing)) {
-                            var row = this_1.addRow(dataP.display, dataP.filter, !this_1.c.viewTotal ?
-                                rowData.bins[dataP.filter] :
-                                rowData.bins[dataP.filter] !== undefined ?
-                                    rowData.bins[dataP.filter] :
-                                    0, this_1.c.viewTotal ?
-                                String(rowData.binsTotal[dataP.filter]) :
-                                rowData.bins[dataP.filter], dataP.sort, dataP.type);
-                            // Find out if the filter was selected in the previous search,
-                            // if so select it and remove from array.
-                            var selectIndex = selected.findIndex(function (element) {
-                                return element.filter === dataP.filter;
-                            });
-                            if (selectIndex !== -1) {
-                                row.select();
-                                selected.splice(selectIndex, 1);
-                            }
-                        }
-                    };
-                    var this_1 = this;
-                    for (var _i = 0, _a = rowData.arrayFilter; _i < _a.length; _i++) {
-                        var dataP = _a[_i];
-                        _loop_1(dataP);
-                    }
-                }
-                if (colOpts.searchPanes !== undefined && colOpts.searchPanes.options !== undefined ||
-                    colOpts.options !== undefined ||
-                    this.customPaneSettings !== null && this.customPaneSettings.options !== undefined) {
-                    var rows = this._getComparisonRows();
-                    var _loop_2 = function (row) {
-                        var selectIndex = selected.findIndex(function (element) {
-                            if (element.display === row.data().display) {
-                                return true;
-                            }
-                        });
-                        if (selectIndex !== -1) {
-                            row.select();
-                            selected.splice(selectIndex, 1);
-                        }
-                    };
-                    for (var _b = 0, rows_1 = rows; _b < rows_1.length; _b++) {
-                        var row = rows_1[_b];
-                        _loop_2(row);
-                    }
-                }
-                // Add search options which were previously selected but whos results are no
-                // longer present in the resulting data set.
-                for (var _c = 0, selected_1 = selected; _c < selected_1.length; _c++) {
-                    var selectedEl = selected_1[_c];
-                    var row = this.addRow(selectedEl.display, selectedEl.filter, 0, this.c.viewTotal
-                        ? selectedEl.total
-                        : 0, selectedEl.display, selectedEl.display);
-                    this.s.updating = true;
-                    row.select();
-                    this.s.updating = false;
-                }
-                this.s.dtPane.draw();
-                this.s.dtPane.table().node().parentNode.scrollTop = this.s.scrollTop;
-            }
-        };
-        SearchPane.version = '1.3.0';
-        SearchPane.classes = {
-            bordered: 'dtsp-bordered',
-            buttonGroup: 'dtsp-buttonGroup',
-            buttonSub: 'dtsp-buttonSub',
-            clear: 'dtsp-clear',
-            clearAll: 'dtsp-clearAll',
-            clearButton: 'clearButton',
-            collapseAll: 'dtsp-collapseAll',
-            collapseButton: 'dtsp-collapseButton',
-            container: 'dtsp-searchPane',
-            countButton: 'dtsp-countButton',
-            disabledButton: 'dtsp-disabledButton',
-            hidden: 'dtsp-hidden',
-            hide: 'dtsp-hide',
-            layout: 'dtsp-',
-            name: 'dtsp-name',
-            nameButton: 'dtsp-nameButton',
-            nameCont: 'dtsp-nameCont',
-            narrow: 'dtsp-narrow',
-            paneButton: 'dtsp-paneButton',
-            paneInputButton: 'dtsp-paneInputButton',
-            pill: 'dtsp-pill',
-            rotated: 'dtsp-rotated',
-            search: 'dtsp-search',
-            searchCont: 'dtsp-searchCont',
-            searchIcon: 'dtsp-searchIcon',
-            searchLabelCont: 'dtsp-searchButtonCont',
-            selected: 'dtsp-selected',
-            smallGap: 'dtsp-smallGap',
-            subRow1: 'dtsp-subRow1',
-            subRow2: 'dtsp-subRow2',
-            subRowsContainer: 'dtsp-subRowsContainer',
-            title: 'dtsp-title',
-            topRow: 'dtsp-topRow'
-        };
-        // Define SearchPanes default options
-        SearchPane.defaults = {
-            cascadePanes: false,
-            clear: true,
-            collapse: true,
-            combiner: 'or',
-            container: function (dt) {
-                return dt.table().container();
-            },
-            controls: true,
-            dtOpts: {},
-            emptyMessage: null,
-            hideCount: false,
-            i18n: {
-                clearPane: '&times;',
-                count: '{total}',
-                countFiltered: '{shown} ({total})',
-                emptyMessage: '<em>No data</em>'
-            },
-            initCollapsed: false,
-            layout: 'auto',
-            name: undefined,
-            orderable: true,
-            orthogonal: {
-                display: 'display',
-                filter: 'filter',
-                hideCount: false,
-                search: 'filter',
-                show: undefined,
-                sort: 'sort',
-                threshold: 0.6,
-                type: 'type',
-                viewCount: true
-            },
-            preSelect: [],
-            threshold: 0.6,
-            viewCount: true,
-            viewTotal: false
-        };
-        return SearchPane;
-    }());
-
-    var $$1;
-    var dataTable$1;
-    function setJQuery$1(jq) {
-        $$1 = jq;
-        dataTable$1 = jq.fn.dataTable;
-    }
-    var SearchPanes = /** @class */ (function () {
-        function SearchPanes(paneSettings, opts, fromInit) {
-            var _this = this;
-            if (fromInit === void 0) { fromInit = false; }
-            this.regenerating = false;
-            // Check that the required version of DataTables is included
-            if (!dataTable$1 || !dataTable$1.versionCheck || !dataTable$1.versionCheck('1.10.0')) {
-                throw new Error('SearchPane requires DataTables 1.10 or newer');
-            }
-            // Check that Select is included
-            // eslint-disable-next-line no-extra-parens
-            if (!dataTable$1.select) {
-                throw new Error('SearchPane requires Select');
-            }
-            var table = new dataTable$1.Api(paneSettings);
-            this.classes = $$1.extend(true, {}, SearchPanes.classes);
-            // Get options from user
-            this.c = $$1.extend(true, {}, SearchPanes.defaults, opts);
-            // Add extra elements to DOM object including clear
-            this.dom = {
-                clearAll: $$1('<button type="button">Clear All</button>').addClass(this.classes.clearAll),
-                collapseAll: $$1('<button type="button">Collapse All</button>').addClass(this.classes.collapseAll),
-                container: $$1('<div/>').addClass(this.classes.panes).text(table.i18n('searchPanes.loadMessage', this.c.i18n.loadMessage)),
-                emptyMessage: $$1('<div/>').addClass(this.classes.emptyMessage),
-                options: $$1('<div/>').addClass(this.classes.container),
-                panes: $$1('<div/>').addClass(this.classes.container),
-                showAll: $$1('<button type="button">Show All</button>')
-                    .addClass(this.classes.showAll)
-                    .addClass(this.classes.disabledButton)
-                    .attr('disabled', 'true'),
-                title: $$1('<div/>').addClass(this.classes.title),
-                titleRow: $$1('<div/>').addClass(this.classes.titleRow),
-                wrapper: $$1('<div/>')
-            };
-            this.s = {
-                colOpts: [],
-                dt: table,
-                filterCount: 0,
-                filterPane: -1,
-                page: 0,
-                paging: false,
-                panes: [],
-                selectionList: [],
-                serverData: {},
-                stateRead: false,
-                updating: false
-            };
-            if (table.settings()[0]._searchPanes !== undefined) {
-                return;
-            }
-            this._getState();
-            if (this.s.dt.page.info().serverSide) {
-                table.on('preXhr.dt', function (e, settings, data) {
-                    if (data.searchPanes === undefined) {
-                        data.searchPanes = {};
-                    }
-                    if (data.searchPanes_null === undefined) {
-                        data.searchPanes_null = {};
-                    }
-                    for (var _i = 0, _a = _this.s.selectionList; _i < _a.length; _i++) {
-                        var selection = _a[_i];
-                        var src = _this.s.dt.column(selection.index).dataSrc();
-                        if (data.searchPanes[src] === undefined) {
-                            data.searchPanes[src] = {};
-                        }
-                        if (data.searchPanes_null[src] === undefined) {
-                            data.searchPanes_null[src] = {};
-                        }
-                        for (var i = 0; i < selection.rows.length; i++) {
-                            data.searchPanes[src][i] = selection.rows[i].filter;
-                            if (data.searchPanes[src][i] === null) {
-                                data.searchPanes_null[src][i] = true;
-                            }
-                        }
-                    }
-                });
-            }
-            // We are using the xhr event to rebuild the panes if required due to viewTotal being enabled
-            // If viewTotal is not enabled then we simply update the data from the server
-            table.on('xhr', function (e, settings, json, xhr) {
-                if (json && json.searchPanes && json.searchPanes.options) {
-                    _this.s.serverData = json;
-                    _this.s.serverData.tableLength = json.recordsTotal;
-                    _this._serverTotals();
-                }
-            });
-            table.settings()[0]._searchPanes = this;
-            this.dom.clearAll.text(table.i18n('searchPanes.clearMessage', this.c.i18n.clearMessage));
-            this.dom.collapseAll.text(table.i18n('searchPanes.collapseMessage', this.c.i18n.collapseMessage));
-            this.dom.showAll.text(table.i18n('searchPanes.showMessage', this.c.i18n.showMessage));
-            if (this.s.dt.settings()[0]._bInitComplete || fromInit) {
-                this._paneDeclare(table, paneSettings, opts);
-            }
-            else {
-                table.one('preInit.dt', function (settings) {
-                    _this._paneDeclare(table, paneSettings, opts);
-                });
-            }
-            return this;
-        }
-        /**
-         * Clear the selections of all of the panes
-         */
-        SearchPanes.prototype.clearSelections = function () {
-            // Load in all of the searchBoxes in the documents
-            var searches = this.dom.container.find('.' + this.classes.search.replace(/\s+/g, '.'));
-            // For each searchBox set the input text to be empty and then trigger
-            // an input on them so that they no longer filter the panes
-            searches.each(function () {
-                $$1(this).val('');
-                $$1(this).trigger('input');
-            });
-            var returnArray = [];
-            // Clear the selectionList to prevent cascadePanes from reselecting rows
-            this.s.selectionList = [];
-            // For every pane, clear the selections in the pane
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (pane.s.dtPane !== undefined) {
-                    returnArray.push(pane.clearPane());
-                }
-            }
-            return returnArray;
-        };
-        /**
-         * returns the container node for the searchPanes
-         */
-        SearchPanes.prototype.getNode = function () {
-            return this.dom.container;
-        };
-        /**
-         * rebuilds all of the panes
-         */
-        SearchPanes.prototype.rebuild = function (targetIdx, maintainSelection) {
-            if (targetIdx === void 0) { targetIdx = false; }
-            if (maintainSelection === void 0) { maintainSelection = false; }
-            this.dom.emptyMessage.remove();
-            // As a rebuild from scratch is required, empty the searchpanes container.
-            var returnArray = [];
-            // Rebuild each pane individually, if a specific pane has been selected then only rebuild that one
-            if (targetIdx === false) {
-                this.dom.panes.empty();
-            }
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (targetIdx !== false && pane.s.index !== targetIdx) {
-                    continue;
-                }
-                pane.clearData();
-                returnArray.push(
-                // Pass a boolean to say whether this is the last choice made for maintaining selections when rebuilding
-                pane.rebuildPane(this.s.selectionList[this.s.selectionList.length - 1] !== undefined ?
-                    pane.s.index === this.s.selectionList[this.s.selectionList.length - 1].index :
-                    false, this.s.dt.page.info().serverSide ?
-                    this.s.serverData :
-                    undefined, null, maintainSelection));
-                this.dom.panes.append(pane.dom.container);
-            }
-            if (this.c.cascadePanes || this.c.viewTotal) {
-                this.redrawPanes(true);
-            }
-            else {
-                this._updateSelection();
-            }
-            // Attach panes, clear buttons, and title bar to the document
-            this._updateFilterCount();
-            this._attachPaneContainer();
-            // If the selections are to be maintained, then it is safe to assume that paging is also to be maintained
-            // Otherwise, the paging should be reset
-            this.s.dt.draw(!maintainSelection);
-            // Resize the panes incase there has been a change
-            this.resizePanes();
-            // If a single pane has been rebuilt then return only that pane
-            if (returnArray.length === 1) {
-                return returnArray[0];
-            }
-            // Otherwise return all of the panes that have been rebuilt
-            else {
-                return returnArray;
-            }
-        };
-        /**
-         * Redraws all of the panes
-         */
-        SearchPanes.prototype.redrawPanes = function (rebuild) {
-            if (rebuild === void 0) { rebuild = false; }
-            var table = this.s.dt;
-            // Only do this if the redraw isn't being triggered by the panes updating themselves
-            if (!this.s.updating && !this.s.dt.page.info().serverSide) {
-                var filterActive = true;
-                var filterPane = this.s.filterPane;
-                var selectTotal = null;
-                for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                    var pane = _a[_i];
-                    if (pane.s.dtPane !== undefined) {
-                        selectTotal += pane.s.dtPane.rows({ selected: true }).data().toArray().length;
-                    }
-                }
-                // If the number of rows currently visible is equal to the number of rows in the table
-                // then there can't be any filtering taking place
-                if (selectTotal === 0 &&
-                    table.rows({ search: 'applied' }).data().toArray().length === table.rows().data().toArray().length) {
-                    filterActive = false;
-                }
-                // Otherwise if viewTotal is active then it is necessary to determine which panes a select is present in.
-                // If there is only one pane with a selection present then it should not show the filtered message as
-                // more selections may be made in that pane.
-                else if (this.c.viewTotal) {
-                    for (var _b = 0, _c = this.s.panes; _b < _c.length; _b++) {
-                        var pane = _c[_b];
-                        if (pane.s.dtPane !== undefined) {
-                            var selectLength = pane.s.dtPane.rows({ selected: true }).data().toArray().length;
-                            if (selectLength === 0) {
-                                for (var _d = 0, _e = this.s.selectionList; _d < _e.length; _d++) {
-                                    var selection = _e[_d];
-                                    if (selection.index === pane.s.index && selection.rows.length !== 0) {
-                                        selectLength = selection.rows.length;
-                                    }
-                                }
-                            }
-                            // If filterPane === -1 then a pane with a selection has not been found yet,
-                            // so set filterPane to that panes index
-                            if (selectLength > 0 && filterPane === -1) {
-                                filterPane = pane.s.index;
-                            }
-                            // Then if another pane is found with a selection then set filterPane to null to
-                            // show that multiple panes have selections present
-                            else if (selectLength > 0) {
-                                filterPane = null;
-                            }
-                        }
-                    }
-                    // If the searchbox is in place and filtering is applied then need to cascade down anyway
-                    if (selectTotal === 0) {
-                        filterPane = null;
-                    }
-                }
-                var deselectIdx = void 0;
-                var newSelectionList = [];
-                // Don't run this if it is due to the panes regenerating
-                if (!this.regenerating) {
-                    for (var _f = 0, _g = this.s.panes; _f < _g.length; _f++) {
-                        var pane = _g[_f];
-                        // Identify the pane where a selection or deselection has been made and add it to the list.
-                        if (pane.s.selectPresent) {
-                            this.s.selectionList.push({
-                                index: pane.s.index,
-                                protect: false,
-                                rows: pane.s.dtPane.rows({ selected: true }).data().toArray()
-                            });
-                            break;
-                        }
-                        else if (pane.s.deselect) {
-                            deselectIdx = pane.s.index;
-                            var selectedData = pane.s.dtPane.rows({ selected: true }).data().toArray();
-                            if (selectedData.length > 0) {
-                                this.s.selectionList.push({
-                                    index: pane.s.index,
-                                    protect: true,
-                                    rows: selectedData
-                                });
-                            }
-                        }
-                    }
-                    if (this.s.selectionList.length > 0) {
-                        var last = this.s.selectionList[this.s.selectionList.length - 1].index;
-                        for (var _h = 0, _j = this.s.panes; _h < _j.length; _h++) {
-                            var pane = _j[_h];
-                            pane.s.lastSelect = pane.s.index === last;
-                        }
-                    }
-                    // Remove selections from the list from the pane where a deselect has taken place
-                    for (var i = 0; i < this.s.selectionList.length; i++) {
-                        if (this.s.selectionList[i].index !== deselectIdx || this.s.selectionList[i].protect === true) {
-                            var further = false;
-                            // Find out if this selection is the last one in the list for that pane
-                            for (var j = i + 1; j < this.s.selectionList.length; j++) {
-                                if (this.s.selectionList[j].index === this.s.selectionList[i].index) {
-                                    further = true;
-                                }
-                            }
-                            // If there are no selections for this pane in the list then just push this one
-                            if (!further) {
-                                newSelectionList.push(this.s.selectionList[i]);
-                                this.s.selectionList[i].protect = false;
-                            }
-                        }
-                    }
-                    var solePane = -1;
-                    if (newSelectionList.length === 1 && selectTotal !== null && selectTotal !== 0) {
-                        solePane = newSelectionList[0].index;
-                    }
-                    // Update all of the panes to reflect the current state of the filters
-                    for (var _k = 0, _l = this.s.panes; _k < _l.length; _k++) {
-                        var pane = _l[_k];
-                        if (pane.s.dtPane !== undefined) {
-                            var tempFilter = true;
-                            pane.s.filteringActive = true;
-                            if (filterPane !== -1 && filterPane !== null && filterPane === pane.s.index ||
-                                filterActive === false ||
-                                pane.s.index === solePane) {
-                                tempFilter = false;
-                                pane.s.filteringActive = false;
-                            }
-                            pane.updatePane(!tempFilter ? false : filterActive);
-                        }
-                    }
-                    // If the length of the selections are different then some of them have been
-                    // removed and a deselect has occured
-                    if (newSelectionList.length > 0 && (newSelectionList.length < this.s.selectionList.length || rebuild)) {
-                        this._cascadeRegen(newSelectionList, selectTotal);
-                        var last = newSelectionList[newSelectionList.length - 1].index;
-                        for (var _m = 0, _o = this.s.panes; _m < _o.length; _m++) {
-                            var pane = _o[_m];
-                            pane.s.lastSelect = pane.s.index === last;
-                        }
-                    }
-                    else if (newSelectionList.length > 0) {
-                        // Update all of the other panes as you would just making a normal selection
-                        for (var _p = 0, _q = this.s.panes; _p < _q.length; _p++) {
-                            var paneUpdate = _q[_p];
-                            if (paneUpdate.s.dtPane !== undefined) {
-                                var tempFilter = true;
-                                paneUpdate.s.filteringActive = true;
-                                if (filterPane !== -1 && filterPane !== null && filterPane === paneUpdate.s.index ||
-                                    filterActive === false ||
-                                    paneUpdate.s.index === solePane) {
-                                    tempFilter = false;
-                                    paneUpdate.s.filteringActive = false;
-                                }
-                                paneUpdate.updatePane(!tempFilter ? tempFilter : filterActive);
-                            }
-                        }
-                    }
-                    // Update the label that shows how many filters are in place
-                    this._updateFilterCount();
-                }
-                else {
-                    var solePane = -1;
-                    if (newSelectionList.length === 1 && selectTotal !== null && selectTotal !== 0) {
-                        solePane = newSelectionList[0].index;
-                    }
-                    for (var _r = 0, _s = this.s.panes; _r < _s.length; _r++) {
-                        var pane = _s[_r];
-                        if (pane.s.dtPane !== undefined) {
-                            var tempFilter = true;
-                            pane.s.filteringActive = true;
-                            if (filterPane !== -1 && filterPane !== null && filterPane === pane.s.index ||
-                                filterActive === false ||
-                                pane.s.index === solePane) {
-                                tempFilter = false;
-                                pane.s.filteringActive = false;
-                            }
-                            pane.updatePane(!tempFilter ? tempFilter : filterActive);
-                        }
-                    }
-                    // Update the label that shows how many filters are in place
-                    this._updateFilterCount();
-                }
-                if (!filterActive || selectTotal === 0) {
-                    this.s.selectionList = [];
-                }
-            }
-        };
-        /**
-         * Resizes all of the panes
-         */
-        SearchPanes.prototype.resizePanes = function () {
-            if (this.c.layout === 'auto') {
-                var contWidth = $$1(this.s.dt.searchPanes.container()).width();
-                var target = Math.floor(contWidth / 260.0); // The neatest number of panes per row
-                var highest = 1;
-                var highestmod = 0;
-                var dispIndex = [];
-                // Get the indexes of all of the displayed panes
-                for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                    var pane = _a[_i];
-                    if (pane.s.displayed) {
-                        dispIndex.push(pane.s.index);
-                    }
-                }
-                var displayCount = dispIndex.length;
-                // If the neatest number is the number we have then use this.
-                if (target === displayCount) {
-                    highest = target;
-                }
-                else {
-                    // Go from the target down and find the value with the most panes left over, this will be the best fit
-                    for (var ppr = target; ppr > 1; ppr--) {
-                        var rem = displayCount % ppr;
-                        if (rem === 0) {
-                            highest = ppr;
-                            highestmod = 0;
-                            break;
-                        }
-                        // If there are more left over at this amount of panes per row (ppr)
-                        // then it fits better so new values
-                        else if (rem > highestmod) {
-                            highest = ppr;
-                            highestmod = rem;
-                        }
-                    }
-                }
-                // If there is a perfect fit then none are to be wider
-                var widerIndexes = highestmod !== 0 ? dispIndex.slice(dispIndex.length - highestmod, dispIndex.length) : [];
-                for (var _b = 0, _c = this.s.panes; _b < _c.length; _b++) {
-                    var pane = _c[_b];
-                    // Resize the pane with the new layout
-                    if (pane.s.displayed) {
-                        var layout = 'columns-' + (!widerIndexes.includes(pane.s.index) ? highest : highestmod);
-                        pane.resize(layout);
-                    }
-                }
-            }
-            else {
-                for (var _d = 0, _e = this.s.panes; _d < _e.length; _d++) {
-                    var pane = _e[_d];
-                    pane.adjustTopRow();
-                }
-            }
-            return this;
-        };
-        /**
-         * Attach the panes, buttons and title to the document
-         */
-        SearchPanes.prototype._attach = function () {
-            var _this = this;
-            this.dom.container.removeClass(this.classes.hide);
-            this.dom.titleRow.removeClass(this.classes.hide);
-            this.dom.titleRow.remove();
-            this.dom.title.appendTo(this.dom.titleRow);
-            // If the clear button is permitted attach it
-            if (this.c.clear) {
-                this.dom.clearAll.appendTo(this.dom.titleRow);
-                this.dom.clearAll.on('click.dtsps', function () {
-                    _this.clearSelections();
-                });
-            }
-            if (this.c.collapse) {
-                this._setCollapseListener();
-            }
-            this.dom.titleRow.appendTo(this.dom.container);
-            // Attach the container for each individual pane to the overall container
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                pane.dom.container.appendTo(this.dom.panes);
-            }
-            // Attach everything to the document
-            this.dom.panes.appendTo(this.dom.container);
-            if ($$1('div.' + this.classes.container).length === 0) {
-                this.dom.container.prependTo(this.s.dt);
-            }
-            return this.dom.container;
-        };
-        /**
-         * Attach the top row containing the filter count and clear all button
-         */
-        SearchPanes.prototype._attachExtras = function () {
-            this.dom.container.removeClass(this.classes.hide);
-            this.dom.titleRow.removeClass(this.classes.hide);
-            this.dom.titleRow.remove();
-            this.dom.title.appendTo(this.dom.titleRow);
-            // If the clear button is permitted attach it
-            if (this.c.clear) {
-                this.dom.clearAll.appendTo(this.dom.titleRow);
-            }
-            // If collapsing is permitted attach those buttons
-            if (this.c.collapse) {
-                this.dom.showAll.appendTo(this.dom.titleRow);
-                this.dom.collapseAll.appendTo(this.dom.titleRow);
-            }
-            this.dom.titleRow.appendTo(this.dom.container);
-            return this.dom.container;
-        };
-        /**
-         * If there are no panes to display then this method is called to either
-         * display a message in their place or hide them completely.
-         */
-        SearchPanes.prototype._attachMessage = function () {
-            // Create a message to display on the screen
-            var message;
-            try {
-                message = this.s.dt.i18n('searchPanes.emptyPanes', this.c.i18n.emptyPanes);
-            }
-            catch (error) {
-                message = null;
-            }
-            // If the message is an empty string then searchPanes.emptyPanes is undefined,
-            // therefore the pane container should be removed from the display
-            if (message === null) {
-                this.dom.container.addClass(this.classes.hide);
-                this.dom.titleRow.removeClass(this.classes.hide);
-                return;
-            }
-            else {
-                this.dom.container.removeClass(this.classes.hide);
-                this.dom.titleRow.addClass(this.classes.hide);
-            }
-            // Otherwise display the message
-            this.dom.emptyMessage.text(message);
-            this.dom.emptyMessage.appendTo(this.dom.container);
-            return this.dom.container;
-        };
-        /**
-         * Attaches the panes to the document and displays a message or hides if there are none
-         */
-        SearchPanes.prototype._attachPaneContainer = function () {
-            // If a pane is to be displayed then attach the normal pane output
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (pane.s.displayed === true) {
-                    return this._attach();
-                }
-            }
-            // Otherwise attach the custom message or remove the container from the display
-            return this._attachMessage();
-        };
-        /**
-         * Prepares the panes for selections to be made when cascade is active and a deselect has occured
-         *
-         * @param newSelectionList the list of selections which are to be made
-         */
-        SearchPanes.prototype._cascadeRegen = function (newSelectionList, selectTotal) {
-            // Set this to true so that the actions taken do not cause this to run until it is finished
-            this.regenerating = true;
-            // If only one pane has been selected then take note of its index
-            var solePane = -1;
-            if (newSelectionList.length === 1 && selectTotal !== null && selectTotal !== 0) {
-                solePane = newSelectionList[0].index;
-            }
-            // Let the pane know that a cascadeRegen is taking place to avoid unexpected behaviour
-            // and clear all of the previous selections in the pane
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                pane.setCascadeRegen(true);
-                pane.setClear(true);
-                // If this is the same as the pane with the only selection then pass it as a parameter into clearPane
-                if (pane.s.dtPane !== undefined && pane.s.index === solePane || pane.s.dtPane !== undefined) {
-                    pane.clearPane();
-                }
-                pane.setClear(false);
-            }
-            // Rebin panes
-            this.s.dt.draw();
-            // While all of the selections have been removed, check the table lengths
-            // If they are different, another filter is in place and we need to force viewTotal to be used
-            var noSelectionsTableLength = this.s.dt.rows({ search: 'applied' }).data().toArray().length;
-            var tableLength = this.s.dt.rows().data().toArray().length;
-            if (tableLength !== noSelectionsTableLength) {
-                for (var _b = 0, _c = this.s.panes; _b < _c.length; _b++) {
-                    var pane = _c[_b];
-                    pane.s.forceViewTotal = true;
-                }
-            }
-            for (var _d = 0, _e = this.s.panes; _d < _e.length; _d++) {
-                var pane = _e[_d];
-                pane.updatePane(true);
-            }
-            // Remake Selections
-            this._makeCascadeSelections(newSelectionList);
-            // Set the selection list property to be the list without the selections from the deselect pane
-            this.s.selectionList = newSelectionList;
-            // The regeneration of selections is over so set it back to false
-            for (var _f = 0, _g = this.s.panes; _f < _g.length; _f++) {
-                var pane = _g[_f];
-                pane.setCascadeRegen(false);
-            }
-            this.regenerating = false;
-            // ViewTotal has already been forced at this point so can cancel that for future
-            if (tableLength !== noSelectionsTableLength) {
-                for (var _h = 0, _j = this.s.panes; _h < _j.length; _h++) {
-                    var pane = _j[_h];
-                    pane.s.forceViewTotal = false;
-                }
-            }
-        };
-        /**
-         * Attaches the message to the document but does not add any panes
-         */
-        SearchPanes.prototype._checkMessage = function () {
-            // If a pane is to be displayed then attach the normal pane output
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (pane.s.displayed === true) {
-                    // Ensure that the empty message is removed if a pane is displayed
-                    this.dom.emptyMessage.remove();
-                    this.dom.titleRow.removeClass(this.classes.hide);
-                    return;
-                }
-            }
-            // Otherwise attach the custom message or remove the container from the display
-            return this._attachMessage();
-        };
-        /**
-         * Checks which panes are collapsed and then performs relevant actions to the collapse/show all buttons
-         *
-         * @param pane The pane to be checked
-         */
-        SearchPanes.prototype._checkCollapse = function () {
-            var disableClose = true;
-            var disableShow = true;
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (pane.s.displayed) {
-                    // It the pane is not collapsed
-                    if (!pane.dom.collapseButton.hasClass(pane.classes.rotated)) {
-                        // Enable the collapse all button
-                        this.dom.collapseAll.removeClass(this.classes.disabledButton).removeAttr('disabled');
-                        disableClose = false;
-                    }
-                    else {
-                        // Otherwise enable the show all button
-                        this.dom.showAll.removeClass(this.classes.disabledButton).removeAttr('disabled');
-                        disableShow = false;
-                    }
-                }
-            }
-            // If this flag is still true, no panes are open so the close button should be disabled
-            if (disableClose) {
-                this.dom.collapseAll.addClass(this.classes.disabledButton).attr('disabled', 'true');
-            }
-            // If this flag is still true, no panes are closed so the show button should be disabled
-            if (disableShow) {
-                this.dom.showAll.addClass(this.classes.disabledButton).attr('disabled', 'true');
-            }
-        };
-        /**
-         * Collapses all of the panes
-         */
-        SearchPanes.prototype._collapseAll = function () {
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                pane.collapse();
-            }
-        };
-        /**
-         * Gets the selection list from the previous state and stores it in the selectionList Property
-         */
-        SearchPanes.prototype._getState = function () {
-            var loadedFilter = this.s.dt.state.loaded();
-            if (loadedFilter && loadedFilter.searchPanes && loadedFilter.searchPanes.selectionList !== undefined) {
-                this.s.selectionList = loadedFilter.searchPanes.selectionList;
-            }
-        };
-        /**
-         * Makes all of the selections when cascade is active
-         *
-         * @param newSelectionList the list of selections to be made, in the order they were originally selected
-         */
-        SearchPanes.prototype._makeCascadeSelections = function (newSelectionList) {
-            // make selections in the order they were made previously,
-            // excluding those from the pane where a deselect was made
-            for (var i = 0; i < newSelectionList.length; i++) {
-                var _loop_1 = function (pane) {
-                    if (pane.s.index === newSelectionList[i].index && pane.s.dtPane !== undefined) {
-                        // When regenerating the cascade selections we need this flag so that
-                        // the panes are only ignored if it
-                        // is the last selection and the pane for that selection
-                        if (i === newSelectionList.length - 1) {
-                            pane.s.lastCascade = true;
-                        }
-                        // if there are any selections currently in the pane then
-                        // deselect them as we are about to make our new selections
-                        if (pane.s.dtPane.rows({ selected: true }).data().toArray().length > 0 && pane.s.dtPane !== undefined) {
-                            pane.setClear(true);
-                            pane.clearPane();
-                            pane.setClear(false);
-                        }
-                        var _loop_2 = function (row) {
-                            var found = false;
-                            pane.s.dtPane.rows().every(function (rowIdx) {
-                                if (pane.s.dtPane.row(rowIdx).data() !== undefined &&
-                                    row !== undefined &&
-                                    pane.s.dtPane.row(rowIdx).data().filter === row.filter) {
-                                    found = true;
-                                    pane.s.dtPane.row(rowIdx).select();
-                                }
-                            });
-                            if (!found) {
-                                var newRow = pane.addRow(row.display, row.filter, 0, row.total, row.sort, row.type, row.className);
-                                newRow.select();
-                            }
-                        };
-                        // select every row in the pane that was selected previously
-                        for (var _i = 0, _a = newSelectionList[i].rows; _i < _a.length; _i++) {
-                            var row = _a[_i];
-                            _loop_2(row);
-                        }
-                        pane.s.scrollTop = $$1(pane.s.dtPane.table().node()).parent()[0].scrollTop;
-                        pane.s.dtPane.draw();
-                        pane.s.dtPane.table().node().parentNode.scrollTop = pane.s.scrollTop;
-                        pane.s.lastCascade = false;
-                    }
-                };
-                // As the selections may have been made across the panes
-                // in a different order to the pane index we must identify
-                // which pane has the index of the selection. This is also important for colreorder etc
-                for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                    var pane = _a[_i];
-                    _loop_1(pane);
-                }
-            }
-        };
-        /**
-         * Declares the instances of individual searchpanes dependant on the number of columns.
-         * It is necessary to run this once preInit has completed otherwise no panes will be
-         * created as the column count will be 0.
-         *
-         * @param table the DataTable api for the parent table
-         * @param paneSettings the settings passed into the constructor
-         * @param opts the options passed into the constructor
-         */
-        SearchPanes.prototype._paneDeclare = function (table, paneSettings, opts) {
-            var _this = this;
-            // Create Panes
-            table
-                .columns(this.c.columns.length > 0 ? this.c.columns : undefined)
-                .eq(0)
-                .each(function (idx) {
-                _this.s.panes.push(new SearchPane(paneSettings, opts, idx, _this.c.layout, _this.dom.panes));
-            });
-            // If there is any extra custom panes defined then create panes for them too
-            var rowLength = table.columns().eq(0).toArray().length;
-            var paneLength = this.c.panes.length;
-            for (var i = 0; i < paneLength; i++) {
-                var id = rowLength + i;
-                this.s.panes.push(new SearchPane(paneSettings, opts, id, this.c.layout, this.dom.panes, this.c.panes[i]));
-            }
-            // If a custom ordering is being used
-            if (this.c.order.length > 0) {
-                // Make a new Array of panes based upon the order
-                var newPanes = this.c.order.map(function (name, index, values) { return _this._findPane(name); });
-                // Remove the old panes from the dom
-                this.dom.panes.empty();
-                this.s.panes = newPanes;
-                // Append the panes in the correct order
-                for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                    var pane = _a[_i];
-                    this.dom.panes.append(pane.dom.container);
-                }
-            }
-            // If this internal property is true then the DataTable has been initialised already
-            if (this.s.dt.settings()[0]._bInitComplete) {
-                this._startup(table);
-            }
-            else {
-                // Otherwise add the paneStartup function to the list of functions
-                // that are to be run when the table is initialised. This will garauntee that the
-                // panes are initialised before the init event and init Complete callback is fired
-                this.s.dt.settings()[0].aoInitComplete.push({ fn: function () {
-                        _this._startup(table);
-                    } });
-            }
-        };
-        /**
-         * Finds a pane based upon the name of that pane
-         *
-         * @param name string representing the name of the pane
-         * @returns SearchPane The pane which has that name
-         */
-        SearchPanes.prototype._findPane = function (name) {
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (name === pane.s.name) {
-                    return pane;
-                }
-            }
-        };
-        /**
-         * Works out which panes to update when data is recieved from the server and viewTotal is active
-         */
-        SearchPanes.prototype._serverTotals = function () {
-            var selectPresent = false;
-            var deselectPresent = false;
-            var table = this.s.dt;
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                // Identify the pane where a selection or deselection has been made and add it to the list.
-                if (pane.s.selectPresent) {
-                    this.s.selectionList.push({
-                        index: pane.s.index,
-                        protect: false,
-                        rows: pane.s.dtPane.rows({ selected: true }).data().toArray()
-                    });
-                    pane.s.selectPresent = false;
-                    selectPresent = true;
-                    break;
-                }
-                else if (pane.s.deselect) {
-                    var selectedData = pane.s.dtPane.rows({ selected: true }).data().toArray();
-                    if (selectedData.length > 0) {
-                        this.s.selectionList.push({
-                            index: pane.s.index,
-                            protect: true,
-                            rows: selectedData
-                        });
-                    }
-                    selectPresent = true;
-                    deselectPresent = true;
-                }
-            }
-            // Build an updated list based on any selections or deselections added
-            if (!selectPresent) {
-                this.s.selectionList = [];
-            }
-            else {
-                var newSelectionList = [];
-                for (var i = 0; i < this.s.selectionList.length; i++) {
-                    var further = false;
-                    // Find out if this selection is the last one in the list for that pane
-                    for (var j = i + 1; j < this.s.selectionList.length; j++) {
-                        if (this.s.selectionList[j].index === this.s.selectionList[i].index) {
-                            further = true;
-                        }
-                    }
-                    // If there are no selections for this pane in the list then just push this one
-                    if (!further) {
-                        var push = false;
-                        for (var _b = 0, _c = this.s.panes; _b < _c.length; _b++) {
-                            var pane = _c[_b];
-                            if (pane.s.index === this.s.selectionList[i].index &&
-                                pane.s.dtPane.rows({ selected: true }).data().toArray().length > 0) {
-                                push = true;
-                            }
-                        }
-                        if (push) {
-                            newSelectionList.push(this.s.selectionList[i]);
-                        }
-                    }
-                }
-                this.s.selectionList = newSelectionList;
-            }
-            var initIdx = -1;
-            // If there has been a deselect and only one pane has a selection then update everything
-            if (deselectPresent && this.s.selectionList.length === 1) {
-                for (var _d = 0, _e = this.s.panes; _d < _e.length; _d++) {
-                    var pane = _e[_d];
-                    pane.s.lastSelect = false;
-                    pane.s.deselect = false;
-                    if (pane.s.dtPane !== undefined && pane.s.dtPane.rows({ selected: true }).data().toArray().length > 0) {
-                        initIdx = pane.s.index;
-                    }
-                }
-            }
-            // Otherwise if there are more 1 selections then find the last one and set it to not update that pane
-            else if (this.s.selectionList.length > 0) {
-                var last = this.s.selectionList[this.s.selectionList.length - 1].index;
-                for (var _f = 0, _g = this.s.panes; _f < _g.length; _f++) {
-                    var pane = _g[_f];
-                    pane.s.lastSelect = pane.s.index === last;
-                    pane.s.deselect = false;
-                }
-            }
-            // Otherwise if there are no selections then find where that took place and do not update to maintain scrolling
-            else if (this.s.selectionList.length === 0) {
-                for (var _h = 0, _j = this.s.panes; _h < _j.length; _h++) {
-                    var pane = _j[_h];
-                    // pane.s.lastSelect = (pane.s.deselect === true);
-                    pane.s.lastSelect = false;
-                    pane.s.deselect = false;
-                }
-            }
-            this.dom.panes.empty();
-            // Rebuild the desired panes
-            for (var _k = 0, _l = this.s.panes; _k < _l.length; _k++) {
-                var pane = _l[_k];
-                if (!pane.s.lastSelect) {
-                    pane.rebuildPane(undefined, this.s.dt.page.info().serverSide ? this.s.serverData : undefined, pane.s.index === initIdx ? true : null, true);
-                }
-                else {
-                    pane._setListeners();
-                }
-                // append all of the panes and enable select
-                this.dom.panes.append(pane.dom.container);
-                if (pane.s.dtPane !== undefined) {
-                    $$1(pane.s.dtPane.table().node()).parent()[0].scrollTop = pane.s.scrollTop;
-                    // eslint-disable-next-line no-extra-parens
-                    $$1.fn.dataTable.select.init(pane.s.dtPane);
-                }
-            }
-            this._updateSelection();
-        };
-        /**
-         * Sets the listeners for the collapse and show all buttons
-         * Also sets and performs checks on current panes to see if they are collapsed
-         */
-        SearchPanes.prototype._setCollapseListener = function () {
-            var _this = this;
-            this.dom.collapseAll.on('click.dtsps', function () {
-                _this._collapseAll();
-                _this.dom.collapseAll.addClass(_this.classes.disabledButton).attr('disabled', 'true');
-                _this.dom.showAll.removeClass(_this.classes.disabledButton).removeAttr('disabled');
-                _this.s.dt.state.save();
-            });
-            this.dom.showAll.on('click.dtsps', function () {
-                _this._showAll();
-                _this.dom.showAll.addClass(_this.classes.disabledButton).attr('disabled', 'true');
-                _this.dom.collapseAll.removeClass(_this.classes.disabledButton).removeAttr('disabled');
-                _this.s.dt.state.save();
-            });
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                // We want to make the same check whenever there is a collapse/expand
-                pane.dom.collapseButton.on('click', function () { return _this._checkCollapse(); });
-            }
-            this._checkCollapse();
-        };
-        /**
-         * Shows all of the panes
-         */
-        SearchPanes.prototype._showAll = function () {
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                pane.show();
-            }
-        };
-        /**
-         * Initialises the tables previous/preset selections and initialises callbacks for events
-         *
-         * @param table the parent table for which the searchPanes are being created
-         */
-        SearchPanes.prototype._startup = function (table) {
-            var _this = this;
-            this.dom.container.text('');
-            // Attach clear button and title bar to the document
-            this._attachExtras();
-            this.dom.container.append(this.dom.panes);
-            this.dom.panes.empty();
-            var loadedFilter = this.s.dt.state.loaded();
-            if (this.c.viewTotal && !this.c.cascadePanes) {
-                if (loadedFilter !== null &&
-                    loadedFilter !== undefined &&
-                    loadedFilter.searchPanes !== undefined &&
-                    loadedFilter.searchPanes.panes !== undefined) {
-                    var filterActive = false;
-                    for (var _i = 0, _a = loadedFilter.searchPanes.panes; _i < _a.length; _i++) {
-                        var pane = _a[_i];
-                        if (pane.selected.length > 0) {
-                            filterActive = true;
-                            break;
-                        }
-                    }
-                    if (filterActive) {
-                        for (var _b = 0, _c = this.s.panes; _b < _c.length; _b++) {
-                            var pane = _c[_b];
-                            pane.s.showFiltered = true;
-                        }
-                    }
-                }
-            }
-            for (var _d = 0, _e = this.s.panes; _d < _e.length; _d++) {
-                var pane = _e[_d];
-                pane.rebuildPane(undefined, Object.keys(this.s.serverData).length > 0 ? this.s.serverData : undefined);
-                this.dom.panes.append(pane.dom.container);
-            }
-            // If the layout is set to auto then the panes need to be resized to their best fit
-            if (this.c.layout === 'auto') {
-                this.resizePanes();
-            }
-            // Reset the paging if that has been saved in the state
-            if (!this.s.stateRead && loadedFilter !== null && loadedFilter !== undefined) {
-                this.s.dt.page(loadedFilter.start / this.s.dt.page.len());
-                this.s.dt.draw('page');
-            }
-            this.s.stateRead = true;
-            if (this.c.viewTotal && !this.c.cascadePanes) {
-                for (var _f = 0, _g = this.s.panes; _f < _g.length; _f++) {
-                    var pane = _g[_f];
-                    pane.updatePane();
-                }
-            }
-            this._checkMessage();
-            // When a draw is called on the DataTable, update all of the panes incase the data in the DataTable has changed
-            table.on('preDraw.dtsps', function () {
-                // Check that the panes are not updating to avoid infinite loops
-                // Also check that this draw is not due to paging
-                if (!_this.s.updating && !_this.s.paging) {
-                    if ((_this.c.cascadePanes || _this.c.viewTotal) && !_this.s.dt.page.info().serverSide) {
-                        _this.redrawPanes(_this.c.viewTotal);
-                    }
-                    else {
-                        _this._updateFilterCount();
-                        _this._updateSelection();
-                    }
-                    _this.s.filterPane = -1;
-                }
-                // Paging flag reset - we only need to dodge the draw once
-                _this.s.paging = false;
-            });
-            $$1(window).on('resize.dtsp', dataTable$1.util.throttle(function () {
-                _this.resizePanes();
-            }));
-            // Whenever a state save occurs store the selection list in the state object
-            this.s.dt.on('stateSaveParams.dtsp', function (e, settings, data) {
-                if (data.searchPanes === undefined) {
-                    data.searchPanes = {};
-                }
-                data.searchPanes.selectionList = _this.s.selectionList;
-            });
-            // Listener for paging on main table
-            table.off('page');
-            table.on('page', function () {
-                _this.s.paging = true;
-                _this.s.page = _this.s.dt.page();
-            });
-            if (this.s.dt.page.info().serverSide) {
-                table.off('preXhr.dt');
-                table.on('preXhr.dt', function (e, settings, data) {
-                    if (data.searchPanes === undefined) {
-                        data.searchPanes = {};
-                    }
-                    if (data.searchPanes_null === undefined) {
-                        data.searchPanes_null = {};
-                    }
-                    // Count how many filters are being applied
-                    var filterCount = 0;
-                    for (var _i = 0, _a = _this.s.panes; _i < _a.length; _i++) {
-                        var pane = _a[_i];
-                        var src = _this.s.dt.column(pane.s.index).dataSrc();
-                        if (data.searchPanes[src] === undefined) {
-                            data.searchPanes[src] = {};
-                        }
-                        if (data.searchPanes_null[src] === undefined) {
-                            data.searchPanes_null[src] = {};
-                        }
-                        if (pane.s.dtPane !== undefined) {
-                            var rowData = pane.s.dtPane.rows({ selected: true }).data().toArray();
-                            for (var i = 0; i < rowData.length; i++) {
-                                data.searchPanes[src][i] = rowData[i].filter;
-                                if (data.searchPanes[src][i] === null) {
-                                    data.searchPanes_null[src][i] = true;
-                                }
-                                filterCount++;
-                            }
-                        }
-                    }
-                    if (_this.c.viewTotal) {
-                        _this._prepViewTotal(filterCount);
-                    }
-                    // If there is a filter to be applied, then we need to read from the start of the result set
-                    // and set the paging to 0. This matches the behaviour of client side processing
-                    if (filterCount > 0) {
-                        // If the number of filters has changed we need to read from the start of the
-                        // result set and reset the paging
-                        if (filterCount !== _this.s.filterCount) {
-                            data.start = 0;
-                            _this.s.page = 0;
-                        }
-                        // Otherwise it is a paging request and we need to read from whatever the paging has been set to
-                        else {
-                            data.start = _this.s.page * _this.s.dt.page.len();
-                        }
-                        _this.s.dt.page(_this.s.page);
-                        _this.s.filterCount = filterCount;
-                    }
-                });
-            }
-            else {
-                table.on('preXhr.dt', function (e, settings, data) {
-                    for (var _i = 0, _a = _this.s.panes; _i < _a.length; _i++) {
-                        var pane = _a[_i];
-                        pane.clearData();
-                    }
-                });
-            }
-            // If the data is reloaded from the server then it is possible that it has changed completely,
-            // so we need to rebuild the panes
-            this.s.dt.on('xhr', function (e, settings, json, xhr) {
-                if (settings.nTable !== _this.s.dt.table().node()) {
-                    return;
-                }
-                var processing = false;
-                if (!_this.s.dt.page.info().serverSide) {
-                    _this.s.dt.one('preDraw', function () {
-                        if (processing) {
-                            return;
-                        }
-                        var page = _this.s.dt.page();
-                        processing = true;
-                        _this.s.updating = true;
-                        _this.dom.panes.empty();
-                        for (var _i = 0, _a = _this.s.panes; _i < _a.length; _i++) {
-                            var pane = _a[_i];
-                            pane.clearData(); // Clears all of the bins and will mean that the data has to be re-read
-                            // Pass a boolean to say whether this is the last choice made for maintaining selections
-                            // when rebuilding
-                            pane.rebuildPane(_this.s.selectionList[_this.s.selectionList.length - 1] !== undefined ?
-                                pane.s.index === _this.s.selectionList[_this.s.selectionList.length - 1].index :
-                                false, undefined, undefined, true);
-                            _this.dom.panes.append(pane.dom.container);
-                        }
-                        if (!_this.s.dt.page.info().serverSide) {
-                            _this.s.dt.draw();
-                        }
-                        _this.s.updating = false;
-                        if (_this.c.cascadePanes || _this.c.viewTotal) {
-                            _this.redrawPanes(_this.c.cascadePanes);
-                        }
-                        else {
-                            _this._updateSelection();
-                        }
-                        _this._checkMessage();
-                        _this.s.dt.one('draw', function () {
-                            _this.s.updating = true;
-                            _this.s.dt.page(page).draw(false);
-                            _this.s.updating = false;
-                        });
-                    });
-                }
-            });
-            // PreSelect any selections which have been defined using the preSelect option
-            for (var _h = 0, _j = this.s.panes; _h < _j.length; _h++) {
-                var pane = _j[_h];
-                if (pane !== undefined &&
-                    pane.s.dtPane !== undefined &&
-                    (pane.s.colOpts.preSelect !== undefined && pane.s.colOpts.preSelect.length > 0 ||
-                        pane.customPaneSettings !== null &&
-                            pane.customPaneSettings.preSelect !== undefined &&
-                            pane.customPaneSettings.preSelect.length > 0)) {
-                    var tableLength = pane.s.dtPane.rows().data().toArray().length;
-                    for (var i = 0; i < tableLength; i++) {
-                        if (pane.s.colOpts.preSelect.includes(pane.s.dtPane.cell(i, 0).data()) ||
-                            pane.customPaneSettings !== null &&
-                                pane.customPaneSettings.preSelect !== undefined &&
-                                pane.customPaneSettings.preSelect.includes(pane.s.dtPane.cell(i, 0).data())) {
-                            pane.s.dtPane.row(i).select();
-                        }
-                    }
-                    pane.updateTable();
-                }
-            }
-            if (this.s.selectionList !== undefined && this.s.selectionList.length > 0) {
-                var last = this.s.selectionList[this.s.selectionList.length - 1].index;
-                for (var _k = 0, _l = this.s.panes; _k < _l.length; _k++) {
-                    var pane = _l[_k];
-                    pane.s.lastSelect = pane.s.index === last;
-                }
-            }
-            // If cascadePanes is active then make the previous selections in the order they were previously
-            if (this.s.selectionList.length > 0 && this.c.cascadePanes) {
-                this._cascadeRegen(this.s.selectionList, this.s.selectionList.length);
-            }
-            // Update the title bar to show how many filters have been selected
-            this._updateFilterCount();
-            // If the table is destroyed and restarted then clear the selections so that they do not persist.
-            table.on('destroy.dtsps', function () {
-                for (var _i = 0, _a = _this.s.panes; _i < _a.length; _i++) {
-                    var pane = _a[_i];
-                    pane.destroy();
-                }
-                table.off('.dtsps');
-                _this.dom.collapseAll.off('.dtsps');
-                _this.dom.showAll.off('.dtsps');
-                _this.dom.clearAll.off('.dtsps');
-                _this.dom.container.remove();
-                _this.clearSelections();
-            });
-            if (this.c.collapse) {
-                this._setCollapseListener();
-            }
-            // When the clear All button has been pressed clear all of the selections in the panes
-            if (this.c.clear) {
-                this.dom.clearAll.on('click.dtsps', function () {
-                    _this.clearSelections();
-                });
-            }
-            table.settings()[0]._searchPanes = this;
-            // This state save is required so that state is maintained over multiple refreshes if no actions are made
-            this.s.dt.state.save();
-        };
-        SearchPanes.prototype._prepViewTotal = function (selectTotal) {
-            var filterPane = this.s.filterPane;
-            var filterActive = false;
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (pane.s.dtPane !== undefined) {
-                    var selectLength = pane.s.dtPane.rows({ selected: true }).data().toArray().length;
-                    // If filterPane === -1 then a pane with a selection has not been found yet,
-                    // so set filterPane to that panes index
-                    if (selectLength > 0 && filterPane === -1) {
-                        filterPane = pane.s.index;
-                        filterActive = true;
-                    }
-                    // Then if another pane is found with a selection then set filterPane to null to
-                    // show that multiple panes have selections present
-                    else if (selectLength > 0) {
-                        filterPane = null;
-                    }
-                }
-            }
-            if (selectTotal !== null && selectTotal !== 0) {
-                filterPane = null;
-            }
-            // Update all of the panes to reflect the current state of the filters
-            for (var _b = 0, _c = this.s.panes; _b < _c.length; _b++) {
-                var pane = _c[_b];
-                if (pane.s.dtPane !== undefined) {
-                    pane.s.filteringActive = true;
-                    if (filterPane !== -1 && filterPane !== null && filterPane === pane.s.index ||
-                        filterActive === false) {
-                        pane.s.filteringActive = false;
-                    }
-                }
-            }
-        };
-        /**
-         * Updates the number of filters that have been applied in the title
-         */
-        SearchPanes.prototype._updateFilterCount = function () {
-            var filterCount = 0;
-            // Add the number of all of the filters throughout the panes
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (pane.s.dtPane !== undefined) {
-                    filterCount += pane.getPaneCount();
-                }
-            }
-            // Run the message through the internationalisation method to improve readability
-            var message = this.s.dt.i18n('searchPanes.title', this.c.i18n.title, filterCount);
-            this.dom.title.text(message);
-            if (this.c.filterChanged !== undefined && typeof this.c.filterChanged === 'function') {
-                this.c.filterChanged.call(this.s.dt, filterCount);
-            }
-            if (filterCount === 0) {
-                this.dom.clearAll.addClass(this.classes.disabledButton).attr('disabled', 'true');
-            }
-            else {
-                this.dom.clearAll.removeClass(this.classes.disabledButton).removeAttr('disabled');
-            }
-        };
-        /**
-         * Updates the selectionList when cascade is not in place
-         */
-        SearchPanes.prototype._updateSelection = function () {
-            this.s.selectionList = [];
-            for (var _i = 0, _a = this.s.panes; _i < _a.length; _i++) {
-                var pane = _a[_i];
-                if (pane.s.dtPane !== undefined) {
-                    this.s.selectionList.push({
-                        index: pane.s.index,
-                        protect: false,
-                        rows: pane.s.dtPane.rows({ selected: true }).data().toArray()
-                    });
-                }
-            }
-        };
-        SearchPanes.version = '1.4.0';
-        SearchPanes.classes = {
-            clear: 'dtsp-clear',
-            clearAll: 'dtsp-clearAll',
-            collapseAll: 'dtsp-collapseAll',
-            container: 'dtsp-searchPanes',
-            disabledButton: 'dtsp-disabledButton',
-            emptyMessage: 'dtsp-emptyMessage',
-            hide: 'dtsp-hidden',
-            panes: 'dtsp-panesContainer',
-            search: 'dtsp-search',
-            showAll: 'dtsp-showAll',
-            title: 'dtsp-title',
-            titleRow: 'dtsp-titleRow'
-        };
-        // Define SearchPanes default options
-        SearchPanes.defaults = {
-            cascadePanes: false,
-            clear: true,
-            collapse: true,
-            columns: [],
-            container: function (dt) {
-                return dt.table().container();
-            },
-            filterChanged: undefined,
-            i18n: {
-                clearMessage: 'Clear All',
-                clearPane: '&times;',
-                collapse: {
-                    0: 'SearchPanes',
-                    _: 'SearchPanes (%d)'
-                },
-                collapseMessage: 'Collapse All',
-                count: '{total}',
-                countFiltered: '{shown} ({total})',
-                emptyMessage: '<em>No data</em>',
-                emptyPanes: 'No SearchPanes',
-                loadMessage: 'Loading Search Panes...',
-                showMessage: 'Show All',
-                title: 'Filters Active - %d'
-            },
-            layout: 'auto',
-            order: [],
-            panes: [],
-            viewTotal: false
-        };
-        return SearchPanes;
-    }());
-
-    /*! SearchPanes 1.4.0
-     * 2019-2020 SpryMedia Ltd - datatables.net/license
-     */
-    // DataTables extensions common UMD. Note that this allows for AMD, CommonJS
-    // (with window and jQuery being allowed as parameters to the returned
-    // function) or just default browser loading.
-    (function (factory) {
-        if (typeof define === 'function' && define.amd) {
-            // AMD
-            define(['jquery', 'datatables.net'], function ($) {
-                return factory($, window, document);
-            });
-        }
-        else if (typeof exports === 'object') {
-            // CommonJS
-            module.exports = function (root, $) {
-                if (!root) {
-                    root = window;
-                }
-                if (!$ || !$.fn.dataTable) {
-                    // eslint-disable-next-line @typescript-eslint/no-var-requires
-                    $ = require('datatables.net')(root, $).$;
-                }
-                return factory($, root, root.document);
-            };
-        }
-        else {
-            // Browser - assume jQuery has already been loaded
-            // eslint-disable-next-line no-extra-parens
-            factory(window.jQuery, window, document);
-        }
-    }(function ($, window, document) {
-        setJQuery($);
-        setJQuery$1($);
-        var dataTable = $.fn.dataTable;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.dataTable.SearchPanes = SearchPanes;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.DataTable.SearchPanes = SearchPanes;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.dataTable.SearchPane = SearchPane;
-        // eslint-disable-next-line no-extra-parens
-        $.fn.DataTable.SearchPane = SearchPane;
-        // eslint-disable-next-line no-extra-parens
-        var apiRegister = $.fn.dataTable.Api.register;
-        apiRegister('searchPanes()', function () {
-            return this;
-        });
-        apiRegister('searchPanes.clearSelections()', function () {
-            return this.iterator('table', function (ctx) {
-                if (ctx._searchPanes) {
-                    ctx._searchPanes.clearSelections();
-                }
-            });
-        });
-        apiRegister('searchPanes.rebuildPane()', function (targetIdx, maintainSelections) {
-            return this.iterator('table', function (ctx) {
-                if (ctx._searchPanes) {
-                    ctx._searchPanes.rebuild(targetIdx, maintainSelections);
-                }
-            });
-        });
-        apiRegister('searchPanes.resizePanes()', function () {
-            var ctx = this.context[0];
-            return ctx._searchPanes ?
-                ctx._searchPanes.resizePanes() :
-                null;
-        });
-        apiRegister('searchPanes.container()', function () {
-            var ctx = this.context[0];
-            return ctx._searchPanes
-                ? ctx._searchPanes.getNode()
-                : null;
-        });
-        $.fn.dataTable.ext.buttons.searchPanesClear = {
-            action: function (e, dt, node, config) {
-                dt.searchPanes.clearSelections();
-            },
-            text: 'Clear Panes'
-        };
-        $.fn.dataTable.ext.buttons.searchPanes = {
-            action: function (e, dt, node, config) {
-                e.stopPropagation();
-                this.popover(config._panes.getNode(), {
-                    align: 'dt-container'
-                });
-                config._panes.rebuild(undefined, true);
-            },
-            config: {},
-            init: function (dt, node, config) {
-                var panes = new $.fn.dataTable.SearchPanes(dt, $.extend({
-                    filterChanged: function (count) {
-                        // console.log(dt.context[0])
-                        dt.button(node).text(dt.i18n('searchPanes.collapse', dt.context[0].oLanguage.searchPanes !== undefined ?
-                            dt.context[0].oLanguage.searchPanes.collapse :
-                            dt.context[0]._searchPanes.c.i18n.collapse, count));
-                    }
-                }, config.config));
-                var message = dt.i18n('searchPanes.collapse', panes.c.i18n.collapse, 0);
-                dt.button(node).text(message);
-                config._panes = panes;
-            },
-            text: 'Search Panes'
-        };
-        function _init(settings, options, fromPre) {
-            if (options === void 0) { options = null; }
-            if (fromPre === void 0) { fromPre = false; }
-            var api = new dataTable.Api(settings);
-            var opts = options
-                ? options
-                : api.init().searchPanes || dataTable.defaults.searchPanes;
-            var searchPanes = new SearchPanes(api, opts, fromPre);
-            var node = searchPanes.getNode();
-            return node;
-        }
-        // Attach a listener to the document which listens for DataTables initialisation
-        // events so we can automatically initialise
-        $(document).on('preInit.dt.dtsp', function (e, settings, json) {
-            if (e.namespace !== 'dt') {
-                return;
-            }
-            if (settings.oInit.searchPanes ||
-                dataTable.defaults.searchPanes) {
-                if (!settings._searchPanes) {
-                    _init(settings, null, true);
-                }
-            }
-        });
-        // DataTables `dom` feature option
-        dataTable.ext.feature.push({
-            cFeature: 'P',
-            fnInit: _init
-        });
-        // DataTables 2 layout feature
-        if (dataTable.ext.features) {
-            dataTable.ext.features.register('searchPanes', _init);
-        }
-    }));
-
-}());
-
-
-/*! Bootstrap 5 integration for DataTables' SearchPanes
- * ©2016 SpryMedia Ltd - datatables.net/license
+/**
+ * @summary     Scroller
+ * @description Virtual rendering for DataTables
+ * @version     2.0.6
+ * @author      SpryMedia Ltd (www.sprymedia.co.uk)
+ * @contact     www.sprymedia.co.uk/contact
+ * @copyright   SpryMedia Ltd.
+ *
+ * This source file is free software, available under the following license:
+ *   MIT license - http://datatables.net/license/mit
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
+ *
+ * For details please refer to: http://www.datatables.net
  */
-(function (factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD
-        define(['jquery', 'datatables.net-bs5', 'datatables.net-searchpanes'], function ($) {
-            return factory($, window, document);
-        });
-    }
-    else if (typeof exports === 'object') {
-        // CommonJS
-        module.exports = function (root, $) {
-            if (!root) {
-                root = window;
+
+(function( factory ){
+	if ( typeof define === 'function' && define.amd ) {
+		// AMD
+		define( ['jquery', 'datatables.net'], function ( $ ) {
+			return factory( $, window, document );
+		} );
+	}
+	else if ( typeof exports === 'object' ) {
+		// CommonJS
+		module.exports = function (root, $) {
+			if ( ! root ) {
+				root = window;
+			}
+
+			if ( ! $ || ! $.fn.dataTable ) {
+				$ = require('datatables.net')(root, $).$;
+			}
+
+			return factory( $, root, root.document );
+		};
+	}
+	else {
+		// Browser
+		factory( jQuery, window, document );
+	}
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+
+
+/**
+ * Scroller is a virtual rendering plug-in for DataTables which allows large
+ * datasets to be drawn on screen every quickly. What the virtual rendering means
+ * is that only the visible portion of the table (and a bit to either side to make
+ * the scrolling smooth) is drawn, while the scrolling container gives the
+ * visual impression that the whole table is visible. This is done by making use
+ * of the pagination abilities of DataTables and moving the table around in the
+ * scrolling container DataTables adds to the page. The scrolling container is
+ * forced to the height it would be for the full table display using an extra
+ * element.
+ *
+ * Note that rows in the table MUST all be the same height. Information in a cell
+ * which expands on to multiple lines will cause some odd behaviour in the scrolling.
+ *
+ * Scroller is initialised by simply including the letter 'S' in the sDom for the
+ * table you want to have this feature enabled on. Note that the 'S' must come
+ * AFTER the 't' parameter in `dom`.
+ *
+ * Key features include:
+ *   <ul class="limit_length">
+ *     <li>Speed! The aim of Scroller for DataTables is to make rendering large data sets fast</li>
+ *     <li>Full compatibility with deferred rendering in DataTables for maximum speed</li>
+ *     <li>Display millions of rows</li>
+ *     <li>Integration with state saving in DataTables (scrolling position is saved)</li>
+ *     <li>Easy to use</li>
+ *   </ul>
+ *
+ *  @class
+ *  @constructor
+ *  @global
+ *  @param {object} dt DataTables settings object or API instance
+ *  @param {object} [opts={}] Configuration object for Scroller. Options 
+ *    are defined by {@link Scroller.defaults}
+ *
+ *  @requires jQuery 1.7+
+ *  @requires DataTables 1.10.0+
+ *
+ *  @example
+ *    $(document).ready(function() {
+ *        $('#example').DataTable( {
+ *            "scrollY": "200px",
+ *            "ajax": "media/dataset/large.txt",
+ *            "scroller": true,
+ *            "deferRender": true
+ *        } );
+ *    } );
+ */
+var Scroller = function ( dt, opts ) {
+	/* Sanity check - you just know it will happen */
+	if ( ! (this instanceof Scroller) ) {
+		alert( "Scroller warning: Scroller must be initialised with the 'new' keyword." );
+		return;
+	}
+
+	if ( opts === undefined ) {
+		opts = {};
+	}
+
+	var dtApi = $.fn.dataTable.Api( dt );
+
+	/**
+	 * Settings object which contains customisable information for the Scroller instance
+	 * @namespace
+	 * @private
+	 * @extends Scroller.defaults
+	 */
+	this.s = {
+		/**
+		 * DataTables settings object
+		 *  @type     object
+		 *  @default  Passed in as first parameter to constructor
+		 */
+		dt: dtApi.settings()[0],
+
+		/**
+		 * DataTables API instance
+		 *  @type     DataTable.Api
+		 */
+		dtApi: dtApi,
+
+		/**
+		 * Pixel location of the top of the drawn table in the viewport
+		 *  @type     int
+		 *  @default  0
+		 */
+		tableTop: 0,
+
+		/**
+		 * Pixel location of the bottom of the drawn table in the viewport
+		 *  @type     int
+		 *  @default  0
+		 */
+		tableBottom: 0,
+
+		/**
+		 * Pixel location of the boundary for when the next data set should be loaded and drawn
+		 * when scrolling up the way.
+		 *  @type     int
+		 *  @default  0
+		 *  @private
+		 */
+		redrawTop: 0,
+
+		/**
+		 * Pixel location of the boundary for when the next data set should be loaded and drawn
+		 * when scrolling down the way. Note that this is actually calculated as the offset from
+		 * the top.
+		 *  @type     int
+		 *  @default  0
+		 *  @private
+		 */
+		redrawBottom: 0,
+
+		/**
+		 * Auto row height or not indicator
+		 *  @type     bool
+		 *  @default  0
+		 */
+		autoHeight: true,
+
+		/**
+		 * Number of rows calculated as visible in the visible viewport
+		 *  @type     int
+		 *  @default  0
+		 */
+		viewportRows: 0,
+
+		/**
+		 * setTimeout reference for state saving, used when state saving is enabled in the DataTable
+		 * and when the user scrolls the viewport in order to stop the cookie set taking too much
+		 * CPU!
+		 *  @type     int
+		 *  @default  0
+		 */
+		stateTO: null,
+
+		stateSaveThrottle: function () {},
+
+		/**
+		 * setTimeout reference for the redraw, used when server-side processing is enabled in the
+		 * DataTables in order to prevent DoSing the server
+		 *  @type     int
+		 *  @default  null
+		 */
+		drawTO: null,
+
+		heights: {
+			jump: null,
+			page: null,
+			virtual: null,
+			scroll: null,
+
+			/**
+			 * Height of rows in the table
+			 *  @type     int
+			 *  @default  0
+			 */
+			row: null,
+
+			/**
+			 * Pixel height of the viewport
+			 *  @type     int
+			 *  @default  0
+			 */
+			viewport: null,
+			labelHeight: 0,
+			xbar: 0
+		},
+
+		topRowFloat: 0,
+		scrollDrawDiff: null,
+		loaderVisible: false,
+		forceReposition: false,
+		baseRowTop: 0,
+		baseScrollTop: 0,
+		mousedown: false,
+		lastScrollTop: 0
+	};
+
+	// @todo The defaults should extend a `c` property and the internal settings
+	// only held in the `s` property. At the moment they are mixed
+	this.s = $.extend( this.s, Scroller.oDefaults, opts );
+
+	// Workaround for row height being read from height object (see above comment)
+	this.s.heights.row = this.s.rowHeight;
+
+	/**
+	 * DOM elements used by the class instance
+	 * @private
+	 * @namespace
+	 *
+	 */
+	this.dom = {
+		"force":    document.createElement('div'),
+		"label":    $('<div class="dts_label">0</div>'),
+		"scroller": null,
+		"table":    null,
+		"loader":   null
+	};
+
+	// Attach the instance to the DataTables instance so it can be accessed in
+	// future. Don't initialise Scroller twice on the same table
+	if ( this.s.dt.oScroller ) {
+		return;
+	}
+
+	this.s.dt.oScroller = this;
+
+	/* Let's do it */
+	this.construct();
+};
+
+
+
+$.extend( Scroller.prototype, {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Public methods - to be exposed via the DataTables API
+	 */
+
+	/**
+	 * Calculate and store information about how many rows are to be displayed
+	 * in the scrolling viewport, based on current dimensions in the browser's
+	 * rendering. This can be particularly useful if the table is initially
+	 * drawn in a hidden element - for example in a tab.
+	 *  @param {bool} [redraw=true] Redraw the table automatically after the recalculation, with
+	 *    the new dimensions forming the basis for the draw.
+	 *  @returns {void}
+	 */
+	measure: function ( redraw )
+	{
+		if ( this.s.autoHeight )
+		{
+			this._calcRowHeight();
+		}
+
+		var heights = this.s.heights;
+
+		if ( heights.row ) {
+			heights.viewport = this._parseHeight($(this.dom.scroller).css('max-height'));
+
+			this.s.viewportRows = parseInt( heights.viewport / heights.row, 10 )+1;
+			this.s.dt._iDisplayLength = this.s.viewportRows * this.s.displayBuffer;
+		}
+
+		var label = this.dom.label.outerHeight();
+		
+		heights.xbar = this.dom.scroller.offsetHeight - this.dom.scroller.clientHeight;
+		heights.labelHeight = label;
+
+		if ( redraw === undefined || redraw )
+		{
+			this.s.dt.oInstance.fnDraw( false );
+		}
+	},
+
+	/**
+	 * Get information about current displayed record range. This corresponds to
+	 * the information usually displayed in the "Info" block of the table.
+	 *
+	 * @returns {object} info as an object:
+	 *  {
+	 *      start: {int}, // the 0-indexed record at the top of the viewport
+	 *      end:   {int}, // the 0-indexed record at the bottom of the viewport
+	 *  }
+	*/
+	pageInfo: function()
+	{
+		var 
+			dt = this.s.dt,
+			iScrollTop = this.dom.scroller.scrollTop,
+			iTotal = dt.fnRecordsDisplay(),
+			iPossibleEnd = Math.ceil(this.pixelsToRow(iScrollTop + this.s.heights.viewport, false, this.s.ani));
+
+		return {
+			start: Math.floor(this.pixelsToRow(iScrollTop, false, this.s.ani)),
+			end: iTotal < iPossibleEnd ? iTotal-1 : iPossibleEnd-1
+		};
+	},
+
+	/**
+	 * Calculate the row number that will be found at the given pixel position
+	 * (y-scroll).
+	 *
+	 * Please note that when the height of the full table exceeds 1 million
+	 * pixels, Scroller switches into a non-linear mode for the scrollbar to fit
+	 * all of the records into a finite area, but this function returns a linear
+	 * value (relative to the last non-linear positioning).
+	 *  @param {int} pixels Offset from top to calculate the row number of
+	 *  @param {int} [intParse=true] If an integer value should be returned
+	 *  @param {int} [virtual=false] Perform the calculations in the virtual domain
+	 *  @returns {int} Row index
+	 */
+	pixelsToRow: function ( pixels, intParse, virtual )
+	{
+		var diff = pixels - this.s.baseScrollTop;
+		var row = virtual ?
+			(this._domain( 'physicalToVirtual', this.s.baseScrollTop ) + diff) / this.s.heights.row :
+			( diff / this.s.heights.row ) + this.s.baseRowTop;
+
+		return intParse || intParse === undefined ?
+			parseInt( row, 10 ) :
+			row;
+	},
+
+	/**
+	 * Calculate the pixel position from the top of the scrolling container for
+	 * a given row
+	 *  @param {int} iRow Row number to calculate the position of
+	 *  @returns {int} Pixels
+	 */
+	rowToPixels: function ( rowIdx, intParse, virtual )
+	{
+		var pixels;
+		var diff = rowIdx - this.s.baseRowTop;
+
+		if ( virtual ) {
+			pixels = this._domain( 'virtualToPhysical', this.s.baseScrollTop );
+			pixels += diff * this.s.heights.row;
+		}
+		else {
+			pixels = this.s.baseScrollTop;
+			pixels += diff * this.s.heights.row;
+		}
+
+		return intParse || intParse === undefined ?
+			parseInt( pixels, 10 ) :
+			pixels;
+	},
+
+
+	/**
+	 * Calculate the row number that will be found at the given pixel position (y-scroll)
+	 *  @param {int} row Row index to scroll to
+	 *  @param {bool} [animate=true] Animate the transition or not
+	 *  @returns {void}
+	 */
+	scrollToRow: function ( row, animate )
+	{
+		var that = this;
+		var ani = false;
+		var px = this.rowToPixels( row );
+
+		// We need to know if the table will redraw or not before doing the
+		// scroll. If it will not redraw, then we need to use the currently
+		// displayed table, and scroll with the physical pixels. Otherwise, we
+		// need to calculate the table's new position from the virtual
+		// transform.
+		var preRows = ((this.s.displayBuffer-1)/2) * this.s.viewportRows;
+		var drawRow = row - preRows;
+		if ( drawRow < 0 ) {
+			drawRow = 0;
+		}
+
+		if ( (px > this.s.redrawBottom || px < this.s.redrawTop) && this.s.dt._iDisplayStart !== drawRow ) {
+			ani = true;
+			px = this._domain( 'virtualToPhysical', row * this.s.heights.row );
+
+			// If we need records outside the current draw region, but the new
+			// scrolling position is inside that (due to the non-linear nature
+			// for larger numbers of records), we need to force position update.
+			if ( this.s.redrawTop < px && px < this.s.redrawBottom ) {
+				this.s.forceReposition = true;
+				animate = false;
+			}
+		}
+
+		if ( animate === undefined || animate )
+		{
+			this.s.ani = ani;
+			$(this.dom.scroller).animate( {
+				"scrollTop": px
+			}, function () {
+				// This needs to happen after the animation has completed and
+				// the final scroll event fired
+				setTimeout( function () {
+					that.s.ani = false;
+				}, 250 );
+			} );
+		}
+		else
+		{
+			$(this.dom.scroller).scrollTop( px );
+		}
+	},
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Constructor
+	 */
+
+	/**
+	 * Initialisation for Scroller
+	 *  @returns {void}
+	 *  @private
+	 */
+	construct: function ()
+	{
+		var that = this;
+		var dt = this.s.dtApi;
+
+		/* Sanity check */
+		if ( !this.s.dt.oFeatures.bPaginate ) {
+			this.s.dt.oApi._fnLog( this.s.dt, 0, 'Pagination must be enabled for Scroller' );
+			return;
+		}
+
+		/* Insert a div element that we can use to force the DT scrolling container to
+		 * the height that would be required if the whole table was being displayed
+		 */
+		this.dom.force.style.position = "relative";
+		this.dom.force.style.top = "0px";
+		this.dom.force.style.left = "0px";
+		this.dom.force.style.width = "1px";
+
+		this.dom.scroller = $('div.'+this.s.dt.oClasses.sScrollBody, this.s.dt.nTableWrapper)[0];
+		this.dom.scroller.appendChild( this.dom.force );
+		this.dom.scroller.style.position = "relative";
+
+		this.dom.table = $('>table', this.dom.scroller)[0];
+		this.dom.table.style.position = "absolute";
+		this.dom.table.style.top = "0px";
+		this.dom.table.style.left = "0px";
+
+		// Add class to 'announce' that we are a Scroller table
+		$(dt.table().container()).addClass('dts DTS');
+
+		// Add a 'loading' indicator
+		if ( this.s.loadingIndicator )
+		{
+			this.dom.loader = $('<div class="dataTables_processing dts_loading">'+this.s.dt.oLanguage.sLoadingRecords+'</div>')
+				.css('display', 'none');
+
+			$(this.dom.scroller.parentNode)
+				.css('position', 'relative')
+				.append( this.dom.loader );
+		}
+
+		this.dom.label.appendTo(this.dom.scroller);
+
+		/* Initial size calculations */
+		if ( this.s.heights.row && this.s.heights.row != 'auto' )
+		{
+			this.s.autoHeight = false;
+		}
+
+		// Scrolling callback to see if a page change is needed
+		this.s.ingnoreScroll = true;
+		$(this.dom.scroller).on( 'scroll.dt-scroller', function (e) {
+			that._scroll.call( that );
+		} );
+
+		// In iOS we catch the touchstart event in case the user tries to scroll
+		// while the display is already scrolling
+		$(this.dom.scroller).on('touchstart.dt-scroller', function () {
+			that._scroll.call( that );
+		} );
+
+		$(this.dom.scroller)
+			.on('mousedown.dt-scroller', function () {
+				that.s.mousedown = true;
+			})
+			.on('mouseup.dt-scroller', function () {
+				that.s.labelVisible = false;
+				that.s.mousedown = false;
+				that.dom.label.css('display', 'none');
+			});
+
+		// On resize, update the information element, since the number of rows shown might change
+		$(window).on( 'resize.dt-scroller', function () {
+			that.measure( false );
+			that._info();
+		} );
+
+		// Add a state saving parameter to the DT state saving so we can restore the exact
+		// position of the scrolling.
+		var initialStateSave = true;
+		var loadedState = dt.state.loaded();
+
+		dt.on( 'stateSaveParams.scroller', function ( e, settings, data ) {
+			if ( initialStateSave && loadedState ) {
+				data.scroller = loadedState.scroller;
+				initialStateSave = false;
+				that.s.lastScrollTop = data.scroller.scrollTop;
+			}
+			else {
+				// Need to used the saved position on init
+				data.scroller = {
+					topRow: that.s.topRowFloat,
+					baseScrollTop: that.s.baseScrollTop,
+					baseRowTop: that.s.baseRowTop,
+					scrollTop: that.s.lastScrollTop
+				};
+			}
+		} );
+
+		dt.on( 'stateLoadParams.scroller', function( e, settings, data ) {
+			if (data.scroller !== undefined) {
+				that.scrollToRow(data.scroller.topRow);
+			}
+		});
+
+		if ( loadedState && loadedState.scroller ) {
+			this.s.topRowFloat = loadedState.scroller.topRow;
+			this.s.baseScrollTop = loadedState.scroller.baseScrollTop;
+			this.s.baseRowTop = loadedState.scroller.baseRowTop;
+		}
+
+		this.measure( false );
+	
+		that.s.stateSaveThrottle = that.s.dt.oApi._fnThrottle( function () {
+			that.s.dtApi.state.save();
+		}, 500 );
+
+		dt.on( 'init.scroller', function () {
+			that.measure( false );
+
+			// Setting to `jump` will instruct _draw to calculate the scroll top
+			// position
+			that.s.scrollType = 'jump';
+			that._draw();
+
+			// Update the scroller when the DataTable is redrawn
+			dt.on( 'draw.scroller', function () {
+				that._draw();
+			});
+		} );
+
+		// Set height before the draw happens, allowing everything else to update
+		// on draw complete without worry for roder.
+		dt.on( 'preDraw.dt.scroller', function () {
+			that._scrollForce();
+		} );
+
+		// Destructor
+		dt.on( 'destroy.scroller', function () {
+			$(window).off( 'resize.dt-scroller' );
+			$(that.dom.scroller).off('.dt-scroller');
+			$(that.s.dt.nTable).off( '.scroller' );
+
+			$(that.s.dt.nTableWrapper).removeClass('DTS');
+			$('div.DTS_Loading', that.dom.scroller.parentNode).remove();
+
+			that.dom.table.style.position = "";
+			that.dom.table.style.top = "";
+			that.dom.table.style.left = "";
+		} );
+	},
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Private methods
+	 */
+
+	/**
+	 * Automatic calculation of table row height. This is just a little tricky here as using
+	 * initialisation DataTables has tale the table out of the document, so we need to create
+	 * a new table and insert it into the document, calculate the row height and then whip the
+	 * table out.
+	 *  @returns {void}
+	 *  @private
+	 */
+	_calcRowHeight: function ()
+	{
+		var dt = this.s.dt;
+		var origTable = dt.nTable;
+		var nTable = origTable.cloneNode( false );
+		var tbody = $('<tbody/>').appendTo( nTable );
+		var container = $(
+			'<div class="'+dt.oClasses.sWrapper+' DTS">'+
+				'<div class="'+dt.oClasses.sScrollWrapper+'">'+
+					'<div class="'+dt.oClasses.sScrollBody+'"></div>'+
+				'</div>'+
+			'</div>'
+		);
+
+		// Want 3 rows in the sizing table so :first-child and :last-child
+		// CSS styles don't come into play - take the size of the middle row
+		$('tbody tr:lt(4)', origTable).clone().appendTo( tbody );
+        var rowsCount = $('tr', tbody).length;
+
+        if ( rowsCount === 1 ) {
+            tbody.prepend('<tr><td>&#160;</td></tr>');
+            tbody.append('<tr><td>&#160;</td></tr>');
+		}
+		else {
+            for (; rowsCount < 3; rowsCount++) {
+                tbody.append('<tr><td>&#160;</td></tr>');
             }
-            if (!$ || !$.fn.dataTable) {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                $ = require('datatables.net-bs5')(root, $).$;
-            }
-            if (!$.fn.dataTable.SearchPanes) {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                require('datatables.net-searchpanes')(root, $);
-            }
-            return factory($, root, root.document);
-        };
-    }
-    else {
-        // Browser
-        factory(jQuery, window, document);
-    }
-}(function ($, window, document) {
-    'use strict';
-    var dataTable = $.fn.dataTable;
-    $.extend(true, dataTable.SearchPane.classes, {
-        buttonGroup: 'btn-group',
-        disabledButton: 'disabled',
-        narrow: 'col',
-        pane: {
-            container: 'table'
-        },
-        paneButton: 'btn btn-light',
-        pill: 'badge rounded-pill bg-secondary',
-        search: 'form-control search',
-        table: 'table table-sm table-borderless',
-        topRow: 'dtsp-topRow'
-    });
-    $.extend(true, dataTable.SearchPanes.classes, {
-        clearAll: 'dtsp-clearAll btn btn-light',
-        collapseAll: 'dtsp-collapseAll btn btn-light',
-        container: 'dtsp-searchPanes',
-        disabledButton: 'disabled',
-        panes: 'dtsp-panes dtsp-panesContainer',
-        showAll: 'dtsp-showAll btn btn-light',
-        title: 'dtsp-title',
-        titleRow: 'dtsp-titleRow'
-    });
-    return dataTable.searchPanes;
+		}
+	
+		$('div.'+dt.oClasses.sScrollBody, container).append( nTable );
+
+		// If initialised using `dom`, use the holding element as the insert point
+		var insertEl = this.s.dt.nHolding || origTable.parentNode;
+
+		if ( ! $(insertEl).is(':visible') ) {
+			insertEl = 'body';
+		}
+
+		// Remove form element links as they might select over others (particularly radio and checkboxes)
+		container.find("input").removeAttr("name");
+
+		container.appendTo( insertEl );
+		this.s.heights.row = $('tr', tbody).eq(1).outerHeight();
+
+		container.remove();
+	},
+
+	/**
+	 * Draw callback function which is fired when the DataTable is redrawn. The main function of
+	 * this method is to position the drawn table correctly the scrolling container for the rows
+	 * that is displays as a result of the scrolling position.
+	 *  @returns {void}
+	 *  @private
+	 */
+	_draw: function ()
+	{
+		var
+			that = this,
+			heights = this.s.heights,
+			iScrollTop = this.dom.scroller.scrollTop,
+			iTableHeight = $(this.s.dt.nTable).height(),
+			displayStart = this.s.dt._iDisplayStart,
+			displayLen = this.s.dt._iDisplayLength,
+			displayEnd = this.s.dt.fnRecordsDisplay();
+
+		// Disable the scroll event listener while we are updating the DOM
+		this.s.skip = true;
+
+		// If paging is reset
+		if ( (this.s.dt.bSorted || this.s.dt.bFiltered) && displayStart === 0 && !this.s.dt._drawHold ) {
+			this.s.topRowFloat = 0;
+		}
+
+		iScrollTop = this.s.scrollType === 'jump' ?
+			this._domain( 'virtualToPhysical', this.s.topRowFloat * heights.row ) :
+			iScrollTop;
+
+		// Store positional information so positional calculations can be based
+		// upon the current table draw position
+		this.s.baseScrollTop = iScrollTop;
+		this.s.baseRowTop = this.s.topRowFloat;
+
+		// Position the table in the virtual scroller
+		var tableTop = iScrollTop - ((this.s.topRowFloat - displayStart) * heights.row);
+		if ( displayStart === 0 ) {
+			tableTop = 0;
+		}
+		else if ( displayStart + displayLen >= displayEnd ) {
+			tableTop = heights.scroll - iTableHeight;
+		}
+
+		this.dom.table.style.top = tableTop+'px';
+
+		/* Cache some information for the scroller */
+		this.s.tableTop = tableTop;
+		this.s.tableBottom = iTableHeight + this.s.tableTop;
+
+		// Calculate the boundaries for where a redraw will be triggered by the
+		// scroll event listener
+		var boundaryPx = (iScrollTop - this.s.tableTop) * this.s.boundaryScale;
+		this.s.redrawTop = iScrollTop - boundaryPx;
+		this.s.redrawBottom = iScrollTop + boundaryPx > heights.scroll - heights.viewport - heights.row ?
+			heights.scroll - heights.viewport - heights.row :
+			iScrollTop + boundaryPx;
+
+		this.s.skip = false;
+
+		if(that.s.ingnoreScroll) {
+			// Restore the scrolling position that was saved by DataTable's state
+			// saving Note that this is done on the second draw when data is Ajax
+			// sourced, and the first draw when DOM soured
+			if ( this.s.dt.oFeatures.bStateSave && this.s.dt.oLoadedState !== null &&
+				 typeof this.s.dt.oLoadedState.scroller != 'undefined' )
+			{
+				// A quirk of DataTables is that the draw callback will occur on an
+				// empty set if Ajax sourced, but not if server-side processing.
+				var ajaxSourced = (this.s.dt.sAjaxSource || that.s.dt.ajax) && ! this.s.dt.oFeatures.bServerSide ?
+					true :
+					false;
+	
+				if ( ( ajaxSourced && this.s.dt.iDraw >= 2) ||
+					 (!ajaxSourced && this.s.dt.iDraw >= 1) )
+				{
+					setTimeout( function () {
+						$(that.dom.scroller).scrollTop( that.s.dt.oLoadedState.scroller.scrollTop );
+	
+						// In order to prevent layout thrashing we need another
+						// small delay
+						setTimeout( function () {
+							that.s.ingnoreScroll = false;
+						}, 0 );
+					}, 0 );
+				}
+			}
+			else {
+				that.s.ingnoreScroll = false;
+			}
+		}
+
+
+		// Because of the order of the DT callbacks, the info update will
+		// take precedence over the one we want here. So a 'thread' break is
+		// needed.  Only add the thread break if bInfo is set
+		if ( this.s.dt.oFeatures.bInfo ) {
+			setTimeout( function () {
+				that._info.call( that );
+			}, 0 );
+		}
+
+		$(this.s.dt.nTable).triggerHandler('position.dts.dt', tableTop);
+
+		// Hide the loading indicator
+		if ( this.dom.loader && this.s.loaderVisible ) {
+			this.dom.loader.css( 'display', 'none' );
+			this.s.loaderVisible = false;
+		}
+	},
+
+	/**
+	 * Convert from one domain to another. The physical domain is the actual
+	 * pixel count on the screen, while the virtual is if we had browsers which
+	 * had scrolling containers of infinite height (i.e. the absolute value)
+	 *
+	 *  @param {string} dir Domain transform direction, `virtualToPhysical` or
+	 *    `physicalToVirtual` 
+	 *  @returns {number} Calculated transform
+	 *  @private
+	 */
+	_domain: function ( dir, val )
+	{
+		var heights = this.s.heights;
+		var diff;
+		var magic = 10000; // the point at which the non-linear calculations start to happen
+
+		// If the virtual and physical height match, then we use a linear
+		// transform between the two, allowing the scrollbar to be linear
+		if ( heights.virtual === heights.scroll ) {
+			return val;
+		}
+
+		// In the first 10k pixels and the last 10k pixels, we want the scrolling
+		// to be linear. After that it can be non-linear. It would be unusual for
+		// anyone to mouse wheel through that much.
+		if ( val < magic ) {
+			return val;
+		}
+		else if ( dir === 'virtualToPhysical' && val >= heights.virtual - magic ) {
+			diff = heights.virtual - val;
+			return heights.scroll - diff;
+		}
+		else if ( dir === 'physicalToVirtual' && val >= heights.scroll - magic ) {
+			diff = heights.scroll - val;
+			return heights.virtual - diff;
+		}
+
+		// Otherwise, we want a non-linear scrollbar to take account of the
+		// redrawing regions at the start and end of the table, otherwise these
+		// can stutter badly - on large tables 30px (for example) scroll might
+		// be hundreds of rows, so the table would be redrawing every few px at
+		// the start and end. Use a simple linear eq. to stop this, effectively
+		// causing a kink in the scrolling ratio. It does mean the scrollbar is
+		// non-linear, but with such massive data sets, the scrollbar is going
+		// to be a best guess anyway
+		var m = (heights.virtual - magic - magic) / (heights.scroll - magic - magic);
+		var c = magic - (m*magic);
+
+		return dir === 'virtualToPhysical' ?
+			(val-c) / m :
+			(m*val) + c;
+	},
+
+	/**
+	 * Update any information elements that are controlled by the DataTable based on the scrolling
+	 * viewport and what rows are visible in it. This function basically acts in the same way as
+	 * _fnUpdateInfo in DataTables, and effectively replaces that function.
+	 *  @returns {void}
+	 *  @private
+	 */
+	_info: function ()
+	{
+		if ( !this.s.dt.oFeatures.bInfo )
+		{
+			return;
+		}
+
+		var
+			dt = this.s.dt,
+			language = dt.oLanguage,
+			iScrollTop = this.dom.scroller.scrollTop,
+			iStart = Math.floor( this.pixelsToRow(iScrollTop, false, this.s.ani)+1 ),
+			iMax = dt.fnRecordsTotal(),
+			iTotal = dt.fnRecordsDisplay(),
+			iPossibleEnd = Math.ceil( this.pixelsToRow(iScrollTop+this.s.heights.viewport, false, this.s.ani) ),
+			iEnd = iTotal < iPossibleEnd ? iTotal : iPossibleEnd,
+			sStart = dt.fnFormatNumber( iStart ),
+			sEnd = dt.fnFormatNumber( iEnd ),
+			sMax = dt.fnFormatNumber( iMax ),
+			sTotal = dt.fnFormatNumber( iTotal ),
+			sOut;
+
+		if ( dt.fnRecordsDisplay() === 0 &&
+			   dt.fnRecordsDisplay() == dt.fnRecordsTotal() )
+		{
+			/* Empty record set */
+			sOut = language.sInfoEmpty+ language.sInfoPostFix;
+		}
+		else if ( dt.fnRecordsDisplay() === 0 )
+		{
+			/* Empty record set after filtering */
+			sOut = language.sInfoEmpty +' '+
+				language.sInfoFiltered.replace('_MAX_', sMax)+
+					language.sInfoPostFix;
+		}
+		else if ( dt.fnRecordsDisplay() == dt.fnRecordsTotal() )
+		{
+			/* Normal record set */
+			sOut = language.sInfo.
+					replace('_START_', sStart).
+					replace('_END_',   sEnd).
+					replace('_MAX_',   sMax).
+					replace('_TOTAL_', sTotal)+
+				language.sInfoPostFix;
+		}
+		else
+		{
+			/* Record set after filtering */
+			sOut = language.sInfo.
+					replace('_START_', sStart).
+					replace('_END_',   sEnd).
+					replace('_MAX_',   sMax).
+					replace('_TOTAL_', sTotal) +' '+
+				language.sInfoFiltered.replace(
+					'_MAX_',
+					dt.fnFormatNumber(dt.fnRecordsTotal())
+				)+
+				language.sInfoPostFix;
+		}
+
+		var callback = language.fnInfoCallback;
+		if ( callback ) {
+			sOut = callback.call( dt.oInstance,
+				dt, iStart, iEnd, iMax, iTotal, sOut
+			);
+		}
+
+		var n = dt.aanFeatures.i;
+		if ( typeof n != 'undefined' )
+		{
+			for ( var i=0, iLen=n.length ; i<iLen ; i++ )
+			{
+				$(n[i]).html( sOut );
+			}
+		}
+
+		// DT doesn't actually (yet) trigger this event, but it will in future
+		$(dt.nTable).triggerHandler( 'info.dt' );
+	},
+
+	/**
+	 * Parse CSS height property string as number
+	 *
+	 * An attempt is made to parse the string as a number. Currently supported units are 'px',
+	 * 'vh', and 'rem'. 'em' is partially supported; it works as long as the parent element's
+	 * font size matches the body element. Zero is returned for unrecognized strings.
+	 *  @param {string} cssHeight CSS height property string
+	 *  @returns {number} height
+	 *  @private
+	 */
+	_parseHeight: function(cssHeight) {
+		var height;
+		var matches = /^([+-]?(?:\d+(?:\.\d+)?|\.\d+))(px|em|rem|vh)$/.exec(cssHeight);
+
+		if (matches === null) {
+			return 0;
+		}
+
+		var value = parseFloat(matches[1]);
+		var unit = matches[2];
+
+		if ( unit === 'px' ) {
+			height = value;
+		}
+		else if ( unit === 'vh' ) {
+			height = ( value / 100 ) * $(window).height();
+		}
+		else if ( unit === 'rem' ) {
+			height = value * parseFloat($(':root').css('font-size'));
+		}
+		else if ( unit === 'em' ) {
+			height = value * parseFloat($('body').css('font-size'));
+		}
+
+		return height ?
+			height :
+			0;
+	},
+
+	/**
+	 * Scrolling function - fired whenever the scrolling position is changed.
+	 * This method needs to use the stored values to see if the table should be
+	 * redrawn as we are moving towards the end of the information that is
+	 * currently drawn or not. If needed, then it will redraw the table based on
+	 * the new position.
+	 *  @returns {void}
+	 *  @private
+	 */
+	_scroll: function ()
+	{
+		var
+			that = this,
+			heights = this.s.heights,
+			iScrollTop = this.dom.scroller.scrollTop,
+			iTopRow;
+
+		if ( this.s.skip ) {
+			return;
+		}
+
+		if ( this.s.ingnoreScroll ) {
+			return;
+		}
+
+		if ( iScrollTop === this.s.lastScrollTop ) {
+			return;
+		}
+
+		/* If the table has been sorted or filtered, then we use the redraw that
+		 * DataTables as done, rather than performing our own
+		 */
+		if ( this.s.dt.bFiltered || this.s.dt.bSorted ) {
+			this.s.lastScrollTop = 0;
+			return;
+		}
+
+		/* Update the table's information display for what is now in the viewport */
+		this._info();
+
+		/* We don't want to state save on every scroll event - that's heavy
+		 * handed, so use a timeout to update the state saving only when the
+		 * scrolling has finished
+		 */
+		clearTimeout( this.s.stateTO );
+		this.s.stateTO = setTimeout( function () {
+			that.s.dtApi.state.save();
+		}, 250 );
+
+		this.s.scrollType = Math.abs(iScrollTop - this.s.lastScrollTop) > heights.viewport ?
+			'jump' :
+			'cont';
+
+		this.s.topRowFloat = this.s.scrollType === 'cont' ?
+			this.pixelsToRow( iScrollTop, false, false ) :
+			this._domain( 'physicalToVirtual', iScrollTop ) / heights.row;
+
+		if ( this.s.topRowFloat < 0 ) {
+			this.s.topRowFloat = 0;
+		}
+
+		/* Check if the scroll point is outside the trigger boundary which would required
+		 * a DataTables redraw
+		 */
+		if ( this.s.forceReposition || iScrollTop < this.s.redrawTop || iScrollTop > this.s.redrawBottom ) {
+			var preRows = Math.ceil( ((this.s.displayBuffer-1)/2) * this.s.viewportRows );
+
+			iTopRow = parseInt(this.s.topRowFloat, 10) - preRows;
+			this.s.forceReposition = false;
+
+			if ( iTopRow <= 0 ) {
+				/* At the start of the table */
+				iTopRow = 0;
+			}
+			else if ( iTopRow + this.s.dt._iDisplayLength > this.s.dt.fnRecordsDisplay() ) {
+				/* At the end of the table */
+				iTopRow = this.s.dt.fnRecordsDisplay() - this.s.dt._iDisplayLength;
+				if ( iTopRow < 0 ) {
+					iTopRow = 0;
+				}
+			}
+			else if ( iTopRow % 2 !== 0 ) {
+				// For the row-striping classes (odd/even) we want only to start
+				// on evens otherwise the stripes will change between draws and
+				// look rubbish
+				iTopRow++;
+			}
+
+			// Store calcuated value, in case the following condition is not met, but so
+			// that the draw function will still use it.
+			this.s.targetTop = iTopRow;
+
+			if ( iTopRow != this.s.dt._iDisplayStart ) {
+				/* Cache the new table position for quick lookups */
+				this.s.tableTop = $(this.s.dt.nTable).offset().top;
+				this.s.tableBottom = $(this.s.dt.nTable).height() + this.s.tableTop;
+
+				var draw = function () {
+					that.s.dt._iDisplayStart = that.s.targetTop;
+					that.s.dt.oApi._fnDraw( that.s.dt );
+				};
+
+				/* Do the DataTables redraw based on the calculated start point - note that when
+				 * using server-side processing we introduce a small delay to not DoS the server...
+				 */
+				if ( this.s.dt.oFeatures.bServerSide ) {
+					this.s.forceReposition = true;
+
+					clearTimeout( this.s.drawTO );
+					this.s.drawTO = setTimeout( draw, this.s.serverWait );
+				}
+				else {
+					draw();
+				}
+
+				if ( this.dom.loader && ! this.s.loaderVisible ) {
+					this.dom.loader.css( 'display', 'block' );
+					this.s.loaderVisible = true;
+				}
+			}
+		}
+		else {
+			this.s.topRowFloat = this.pixelsToRow( iScrollTop, false, true );
+		}
+
+		this.s.lastScrollTop = iScrollTop;
+		this.s.stateSaveThrottle();
+
+		if ( this.s.scrollType === 'jump' && this.s.mousedown ) {
+			this.s.labelVisible = true;
+		}
+		if (this.s.labelVisible) {
+			var labelFactor = (heights.viewport-heights.labelHeight - heights.xbar) / heights.scroll;
+
+			this.dom.label
+				.html( this.s.dt.fnFormatNumber( parseInt( this.s.topRowFloat, 10 )+1 ) )
+				.css( 'top', iScrollTop + (iScrollTop * labelFactor) )
+				.css( 'right', 10 - this.dom.scroller.scrollLeft)
+				.css( 'display', 'block' );
+		}
+	},
+
+	/**
+	 * Force the scrolling container to have height beyond that of just the
+	 * table that has been drawn so the user can scroll the whole data set.
+	 *
+	 * Note that if the calculated required scrolling height exceeds a maximum
+	 * value (1 million pixels - hard-coded) the forcing element will be set
+	 * only to that maximum value and virtual / physical domain transforms will
+	 * be used to allow Scroller to display tables of any number of records.
+	 *  @returns {void}
+	 *  @private
+	 */
+	_scrollForce: function ()
+	{
+		var heights = this.s.heights;
+		var max = 1000000;
+
+		heights.virtual = heights.row * this.s.dt.fnRecordsDisplay();
+		heights.scroll = heights.virtual;
+
+		if ( heights.scroll > max ) {
+			heights.scroll = max;
+		}
+
+		// Minimum height so there is always a row visible (the 'no rows found'
+		// if reduced to zero filtering)
+		this.dom.force.style.height = heights.scroll > this.s.heights.row ?
+			heights.scroll+'px' :
+			this.s.heights.row+'px';
+	}
+} );
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Statics
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+
+/**
+ * Scroller default settings for initialisation
+ *  @namespace
+ *  @name Scroller.defaults
+ *  @static
+ */
+Scroller.defaults = {
+	/**
+	 * Scroller uses the boundary scaling factor to decide when to redraw the table - which it
+	 * typically does before you reach the end of the currently loaded data set (in order to
+	 * allow the data to look continuous to a user scrolling through the data). If given as 0
+	 * then the table will be redrawn whenever the viewport is scrolled, while 1 would not
+	 * redraw the table until the currently loaded data has all been shown. You will want
+	 * something in the middle - the default factor of 0.5 is usually suitable.
+	 *  @type     float
+	 *  @default  0.5
+	 *  @static
+	 */
+	boundaryScale: 0.5,
+
+	/**
+	 * The display buffer is what Scroller uses to calculate how many rows it should pre-fetch
+	 * for scrolling. Scroller automatically adjusts DataTables' display length to pre-fetch
+	 * rows that will be shown in "near scrolling" (i.e. just beyond the current display area).
+	 * The value is based upon the number of rows that can be displayed in the viewport (i.e.
+	 * a value of 1), and will apply the display range to records before before and after the
+	 * current viewport - i.e. a factor of 3 will allow Scroller to pre-fetch 1 viewport's worth
+	 * of rows before the current viewport, the current viewport's rows and 1 viewport's worth
+	 * of rows after the current viewport. Adjusting this value can be useful for ensuring
+	 * smooth scrolling based on your data set.
+	 *  @type     int
+	 *  @default  7
+	 *  @static
+	 */
+	displayBuffer: 9,
+
+	/**
+	 * Show (or not) the loading element in the background of the table. Note that you should
+	 * include the dataTables.scroller.css file for this to be displayed correctly.
+	 *  @type     boolean
+	 *  @default  false
+	 *  @static
+	 */
+	loadingIndicator: false,
+
+	/**
+	 * Scroller will attempt to automatically calculate the height of rows for it's internal
+	 * calculations. However the height that is used can be overridden using this parameter.
+	 *  @type     int|string
+	 *  @default  auto
+	 *  @static
+	 */
+	rowHeight: "auto",
+
+	/**
+	 * When using server-side processing, Scroller will wait a small amount of time to allow
+	 * the scrolling to finish before requesting more data from the server. This prevents
+	 * you from DoSing your own server! The wait time can be configured by this parameter.
+	 *  @type     int
+	 *  @default  200
+	 *  @static
+	 */
+	serverWait: 200
+};
+
+Scroller.oDefaults = Scroller.defaults;
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Constants
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/**
+ * Scroller version
+ *  @type      String
+ *  @default   See code
+ *  @name      Scroller.version
+ *  @static
+ */
+Scroller.version = "2.0.6";
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Initialisation
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// Attach a listener to the document which listens for DataTables initialisation
+// events so we can automatically initialise
+$(document).on( 'preInit.dt.dtscroller', function (e, settings) {
+	if ( e.namespace !== 'dt' ) {
+		return;
+	}
+
+	var init = settings.oInit.scroller;
+	var defaults = DataTable.defaults.scroller;
+
+	if ( init || defaults ) {
+		var opts = $.extend( {}, init, defaults );
+
+		if ( init !== false ) {
+			new Scroller( settings, opts  );
+		}
+	}
+} );
+
+
+// Attach Scroller to DataTables so it can be accessed as an 'extra'
+$.fn.dataTable.Scroller = Scroller;
+$.fn.DataTable.Scroller = Scroller;
+
+
+// DataTables 1.10 API method aliases
+var Api = $.fn.dataTable.Api;
+
+Api.register( 'scroller()', function () {
+	return this;
+} );
+
+// Undocumented and deprecated - is it actually useful at all?
+Api.register( 'scroller().rowToPixels()', function ( rowIdx, intParse, virtual ) {
+	var ctx = this.context;
+
+	if ( ctx.length && ctx[0].oScroller ) {
+		return ctx[0].oScroller.rowToPixels( rowIdx, intParse, virtual );
+	}
+	// undefined
+} );
+
+// Undocumented and deprecated - is it actually useful at all?
+Api.register( 'scroller().pixelsToRow()', function ( pixels, intParse, virtual ) {
+	var ctx = this.context;
+
+	if ( ctx.length && ctx[0].oScroller ) {
+		return ctx[0].oScroller.pixelsToRow( pixels, intParse, virtual );
+	}
+	// undefined
+} );
+
+// `scroller().scrollToRow()` is undocumented and deprecated. Use `scroller.toPosition()
+Api.register( ['scroller().scrollToRow()', 'scroller.toPosition()'], function ( idx, ani ) {
+	this.iterator( 'table', function ( ctx ) {
+		if ( ctx.oScroller ) {
+			ctx.oScroller.scrollToRow( idx, ani );
+		}
+	} );
+
+	return this;
+} );
+
+Api.register( 'row().scrollTo()', function ( ani ) {
+	var that = this;
+
+	this.iterator( 'row', function ( ctx, rowIdx ) {
+		if ( ctx.oScroller ) {
+			var displayIdx = that
+				.rows( { order: 'applied', search: 'applied' } )
+				.indexes()
+				.indexOf( rowIdx );
+
+			ctx.oScroller.scrollToRow( displayIdx, ani );
+		}
+	} );
+
+	return this;
+} );
+
+Api.register( 'scroller.measure()', function ( redraw ) {
+	this.iterator( 'table', function ( ctx ) {
+		if ( ctx.oScroller ) {
+			ctx.oScroller.measure( redraw );
+		}
+	} );
+
+	return this;
+} );
+
+Api.register( 'scroller.page()', function() {
+	var ctx = this.context;
+
+	if ( ctx.length && ctx[0].oScroller ) {
+		return ctx[0].oScroller.pageInfo();
+	}
+	// undefined
+} );
+
+return Scroller;
 }));
 
 
-/*! Select for DataTables 1.3.3
+/*! Select for DataTables 1.4.0
  * 2015-2021 SpryMedia Ltd - datatables.net/license/mit
  */
 
@@ -28739,7 +24220,7 @@ return DataTable.Responsive;
  * @summary     Select for DataTables
  * @description A collection of API methods, events and buttons for DataTables
  *   that provides selection options of the items in a DataTable
- * @version     1.3.3
+ * @version     1.4.0
  * @file        dataTables.select.js
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
  * @contact     datatables.net/forums
@@ -28787,10 +24268,63 @@ var DataTable = $.fn.dataTable;
 // Version information for debugger
 DataTable.select = {};
 
-DataTable.select.version = '1.3.3';
+DataTable.select.version = '1.4.0';
 
 DataTable.select.init = function ( dt ) {
 	var ctx = dt.settings()[0];
+
+	if (ctx._select) {
+		return;
+	}
+
+	var savedSelected = dt.state.loaded();
+
+	var selectAndSave = function(e, settings, data) {
+		if(data === null || data.select === undefined) {
+			return;
+		}
+
+		// Clear any currently selected rows, before restoring state
+		// None will be selected on first initialisation
+		if (dt.rows({selected: true}).any()) {
+			dt.rows().deselect();
+		}
+		if (data.select.rows !== undefined) {
+			dt.rows(data.select.rows).select();
+		}
+
+		if (dt.columns({selected: true}).any()) {
+			dt.columns().deselect();
+		}
+		if (data.select.columns !== undefined) {
+			dt.columns(data.select.columns).select();
+		}
+
+		if (dt.cells({selected: true}).any()) {
+			dt.cells().deselect();
+		}
+		if (data.select.cells !== undefined) {
+			for(var i = 0; i < data.select.cells.length; i++) {
+				dt.cell(data.select.cells[i].row, data.select.cells[i].column).select();
+			}
+		}
+		dt.state.save();
+	}
+	
+	dt.one('init', function() {
+		dt.on('stateSaveParams', function(e, settings, data) {
+			data.select = {};
+			data.select.rows = dt.rows({selected:true}).ids(true).toArray();
+			data.select.columns = dt.columns({selected:true})[0];
+			data.select.cells = dt.cells({selected:true})[0].map(function(coords) {
+				return {row: dt.row(coords.row).id(true), column: coords.column}
+			});
+		})
+		
+		selectAndSave(undefined, undefined, savedSelected)
+		dt.on('stateLoaded stateLoadParams', selectAndSave)
+	})
+
 	var init = ctx.oInit.select;
 	var defaults = DataTable.defaults.select;
 	var opts = init === undefined ?
@@ -29169,6 +24703,13 @@ function enableMouseSelection ( dt )
 				return;
 			}
 
+			var event = $.Event('select-blur.dt');
+			eventTrigger( dt, event, [ e.target, e ] );
+
+			if ( event.isDefaultPrevented() ) {
+				return;
+			}
+
 			clear( ctx, true );
 		}
 	} );
@@ -29262,6 +24803,7 @@ function info ( api )
  */
 function init ( ctx ) {
 	var api = new DataTable.Api( ctx );
+	ctx._select_init = true;
 
 	// Row callback so that classes can be added to rows and cells if the item
 	// was selected before the element was created. This will happen with the
@@ -29330,6 +24872,7 @@ function init ( ctx ) {
 	// Update the table information element with selected item summary
 	api.on( 'draw.dtSelect.dt select.dtSelect.dt deselect.dtSelect.dt info.dt', function () {
 		info( api );
+		api.state.save();
 	} );
 
 	// Clean up and release
@@ -29338,6 +24881,7 @@ function init ( ctx ) {
 
 		disableMouseSelection( api );
 		api.off( '.dtSelect' );
+		$('body').off('.dtSelect' + _safeId(api.table().node()));
 	} );
 }
 
@@ -29606,11 +25150,15 @@ apiRegister( 'select.style()', function ( style ) {
 	}
 
 	return this.iterator( 'table', function ( ctx ) {
-		ctx._select.style = style;
+		if ( ! ctx._select ) {
+			DataTable.select.init( new DataTable.Api(ctx) );
+		}
 
 		if ( ! ctx._select_init ) {
-			init( ctx );
+			init(ctx);
 		}
+
+		ctx._select.style = style;
 
 		// Add / remove mouse event handlers. They aren't required when only
 		// API selection is available
@@ -29664,6 +25212,21 @@ apiRegisterPlural( 'rows().select()', 'row().select()', function ( select ) {
 	return this;
 } );
 
+apiRegister( 'row().selected()', function () {
+	var ctx = this.context[0];
+
+	if (
+		ctx &&
+		this.length &&
+		ctx.aoData[this[0]] &&
+		ctx.aoData[this[0]]._select_selected
+	) {
+		return true;
+	}
+
+	return false;
+} );
+
 apiRegisterPlural( 'columns().select()', 'column().select()', function ( select ) {
 	var api = this;
 
@@ -29689,6 +25252,21 @@ apiRegisterPlural( 'columns().select()', 'column().select()', function ( select 
 	} );
 
 	return this;
+} );
+
+apiRegister( 'column().selected()', function () {
+	var ctx = this.context[0];
+
+	if (
+		ctx &&
+		this.length &&
+		ctx.aoColumns[this[0]] &&
+		ctx.aoColumns[this[0]]._select_selected
+	) {
+		return true;
+	}
+
+	return false;
 } );
 
 apiRegisterPlural( 'cells().select()', 'cell().select()', function ( select ) {
@@ -29719,6 +25297,20 @@ apiRegisterPlural( 'cells().select()', 'cell().select()', function ( select ) {
 	} );
 
 	return this;
+} );
+
+apiRegister( 'cell().selected()', function () {
+	var ctx = this.context[0];
+
+	if (ctx && this.length) {
+		var row = ctx.aoData[this[0][0].row];
+
+		if (row && row._selected_cells && row._selected_cells[this[0][0].column]) {
+			return true;
+		}
+	}
+
+	return false;
 } );
 
 
@@ -29776,7 +25368,9 @@ apiRegisterPlural( 'cells().deselect()', 'cell().deselect()', function () {
 	this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
 		var data = ctx.aoData[ rowIdx ];
 
-		data._selected_cells[ colIdx ] = false;
+		if(data._selected_cells !== undefined) {
+			data._selected_cells[ colIdx ] = false;
+		}
 
 		// Remove class only if the cells exist, and the cell is not column
 		// selected, in which case the class should remain (since it is selected

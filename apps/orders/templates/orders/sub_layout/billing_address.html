@@ -1,0 +1,50 @@
+ <div class="card-header order_details">
+                <div class="row">
+                    <div class="col-3 ">
+                        <i class="fas fa-pound-sign"></i> Billing
+                    </div>
+                    <div class="col-6">
+                    {% if order_obj.customer %}
+                    <button class="btn btn-warning col-12 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress" aria-expanded="false" aria-controls="collapseBillingAddress">
+                            Address book
+                        </button>
+                        <div class="collapse" id="collapseBillingAddress">
+                            <form method="post" id="order_billing_addressbook" action="{% url 'orderbillingfrombook' order_obj.order_id %}">
+                            <input type="hidden" id="address_book_id_billing" name="address_book_id_billing" value="0">
+                            {% csrf_token %}
+                            <div class="card card-body" id="billingList">
+                                {% for addressItem in addressItem %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="addressListItem_billing" id="addressListItem-billing-{{ addressItem.address_id }}" data-address-list-id-billing="{{ addressItem.address_id }}">
+                                    <label class="form-check-label" for="flexRadioDefault1">
+                                        <strong>{{ addressItem.fullname }}</strong>, {{addressItem.address_1 }}, <strong>{{ addressItem.postcode }}</strong>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                                <button class="btn btn-success" type="button" id="js_order_billing_address_btn">Use this address</button>
+                            </div>
+                            </form>
+                        </div>
+                    {% endif %}
+                    </div>
+
+                    <div class="col-3">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <button type="button" class="btn btn-primary btn-sm js-order-address-edit"
+                                        data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
+                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                                 {% if order_obj.customer %}
+                                   <!-- <button type="button" class="btn btn-primary btn-sm js-order-address-edit"
+                                            data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
+                                    ><i class="fas fa-search fa-pull-right"></i></button> -->
+                                {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body pb-0">
+                <div id="order-billing">
+                   {% include 'orders/sub_layout/billing_address_ajax.html' %}
+                </div>
+            </div>

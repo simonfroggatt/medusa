@@ -1,0 +1,39 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update Order Details</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'orderdetailsedit' order_id %}"
+                      id="js-order-details-edit-submit">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-12">{{ form.customer_order_ref|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.order_status|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.payment_status|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.payment_type|as_crispy_field }}</div>
+
+                <div class="col-md-6">{{ form.payment_method|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.comment|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="update" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+</script>

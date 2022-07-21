@@ -1,0 +1,57 @@
+<h4>Know size and price</h4>
+<div class="row">
+    <div class="col-4">
+        <label for="manualWidth" class="form-label">Width</label>
+        <input type="number" class="form-control" id="manualWidth" min="0" placeholder="0" onchange="reCalc()">
+    </div>
+    <div class="col-4">
+        <label for="manualHeight" class="form-label">Height</label>
+        <input type="number" class="form-control" id="manualHeight" min="0" placeholder="0" onchange="reCalc()">
+    </div>
+    <div class="col-4">
+        <label for="manualPrice" class="form-label">Price</label>
+        <input type="number" class="form-control" id="manualPrice" step="0.01" min="0" placeholder="0" onchange="reCalc()">
+    </div>
+</div>
+<h4>Size you want</h4>
+<div class="row">
+    <div class="col-4">
+        <label for="manualCalcWidth" class="form-label">Width</label>
+        <input type="number" class="form-control" id="manualCalcWidth" min="0" placeholder="0" onchange="reCalc()">
+    </div>
+    <div class="col-4">
+        <label for="manualCalcHeight" class="form-label">Height</label>
+        <input type="number" class="form-control" id="manualCalcHeight" min="0" placeholder="0" onchange="reCalc()">
+    </div>
+    <div class="col-4">
+       <H4 id="manual_price_calc">Calculated Price</H4>
+    </div>
+</div>
+
+<script>
+    function reCalc(){
+        let width = $('#manualWidth').val() ? $('#manualWidth').val() : 0;
+        let height = $('#manualHeight').val() ? $('#manualHeight').val() : 0;
+        let price = $('#manualPrice').val() ? $('#manualPrice').val() : 0;
+
+        let calc_width = $('#manualCalcWidth').val()
+        let calc_height = $('#manualCalcHeight').val()
+
+        console.log("width:" + width)
+        console.log("height:" + height)
+        console.log("price:" + price)
+        console.log("calc_width:" + calc_width)
+        console.log("calc_height:" + calc_height)
+
+
+        let m2 = (width / 1000) * (height / 1000)
+        let cpstperm2 = 0
+        if(m2 > 0){
+            cpstperm2 = price / m2
+        }
+
+        let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
+        $('#manual_price_calc').html(parseFloat(newprice).toFixed(2))
+
+    }
+</script>

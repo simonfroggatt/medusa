@@ -1,0 +1,250 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update Order Product</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'orderproductedit' order_id order_product_id %}"
+                      id="js-product-edit-submit">
+                    {% csrf_token %}
+                    <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
+                           value="{{ form.tax.value|floatformat:2 }}">
+                    <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
+                           value="{{ form.total.value|floatformat:2 }}">
+                    <div class="row">
+                        <div class="col-3">
+                            <label for="label_{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
+                            <input type="text" class="form-control" id="label_{{ form.model.name }}"
+                                   name="{{ form.model.name }}" value="{{ form.model.value }}">
+                        </div>
+                        <div class="col-9">
+                            <label for="label_{{ form.name.name }}" class="form-label">{{ form.name.label }}</label>
+                            <input type="text" class="form-control" id="label_{{ form.name.name }}"
+                                   name="{{ form.name.name }}" value="{{ form.name.value }}">
+                        </div>
+                        <div class="col-6">
+                            <label for="label_{{ form.size_name.name }}"
+                                   class="form-label">{{ form.size_name.label }}</label>
+                            <input type="text" class="form-control" id="label_{{ form.size_name.name }}"
+                                   name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
+                        </div>
+                        <div class="col-6">
+                            <label for="label_{{ form.material_name.name }}"
+                                   class="form-label">{{ form.material_name.label }}</label>
+                            <input type="text" class="form-control" id="label_{{ form.material_name.name }}"
+                                   name="{{ form.material_name.name }}" value="{{ form.material_name.value }}">
+                        </div>
+                        <div class="col-2">
+                            <label for="label_{{ form.quantity.name }}"
+                                   class="form-label">{{ form.quantity.label }}</label>
+                            <input type="number" min="1" step="1" class="form-control calc_line_totals"
+                                   id="label_{{ form.quantity.name }}" name="{{ form.quantity.name }}"
+                                   value="{{ form.quantity.value }}">
+                        </div>
+                        <div class="col-4">
+                            <label for="label_{{ form.price.name }}" class="form-label">{{ form.price.label }}</label>
+                            <input type="number" step="0.01" min="0.00" maxlength="3"
+                                   class="form-control two-decimals calc_line_totals" id="label_{{ form.price.name }}"
+                                   name="{{ form.price.name }}" value="{{ form.price.value|floatformat:2 }}">
+                        </div>
+                        <div class="col-6">{{ form.status|as_crispy_field }}</div>
+                        <div class="col-12 d-md-flex justify-content-md-end">
+                            <span class="h3">£<span
+                                    id="line_total_cal">{{ form.total.value|floatformat:2 }}</span></span>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                                <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="col-12">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="switchApplyBulk" checked>
+                <label class="form-check-label" for="switchShowBulk">Apply bulk discount</label>
+            </div>
+            <div class="collapse show" id="collapseBulkDiscount">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row mb-2">
+                            <label for="single_unit_price" class="col-3 col-form-label">Single Unit Price</label>
+                            <div class="col-2">
+                                <input type="number" step="0.01" min="0.00" maxlength="3"
+                                       class="form-control two-decimals" id="single_unit_price"
+                                       value="{{ form.price.value|floatformat:2 }}">
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-12" id="bulkTableDiv">
+                    <select class="form-select" id="bulk_group_select" >
+                        {% for bulk_group in bulk_info %}
+                            <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="row">
+                                        <div class="col-xs-12" id="bulk_pricing_div">
+                                        </div>
+                                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+    bulk_table_data = {{ bulk_info|safe }}
+
+
+        $("#switchApplyBulk").change(function(){
+            let product_price = "#label_{{ form.price.name }}";
+            $(product_price).prop('readonly', $(this).is(":checked"))
+        })
+
+    $(".calc_line_totals").change(function(){
+        let use_bulk = $('#switchApplyBulk').is(":checked");
+        if(use_bulk)
+            SetPrice();
+        else {
+             let qty = $('#label_{{ form.quantity.name }}').val();
+            let price = $('#label_{{ form.price.name }}').val();
+            let line_total = calc_totals(price, qty);
+            $('#total').val(line_total);
+            $('#line_total_cal').html(line_total);
+            $('#{{ form.total.name }}').val(line_total);
+        }
+
+    });
+
+    $("#single_unit_price").change(function(){
+        SetPrice();
+    });
+
+    function calc_totals(price, qty){
+        return (price*qty).toFixed(2);
+    }
+
+    function SetPrice(getbulk = true){
+        let qty_field = "#label_{{ form.quantity.name }}";
+        let product_price = "#label_{{ form.price.name }}";
+        let line_price = 0.00;
+        let base_price = $('#single_unit_price').val();
+        let discount_price = 0.00;
+        qty = parseInt($(qty_field).val())
+        bulk_group_id = $('#bulk_group_select').val();
+
+        drawBulkTable(bulk_group_id);
+
+        if(getbulk){
+            discount = getBulkPriceDiscount(bulk_group_id, qty)
+            discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
+            console.log(discount_price)
+            line_price = parseFloat(qty * discount_price).toFixed(2);
+            $(product_price).val(discount_price);
+        }
+        else {
+            line_price = (qty * $('#single_unit_price').val()).toFixed(2);
+        }
+
+        $('#{{ form.total.name }}').val(parseFloat( line_price).toFixed(2));
+        $('#line_total_cal').html(line_price);
+    }
+
+    $('#bulk_group_select').change(function() {
+        drawBulkTable(this.value)
+        SetPrice()
+    })
+
+
+   function drawBulkTable(bulk_group_id)
+    {
+
+        let base_price = $('#single_unit_price').val()
+        var bulk_array = $.grep(bulk_table_data, function(e){ return e.id == bulk_group_id; })[0];
+        var tbl = $('<table class="table table-bordered table-condensed"></table>').attr({ id: "bulk_pricing_tbl" });
+        var header = $('<thead></thead>').appendTo(tbl);
+        var headerrow = $('<tr></tr>').appendTo(header);
+        var body = $('<tbody></tbody>').appendTo(tbl);
+        var row = $('<tr></tr>').appendTo(body);
+
+        $('#bulk_pricing_div').empty();
+
+        $.each(bulk_array['breaks'], function( index, value) {
+            if(index == 0){
+                $('<th></th>').text(value['qty_range_min']).appendTo(headerrow);
+            }
+            else if (index == bulk_array['breaks'].length - 1)
+                {
+                    $('<th></th>').text(value['qty_range_min'] + "+").appendTo(headerrow);
+                }
+            else
+                {
+                    var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min'] - 1;
+
+                    $('<th></th>').text(value['qty_range_min'] + "-" + nextbreak).appendTo(headerrow);
+                }
+            let bulkprice = base_price * ((100- value['discount_percent'])/100)
+            $('<td class="bulkcell" data-variant-cellid="'+ index +'"></td>').text(parseFloat(bulkprice).toFixed(2)).appendTo(row);
+        })
+        tbl.appendTo('#bulk_pricing_div');
+
+
+    }
+
+    function getBulkPriceDiscount(bulk_group_id, qty){
+        var bulk_array = $.grep(bulk_table_data, function(e){ return e.id == bulk_group_id; })[0];
+        let discount = 1;
+        let cell_index = 1;
+        $.each(bulk_array['breaks'], function( index, value) {
+            if(index >= bulk_array['breaks'].length - 1)
+                {
+                    discount = 100 - value['discount_percent'];
+                    cell_index = index;
+                    return false;
+                }
+            var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min']
+            if( (value['qty_range_min'] <= qty) && qty < nextbreak)
+                {
+                    discount = 100 - value['discount_percent'];
+                    cell_index = index;
+                    return false;
+                }
+        })
+        setDiscountCellColour(cell_index)
+        return (discount/100).toFixed(2)
+    }
+
+    function setDiscountCellColour(cell_index){
+
+        var allCells = $(".bulkcell");
+        allCells.removeClass("table-success");
+
+            var cellToColour = $('[data-variant-cellid="' + cell_index + '"]');
+            cellToColour.addClass("table-success");
+
+    }
+
+    $(function(){
+        let product_price = "#label_{{ form.price.name }}";
+        $(product_price).prop('readonly', $('#switchApplyBulk').is(":checked"))
+        $('#bulk_group_select').val({{ default_bulk }});
+        drawBulkTable({{ default_bulk }});
+        SetPrice()
+    })
+
+
+
+</script>

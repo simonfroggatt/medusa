@@ -2,18 +2,17 @@
 <div class="row col-12">
     <div class="col-12 col-md-6 col-xl-4">
         <div class="card h-100 mb-0" id="payment-address">
-            <div class="card-body ">
-
-                    <div class="row">
+             <div class="card-header customer_details">
+                 <div class="row">
                         <div class="col-9 ">
-                            <h2 class="card-title"><i class="fas fa-pound-sign fa-pull-left"></i> Billing
+                            <i class="fas fa-pound-sign "></i> Billing
                                 Address
                                 {% if customer_address.billing_auto %}
                                     <i class="fas fa-magic fa-wizard"></i>{% endif %}
-                            </h2>
+
                         </div>
                         <div class="col-3">
-                            <div class="float-end">
+                            <div class="float-end pe-2">
 
                                 {% if customer_address.billing.pk %}
                                     <a class="btn btn-primary btn-xs js-address-edit"
@@ -23,8 +22,8 @@
                             </div>
                         </div>
                     </div>
-
-
+             </div>
+            <div class="card-body ">
                 <div id="customer-default-payment-address">
                     {% include 'customer/address_details.html' with address=customer_address.billing %}
                 </div>
@@ -33,18 +32,17 @@
     </div>
     <div class="col-12 col-md-6 col-xl-4">
         <div class="card h-100 mb-0" id="shipping-address">
-            <div class="card-body ">
-
-                    <div class="row">
+            <div class="card-header customer_details">
+                <div class="row">
                         <div class="col-9 ">
-                            <h2 class="card-title"><i class="fas fa-shipping-fast fa-pull-left"></i> Shipping
+                            <i class="fas fa-shipping-fast"></i> Shipping
                                 Address
                                 {% if customer_address.shipping_auto %}
                                     <i class="fas fa-magic fa-wizard"></i>{% endif %}
-                            </h2>
+
                         </div>
                         <div class="col-3">
-                            <div class="float-end">
+                            <div class="float-end pe-2">
 
                                 {% if customer_address.shipping.pk %}
                                     <a class="btn btn-primary btn-xs js-address-edit"
@@ -54,6 +52,8 @@
                             </div>
                         </div>
                     </div>
+            </div>
+            <div class="card-body ">
 
 
                 <div id="customer-default-shipping-address">

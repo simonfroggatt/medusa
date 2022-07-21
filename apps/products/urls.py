@@ -10,14 +10,13 @@ urlpatterns = [
     url('^api/', include(router.urls)),
     url('^api/post-list/products', views.ProductsListView.as_view(), name='products_post_list'),
 
-    #url('^api/corevariants/<int:product_id>', views.BaseVariantListView.as_view({'get': 'list'}), name='corevariant'),
+    path('api/storevariants/<int:product_id>/<int:store_id>', views.StoreVariantListView.as_view({'get': 'list'}), name='sitevariant'),
+    path('api/storevariantsreverse/<int:product_id>/<int:store_id>', views.StoreVariantListViewReverse.as_view({'get': 'list'}), name='sitevariantreverse'),
+    #path('api/corevariants/<int:product_id>', views.StoreVariantListViewReverse.as_view({'get': 'list'}), name='corevariant'),
     path('api/corevariants/<int:product_id>', views.BaseVariantListView.as_view({'get': 'list'}), name='corevariant'),
     path('<int:product_id>', views.product_details, name='product_details'),
-    path('all/', views.product_list_all, name='allproducts'),
 
     path('variant-options/<int:core_variant_id>', views.core_variant_options_class, name='corevariantoptions'),
-
-
     path('', views.product_list, name='allproducts'),
 
     ]

@@ -1,0 +1,29 @@
+ <dl class="row text-nowrap" id="address_{{ address.pk }}">
+                        <dt class="col-3">Contact</dt>
+                        <dd class="col-9">{{ order_obj.shipping_fullname}}</dd>
+                    <dt class="col-3">Email</dt>
+                        <dd class="col-9"><a
+                                href="mailto:{{ order_obj.shipping_email }}">{{ order_obj.shipping_email }}</a></dd>
+                        <dt class="col-3">Phone</dt>
+                        <dd class="col-9">{{ order_obj.shipping_telephone|default:"&nbsp;" }}</dd>
+                        {% if order_obj.shipping_company %}
+                            <dt class="col-3">Company</dt>
+                            <dd class="col-9">{{ order_obj.shipping_company }}</dd>
+                        {% endif %}
+                        <dt class="col-3">Address</dt>
+                        <dd class="col-9">
+                            <address >
+                                {{ order_obj.shipping_address_1|linebreaksbr  }}<br>
+                                {% if order_obj.shipping_address_2 %}
+                                    {{ order_obj.shipping_address_2|linebreaksbr }}<br>
+                                {% endif %}
+                                 {% if order_obj.shipping_area %}
+                                {{ order_obj.shipping_area }}<br>
+                                {% endif %}
+                                {{ order_obj.shipping_city }}<br>
+                                <strong>{{ order_obj.shipping_postcode }}</strong><br>
+                                {{ order_obj.shipping_country }}
+                            </address>
+                        </dd>
+
+                    </dl>

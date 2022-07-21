@@ -181,34 +181,36 @@ table.table-mail tr td {
     float:left !important;
 }
 
- .dataTables_filter input { width: 300px }
+ .dataTables_filter input {
+   width: 300px
+ }
 
   .dataTables_length {
     float:right !important;
 }
 
 
-#customer-details-tabs {
+.tsg_navs {
     padding-top: 20px;
 }
 
-#customer-details-tabs .nav-tabs {
+.tsg_navs .nav-tabs {
     margin-bottom: 10px;
     border-bottom: 3px solid #ffd011;
 }
 
-#customer-details-tabs .nav-link {
+.tsg_navs .nav-link {
     color: black;
     border: transparent;
 }
-#customer-details-tabs .nav-link:hover {
+.tsg_navs .nav-link:hover {
     border: transparent;
     border-bottom: 3px solid #E50004;
     transition:  border-bottom .3s ease-in;
 
 }
 
-#customer-details-tabs .nav-link.active{
+.tsg_navs .nav-link.active{
     border: none;
     border-bottom: 3px solid #E50004;
 }
@@ -240,4 +242,35 @@ table.table-mail tr td {
 
 .table-button-red{
   color: red;
+}
+
+#order_table table tr failedorder {
+  background-color: red;
+}
+
+.layout-details .card {
+    font-size: 11px;
+}
+
+.layout-details .card-header {
+  font-size: 16px;
+  background-color: white;
+  font-weight: bold;
+  padding: 2px 0px 2px 10px;
+}
+
+.order-details .card-header {
+  font-size: 16px;
+  background-color: white;
+  font-weight: bold;
+  padding: 2px 0px 2px 10px;
+}
+
+.order-details .order-total {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#navbar-orders .navbar {
+  background-color: transparent; !important;
 }

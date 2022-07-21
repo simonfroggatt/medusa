@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OcProduct, OcProductBaseDescription, OcTsgProductVariantCore, OcTsgSizeMaterialComb
+from .models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, OcTsgSizeMaterialComb, OcTsgProductVariants
 from django.conf import settings
 
 
@@ -37,15 +37,21 @@ class ProductSerializer(serializers.ModelSerializer):
 #     #product = ProductSerializer(required=True)
 #     product = ProductSerializer()
 #     class Meta:
-#         model = OcProductBaseDescription
+#         model = Ocproductdescbaseription
 #         fields = ['name', 'title', 'description', 'product']
 #         depth = 2
 
 
 
-class ProductBaseDescription(serializers.ModelSerializer):
+#class productdescbaseription(serializers.ModelSerializer):
+#    class Meta:
+#        model = Ocproductdescbaseription
+#        fields = ['name', 'title', 'description']
+
+
+class ProductDescriptionBase(serializers.ModelSerializer):
     class Meta:
-        model = OcProductBaseDescription
+        model = OcProductDescriptionBase
         fields = ['name', 'title', 'description']
 
 
@@ -54,11 +60,17 @@ class ProductVariantCoreSerializer(serializers.ModelSerializer):
         model = OcTsgProductVariantCore
         fields = ['supplier_code']
 
+class ProductDescriptionSites(serializers.ModelSerializer):
+    class Meta:
+        model = OcProductDescription
+        fields = ['name', 'title', 'description']
+
+
 
 class ProductListSerializer(serializers.ModelSerializer):
-    productbasedesc = ProductBaseDescription(read_only=True)
-    #corevariants = ProductVariantCoreSerializer(many=True, read_only=True)
-    corevariants = serializers.SerializerMethodField(read_only=True)
+    productdescbase = ProductDescriptionBase(read_only=True)
+    corevariants = ProductVariantCoreSerializer(many=True, read_only=True)
+  #  corevariants = serializers.SerializerMethodField(read_only=True)
 
     def get_corevariants(self, products):
         return ', '.join(
@@ -70,25 +82,49 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcProduct
-        fields = ['product_id', 'model', 'image_url', 'status', 'productbasedesc', 'corevariants']
+        #fields = ['product_id', 'model', 'image_url', 'status', 'productdescbase', 'corevariants']
+        fields = ['product_id', 'model', 'image_url', 'status', 'productdescbase', 'corevariants']
         depth = 2
 
 
 class SizeMaterialCombSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgSizeMaterialComb
-        fields = ['product_size', 'product_material', 'price', 'sizematcomboprice']
+        fields = ['product_size', 'product_material', 'price']
         depth = 2
 
 
 class CoreVariantSerializer(serializers.ModelSerializer):
     size_material = SizeMaterialCombSerializer(read_only=True)
-
-
     class Meta:
         model = OcTsgProductVariantCore
         fields = ['prod_variant_core_id','supplier_code', 'variant_image_url', 'gtin', 'size_material']
         depth = 3
+
+
+class ProductVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductVariants
+        fields = ['variant_code', 'variant_overide_price', 'prod_var_core']
+        depth = 3
+
+
+class StoreProductVariantSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductVariants
+        fields = ['variant_code', 'variant_overide_price']
+
+
+class StoreCoreProductVariantSerialize(serializers.ModelSerializer):
+    size_material = SizeMaterialCombSerializer(read_only=True)
+    storeproductvariants = StoreProductVariantSerialize(read_only=True)
+
+
+    class Meta:
+        model = OcTsgProductVariantCore
+        fields = ['prod_variant_core_id','supplier_code', 'variant_image_url', 'gtin', 'size_material', 'storeproductvariants']
+        depth = 3
+
 
 
 class TestProduct(serializers.ModelSerializer):

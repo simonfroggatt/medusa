@@ -1,0 +1,92 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update Order <strong>SHIPPING</strong> Address</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'ordershippingaddressedit' order_id %}"
+                      id="js-address-edit-submit">
+                    {% csrf_token %}
+                    <input type="hidden" id="{{ form.order_id.name }}" name="{{ form.order_id.name }}"
+                           value="{{ form.order_id }}">
+                    <input type="hidden" id="order_customer_id" name="order_customer_id"
+                           value="{{ order_customer_id }}">
+                    <input type="hidden" id="id_{{ form.shipping_country.name }}" name="{{ form.shipping_country.name }}"
+                           value="{{ form.shipping_country.value }}">
+                    <input type="hidden" id="add_address" name="add_address" value="0">
+                    <div class="row">
+                <div class="col-md-6">{{ form.shipping_fullname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.shipping_telephone|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.shipping_email|as_crispy_field }}</div>
+                        <div class="col-md-12 form-floating">
+                    <input  class="form-control" id="addressLookup" placeholder="Lookup">
+                    <label for="addressLookup">Search for address</label>
+                </div>
+                <div class="col-md-12">{{ form.shipping_company|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.shipping_address_1|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.shipping_city|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.shipping_area|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.shipping_postcode|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.shipping_country_name|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        {% if order_customer_id > 0 %}
+                        <button type="update" id="add" class="btn btn-success pull-right">Add As New</button>
+                        {% endif %}
+                        <button type="update" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#id_{{ form.shipping_country_name.name }}').change( function() {
+        let countryname = $(this).children(':selected').text();
+        $('#id_{{ form.shipping_country.name }}').val(countryname)
+    })
+</script>
+
+
+<script type="text/javascript" src="{% static 'js/address-lookup.js' %}"></script>
+
+
+<script>
+
+
+    $(function () {
+        let fieldMatch = {
+            'Company': 'id_{{ form.shipping_company.name}}',
+            'Line1': 'id_{{ form.shipping_address_1.name}}',
+            'Line2': 'id_{{ form.shipping_address_1.name}}',
+            'Line3': 'id_{{ form.shipping_address_1.name}}',
+            'City': 'id_{{ form.shipping_city.name}}',
+            'ProvinceName': 'id_{{ form.shipping_area.name}}',
+            'CountryIsoNumber': 'id_{{ form.shipping_country_name.name}}',
+            'PostalCode': 'id_{{ form.shipping_postcode.name}}',
+        }
+
+        let inputFields = ['#addressLookup']
+
+        let lookupBilling = new TSGAddressLookup(inputFields, '', fieldMatch);//, '#js-fulladdress-billing');
+
+
+        $('#id_{{ form.shipping_country_name.name }}').change( function() {
+        let countryname = $(this).children(':selected').text();
+        $('#id_{{ form.shipping_country.name }}').val(countryname)
+    })
+         $('#add').click(function() {
+            $('#add_address').val(1)
+        })
+    })
+</script>

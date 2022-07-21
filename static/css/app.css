@@ -2620,7 +2620,7 @@ input[switch="dark"]:checked + label {
 
 /* 
 Datatable
-*/
+
 div.dataTables_wrapper div.dataTables_filter {
   text-align: right; }
   @media (max-width: 767px) {
@@ -2709,7 +2709,7 @@ table.dataTable tbody > tr > .selected {
       line-height: 14px;
       content: '+';
       background-color: #0576b9; }
-
+*/
 .apex-charts {
   min-height: 10px !important; }
   .apex-charts text {

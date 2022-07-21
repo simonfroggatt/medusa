@@ -1,0 +1,217 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="order_table" class="table table-hover table-condensed table-striped" style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Website</th>
+                                        <th >Order</th>
+                                        <th >Date</th>
+                                        <th >Day</th>
+                                        <th >Company</th>
+                                        <th class="col-2">Contact</th>
+                                        <th class="col-2">Payment Status</th>
+                                        <th class="col-1">Order Status</th>
+                                        <th class="col-1">Total</th>
+                                        <th class="col-1">Flags</th>
+                                        <th class="text-end col-1">&nbsp;</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+    <style>
+        .cards tbody tr {
+            float: left;
+            width: 20rem;
+            margin: 0.5rem;
+            border: 0.0625rem solid rgba(0,0,0,.125);
+    	    border-radius: .25rem;
+            box-shadow: 0.25rem 0.25rem 0.5rem rgba(0,0,0,0.25);
+        }
+        .cards tbody td {
+            display: block;
+        }
+        .table tbody label {
+            display: none;
+        }
+        .cards tbody label {
+        	display: inline;
+        	position: relative;
+        	font-size: 85%;
+        	top: -0.5rem;
+        	float: left;
+        	color: #808080;
+        	min-width: 4rem;
+        	margin-left: 0;
+        	margin-right: 1rem;
+        	text-align: left;
+        }
+
+        #order_table.cards .product-thumb {
+            height: 100px;
+        }
+
+        #order_table .product-thumb {
+            height: 30px;
+        }
+
+        tr.selected label {
+            color: #404040;
+        }
+
+        .table .fa {
+            font-size: 2.5rem;
+            text-align: center;
+        }
+        .cards .fa {
+            font-size: 7.5rem;
+        }
+
+    </style>
+
+{% include 'partials/javascript.html' %}
+    <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
+
+    <script>
+    $(document).ready(function() {
+
+    var order_table = $('#order_table').DataTable( {
+        "dom": "<'row'<'col-6'f><'col-6'lT>>" +
+         "<'row'<'col-12'tr>>" +
+         "<'row'<'col-6'i><'col-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "serverSide": true,
+        "rowId" : 'order_id',
+        "ajax": {
+                 "processing": true,
+                 "url": "/orders/api/orders-list?format=datatables",
+                "type" : "POST",
+            "beforeSend": function(xhr) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
+            }
+            },
+        "deferRender": false,
+        "order": [[ 1, "desc" ]],
+
+        columns :[
+
+            {
+                data: "store",
+                sortable: false,
+                searchable: false,
+                name: "store.name",
+                render: function ( data, type, row ) {
+                    let image_src = '{% static "images/stores/" %}' + data.thumb;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }
+            },
+            {
+                data: "order_id",
+                 render: function ( data, type, row ) {
+                    let url = '/orders/' + data;
+                    return '<a href="' + url + '">'+ data + '</a>';
+                 }
+            },
+            {
+                data: "date_added",
+            },
+
+            {
+                data: "dow",
+                 render: function ( data, type, row ) {
+                    let text = data + ' (' + row.days_since_order + ')'
+                     return text
+                 },
+                searchable: false
+
+            },
+            {
+                data: "payment_company",
+                searchable: true
+            },
+            {
+                data: "payment_fullname",
+            },
+            {
+                data: "payment_status.name",
+            },
+            {
+                data: "order_status.name",
+            },
+            {
+                data: "total",
+                class: "text-end",
+                render: function ( data, type, row ) {
+                    return parseFloat(data).toFixed(2);
+                 }
+            },
+            {
+                data: "order_id",
+                render: function (data){
+                    return "";
+                }
+            },
+            {
+                data: "order_id",
+                sortable: false,
+                className: 'text-end',
+                render: function ( data, type, row ) {
+
+                     let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
+                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + data + '"><i class="fas fa-trash fa-sm"></i></a>'
+
+
+                    return delete_icon + "  " + edit_icon;
+                }
+            },
+           {data: "payment_email", "visible": false},
+           {data: "payment_telephone", "visible": false},
+           {data: "payment_address_1", "visible": false},
+           {data: "payment_postcode", "visible": false},
+           {data: "shipping_fullname", "visible": false},
+           {data: "shipping_email", "visible": false},
+           {data: "shipping_telephone", "visible": false},
+           {data: "payment_address_1", "visible": false},
+           {data: "payment_postcode", "visible": false},
+           {data: "customer_order_ref", "visible": false},
+           {data: "days_since_order", "visible": false, searchable: false },
+        ],
+        "createdRow": function( row, data, dataIndex ) {
+            if ( data.order_status.order_status_id != 15 ) {
+                $(row).addClass( 'failed-order' );
+            }
+         },
+    } );
+
+
+
+
+} );
+
+
+
+</script>
+
+{% endblock javascript %}
+

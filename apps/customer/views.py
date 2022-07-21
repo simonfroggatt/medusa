@@ -30,7 +30,7 @@ class customer_list_asJSON_s(viewsets.ModelViewSet):
 
 
 def customers_details(request, customer_id):
-    template_name = 'customer/layout.html'
+    template_name = 'customer/customer_layout.html'
 
     customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
 
@@ -72,7 +72,7 @@ def customer_address_save(request, customer_id):
 
     context = {'customer_id': customer_id,
                'form': form}
-    data['html_form'] = render_to_string('customer/address_create.html',
+    data['html_form'] = render_to_string('customer/dialogs/address_create.html',
                                          context,
                                          request=request
                                          )
@@ -82,7 +82,7 @@ def customer_address_save(request, customer_id):
 def customer_address_create(request, customer_id):
     form = AddressForm()
 
-    template_name = 'customer/address_create.html'
+    template_name = 'customer/dialogs/address_create.html'
     content = {'customer_id': customer_id,
                'form': form}
 
@@ -111,7 +111,7 @@ def customers_address_edit(request, customer_id, address_id):
                'address_id': address_id,
                'form': form}
 
-    data['html_form'] = render_to_string('customer/address_edit.html',
+    data['html_form'] = render_to_string('customer/dialogs/address_edit.html',
                                          context,
                                          request=request
                                          )
@@ -130,7 +130,7 @@ def customer_address_delete(request, customer_id, address_id):
                'address_id': address_id,
                }
 
-    data['html_form'] = render_to_string('customer/address_delete.html',
+    data['html_form'] = render_to_string('customer/dialogs/address_delete.html',
                                          context,
                                          request=request
                                          )

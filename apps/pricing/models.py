@@ -73,7 +73,7 @@ class OcTsgSizeMaterialComb(models.Model):
 
 
 class OcTsgSizeMaterialCombPrices(models.Model):
-    size_material_comb = models.OneToOneField(OcTsgSizeMaterialComb, models.DO_NOTHING, primary_key=True)
+    size_material_comb = models.OneToOneField(OcTsgSizeMaterialComb, models.DO_NOTHING, primary_key=True, related_name='sizecombo_base')
     store = models.ForeignKey(OcStore, models.DO_NOTHING)
     price = models.DecimalField(max_digits=5, decimal_places=2)
 

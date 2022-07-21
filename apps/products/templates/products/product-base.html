@@ -2,7 +2,7 @@
 
 <div class="row" id="product-base-details">
     <div class="col-2">
-                <img src="{{ product_obj.image_url }}"  height="200px" >
+                <img src="{{ product_obj.image_url }}"  class="img-fluid">
     </div>
     <div class="col-4">
         <div class="card h-100 mb-0">
@@ -14,13 +14,13 @@
                     <dt class="col-3">Code</dt>
                     <dd class="col-9">{{ product_obj.model }}</dd>
                     <dt class="col-3">Name</dt>
-                    <dd class="col-9">{{ product_obj.productbasedesc.name }}</dd>
+                    <dd class="col-9">{{ product_obj.productdescbase.name }}</dd>
                     <dt class="col-3">Title</dt>
-                    <dd class="col-9">{{ product_obj.productbasedesc.title }}</dd>
+                    <dd class="col-9">{{ product_obj.productdescbase.title }}</dd>
                     <dt class="col-3">Description</dt>
-                    <dd class="col-9">{{ product_obj.productbasedesc.description }}</dd>
+                    <dd class="col-9">{{ product_obj.productdescbase.description }}</dd>
                     <dt class="col-3">Supplier</dt>
-                    <dd class="col-9">{{ product_obj.productbasedesc.manufacturer_id }}</dd>
+                    <dd class="col-9">{{ product_obj.productdescbase.manufacturer_id }}</dd>
                 </dl>
             </div>
         </div>
@@ -35,7 +35,7 @@
                     <dt class="col-3">Meta Description</dt>
                     <dd class="col-9">{{ product_obj.meta_description }}</dd>
                     <dt class="col-3">Meta Keywords</dt>
-                    <dd class="col-9">{{ product_obj.productbasedesc.meta_keyword }}</dd>
+                    <dd class="col-9">{{ product_obj.productdescbase.meta_keyword }}</dd>
                 </dl>
             </div>
         </div>

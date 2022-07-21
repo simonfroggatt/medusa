@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
-from .models import OcProduct, OcProductBaseDescription, OcTsgProductVariantCore, OcTsgProductVariantOptions, OcTsgDepOptionClass
-from .serializers import ProductListSerializer, CoreVariantSerializer, TestProduct #, BaseProductListSerializer, ProductTestSerializer
+from .models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, OcTsgProductVariantOptions, OcTsgDepOptionClass, OcTsgProductVariants
+from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, StoreCoreProductVariantSerialize #, BaseProductListSerializer, ProductTestSerializer
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core import serializers
 from django.template.loader import render_to_string
@@ -58,6 +58,29 @@ class BaseVariantListView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         product_id = kwargs['product_id']
         variant_list = OcTsgProductVariantCore.objects.filter(product_id=product_id)
+        serializer = self.get_serializer(variant_list, many=True)
+        return Response(serializer.data)
+
+
+class StoreVariantListView(viewsets.ModelViewSet):
+    queryset = OcTsgProductVariants.objects.all()
+    serializer_class = ProductVariantSerializer
+
+    def list(self, request, *args, **kwargs):
+        product_id = kwargs['product_id']
+        store_id = kwargs['store_id']
+        variant_list = OcTsgProductVariants.objects.filter(store_id=store_id, prod_var_core__product__product_id=product_id)
+        serializer = self.get_serializer(variant_list, many=True)
+        return Response(serializer.data)
+
+
+class StoreVariantListViewReverse(viewsets.ModelViewSet):
+    queryset = OcTsgProductVariantCore.objects.all()
+    serializer_class = StoreCoreProductVariantSerialize(1)
+
+    def list(self, request, *args, **kwargs):
+        product_id = kwargs['product_id']
+        variant_list = OcTsgProductVariantCore.objects.filter(product_id=product_id , storeproductvariants__store__store_id=1)
         serializer = self.get_serializer(variant_list, many=True)
         return Response(serializer.data)
 

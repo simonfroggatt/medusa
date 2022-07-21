@@ -1,0 +1,55 @@
+{% load static %}
+<div class="modal-header">
+    <h4 class="modal-title">Quick Price</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row" id="quick-price-tabs">
+            <div class="col">
+                    <div class="tsg_navs pt-0">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li>
+                                <a class="nav-link active" id="quick-product-tab" data-bs-toggle="tab" href="#tab-quick-product" role="tab"><i
+                                        class="fas fa-box-open"></i> Product</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="quick-size-tab" data-bs-toggle="tab" href="#tab-quick-size" role="tab"><i
+                                        class="fas fa-tape"></i> Size</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="quick-calc-tab" data-bs-toggle="tab" href="#tab-calc-size" role="tab"><i
+                                        class="fas fa-calculator"></i> Calculate</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="quick-manual-tab" data-bs-toggle="tab" href="#tab-manual-size" role="tab"><i
+                                        class="fas fa-fist-raised"></i> Manual</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" id="tab-quick-product" class="tab-pane fade show active">
+                                <div class="panel-body">
+
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-quick-size" class="tab-pane fade">
+                                <div class="panel-body">
+
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-calc-size" class="tab-pane fade">
+                                <div class="panel-body">
+
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-manual-size" class="tab-pane fade">
+                                <div class="panel-body">
+                                    {% include 'dialogs/quick_price_manual.html' %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+{% load static %}
+<nav class="navbar navbar-expand-md navbar-light" id="navbar-orders">
+    <div class="container-fluid justify-content-end">
+        <button class="navbar-toggler " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a class="btn btn-primary js-order-product-edit" role="button" data-url="{% url 'orderproductadd' order_obj.order_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
+                <div class="btn-group">
+
+                    <button type="button" class="btn btn-success" id="dropdownMenuPrint"><i class="fas fa-print"></i> Print
+                    </button>
+                    <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+
+                    <div class="dropdown-menu px-2" aria-labelledby="dropdownMenuPrint">
+                        <form  id="form-order-print">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="print_picklist" checked>
+                            <label class="form-check-label" for="print_picklist">
+                                PickList
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="print_shipping" checked>
+                            <label class="form-check-label" for="print_shipping">
+                                Shipping
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="print_invoice">
+                            <label class="form-check-label" for="print_invoice">
+                                Invoice
+                            </label>
+                        </div>
+                            <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="print_collection">
+                            <label class="form-check-label" for="print_collection">
+                                Collection
+                            </label>
+                        </div>
+                            </form>
+                    </div>
+
+                </div>
+                <button type="button" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+
+

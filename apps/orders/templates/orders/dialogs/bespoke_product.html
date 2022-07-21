@@ -1,0 +1,339 @@
+{% load static %}
+<div class="container">
+    <div class="row tsg_navs">
+
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="standard-tab" data-bs-toggle="tab" href="#tab-standard"
+                   role="tab">Standard</a>
+            </li>
+            <li>
+                <a class="nav-link" id="calc-tab" data-bs-toggle="tab" href="#tab-calculate"
+                   role="tab">Calculate</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" id="tab-standard" class="tab-pane fade show active">
+                <div class="panel-body">
+
+                    <table id="bespoke_size_table" class="table table-hover table-condensed table-striped"
+                           style="width:100%">
+                        <thead>
+                        <tr>
+                            <th class="col-6">Size</th>
+                            <th class="col-3">Material</th>
+                            <th class="col-3">Price</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <div role="tabpanel" id="tab-calculate" class="tab-pane fade">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-2">
+                            <label for="calc_width" class="form-label">Width (mm)</label>
+                            <input type="text" class="form-control js-calc_size_change" id="calc_width" placeholder="0">
+                        </div>
+                        <div class="col-2">
+                            <label for="calc_height" class="form-label">Height (mm)</label>
+                            <input type="text" class="form-control js-calc_size_change" id="calc_height" placeholder="0">
+                        </div>
+                        <div class="col-4">
+                            <label for="calc_material" class="form-label">Material</label>
+                            <input class="form-control" list="datalistMaterials" id="calc_material"
+                                   placeholder="Type to search...">
+                            <datalist id="datalistMaterials">
+                                {% for materials in material_obj %}
+                                    <option value="{{ materials.material_name }}"
+                                            data-materialid="{{ materials.material_id }}"></option>
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <div class="col-2">
+                            <label for="calc_margin" class="form-label">Tollorance</label>
+                            <select id="calc_margin" class="form-select">
+                                <option selected value="10">10%</option>
+                                <option value="20">20%</option>
+                                <option value="30">30%</option>
+                                <option value="40">40%</option>
+                            </select>
+
+                        </div>
+                        <div class="col">
+                            <button id="calc_button" role="button" type="button" class="btn btn-primary btn-lg"><i
+                                    class="fas fa-calculator"></i> Calc
+                            </button>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <table id="bespoke_calc_table" class="table table-hover table-condensed table-striped"
+                                   style="width:100%">
+                                <thead>
+                                <tr>
+                                    <th class="col-6">Size</th>
+                                    <th class="col-6">Price</th>
+                                </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <form method="post" class="js-product-add"
+                  id="form-bespoke">
+                {% csrf_token %}
+                 <input type="hidden" id="material_id" name="material_id" value="0">
+                <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
+                <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
+                <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}"
+                       value=Null>
+                <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
+                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
+                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="1">
+
+                <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
+                       value="{{ form.total.value|floatformat:2 }}">
+                <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
+                       value="{{ form.tax.value|floatformat:2 }}">
+
+                <div class="row">
+                    <div class="col-3">
+                        <label for="{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
+                        <input type="text" class="form-control" id="{{ form.model.name }}"
+                               name="{{ form.model.name }}" value="BESPOKE">
+                    </div>
+                    <div class="col-9">
+                        <label for="{{ form.name.name }}" class="form-label">{{ form.name.label }}</label>
+                        <input type="text" class="form-control" id="{{ form.name.name }}"
+                               name="{{ form.name.name }}" value="{{ form.name.value }}">
+                    </div>
+                    <div class="col-4">
+                        <label for="{{ form.size_name.name }}"
+                               class="form-label">{{ form.size_name.label }}</label>
+                        <input type="text" class="form-control" id="{{ form.size_name.name }}"
+                               name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
+                    </div>
+                    <div class="col-4">
+                        <label for="{{ form.material_name.name }}"
+                               class="form-label">{{ form.material_name.label }}</label>
+                        <input type="text" class="form-control" id="{{ form.material_name.name }}"
+                               name="{{ form.material_name.name }}" value="{{ form.material_name.value }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk"
+                                   checked>
+                            <label class="form-check-label" for="previous-switchShowBulk">Apply bulk discount</label>
+                        </div>
+
+                        <div class="collapse show" id="collapseBulkDiscount">
+                            <div class="row">
+                                <div class="row mb-2">
+                                    <label for="single_unit_price" class="col-3 col-form-label">Single Unit
+                                        Price</label>
+                                    <div class="col-2">
+                                        <input type="number" step="0.01" min="0.00" maxlength="3"
+                                               class="form-control two-decimals calc_line_totals" id="single_unit_price"
+                                               value="{{ form.price.value|floatformat:2 }}">
+                                    </div>
+                                </div>
+                                <div class="col-12" id="bulkTableDiv">
+                                    <select class="form-select bulk_group_select" id="previous-bulk_group_select">
+                                        {% for bulk_group in bulk_info %}
+                                            <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="row">
+                                        <div class="col-xs-12" id="bulk_pricing_div">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="row">
+                            <div class="row d-flex justify-content-md-end mb-2">
+                                <div class="col-6 col-lg-4">
+
+                                    <label for="{{ form.quantity.name }}"
+                                           class="form-label">{{ form.quantity.label }}</label>
+                                    <input type="number" min="1" step="1" class="form-control calc_line_totals"
+                                           id="{{ form.quantity.name }}" name="{{ form.quantity.name }}"
+                                           value="1">
+                                </div>
+                                <div class="col-6 col-lg-4">
+                                    <label for="{{ form.price.name }}"
+                                           class="form-label">{{ form.price.name }}</label>
+                                    <input type="number" id="{{ form.price.name }}" name="{{ form.price.name }}"
+                                           step="0.01"
+                                           value="{{ form.price.value|floatformat:2 }}"
+                                           class="form-control calc_line_totals" readonly>
+                                </div>
+                                <div class="col-12 col-lg-4 d-flex align-items-end text-end">
+                                    <h3>£<span id="line_total_cal"></span></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
+                                <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% block javascript %}
+    <script>
+        $(document).ready(function () {
+
+            var bespoke_size_table = $('#bespoke_size_table').DataTable({
+                "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                    "<'row'<'col-12'tr>>",
+                "processing": true,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "pageLength": 10,
+                "autoWidth": false,
+                "responsive": true,
+                "serverSide": false,
+                "ajax": {
+                    "processing": true,
+                    "url": "/pricing/api/storeprices/1/?format=datatables",
+                    "type": "GET",
+                },
+                "deferRender": true,
+                "search": {
+                    "regex": true
+                },
+                "select": true,
+                "scroller": true,
+                scrollY: 300,
+                columns: [
+                    {data: "size_material_comb.product_size.size_name"},
+                    {data: "size_material_comb.product_material.material_name"},
+                    {data: "price", searchable: false},
+                ]
+            });
+
+            var bespoke_calc_table = $('#bespoke_calc_table').DataTable({
+                'searching': false,
+
+
+        "info": false,
+                "processing": true,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "pageLength": 10,
+                "autoWidth": true,
+                "serverSide": false,
+                "ajax": {
+                    "processing": true,
+                    "url": "/pricing/api/bespokeprices/?format=datatables&width=0&height=0&material_id=1&margin=10",
+                    "type": "GET",
+                },
+                "select": true,
+                "scroller": true,
+                scrollY: 300,
+                columns: [
+                    {data: "product_size.size_name"},
+                    {data: "price", searchable: false},
+                ]
+            });
+
+            //
+
+            bespoke_size_table.on('select', function (e, dt, type, indexes) {
+                if (type === 'row') {
+                    let product_id = 0
+                    let data_row = bespoke_size_table.row(indexes).data()
+                  //  set_product_details(data_row)
+                  //  SetPrice(true, '#form-bespoke')
+                }
+            });
+
+            function set_product_details(data_row) {
+                $('#form-bespoke #{{ form.product_id.name }}').val(0)
+                $('#form-bespoke #{{ form.size_name.name }}').val(data_row['size_material_comb']['product_size']['size_name'])
+                $('#form-bespoke #{{ form.material_name.name }}').val(data_row['size_material_comb']['product_material']['material_name'])
+                $('#form-bespoke #{{ form.orientation_name.name }}').val(data_row['size_material_comb']['product_size']['orientation'])
+                $('#form-bespoke #{{ form.product_variant.name }}').val(null)
+                $('#form-bespoke #{{ form.model.name }}').val('BESPOKE')
+                $('#form-bespoke #{{ form.is_bespoke.name }}').val(1)
+                $('#form-bespoke #{{ form.price.name }}').val(data_row['price'])
+                $('#form-bespoke #single_unit_price').val(data_row['price'])
+
+            }
+
+            $('.js-calc_size_change').on('keyup', function(){
+                str_width = $('#calc_width').val()
+                str_height =  $('#calc_height').val()
+                str_size = str_width+"mm x " + str_height + "mm";
+                $('#form-bespoke #{{ form.size_name.name }}').val(str_size);
+            })
+
+            $('#calc_material').on('change', function(){
+               let selectedOption = $("#datalistMaterials option[value='" + $(this).val() + "']");
+               let selectedMaterial = parseInt(selectedOption.attr('data-materialid'));
+               if(selectedMaterial) {
+                   $('#form-bespoke #material_id').val(selectedMaterial);
+                   $('#form-bespoke #{{ form.material_name.name }}').val($(this).val());
+               }
+            })
+
+            $('#calc_button').on('click', function(){
+                let str_width = $('#calc_width').val()
+                let str_height =  $('#calc_height').val()
+                let material_id = $('#form-bespoke #material_id').val()
+                let margin =  $('#calc_margin').val()
+                let strurl = "/pricing/api/bespokeprices/?format=datatables&width="+str_width+"&height="+str_height+"&material_id="+material_id+"&margin="+margin
+                bespoke_calc_table.ajax.url( strurl ).load();
+            })
+
+            function set_calc_details(data_row) {
+                $('#form-bespoke #{{ form.orientation_name.name }}').val(0)
+                $('#form-bespoke #{{ form.product_variant.name }}').val(null)
+                $('#form-bespoke #{{ form.model.name }}').val('BESPOKE')
+                $('#form-bespoke #{{ form.is_bespoke.name }}').val(1)
+
+                //now calc the price based on m2 and selected price
+                let str_width = $('#calc_width').val()
+                let str_height =  $('#calc_height').val()
+                let stock_width = data_row['product_size']['size_width'];
+                let stock_height = data_row['product_size']['size_height'];
+                let m2_custom =  ( (str_width/1000) * (str_height/1000)) ;
+                let m2_stock_price = data_row['price'] / ( (stock_width/1000) * (stock_height/1000));
+                let customer_price = parseFloat(m2_stock_price * m2_custom).toFixed(2);
+                $('#form-bespoke #{{ form.price.name }}').val(customer_price)
+                $('#form-bespoke #single_unit_price').val(customer_price)
+
+            }
+
+            bespoke_calc_table.on('select', function (e, dt, type, indexes) {
+                if (type === 'row') {
+                    let data_row = bespoke_calc_table.row(indexes).data()
+                    set_calc_details(data_row)
+                    SetPrice(true, '#form-bespoke')
+                }
+            });
+        })
+    </script>
+
+{% endblock javascript %}

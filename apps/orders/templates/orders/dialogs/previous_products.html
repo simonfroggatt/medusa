@@ -1,0 +1,219 @@
+{% load static %}
+<div class="container">
+    <div class="row mb-3">
+
+
+                                <table id="previous_product_table" class="table table-hover table-condensed table-striped"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th class="col-1">Order</th>
+                                        <th class="col-2">Code</th>
+                                        <th class="col-auto">Name</th>
+                                        <th class="col-1">Qty</th>
+                                        <th class="col-1">Price</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+
+    </div>
+    <div class="row">
+        <div class="col-12">
+           <form method="post" action="{% url 'orderproductadd' order_id %}" class="js-product-add" id="form-previous">
+            {% csrf_token %}
+               <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id}}">
+               <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
+               <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
+               <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
+               <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
+               <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
+               <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
+               <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
+               <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
+               <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}">
+               <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+
+               <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
+                           value="{{ form.total.value|floatformat:2 }}">
+               <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
+                           value="{{ form.tax.value|floatformat:2 }}">
+
+
+               <div class="row">
+                   <div class="col-8">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-check form-switch">
+                           <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk" checked>
+                           <label class="form-check-label" for="switchApplyBulk">Apply bulk discount</label>
+                       </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check form-switch">
+                           <input class="form-check-input switchAddPreviousNumber" type="checkbox" name="switchAddPreviousNumber" id="switchAddPreviousNumber">
+                           <label class="form-check-label" for="switchAddPreviousNumber">Add Order Number</label>
+                       </div>
+                            </div>
+                        </div>
+                       <div class="collapse show" id="collapseBulkDiscount">
+                           <div class="row">
+                               <div class="col-12" id="bulkTableDiv">
+                                   <select class="form-select bulk_group_select" id="previous-bulk_group_select">
+                                       {% for bulk_group in bulk_info %}
+                                           <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                                       {% endfor %}
+                                   </select>
+                                   <div class="row">
+                                       <div class="col-xs-12" id="bulk_pricing_div">
+                                           asdasdas
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+                   <div class="col-4">
+                       <div class="row">
+                           <div class="row d-flex justify-content-md-end mb-2">
+                   <div class="col-6 col-lg-4">
+
+                            <label for="{{ form.quantity.name }}"
+                                   class="form-label">{{ form.quantity.label }}</label>
+                            <input type="number" min="1" step="1" class="form-control calc_line_totals"
+                                   id="{{ form.quantity.name }}" name="{{ form.quantity.name }}"
+                                   value="1">
+                        </div>
+                   <div class="col-6 col-lg-4">
+                        <label for="{{ form.price.name }}"
+                                   class="form-label">{{ form.price.name }}</label>
+                            <input type="number" id="{{ form.price.name }}" name="{{ form.price.name }}" step="0.01"
+                           value="{{ form.price.value|floatformat:2 }}" class="form-control calc_line_totals" readonly>
+                   </div>
+                   <div class="col-12 col-lg-4 d-flex align-items-end text-end">
+                       <h3>£<span id="line_total_cal"></span></h3>
+                   </div>
+               </div>
+                       </div>
+                        <div class="row">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
+                                <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
+                            </div>
+                        </div>
+                   </div>
+               </div>
+
+           </form>
+        </div>
+    </div>
+
+</div>
+
+{% block javascript %}
+    <script>
+    $(document).ready(function() {
+
+        var previous_product_table = $('#previous_product_table').DataTable({
+            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "select": true,
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'product_id',
+            "ajax": {
+                "processing": true,
+                "url": "/orders/api/previous-products/{{ customer_id }}?format=datatables",
+                "type": "GET",
+                "beforeSend": function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
+                }
+            },
+            'order': [[0, 'desc']],
+            "deferRender": false,
+
+            "search": {
+                "regex": true
+            },
+            columns: [
+                {
+                    data: "order_id",
+                    sortable: true
+                },
+                {data: "model"},
+                {
+                    data: "name",
+                    defaultContent: ""
+                },
+                {
+                    data: "quantity",
+                    defaultContent: ""
+                },
+                {
+                    data: "price",
+                    defaultContent: ""
+                },
+                {
+                    data: "product_id",
+                    "visible": false
+                }
+            ]
+        });
+
+        previous_product_table.on('select', function (e, dt, type, indexes) {
+            if (type === 'row') {
+                let product_id = previous_product_table.row(indexes).id()
+                let data_row = previous_product_table.row(indexes).data()
+                set_product_details(data_row)
+                if(data_row['quantity'] > 1)
+                {
+                    $('#form-previous #switchApplyBulk').prop('checked',false)
+                    let product_price =  "#form-previous #{{ form.price.name }}";
+                    $(product_price).prop('readonly', false)
+                    //SetPrice(false, '#form-previous')
+                }
+                else{
+                    SetPrice(true, '#form-previous')
+                }
+
+
+            }
+        });
+
+        function set_product_details(data_row){
+              $('#form-previous #{{ form.product_id.name }}').val(data_row['product_id'])
+            $('#form-previous #{{ form.name.name }}').val(data_row['name'])
+             $('#form-previous #{{ form.size_name.name }}').val(data_row['size_name'])
+            $('#form-previous #{{ form.material_name.name }}').val(data_row['material_name'])
+            $('#form-previous #{{ form.orientation_name.name }}').val(data_row['orientation_name'])
+            $('#form-previous #{{ form.product_variant.name }}').val(data_row['product_variant']['prod_variant_id'])
+            $('#form-previous #{{ form.model.name }}').val(data_row['model'])
+            $('#form-previous #{{ form.is_bespoke.name }}').val(data_row['is_bespoke'])
+            $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
+            $('#form-previous #{{ form.price.name }}').val(data_row['price'])
+            $('#form-previous #line_total_cal').html(data_row['total']);
+             $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
+             $('#form-previous #single_unit_price').val(data_row['price'])
+
+        }
+
+         $(".switchAddPreviousNumber").change(function(){
+             if(previous_product_table.rows( { selected: true } ).count() == 1) {
+                 let selected_row = previous_product_table.rows( { selected: true } ).data()[0]
+                 if ($(this).is(":checked")) {
+                     $('#form-previous #{{ form.model.name }}').val('(#'+selected_row['order_id'] + ') ' + selected_row['model'])
+                 }
+
+                 else
+                    $('#form-previous #{{ form.model.name }}').val(selected_row['model'])
+                 }
+         })
+    })
+    </script>
+
+{% endblock javascript %}
