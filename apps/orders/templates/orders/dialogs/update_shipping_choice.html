@@ -1,0 +1,53 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title" <strong>CHANGE</strong> shipping</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'ordershippingchange' order_id %}"
+                      id="js-order-shipping-choice-edit">
+                    {% csrf_token %}
+                    <input type="hidden" id="order" name="order"
+                           value="{{ order_id }}">
+                  <input type="hidden" id="{{ form.code.id }}" name="{{ form.code.name }}"
+                           value="{{ form.code.value }}">
+                    <div class="row">
+                        <div class="col-12">
+                            <select class="form-select" id="shipping_methods_sel">
+                                {% for shipping in shipping_methods %}
+                                    <option id="{{shipping.pk}}" value="{{shipping.price}}">{{shipping.title}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            {{ form.title|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.value|as_crispy_field }}
+                        </div>
+                    </div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#shipping_methods_sel').on('change', function(){
+
+            $('#id_value').val($(this).find(":selected").val())
+            $('#id_title').val($(this).find(":selected").html())
+        }
+    )
+</script>

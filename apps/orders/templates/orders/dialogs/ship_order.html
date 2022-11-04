@@ -1,0 +1,107 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Ship Order - {{ order_id }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'ordershipit' order_id %}"
+                      id="js-order-ship-it">
+                    {% csrf_token %}
+                    <input type="hidden" id="order_id" name="order_id"
+                           value="{{ order_id }}">
+                    <input type="hidden" id="chosen_courier" name="chosen_courier"
+                           value="0">
+                    <input type="hidden" id="chosen_courier_option" name="chosen_courier_option"
+                           value="">
+                    <div class="row">
+                        <div class="col-12">
+                            <ul class="nav tsg_navs nav-pills mb-3" id="courier_tabs" role="tablist">
+                                {% for courier in couriers %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="nav_courier_{{courier.pk}}-tab" data-bs-toggle="pill" data-bs-target="#nav_courier_{{courier.pk}}" data-courier-id="{{courier.pk}}" type="button" role="tab"  ><img src="{% static "" %}images/{{ courier.courier_logo }}"></button>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="tab-content" id="courier_tabs_content">
+                            {% for courier in couriers %}
+                                <div class="tab-pane fade show" id="nav_courier_{{courier.pk}}" role="tabpanel" aria-labelledby="nav_courier_{{courier.pk}}-tab">
+                                    {% for courier_options in courier.courierdetails.all %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="radio_{{courier.pk}}"
+                                                   id="radio-{{courier.pk}}-{{ courier_options.courier_opion_id }}" value="{{ courier_options.courier_option_title }}">
+                                            <label class="form-check-label" for="radio_{{courier.pk}}-{{ courier_options.courier_opion_id }}">
+                                                {{ courier_options.courier_option_title }}
+                                            </label>
+                                        </div>
+
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        {% include 'orders/sub_layout/shipping_address_ajax.html' %}
+                    </div>
+                <div class="row">
+                    <div class="col-md-12">{{ form.tracking_number|as_crispy_field }}</div>
+                </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end" id="shipit_actions">
+                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                                <button type="submit" id="update" class="btn btn-primary pull-right" disabled>Ship</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+   var courier_id = 0;
+   var courier_option = [];
+
+$('#courier_tabs .nav-link').on('click', function(){
+       //alert(this.data('courierId'));
+    courier_id = $(this).data("courierId")
+    if(courier_option[courier_id] !== undefined)
+    {
+        $('#chosen_courier_option').val(courier_option[courier_id])
+    }
+    $('#chosen_courier').val(courier_id);
+    })
+
+$('#courier_tabs_content .form-check-input').on('click', function(){
+       //alert(this.data('courierId'));
+    let data_tag = $(this).attr('id');
+    let data_label = $(this).val()
+    let data_tag_info = data_tag.split('-');
+    let c_id = data_tag_info[1];
+    let opt_id = data_tag_info[2];
+    courier_option[c_id] = data_label;
+    $('#chosen_courier_option').val(data_label);
+
+    $('#shipit_actions #update').prop({disabled: false});
+    })
+
+   $(document).on('click', '#test_btn', function()
+    {
+        let tmp = "Courier="+courier_id + " option="+courier_option[courier_id];
+    });
+
+
+
+
+</script>
+

@@ -2,29 +2,6 @@
 $(function()
 {
 
-  var loadForm = function() {
-
-    var btn = $(this);  // <-- HERE
-    $.ajax({
-      url: btn.attr("data-url"),  // <-- AND HERE
-      type: 'get',
-      dataType: 'json',
-      beforeSend: function () {
-        $("#modal-address").modal("show");
-      },
-
-      success: function (data) {
-        if (data.form_is_valid) {
-          $("#modal-address").modal("hide")
-        }
-        else {
-          // $("#modal-address .modal-title").html("Edit Address");
-          $("#modal-address .modal-content").html(data.html_form);
-        }
-      },
-    });
-}
-
   var saveForm = function () {
     var form = $(this);
     $.ajax({
@@ -35,9 +12,9 @@ $(function()
       success: function (data) {
         if (data.form_is_valid) {
           updateAddressBook()
-          $("#modal-address").modal("hide");  // <-- Close the modal
+          $("#modal-base").modal("hide");  // <-- Close the modal
         } else {
-          $("#modal-address .modal-content").html(data.html_form);
+          $("#modal-base .modal-content").html(data.html_form);
         }
       }
     });
@@ -69,7 +46,7 @@ $(function()
 
   reinstateFunction()
 
-   $("#modal-address").on("submit", ".js-address-submit", saveForm);
+   $("#modal-base").on("submit", ".js-address-submit", saveForm);
 
 
   let previous_order_table = $('#previous_order_table').DataTable( {
@@ -102,7 +79,7 @@ $(function()
                 searchable: false,
                 name: "store.name",
                 render: function ( data, type, row ) {
-                    let image_src = '{% static "images/stores/" %}' + data.thumb;
+                    let image_src = static_const + '/images/stores/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },
@@ -163,6 +140,11 @@ $(function()
             }
          },
     } );
+
+
+
+
+
 
 
 })

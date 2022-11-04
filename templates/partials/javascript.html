@@ -7,6 +7,7 @@
         <script src="{% static 'libs/simplebar/simplebar.min.js' %}"></script>
         <script src="{% static 'libs/node-waves/waves.min.js' %}"></script>
         <script src="{% static 'libs/lighbox/js/lightbox.min.js' %}"></script>
+        <script src="{% static 'libs/copy-to-clipboard/clipboard.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
 
         <!-- App js -->
@@ -14,4 +15,9 @@
         <script type="text/javascript" src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
         <script type="text/javascript" src="{% static 'libs/bootstrap-table/js/bootstrap-table.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/medusa.js' %}"></script>
+
+        <script>
+            const static_const = {% get_static_prefix %};
+            const media_url = "{% get_media_prefix %}";
+        </script>
 {% endblock %}

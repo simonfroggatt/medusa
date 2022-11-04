@@ -1,0 +1,51 @@
+{% load static %}
+<div class="card h-100 mb-0">
+             <div class="card-header company_main_contact">
+                 <div class="row">
+                     <div class="col-9 ">
+                          Main Contact
+                         <img height="20px" src="{% static "" %}images/stores/{{ company_obj.store.thumb }}" class="img-responsive"
+                         alt="{{ company_obj.store.name }}">
+                     </div>
+                     <div class="col-3">
+                         <div class="float-end">
+                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <button type="button" class="btn btn-primary btn-sm js-company-dlg"
+                                        data-url="{% url 'company_details_edit' company_obj.company_id %}"
+                                        data-dlgsize="modal-lg"
+                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                        </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <div class="card-body">
+                 <div class="row">
+                     <div class="col-6">
+                        <dl class="row text-nowrap" id="company_{{ company_obj.compnay_id }}">
+                             <dt class="col-3">Company</dt>
+                             <dd class="col-9">{{ company_obj.company_name }}</dd>
+                             <dt class="col-3">Main Contact:</dt>
+                             <dd class="col-9">{{ company_obj.fullname }}</dd>
+                             <dt class="col-3">Telephone:</dt>
+                             <dd class="col-9">{{ company_obj.telephone }}</dd>
+                             <dt class="col-3">Email:</dt>
+                             <dd class="col-9">{{ company_obj.email }}</dd>
+                             <dt class="col-3">Website:</dt>
+                             <dd class="col-9"><a href="http://{{company_obj.website}}" target="_blank">{{company_obj.website|default:"&nbsp;" }}</a> </dd>
+                        </dl>
+                     </div>
+                     <div class="col-6">
+                         <dt>Invoice Address</dt>
+                         <address >
+                                {{ company_obj.address|linebreaksbr  }}<br>
+                                {{ company_obj.area }}<br>
+                                {{ company_obj.city }}<br>
+                                <strong>{{ company_obj.postcode }}</strong><br>
+                                {{ company_obj.country }}
+                        </address>
+                     </div>
+                 </div>
+
+             </div>
+         </div>

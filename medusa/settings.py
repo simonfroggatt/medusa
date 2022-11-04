@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'apps.symbols',
     'apps.category',
     'apps.orders',
+    'apps.company',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -151,6 +152,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/customer/static/customer'),
                     os.path.join(BASE_DIR, 'apps/products/static/products'),
                     os.path.join(BASE_DIR, 'apps/pricing/static/pricing'),
+                    os.path.join(BASE_DIR, 'apps/company/static/company'),
                     ]
 
 

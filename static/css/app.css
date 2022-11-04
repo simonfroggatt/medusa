@@ -82,7 +82,7 @@ body:not([data-topbar="dark"]) .navbar-brand-box {
     display: inline-block; } }
 
 .page-content {
-  padding: calc(60px + 20px) calc(20px / 2) 60px calc(20px / 2); }
+  padding: calc(60px + 2px) calc(20px / 2) 60px calc(20px / 2); }
 
 .header-item {
   height: 60px;

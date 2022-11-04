@@ -1,0 +1,113 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="row top_bar">
+            <div class="col-3 col-lg-2">
+
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                {% include 'company/sub_layout/company_list_top_navbar.html' %}
+            </div>
+        </div>
+
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="company_table" class="table table-hover table-sm"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Store</th>
+                                        <th>Company</th>
+                                        <th>Main Contact</th>
+                                        <th>Email</th>
+                                        <th>Telephone</th>
+                                        <th>Account</th>
+                                        <th>Terms</th>
+                                        <th width="25px"></th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+<script>
+    $(document).ready(function() {
+
+    $('#company_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "responsive": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "/company/api/companylist/?format=datatables"
+             },
+        "deferRender": true,
+        "order": [[ 6, "desc" ]],
+         "search": {
+            "regex": true
+        },
+        columns :[
+            {
+                data: "store",
+                sortable: false,
+                render: function ( data, type, row ) {
+                    let image_src = '{% static "images/stores/" %}' + data.thumb;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }
+            },
+            {data: "company_name"},
+            {data: "fullname"},
+            {data: "email"},
+            {data: "telephone"},
+            {
+                data: "account_type.account_type_name",
+            },
+            {
+                data: "payment_terms.term_title",
+                render :function ( data, type, row ) {
+                    return row['payment_days'] + ' ' + data
+                }
+            },
+            {
+                data: "company_id",
+                sortable: false,
+                render: function ( data, type, row ) {
+                 let edit_icon = '<a class="btn btn-primary btn-sm js-order-product-edit" href="'+data+'" role="button" ><i class="fas fa-edit fa-sm"></i></a>';
+                return edit_icon;
+                }
+            },{
+                data: 'payment_days',
+                visible : false
+            }
+
+
+        ]
+    } );
+
+    $(".js-company-create").click(loadForm);
+
+} );
+</script>
+
+{% endblock javascript %}

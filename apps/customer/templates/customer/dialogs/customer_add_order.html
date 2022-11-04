@@ -1,0 +1,29 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Create NEW order</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'api_createorder' customer_id%}"
+                      id="js-order-customer-create-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="customer_id" name="customer_id"
+                           value="{{ customer_id }}">
+                Are you sure you want to create a new order?
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">No</button>
+                        <button type="submit" id="delete" class="btn btn-primary pull-right">Yes</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

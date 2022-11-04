@@ -1,39 +1,6 @@
 from django.db import models
 from medusa.models import OcStore, OcTaxRate
-
-class OcTsgCountryIso(models.Model):
-    iso_id = models.IntegerField(primary_key=True)
-    iso2 = models.CharField(max_length=2, blank=True, null=True)
-    iso3 = models.CharField(max_length=3, blank=True, null=True)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    status = models.IntegerField(blank=True, null=True)
-    sort_order = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_country_iso'
-
-    def __str__(self):
-        return self.name
-
-
-class OcTsgCompanyType(models.Model):
-    company_type_id = models.AutoField(primary_key=True)
-    company_type_name = models.CharField(max_length=255, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_company_type'
-
-
-class OcTsgAccountType(models.Model):
-    account_type_id = models.AutoField(primary_key=True)
-    account_type_name = models.CharField(max_length=32, blank=True, null=True)
-    account_type_description = models.CharField(max_length=1024, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_account_type'
+from apps.company.models import OcTsgCompany, OcTsgCountryIso
 
 
 class OcTsgPaymentTerms(models.Model):
@@ -69,8 +36,8 @@ class OcCustomer(models.Model):
     telephone = models.CharField(max_length=32)
     mobile = models.CharField(max_length=32, blank=True, null=True)
     fax = models.CharField(max_length=32, blank=True, null=True)
-    password = models.CharField(max_length=40)
-    salt = models.CharField(max_length=9)
+    password = models.CharField(max_length=40, blank=True, null=True)
+    salt = models.CharField(max_length=9, blank=True, null=True)
     cart = models.TextField(blank=True, null=True)
     wishlist = models.TextField(blank=True, null=True)
     newsletter = models.IntegerField(blank=True, null=True)
@@ -81,13 +48,11 @@ class OcCustomer(models.Model):
     safe = models.IntegerField(blank=True, null=True)
     token = models.TextField(blank=True, null=True)
     code = models.CharField(max_length=40, blank=True, null=True)
-    date_added = models.DateTimeField()
+    date_added = models.DateTimeField(auto_now=True)
     xero_id = models.CharField(max_length=256, blank=True, null=True)
-    parent_company = models.ForeignKey('OcTsgCompany', models.DO_NOTHING, db_column='company_id', blank=True, null=True)  # Field renamed because of name conflict.
+    parent_company = models.ForeignKey(OcTsgCompany, models.DO_NOTHING, db_column='company_id', blank=True, null=True, related_name='company_customer')  # Field renamed because of name conflict.
 
-    @property
-    def fullname(self):
-        return self.firstname + ' ' + self.lastname
+
 
     class Meta:
         managed = False
@@ -96,37 +61,9 @@ class OcCustomer(models.Model):
 
 
 
-class OcTsgCompany(models.Model):
-    company_id = models.AutoField(primary_key=True)
-    company_name = models.CharField(max_length=255, blank=True, null=True)
-    firstname = models.CharField(max_length=255, blank=True, null=True)
-    lastname = models.CharField(max_length=255, blank=True, null=True)
-    email = models.CharField(max_length=255, blank=True, null=True)
-    telephone = models.CharField(max_length=40, blank=True, null=True)
-    website = models.CharField(max_length=255, blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    area = models.CharField(max_length=255, blank=True, null=True)
-    postcode = models.CharField(max_length=255, blank=True, null=True)
-    xero_id = models.CharField(max_length=255, blank=True, null=True)
-    payment_terms = models.ForeignKey('OcTsgPaymentTerms', models.DO_NOTHING, db_column='payment_terms', blank=True, null=True)
-    payment_days = models.IntegerField(blank=True, null=True)
-    status = models.ForeignKey('OcTsgCustomerStatus', models.DO_NOTHING, db_column='status', blank=True, null=True)
-    account_type = models.ForeignKey(OcTsgAccountType, models.DO_NOTHING, db_column='account_type', blank=True, null=True)
-    credit_limit = models.FloatField(blank=True, null=True)
-    discount = models.FloatField(blank=True, null=True)
-    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
-    company_type = models.ForeignKey('OcTsgCompanyType', models.DO_NOTHING, db_column='company_type', blank=True, null=True)
-    tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_company'
-
-
 class OcAddress(models.Model):
     address_id = models.AutoField(primary_key=True)
-    customer = models.ForeignKey('OcCustomer', models.DO_NOTHING, db_column='customer_id')
+    customer = models.ForeignKey(OcCustomer, models.DO_NOTHING, db_column='customer_id')
     company = models.CharField(max_length=40, blank=True, null=True)
     branch = models.CharField(max_length=255, blank=True, null=True)
     fullname = models.CharField(max_length=255, blank=True, null=True)
@@ -139,11 +76,10 @@ class OcAddress(models.Model):
     city = models.CharField(max_length=128, blank=True, null=True)
     postcode = models.CharField(max_length=10)
     area = models.CharField(max_length=255, blank=True, null=True)
-    country = models.ForeignKey('OcTsgCountryIso', models.DO_NOTHING, blank=True, null=True)
+    country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, blank=True, null=True)
     zone_id = models.IntegerField(blank=True, null=True)
     custom_field = models.TextField(blank=True, null=True)
     label = models.CharField(max_length=255, blank=True, null=True)
-    parent_company = models.ForeignKey('OcTsgCompany', models.DO_NOTHING, db_column='company_id', blank=True, null=True)  # Field renamed because of name conflict.
     default_shipping = models.BooleanField(blank=True, null=True, default=0)
     default_billing = models.BooleanField(blank=True, null=True, default=0)
 

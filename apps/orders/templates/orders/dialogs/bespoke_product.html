@@ -88,7 +88,7 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <form method="post" class="js-product-add"
+            <form method="post" class="js-product-add" action="{% url 'orderproductadd' order_id %}"
                   id="form-bespoke">
                 {% csrf_token %}
                  <input type="hidden" id="material_id" name="material_id" value="0">
@@ -264,8 +264,8 @@
                 if (type === 'row') {
                     let product_id = 0
                     let data_row = bespoke_size_table.row(indexes).data()
-                  //  set_product_details(data_row)
-                  //  SetPrice(true, '#form-bespoke')
+                    set_product_details(data_row)
+                    SetPrice(true, '#form-bespoke')
                 }
             });
 

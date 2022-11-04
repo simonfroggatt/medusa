@@ -38,7 +38,7 @@
 {% endblock extrahead %}
 
 </head>
-<body data-sidebar="dark" > 
+<body data-sidebar="dark" >
 {% comment %} <body data-topbar="dark" data-layout="horizontal"> {% endcomment %}
 
     {% block preloader %}
@@ -72,8 +72,24 @@
                                         <li class="breadcrumb-item active">{{heading}}</li>
                                     </ol>
                                 </div>
-
-
+                                <div class="page-title-right">
+                                {% if nav_data %}
+                                    <span>
+                                        {% if nav_data.previous_url|length > 1 %}
+                                            <a href="{{nav_data.previous_url}}">Previous {{nav_data.label}}</a>
+                                        {% else %}
+                                            Previous {{nav_data.label}}
+                                        {% endif %}
+                                    </span>
+                                    <span class="ms-2">
+                                        {% if nav_data.next_url|length > 1 %}
+                                            <a href="{{nav_data.next_url}}">Next {{nav_data.label}}</a>
+                                        {% else %}
+                                            Next {{nav_data.label}}
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -93,7 +109,7 @@
         <!-- end main content-->
 
 
-     <div class="modal fade " id="modal-base" role="dialog">
+     <div class="modal fade" id="modal-base" role="dialog">
         <div class="modal-dialog modal-dialog-centered modal-xl" role="document" id="modal-outer">
             <div class="modal-content">
 

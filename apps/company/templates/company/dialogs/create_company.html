@@ -1,0 +1,85 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">New Company</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12 pe-0">
+                <form method="post" action="{% url 'save_company' %}"
+                      id="js-company-create-form">
+                    {% csrf_token %}
+                    <div class="row border-bottom">
+                        <div class="col-md-4">{{ form.company_name|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.company_type|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.website|as_crispy_field }}</div>
+                    </div>
+                    <div class="row border-bottom">
+                        <div class="col-md-4">{{ form.fullname|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.email|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.telephone|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 border-end">
+                            <div class="row">
+                                <div class="col-12">{{ form.address|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.city|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.area|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.postcode|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.country|as_crispy_field }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-md-4">{{ form.account_type|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.payment_days|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.payment_terms|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.discount|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.credit_limit|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.tax_rate|as_crispy_field }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3" >{{ form.store|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.status|as_crispy_field }}</div>
+                        <div class="col-md-6">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                                <button type="submit" id="update" class="btn btn-primary pull-right">Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="{% static 'js/address-lookup.js' %}"></script>
+
+<script>
+
+    $(function () {
+
+        let fieldMatch = {
+            'Company': 'id_{{ form.company_name.name}}',
+            'Line1': 'id_{{ form.address.name}}',
+            'Line2': 'id_{{ form.address.name}}',
+            'Line3': 'id_{{ form.address.name}}',
+            'City': 'id_{{ form.city.name}}',
+            'ProvinceName': 'id_{{ form.area.name}}',
+            'CountryIsoNumber': 'id_{{ form.country.name}}',
+            'PostalCode': 'id_{{ form.postcode.name}}',
+        }
+
+
+        let inputFields = ['#id_{{ form.company_name.name}}', '#id_{{ form.postcode.name}}', '#id_{{ form.address.name}}']
+        let lookupTest = new TSGAddressLookup(inputFields, '', fieldMatch)
+    })
+
+    $(document).on("submit", "#js-company-create-form", SaveDialogFormRedirect);
+</script>

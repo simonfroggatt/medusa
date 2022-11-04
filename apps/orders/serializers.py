@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import OcOrder, OcOrderProduct, OcOrderTotal
+from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, OcTsgOrderProductStatus, \
+    OcTsgOrderShipment
 from django.conf import settings
 
 class OrderStatusSerializer(serializers.ModelSerializer):
@@ -8,14 +9,61 @@ class OrderStatusSerializer(serializers.ModelSerializer):
         model = OcOrderProduct
         fields = ['status']
 
+class TsgFlagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcTsgFlags
+        fields = ['flag_name', 'flag_icon']
+
+
+class OrderFlagsListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcOrderFlags
+        fields = ['flag']
+
+        depth = 1
+
+
+class ProductStatusSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcTsgOrderProductStatus
+        fields = ['status_id', 'icon_path']
+
+
+class OrderProductFlagsSerializer(serializers.ModelSerializer):
+    status = ProductStatusSerializer(read_only=True)
+
+    class Meta:
+        model = OcOrderProduct
+        fields = ['status']
+    depth = 2
+
 class OrderListSerializer(serializers.ModelSerializer):
+    orderflags = OrderFlagsListSerializer(many=True, read_only=True)
+    product_flags = serializers.SerializerMethodField(read_only=True)
+    shipping_flag = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OcOrder
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['dow', 'days_since_order', 'orderflags', 'is_order', 'testit'])
+        fields.extend(['dow', 'days_since_order', 'is_order', 'orderflags', 'product_flags', 'shipping_flag'])
 
         depth = 1
+
+    def get_product_flags(self, obj):
+        unique_flags = OcOrderProduct.objects.select_related('status').filter(order=obj.order_id,
+                                                                               status__is_flag=1).order_by(
+            'status__order_by').values('status__icon_path', 'status__name').distinct()
+        return unique_flags.values('status__icon_path')
+
+    def get_shipping_flag(self, obj):
+        shipping_status = OcTsgOrderShipment.objects.filter(order_id=obj.order_id).order_by('-date_added').select_related(
+            'shipping_status'
+            ).values('shipping_status__status_title', 'shipping_status__status_colour').first()
+
+        return shipping_status
 
 
 class OrderProductListSerializer(serializers.ModelSerializer):

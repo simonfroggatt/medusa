@@ -6,19 +6,22 @@
 
 {% block content %}
     <div class="wrapper wrapper-content layout-details">
-        <div class="row">
-            <div class="col-6">
+        <div class="row top_bar ">
+            <div class="col-3 col-lg-2">
                 <h2>Order - <a id="js-order-number"
                         href="javascript: copy_orderno_to_clipboard({{ order_obj.order_id }})">{{ order_obj.order_id }}</a>
-                    <img src="{% static "" %}images/stores/{{ order_obj.store.medusa_logo }}" class="img-responsive"
+                    <img src="{% static "" %}images/stores/{{ order_obj.store.thumb }}" class="img-responsive"
                          alt="{{ order_obj.store.name }}"></h2>
             </div>
-            <div class="col-6">
+            <div class="col-3 col-lg-4">
+                {% include 'orders/sub_layout/order_flags.html' %}
+            </div>
+            <div class="col-6 col-lg-6">
                 {% include 'orders/order_layout_navbar.html' %}
             </div>
         </div>
         <div class="row">
-            <div class="col">
+            <div class="col pe-0">
                 {% include 'orders/order_layout_details.html' %}
             </div>
         </div>
@@ -58,11 +61,13 @@
                                     </div>
                                     <div class="row justify-content-between">
                                         <div class="col-12 col-md-6 border">
-                                            <h6>Order Notes: </h6>
+                                            <h6>Customer Order Notes: </h6>
                                             <span id="order_comment">{{ order_obj.comment|linebreaksbr }}</span>
                                         </div>
                                         <div class="col-12 col-md-4 text-end order-first order-md-last">
                                             {% include 'orders/order_totals.html' %}
+                                            <span id="order_product_summary>"><strong>{{ order_lines }}</strong> Lines and <strong>{{ order_product_count }}</strong> products
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -90,15 +95,6 @@
     </div>
 
 
-
-    <div class="modal fade " id="modal-product-edit" role="dialog">
-        <div class="modal-dialog modal-dialog-centered" role="document" id="modal-outer">
-            <div class="modal-content">
-
-            </div>
-        </div>
-    </div>
-
 {% endblock content %}
 
 {% block javascript %}
@@ -106,8 +102,9 @@
 
     <script>
         //setup up the product ID so that products.js can get the value
-        const current_order_id = {{ order_obj.order_id }}
-        let tax_rate = 0.00
+        const current_order_id = {{ order_obj.order_id }} ;
+        const currency_symbol = '{{ order_obj.store.currency.symbol_left }}' ;
+        let tax_rate = 0.00;
         let bulk_table_data = [];
 
     </script>

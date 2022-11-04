@@ -15,7 +15,7 @@
                 if (data.form_is_valid) {
                     $(dlg_div_id).modal("hide")
                 } else {
-                    // $("#modal-address .modal-title").html("Edit Address");
+                    // $("#modal-base .modal-title").html("Edit Address");
                     $(dlg_div_id + " .modal-content").html(data.html_form);
                 }
             },
@@ -32,9 +32,9 @@
             success: function (data) {
                 if (data.form_is_valid) {
                     updateAddressBook()
-                    $("#modal-address").modal("hide");  // <-- Close the modal
+                    $("#modal-base").modal("hide");  // <-- Close the modal
                 } else {
-                    $("#modal-address .modal-content").html(data.html_form);
+                    $("#modal-base .modal-content").html(data.html_form);
                 }
             }
         });

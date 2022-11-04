@@ -1,0 +1,8 @@
+<ul class="list-inline">
+{% for flags in orderFlags %}
+    <li class="list-inline-item"><i class="fa-2x {{ flags.flag.flag_icon }}"></i></li>
+{% endfor %}
+    {% for pflags in productFlags %}
+    <li class="list-inline-item"><i class="fa-2x {{ pflags.status__icon_path }}" title="{{ pflags.status__name }}"></i></li>
+{% endfor %}
+</ul>

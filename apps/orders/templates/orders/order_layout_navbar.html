@@ -1,13 +1,13 @@
 {% load static %}
-<nav class="navbar navbar-expand-md navbar-light" id="navbar-orders">
-    <div class="container-fluid justify-content-end">
+<nav class="navbar navbar-expand-md navbar-light pe-0" id="navbar-orders">
+    <div class="container-fluid justify-content-end pe-0">
         <button class="navbar-toggler " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <a class="btn btn-primary js-order-product-edit" role="button" data-url="{% url 'orderproductadd' order_obj.order_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
+
                 <div class="btn-group">
 
                     <button type="button" class="btn btn-success" id="dropdownMenuPrint"><i class="fas fa-print"></i> Print
@@ -47,7 +47,38 @@
                     </div>
 
                 </div>
-                <button type="button" class="btn btn-danger">Delete</button>
+
+                <a class="btn btn-success js-order-ship-it" role="button" data-url="{% url 'ordershipit' order_obj.order_id %}" data-dlgsize="modal-lg"><i class="fas fa-shipping-fast"></i> Ship</a>
+                <a class="btn btn-primary js-order-product-edit" role="button" data-url="{% url 'orderproductadd' order_obj.order_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
+                <div class="dropdown dropstart">
+                    <button class="btn btn-warning " type="button" id="dropdownOrderOptions"
+                            data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-cog"></i>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
+                        <li><a class="dropdown-item" href="#">E-Mail</a></li>
+                        {% if not order_obj.customer %}
+                             <li><a class="dropdown-item" href="#">Convert to Customer</a></li>
+                        {% else %}
+                            <li><a class="dropdown-item js-order-customer-create" role="button" data-url="{% url 'api_createorder'  order_obj.customer.pk  %}" data-dlgsize="modal-sm">New Order</a></li>
+                            <li><a class="dropdown-item" href="#">Duplicate</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item js-order-product-edit" role="button"
+                               data-url="{% url 'ordertaxchange' order_obj.order_id %}" data-dlgsize="modal-sm">Tax Rate</a>
+                           </li>
+                        <li><a class="dropdown-item js-order-shipping-choice-edit" role="button"
+                               data-url="{% url 'ordershippingchange' order_obj.order_id %}" data-dlgsize="modal-sm">Shipping Rate</a>
+                           </li>
+                        <li>
+                            <a class="dropdown-item js-order-product-edit" role="button"
+                               data-url="{% url 'orderdiscountchange' order_obj.order_id %}" data-dlgsize="modal-sm">Discount</a>
+                        </li>
+
+                        <li class="list-group-item-danger">
+                            <a class="dropdown-item js-order-product-edit" role="button"
+                               data-url="{% url 'orderdeletedlg' order_obj.order_id %}" data-dlgsize="modal-sm">Delete</a>
+                           </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

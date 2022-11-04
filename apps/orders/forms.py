@@ -1,5 +1,6 @@
 from django import forms
-from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder
+from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder, OcOrderTotal, OcTsgOrderShipment
+from medusa.models import OcTsgShippingMethod
 
 
 class ProductEditForm(forms.ModelForm):
@@ -146,10 +147,63 @@ class OrderDetailsEditForm(forms.ModelForm):
                   'payment_status',
                   'payment_type',
                   'customer_order_ref',
-                  'payment_method',
-                  'comment'
+                  'payment_method_rel',
+                  'comment',
+                  'printed',
+                  'store'
                   ]
 
         widgets = {
             'comment': forms.Textarea(attrs={'rows': 2}),
+            'printed': forms.CheckboxInput,
         }
+
+
+class OrderTaxChangeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(OrderTaxChangeForm, self).__init__(*args, **kwargs)
+        self.fields['tax_rate'].empty_label = None
+
+    class Meta:
+        model = OcOrder
+        fields = ['tax_rate']
+
+
+class OrderShippingChoiceEditForm(forms.ModelForm):
+
+    class Meta:
+        model = OcOrderTotal
+
+        fields = ['order',
+                  'code',
+                  'title',
+                  'value'
+                  ]
+
+
+class ShippingMethodForms(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgShippingMethod
+
+        fields = ['shipping_method_id']
+
+
+class OrderShipItForm(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgOrderShipment
+        fields = '__all__'
+
+
+class OrderDiscountForm(forms.ModelForm):
+
+    class Meta:
+        model = OcOrderTotal
+
+        fields = ['order',
+                  'code',
+                  'title',
+                  'value'
+                  ]
+

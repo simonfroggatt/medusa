@@ -1,4 +1,4 @@
-<h4>Know size and price</h4>
+<h4>Known size and price</h4>
 <div class="row">
     <div class="col-4">
         <label for="manualWidth" class="form-label">Width</label>
@@ -25,10 +25,16 @@
     </div>
     <div class="col-4">
        <H4 id="manual_price_calc">Calculated Price</H4>
+        <button id="manual_copy_price" type="button" class="btn btn-success" data-clipboard-text="Just because you can doesn't mean you should — clipboard.js">Copy</button>
     </div>
 </div>
 
 <script>
+
+    new ClipboardJS('#manual_copy_price', {
+    container: document.getElementById('#modal-base')
+    });
+
     function reCalc(){
         let width = $('#manualWidth').val() ? $('#manualWidth').val() : 0;
         let height = $('#manualHeight').val() ? $('#manualHeight').val() : 0;
@@ -54,4 +60,6 @@
         $('#manual_price_calc').html(parseFloat(newprice).toFixed(2))
 
     }
+
+
 </script>

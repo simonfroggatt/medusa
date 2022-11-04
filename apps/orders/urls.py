@@ -7,12 +7,16 @@ router = routers.SimpleRouter()
 router.register(r'orders', views.Orders_asJSON)
 router.register(r'order-products', views.Orders_Products_asJSON)
 router.register(r'previous-products', views.Previous_Products_asJSON)
+router.register(r'flags', views.Order_Flags_asJSON)
 router.register(r'ordertotal', views.OrderTotalsViewSet)
 
 urlpatterns = [
     url('^api/', include(router.urls)),
     url('^api/orders-list', views.OrderListView.as_view(), name='orders_post_list'),
+    path('api/orders/delete', views.order_delete, name='api_ordersdelete'),
+    path('api/orders/product_text', views.get_order_product_text, name='api_orders_product_text'),
     path('<int:order_id>', views.order_details, name='order_details'),
+    path('<int:order_id>/delete/', views.order_delete_dlg, name='orderdeletedlg'),
     path('<int:order_id>/details/edit/', views.order_details_edit,
          name='orderdetailsedit'),
     path('<int:order_id>/product/edit/<int:order_product_id>', views.order_product_edit,
@@ -23,6 +27,8 @@ urlpatterns = [
          name='orderproductdelete'),
     path('<int:order_id>/addresses', views.get_order_addresses,
          name='orderaddresses'),
+    path('<int:order_id>/taxchange', views.tax_change_dlg, name='ordertaxchange'),
+    path('<int:order_id>/discountchange', views.discount_change_dlg, name='orderdiscountchange'),
     path('<int:order_id>/details', views.get_order_details,
          name='orderdetails'),
     path('<int:order_id>/address/billing/edit/', views.order_billing_edit,
@@ -33,8 +39,8 @@ urlpatterns = [
          name='orderbillingfrombook'),
     path('<int:order_id>/address/shipping/frombook', views.update_order_shipping_from_address_book,
          name='ordershippingfrombook'),
+    path('api/<int:order_id>/updateshipping/', views.order_shipping_change, name='ordershippingchange'),
+    path('api/<int:order_id>/shipit/', views.order_ship_it, name='ordershipit'),
     path('<int:order_id>/test/', views.order_test),
     path('', views.order_list, name='allorders'),
-
-
     ]

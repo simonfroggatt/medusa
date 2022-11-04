@@ -37,11 +37,40 @@
                      <dt class="col-3">Status:</dt>
                      <dd class="col-9">{{ order_obj.order_status.name }}</dd>
                      <dt class="col-3">Payment:</dt>
-                     <dd class="col-9">{{order_obj.payment_status.name }} - {{order_obj.payment_method.payment_method_name }}</dd>
-                     <dt class="col-3">Shipment:</dt>
-                     <dd class="col-9"></dd>
+                     <dd class="col-9">{{order_obj.payment_status.name }} - {{order_obj.payment_method_rel.payment_method_name }}</dd>
+                     <dt class="col-3">Shipment:
+                         {% if shippingObj %}
+                        <a class="btn btn-sm" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                            <li class="fas fa-hourglass-half"></li>
+                        </a>
+                         {% endif %}
+                     </dt>
+                    {% if shippingObj %}
+                        <dd class="col-9 text-wrap">
+                            <img class="img-responsive " height="15px"
+                                src="{% static "" %}images/{{shippingObj.first.shipping_courier.courier_logo }}">
+                                ({{shippingObj.first.shipping_courier_method }}) <strong class="{{shippingObj.first.shipping_status.status_colour }}">
+                                {{shippingObj.first.shipping_status }}</strong> on {{shippingObj.first.date_added|date:"D d M Y H:i:s" }} -
+                            <strong>{{shippingObj.first.tracking_number }}</strong>
+                        <dl class="collapse row" id="collapseExample">
+                            {% for shipping_info in shippingObj|slice:'1:' %}
+                                 <dt class="col-0">
+
+                                 </dt>
+                            <dd class="col-12">
+                                <img class="img-responsive " height="15px"
+                                src="{% static "" %}images/{{shipping_info.shipping_courier.courier_logo }}">
+                                ({{shipping_info.shipping_courier_method }}) <strong class="{{shipping_info.shipping_status.status_colour }}">
+                                {{shipping_info.shipping_status }}</strong> on {{shipping_info.date_added|date:"D d M Y H:i:s" }} -
+                                <strong>{{shipping_info.tracking_number }}</strong></dd>
+                            {% endfor %}
+                        </dl>
+                        </dd>
+                    {% else %}
+                        <dd class="col-9">Not yet shipped</dd>
+                    {% endif %}
+
 
                  </dl>
-
              </div>
          </div>

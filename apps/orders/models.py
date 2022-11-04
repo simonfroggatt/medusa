@@ -6,6 +6,7 @@ from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate
+from decimal import Decimal, ROUND_HALF_UP
 
 class OcOrderQuerySet(models.QuerySet):
     def successful(self):
@@ -85,6 +86,7 @@ class OcTsgOrderProductStatus(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     icon_path = models.CharField(max_length=255, blank=True, null=True)
     order_by = models.IntegerField(blank=True, null=True)
+    is_flag = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -94,6 +96,37 @@ class OcTsgOrderProductStatus(models.Model):
         return self.name
 
 
+class OcTsgCourier(models.Model):
+    courier_id = models.AutoField(primary_key=True)
+    courier_title = models.CharField(max_length=255, blank=True, null=True)
+    courier_logo = models.CharField(max_length=255, blank=True, null=True)
+    courier_api_url = models.CharField(max_length=1024, blank=True, null=True)
+    courier_username = models.CharField(max_length=255, blank=True, null=True)
+    courier_key = models.CharField(max_length=255, blank=True, null=True)
+    courier_tracking_url = models.CharField(max_length=512, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_courier'
+
+    def __str__(self):
+        return self.courier_title
+
+
+class OcTsgCourierOptions(models.Model):
+    courier_opion_id = models.AutoField(primary_key=True)
+    courier_option_title = models.CharField(max_length=255, blank=True, null=True)
+    courier_option_description = models.CharField(max_length=255, blank=True, null=True)
+    courier = models.ForeignKey(OcTsgCourier, models.DO_NOTHING, related_name='courierdetails')
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_courier_options'
+
+    def __str__(self):
+        return self.courier_option_title
+
+
 class OcOrder(models.Model):
     order_id = models.AutoField(primary_key=True)
     invoice_no = models.IntegerField()
@@ -101,7 +134,7 @@ class OcOrder(models.Model):
     store = models.ForeignKey(OcStore, models.DO_NOTHING)
     store_name = models.CharField(max_length=64)
     store_url = models.CharField(max_length=255)
-    customer = models.ForeignKey(OcCustomer, models.DO_NOTHING, blank=True, null=True)
+    customer = models.ForeignKey(OcCustomer, models.DO_NOTHING, db_column='customer_id', blank=True, null=True, related_name='customer_orders')
     customer_group_id = models.IntegerField()
     fullname = models.CharField(max_length=255, blank=True, null=True)
     firstname = models.CharField(max_length=32, blank=True, null=True)
@@ -162,16 +195,17 @@ class OcOrder(models.Model):
     forwarded_ip = models.CharField(max_length=40)
     user_agent = models.CharField(max_length=255)
     accept_language = models.CharField(max_length=255, blank=True, null=True)
-    date_added = models.DateTimeField()
-    date_modified = models.DateTimeField()
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
     date_due = models.DateField(blank=True, null=True)
     order_status = models.ForeignKey(OcOrderStatus, models.DO_NOTHING, blank=True, null=True)
-    payment_method = models.ForeignKey(OcTsgPaymentMethod, models.DO_NOTHING, db_column='payment_method_id', blank=True, null=True)  # Field renamed because of name conflict.
+    payment_method_rel = models.ForeignKey(OcTsgPaymentMethod,  models.DO_NOTHING, db_column='payment_method_id', blank=True, null=True)  # Field renamed because of name conflict.
     payment_type = models.ForeignKey(OcTsgPaymentType, models.DO_NOTHING, blank=True, null=True)
     payment_status = models.ForeignKey(OcTsgPaymentStatus, models.DO_NOTHING, blank=True, null=True)
     xero_id = models.CharField(max_length=256, blank=True, null=True)
     customer_order_ref = models.CharField(max_length=255, blank=True, null=True)
-    tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate', blank=True, null=True)
+    tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate')
+    printed = models.BooleanField(blank=True, null=True)  #note - must be BooleanField
 
     @property
     def is_order(self):
@@ -197,6 +231,34 @@ class OcOrder(models.Model):
     objects = OcOrderManager()
 
 
+class OcTsgShippingStatus(models.Model):
+    shipping_status_id = models.AutoField(primary_key=True)
+    status_title = models.CharField(max_length=255, blank=True, null=True)
+    status_colour = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_shipping_status'
+
+    def __str__(self):
+        return self.status_title
+
+
+
+class OcTsgOrderShipment(models.Model):
+    order_shipment_id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True, related_name='ordershipping')
+    tracking_number = models.CharField(max_length=255)
+    shipping_courier = models.ForeignKey(OcTsgCourier, models.DO_NOTHING, blank=True, null=True, related_name='shipmentcourier')
+    shipping_courier_method = models.CharField(max_length=255, blank=True, null=True)
+    shipping_status = models.ForeignKey(OcTsgShippingStatus, models.DO_NOTHING, blank=True, null=True, related_name='ordershippingstatus')
+    date_added = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_shipment'
+
+
 class OcTsgFlags(models.Model):
     flag_id = models.AutoField(primary_key=True)
     flag_name = models.CharField(max_length=255, blank=True, null=True)
@@ -213,8 +275,8 @@ class OcTsgFlags(models.Model):
 
 
 class OcOrderFlags(models.Model):
-    order = models.OneToOneField(OcOrder, models.DO_NOTHING, primary_key=True, related_name='orderflags')
-    flag = models.ForeignKey(OcTsgFlags, models.DO_NOTHING)
+    order = models.ForeignKey(OcOrder,  models.DO_NOTHING, related_name='orderflags')
+    flag = models.ForeignKey(OcTsgFlags, models.DO_NOTHING, related_name='flagdetails')
     date_added = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -225,7 +287,7 @@ class OcOrderFlags(models.Model):
 
 class OcOrderProduct(models.Model):
     order_product_id = models.AutoField(primary_key=True)
-    order = models.ForeignKey(OcOrder, models.DO_NOTHING, related_name='order_products')
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, db_column='order_id', related_name='order_products')
     product_id = models.IntegerField()
     name = models.CharField(max_length=255)
     model = models.CharField(max_length=64)
@@ -239,16 +301,16 @@ class OcOrderProduct(models.Model):
     material_name = models.CharField(max_length=255, blank=True, null=True)
     product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, related_name='order_product_variant')
     is_bespoke = models.BooleanField(blank=True, null=True, default=0)
-    status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True)
+    status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True, related_name='productstatus')
 
     class Meta:
         managed = False
         db_table = 'oc_order_product'
 
-    def save(self, *args, **kwargs):
+   # def save(self, *args, **kwargs):
         #do the total stuff in here
-        super(OcOrderProduct, self).save(*args, **kwargs)
-        calc_order_totals(self.order.order_id)
+    #    super(OcOrderProduct, self).save(*args, **kwargs)
+     #   calc_order_totals(self.order.order_id)
 
     def delete(self, using=None, keep_parents=False):
         super(OcOrderProduct, self).delete(using, keep_parents)
@@ -268,6 +330,11 @@ class OcOrderTotal(models.Model):
         db_table = 'oc_order_total'
         ordering = ['sort_order']
 
+    #def save(self, *args, **kwargs):
+        #do the total stuff in here
+     #   super(OcOrderTotal, self).save(*args, **kwargs)
+     #   calc_order_totals(self.order.order_id)
+
 
 class OcOrderOption(models.Model):
     order_option_id = models.AutoField(primary_key=True)
@@ -285,6 +352,9 @@ class OcOrderOption(models.Model):
 
 
 def calc_order_totals(order_id):
+    qs_order = OcOrder.objects.filter(pk=order_id).first()
+    order_tax_rate = Decimal(qs_order.tax_rate.rate / 100)
+    order_tax_title = qs_order.tax_rate.name
     qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
     sub_total_lines = Decimal(0.0)
     for product in qs_products.iterator():
@@ -304,7 +374,9 @@ def calc_order_totals(order_id):
     if qs_discount.exists():
         sub_total -= Decimal(qs_discount.first().value)
 
-    order_total = sub_total * Decimal(1.2) #todo - get the localised VAT rate
+    tax_rate_calc = 1 + order_tax_rate
+    order_total_float = sub_total * tax_rate_calc
+    order_total = Decimal(order_total_float.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
     tax_total = order_total - sub_total
 
     qs_total.value = float(order_total)
@@ -312,10 +384,34 @@ def calc_order_totals(order_id):
     qs_sub.value = float(sub_total_lines)
     qs_sub.save()
     qs_tax.value = float(tax_total)
+    qs_tax.title = order_tax_title
     qs_tax.save()
 
     #now update the order
     qs_order = OcOrder.objects.get(order_id=order_id)
     qs_order.total = order_total
     qs_order.save()
+
+
+def calc_update_product_subtotal(order_id):
+    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
+    sub_total_lines = Decimal(0.0)
+    for product in qs_products.iterator():
+        sub_total_lines += Decimal(product.price) * Decimal(product.quantity)
+
+def recalc_order_product_tax(order_id):
+    qs_order = OcOrder.objects.filter(pk=order_id).first()
+    tax_rate_val = Decimal(qs_order.tax_rate.rate / 100)
+    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
+    tax_value = 0.000
+    for product in qs_products:
+        tax_value = product.total * tax_rate_val
+        product.tax = Decimal(tax_value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        product.save()
+
+    calc_order_totals(order_id)
+
+
+
+
 

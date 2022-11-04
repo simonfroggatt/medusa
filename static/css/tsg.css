@@ -50,7 +50,7 @@
 .ibox-content {
   background-color: #ffffff;
   color: inherit;
-  padding: 15px 20px 20px 20px;
+  /*padding: 15px 20px 20px 20px;*/
   border-color: #e7eaec;
   border-image: none;
   border-style: solid solid none;
@@ -215,6 +215,14 @@ table.table-mail tr td {
     border-bottom: 3px solid #E50004;
 }
 
+.tsg_navs.nav-pills .nav-link.active,
+.tsg_navs.nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #fff;
+   border: 1px solid #E50004;;
+  border-bottom: 3px solid #E50004;
+}
+
 
 .customer-details .card {
     font-size: 11px;
@@ -273,4 +281,59 @@ table.table-mail tr td {
 
 #navbar-orders .navbar {
   background-color: transparent; !important;
+}
+
+.flag-red {
+  color: red;
+}
+
+.btn-amber {
+    background-color: red;
+    color: white;
+}
+
+.flag-amber {
+  color: orange;
+}
+
+.btn-amber {
+    background-color: orange;
+     color: white;
+}
+
+.flag-green {
+  color: #20de20;
+}
+
+.btn-green {
+    background-color: #20de20;
+     color: white;
+}
+
+.flag-grey {
+  color: grey;
+
+}
+
+.btn-grey {
+    background-color: grey;
+    color: black;
+}
+
+
+
+
+#order_table tr {
+        vertical-align: middle;
+    }
+
+
+.order-flags {
+    flex-wrap: nowrap;
+    margin-bottom: 0px;
+}
+
+.top_bar {
+    margin-top: -20px;
+    align-items: center;
 }

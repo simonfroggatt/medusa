@@ -7,6 +7,7 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = OcAddress
         fields = [
+            'customer',
             'company',
             'branch',
             'fullname',
@@ -29,3 +30,11 @@ class AddressForm(forms.ModelForm):
             'default_shipping': forms.CheckboxInput()
         }
 
+        labels = {
+            'address_1': 'address'
+        }
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = OcCustomer
+        fields = '__all__'

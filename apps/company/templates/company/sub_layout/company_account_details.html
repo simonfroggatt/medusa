@@ -1,0 +1,34 @@
+{% load static %}
+<div class="card h-100 mb-0">
+             <div class="card-header company_account_details">
+                 <div class="row">
+                     <div class="col-9 ">
+                         Account Details
+                     </div>
+                     <div class="col-3">
+                         <div class="float-end">
+                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <button type="button" class="btn btn-primary btn-sm js-company-dlg"
+                                        data-url="{% url 'company_details_edit' company_obj.company_id %}"
+                                        data-dlgsize="modal-lg"
+                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                        </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <div class="card-body">
+                 <dl class="row text-nowrap" id="company_{{ company_obj.compnay_id }}">
+                     <dt class="col-3">Company Type:</dt>
+                     <dd class="col-9">{{ company_obj.company_type.company_type_name }}</dd>
+                     <dt class="col-3">Account Type</dt>
+                     <dd class="col-9">{{ company_obj.account_type.account_type_name }}</dd>
+                     <dt class="col-3">Payment Terms:</dt>
+                     <dd class="col-9">{{ company_obj.payment_days }} - {{ company_obj.payment_terms.term_title }}</dd>
+                     <dt class="col-3">Credit Limit:</dt>
+                     <dd class="col-9">{{ company_obj.credit_limit }}</dd>
+                     <dt class="col-3">Discount %:</dt>
+                     <dd class="col-9">{{ company_obj.discount }}</dd>
+                 </dl>
+             </div>
+         </div>

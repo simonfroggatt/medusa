@@ -1,6 +1,24 @@
 from django.db import models
 
 
+class OcCurrency(models.Model):
+    currency_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=32)
+    code = models.CharField(max_length=3)
+    symbol_left = models.CharField(max_length=12)
+    symbol_right = models.CharField(max_length=12)
+    decimal_place = models.CharField(max_length=1)
+    value = models.FloatField()
+    status = models.IntegerField()
+    date_modified = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'oc_currency'
+
+    def __str__(self):
+        return self.code
+
 class OcStore(models.Model):
     store_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64)
@@ -10,6 +28,7 @@ class OcStore(models.Model):
     thumb = models.CharField(max_length=255, blank=True, null=True)
     logo = models.CharField(max_length=255, blank=True, null=True)
     medusa_logo = models.CharField(max_length=255, blank=True, null=True)
+    currency = models.ForeignKey(OcCurrency, models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -31,6 +50,9 @@ class OcTaxRate(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tax_rate'
+
+    def __str__(self):
+        return self.name
 
 
 class OcTsgCategoryTypes(models.Model):
@@ -87,15 +109,49 @@ class OcTsgCountryIso(models.Model):
         return self.name
 
 
-class OcTaxRate(models.Model):
-    tax_rate_id = models.AutoField(primary_key=True)
-    geo_zone_id = models.IntegerField()
-    name = models.CharField(max_length=32)
-    rate = models.DecimalField(max_digits=15, decimal_places=4)
-    type = models.CharField(max_length=1)
-    date_added = models.DateTimeField()
-    date_modified = models.DateTimeField()
+class OcTsgShippingMethodTypes(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'oc_tax_rate'
+        db_table = 'oc_tsg_shipping_method_types'
+
+    def __str__(self):
+        return self.name
+
+
+class OcTsgShippingMethod(models.Model):
+    shipping_method_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    code = models.CharField(max_length=255, blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    description = models.CharField(max_length=2058, blank=True, null=True)
+    lower_range = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    upper_range = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    method_type = models.ForeignKey(OcTsgShippingMethodTypes, models.DO_NOTHING, blank=True, null=True)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
+    iso = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, blank=True, null=True)
+    orderby = models.IntegerField(blank=True, null=True)
+    status = models.IntegerField(blank=True, null=True)
+    tax_class_id = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_shipping_method'
+
+    def __str__(self):
+        return self.title
+
+
+class OcTsgPaymentTerms(models.Model):
+    terms_id = models.AutoField(primary_key=True)
+    term_title = models.CharField(max_length=255, blank=True, null=True)
+    shortcode = models.CharField(max_length=20, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_payment_terms'
+
+    def __str__(self):
+        return self.term_title
+

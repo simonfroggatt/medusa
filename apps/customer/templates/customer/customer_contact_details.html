@@ -1,5 +1,5 @@
 {% load static %}
-<div class="col-12 col-md-4 col-xl-3">
+<div class="col-12 col-md-4 col-xl-4">
     <div class="card h-100 mb-0 ">
         <div class="card-header customer_details">
                  <div class="row">
@@ -19,6 +19,10 @@
         <div class="card-body ">
 
             <dl class="row text-nowrap">
+                {% if customer_obj.parent_company %}
+                  <dt class="col-3">Works at</dt>
+                  <dd class="col-9"><a href="{% url 'company_details' customer_obj.parent_company.company_id %}">{{ customer_obj.parent_company.company_name }}</a></dd>
+                {% endif %}
                 <dt class="col-3">Name</dt>
                 <dd class="col-9">{{ customer_obj.fullname }}</dd>
                 <dt class="col-3">Email</dt>

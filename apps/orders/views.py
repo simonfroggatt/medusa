@@ -3,16 +3,25 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
-from .models import OcOrder, OcOrderProduct, OcOrderTotal
+from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
+    calc_order_totals, OcTsgCourier, OcTsgOrderShipment, recalc_order_product_tax
 from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcTsgProductMaterial
-from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, OrderPreviousProductListSerializer
+from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, OrderPreviousProductListSerializer, OrderFlagsListSerializer
 from pyreportjasper import PyReportJasper
 from django.conf import settings
 import os
-from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, ProductAddForm, OrderDetailsEditForm
+from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, ProductAddForm, \
+    OrderDetailsEditForm, OrderShippingChoiceEditForm, OrderShipItForm, OrderTaxChangeForm, \
+    OrderDiscountForm
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress
+from medusa.models import OcTsgShippingMethod
+from django.core import serializers
+from django.urls import reverse_lazy
+from decimal import Decimal, ROUND_HALF_UP
+
+from django.db.models import Sum
 
 
 def order_test(request, order_id):
@@ -51,6 +60,11 @@ class Previous_Products_asJSON(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class Order_Flags_asJSON(viewsets.ModelViewSet):
+        queryset = OcOrderFlags.objects.all()
+        serializer_class = OrderFlagsListSerializer
+
+
 
 class OrderListView(generics.ListAPIView):
     queryset = OcOrder.objects.all().order_by('-order_id')
@@ -63,7 +77,15 @@ class OrderListView(generics.ListAPIView):
             orders = self.get_serializer(queryset, many=True)
             return Response(orders.data)
         else:
-            return self.list(request, *args, **kwargs)
+            company_id = int(self.request.query_params.get('company_id', 0))
+            if company_id > 0:
+                queryset = OcOrder.objects.filter(customer__parent_company=company_id).order_by('-order_id')
+                orders = self.get_serializer(queryset, many=True)
+                return Response(orders.data)
+
+        return self.list(request, *args, **kwargs)
+
+
 
 
 class OrderTotalsViewSet(viewsets.ModelViewSet):
@@ -86,10 +108,48 @@ def order_details(request, order_id):
         context["addressItem"] = order_obj.customer.ocaddress_set.all().order_by('postcode')
     else:
         context["addressItem"] = []
+
+    #order_obj.orderflags.all()
+
+
+    nav_dict = dict()
+    nav_dict['has_nav'] = True
+    nav_dict['label'] = "Order"
+    product_flags = OcOrderProduct.objects.select_related('status').filter(order=order_id, status__is_flag=1).order_by('status__order_by').values('status__icon_path','status__name').distinct()
+
+    try:
+        next_order_id = order_obj.get_next_by_date_added().pk
+        nav_dict["next_url"] = reverse_lazy('order_details', kwargs={'order_id': next_order_id})
+
+    except:
+        nav_dict["next_url"] = ""
+
+    try:
+        previous_order_id = order_obj.get_previous_by_date_added().pk
+        nav_dict["previous_url"] = reverse_lazy('order_details', kwargs={'order_id': previous_order_id})
+    except:
+        nav_dict["previous_url"] = ""
+
+    context["nav_data"] = nav_dict
+    context["orderFlags"] = order_obj.orderflags.all()
+    context["productFlags"] = product_flags
+
+    shipping_obj = OcTsgOrderShipment.objects.filter(order_id=order_id).order_by('-date_added')
+    context["shippingObj"] = shipping_obj
+
     template_name = 'orders/order_layout.html'
 
+
     context['pageview'] = 'All orders'
+    context['pageview_url'] = reverse_lazy('allorders')
     context['heading'] = 'order details'
+
+    order_products_obj = OcOrderProduct.objects.filter(order_id=order_id)
+    order_lines = order_products_obj.count()
+    product_count = order_products_obj.aggregate(Sum('quantity'))
+    context['order_lines'] = order_lines
+    context['order_product_count'] = product_count['quantity__sum']
+
 
     return render(request, template_name, context)
 
@@ -115,12 +175,17 @@ def get_order_details(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
 
     context = {"order_obj": order_obj}
+    shipping_obj = OcTsgOrderShipment.objects.filter(order_id=order_id).order_by('-date_added')
+    context["shippingObj"] = shipping_obj
+
+
     data['html_order_details'] = render_to_string('orders/sub_layout/order_details.html',
                                             context,
                                             request=request
                                             )
 
     data['html_comment'] = order_obj.comment
+
 
     return JsonResponse(data)
 
@@ -132,6 +197,7 @@ def order_add_product(request, order_id):
             order_product = form.save(commit=False)
             order_product.reward = 0
             order_product.save()
+            calc_order_totals(order_id)
             data['form_is_valid'] = True
         else:
             data['form_is_valid'] = False
@@ -196,6 +262,79 @@ def order_details_edit(request, order_id):
 
     return JsonResponse(data)
 
+
+def order_shipping_change(request, order_id):
+    data = dict()
+    shipping_obj = OcTsgShippingMethod.objects.filter(status=1)
+    order_totals_obj = OcOrderTotal.objects.filter(order_id=order_id).filter(code='shipping').first()
+
+    if request.method == 'POST':
+        form = OrderShippingChoiceEditForm(request.POST, instance=order_totals_obj)
+        if form.is_valid():
+            data['form_is_valid'] = True
+            order_totals_obj.save()
+            calc_order_totals(order_id)
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        form = OrderShippingChoiceEditForm(instance=order_totals_obj)
+
+    template_name = 'orders/dialogs/update_shipping_choice.html'
+    shipping_vals = serializers.serialize('json', shipping_obj)
+
+    context = {'order_id': order_id,
+               'form': form,
+               'shipping_methods': shipping_obj,
+               'shipping_vals': shipping_vals}
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def order_ship_it(request, order_id):
+    data = dict()
+    order_details_obj = get_object_or_404(OcOrder, pk=order_id)
+
+    courier_obj = OcTsgCourier.objects.all()
+
+    if request.method == 'POST':
+        form = OrderShipItForm(request.POST)
+        if form.is_valid():
+            form_instance = form.instance
+            form_instance.order_id = request.POST.get('order_id')
+            form_instance.tracking_number = request.POST.get('tracking_number')
+            form_instance.shipping_courier_method = request.POST.get('chosen_courier_option')
+            form_instance.shipping_courier_id = request.POST.get('chosen_courier')
+            form_instance.shipping_status_id = 1
+            form_instance.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        form = OrderShipItForm()
+
+    template_name = 'orders/dialogs/ship_order.html'
+
+    context = {'order_id': order_id,
+               'order_obj':order_details_obj,
+               'form': form,
+               'couriers': courier_obj}
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+
 def order_product_edit(request, order_id, order_product_id):
     data = dict()
     order_product = get_object_or_404(OcOrderProduct, pk=order_product_id)
@@ -204,7 +343,7 @@ def order_product_edit(request, order_id, order_product_id):
         if form.is_valid():
             data['form_is_valid'] = True
             order_product.save()
-
+            calc_order_totals(order_id)
             # - call come othere function like reloading the tablecustomer_update_detault_address(address)
         else:
             data['form_is_valid'] = False
@@ -388,7 +527,7 @@ def update_order_billing_from_address_book(request, order_id):
             order_obj.payment_address_1 = address_obj.address_1
             order_obj.payment_city = address_obj.city
             order_obj.payment_area = address_obj.area
-            order_obj.payment_postcodea = address_obj.postcode
+            order_obj.payment_postcode = address_obj.postcode
             order_obj.payment_country_id = address_obj.country_id
             order_obj.save()
 
@@ -411,7 +550,7 @@ def update_order_shipping_from_address_book(request, order_id):
             order_obj.shipping_address_1 = address_obj.address_1
             order_obj.shipping_city = address_obj.city
             order_obj.shipping_area = address_obj.area
-            order_obj.shipping_postcodea = address_obj.postcode
+            order_obj.shipping_postcode = address_obj.postcode
             order_obj.shipping_country_id = address_obj.country_id
             order_obj.save()
 
@@ -466,3 +605,118 @@ def compiling():
     )
     pyreportjasper.compile(write_jasper=True)
 
+
+def order_delete_dlg(request, order_id):
+        data = dict()
+
+        template_name = 'orders/dialogs/delete_order.html'
+        context = {'order_id': order_id}
+
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+        return JsonResponse(data)
+
+
+def order_delete(request):
+    data = dict()
+    data['form_is_valid'] = False
+
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        order_obj = get_object_or_404(OcOrder, pk=order_id)
+        order_obj.delete()
+        data['redirect_url'] = reverse_lazy('allorders')
+        data['form_is_valid'] = True
+
+    return JsonResponse(data)
+
+def tax_change_dlg(request, order_id):
+    data = dict()
+    order_details_obj = get_object_or_404(OcOrder, pk=order_id)
+
+    if request.method == 'POST':
+        form = OrderTaxChangeForm(request.POST, instance=order_details_obj)
+        if form.is_valid():
+            data['form_is_valid'] = True
+            order_details_obj.save()
+            recalc_order_product_tax(order_id)
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        form = OrderTaxChangeForm(instance=order_details_obj)
+
+    template_name = 'orders/dialogs/order_tax_change.html'
+
+    context = {'order_id': order_id,
+               'form': form}
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def discount_change_dlg(request, order_id):
+    data = dict()
+    order_totals_obj = OcOrderTotal.objects.filter(order_id=order_id)
+    order_subtotal_qs = order_totals_obj.filter(code='sub_total')  # sort order 3
+    if order_subtotal_qs:
+        order_subtotal = Decimal(order_subtotal_qs.first().value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+    else:
+        order_subtotal = 0
+
+    order_discount_qs = order_totals_obj.filter(code='discount')  # sort order 3
+    if order_discount_qs:
+        order_discount_value = Decimal(order_discount_qs.first().value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+    else:
+        order_discount_value = 0
+
+    if request.method == 'POST':
+        discount_value = request.POST.get('by_value')
+        order_discount_qs = order_totals_obj.filter(code='discount')  # sort order 3
+        if order_discount_qs:
+            order_discount_qs.first().value = discount_value
+            order_discount_qs.first().save()
+            calc_order_totals(order_id)
+            data['form_is_valid'] = True
+        else:
+            order_total_discount_obj = OcOrderTotal()
+            order_total_discount_obj.order_id = order_id
+            order_total_discount_obj.code = 'discount'
+            order_total_discount_obj.title = 'Discount'
+            order_total_discount_obj.value = discount_value
+            order_total_discount_obj.sort_order = 2
+            order_total_discount_obj.save()
+            data['form_is_valid'] = True
+            calc_order_totals(order_id)
+
+
+
+    template_name = 'orders/dialogs/order_discount_change.html'
+
+    context = {'order_id': order_id,
+               'subtotal': order_subtotal,
+               'discount_value': order_discount_value}
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def get_order_product_text(request):
+    data = dict()
+    order_id = request.GET.get('order_id')
+    order_products_obj = OcOrderProduct.objects.filter(order_id=order_id)
+    order_lines = order_products_obj.count()
+    product_count = order_products_obj.aggregate(Sum('quantity'))
+    data['order_lines'] = order_lines
+    data['order_product_count'] = product_count['quantity__sum']
+    return JsonResponse(data)

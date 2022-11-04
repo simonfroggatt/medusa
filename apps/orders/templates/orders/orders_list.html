@@ -23,7 +23,7 @@
                                         <th class="col-1">Order Status</th>
                                         <th class="col-1">Total</th>
                                         <th class="col-1">Flags</th>
-                                        <th class="text-end col-1">&nbsp;</th>
+                                        <th class="text-end">&nbsp;</th>
                                     </tr>
                                     </thead>
                                 </table>
@@ -148,10 +148,34 @@
             },
             {
                 data: "payment_company",
+                render : function (data, type, row) {
+                    if(data) {
+                        if(row['customer']){
+                            let url = '/customer/details/' + row['customer']['customer_id']
+                            return '<a href="' + url + '">'+ data + '</a>';
+                        }
+                        else {
+                            return data
+                        }
+                    }else
+                        return ""
+                },
                 searchable: true
             },
             {
                 data: "payment_fullname",
+                render : function (data, type, row) {
+                    if(data) {
+                        if(row['customer']){
+                            let url = '/customer/details/' + row['customer']['customer_id']
+                            return '<a href="' + url + '">'+ data + '</a>';
+                        }
+                        else {
+                            return data
+                        }
+                    }else
+                        return ""
+                },
             },
             {
                 data: "payment_status.name",
@@ -167,9 +191,33 @@
                  }
             },
             {
-                data: "order_id",
-                render: function (data){
-                    return "";
+                data: "orderflags",
+                searchable: false,
+                render: function (data, type, row){
+                    let flags = "";
+                    console.log(type)
+                    if(data.length > 0){
+                        flags = '<ul class="list-inline order-flags">';
+                        for (let index = 0, len = data.length; index < len; ++index) {
+                            let flagnew = '';
+                            flagnew = '<li class="list-inline-item"><i class="' + data[index].flag['flag_icon'] + '"></i></li>'
+                            flags += flagnew
+                        }
+
+                    }
+                    let product_flags = row.product_flags;
+                    if(product_flags.length > 0){
+                        if(data.length <= 0) {
+                            flags = '<ul class="list-inline order-flags">';
+                        }
+                        for (let index = 0, len = product_flags.length; index < len; ++index) {
+                            let flagnew = '';
+                            flagnew = '<li class="list-inline-item"><i class="' + product_flags[index]['status__icon_path'] + '"></i></li>'
+                            flags += flagnew
+                        }
+                    }
+                    flags += '</ul>'
+                    return flags
                 }
             },
             {
@@ -178,14 +226,32 @@
                 className: 'text-end',
                 render: function ( data, type, row ) {
 
-                     let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + data + '"><i class="fas fa-trash fa-sm"></i></a>'
+                     //let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
+                   // let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="' + data +'/delete/"><i class="fas fa-trash fa-sm"></i></a>'
+                    let shipping_colour = 'btn-grey'
+                    if(row['shipping_flag'] != null){
+                        shipping_colour = 'btn-' + row['shipping_flag']['shipping_status__status_colour']
+                    }
+                   // let shipping_icon = '<i class="fas fa-shipping-fast ' + shipping_colour + ' "></i>'
+
+                    let printed_colour = 'btn-grey'
+                    if(row['printed'] == 1){
+                        printed_colour = 'btn-green'
+                    }
+                   // let printed_icon = '<i class="fas fa-print ' + printed_colour + ' "></i>'
 
 
-                    return delete_icon + "  " + edit_icon;
+                    //return printed_icon + " " + shipping_icon + /* " " + delete_icon + "  " +*/ edit_icon;
+                    let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
+                        let printed_icon = '<button type="button" class="btn btn-sm disabled ' + printed_colour +  '"><i class="fas fa-print  "></i></button>'
+                        let shipping_icon = '<button type="button" class="btn btn-sm disabled '+ shipping_colour + '"><i class="fas fa-shipping-fast "></i></button>'
+                        let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit "></i></a>'
+                    return btn_grp + shipping_icon + printed_icon + edit_icon + '</div>'
                 }
             },
            {data: "payment_email", "visible": false},
+            {data: "printed", "visible": false, searchable: false},
+            {data: "shipping_flag", "visible": false, searchable: false},
            {data: "payment_telephone", "visible": false},
            {data: "payment_address_1", "visible": false},
            {data: "payment_postcode", "visible": false},
@@ -195,7 +261,9 @@
            {data: "payment_address_1", "visible": false},
            {data: "payment_postcode", "visible": false},
            {data: "customer_order_ref", "visible": false},
+           {data: "customer", "visible": false, searchable: false},
            {data: "days_since_order", "visible": false, searchable: false },
+           {data: "product_flags", "visible": false, searchable: false },
         ],
         "createdRow": function( row, data, dataIndex ) {
             if ( data.order_status.order_status_id != 15 ) {

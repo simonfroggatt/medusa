@@ -10,7 +10,7 @@
         <div class="row pb-2">
             <div class="col-12">
                 <form method="post" action="{% url 'orderbillingaddressedit' order_id %}"
-                      id="js-product-edit-submit">
+                      id="js-order-address-edit-submit">
                     {% csrf_token %}
                     <input type="hidden" id="order_id" name="order_id"
                            value="{{ order_id }}">
@@ -36,9 +36,9 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
                         {% if order_customer_id > 0 %}
-                        <button type="update" id="add" class="btn btn-success pull-right">Add As New</button>
+                        <button type="submit" id="add" class="btn btn-success pull-right">Add As New</button>
                         {% endif %}
-                        <button type="update" id="update" class="btn btn-primary pull-right">Update</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
                     </div>
                 </div>
             </div>
@@ -69,7 +69,7 @@
 
         let inputFields = ['#addressLookup']
 
-        let lookupBilling = new TSGAddressLookup(inputFields, '', fieldMatch);//, '#js-fulladdress-billing');
+        let lookupBilling = TSGAddressLookup(inputFields, '', fieldMatch);//, '#js-fulladdress-billing');
 
 
         $('#id_{{ form.payment_country_name.name }}').change( function() {

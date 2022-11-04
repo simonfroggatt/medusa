@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django.template.loader import render_to_string
+from apps.orders.models import OcOrder, OcTsgPaymentMethod
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView
 from django.urls import reverse_lazy
 import json
@@ -23,8 +24,17 @@ class customer_list_asJSON_s(viewsets.ModelViewSet):
     queryset = OcCustomer.objects.all()
     serializer_class = CustomerListSerializer
 
-    def retrieve(self, request):
-        customer_list = OcCustomer.objects.all()
+    def retrieve(self, request, pk=None):
+        customer_list = OcCustomer.objects.filter(parent_company_id=pk)
+        serializer = self.get_serializer(customer_list, many=True)
+        return Response(serializer.data)
+
+class customer_list_bycompany(viewsets.ModelViewSet):
+    queryset = OcCustomer.objects.all()
+    serializer_class = CustomerListSerializer
+
+    def retrieve(self, request, pk=None):
+        customer_list = OcCustomer.objects.filter(parent_company_id=pk)
         serializer = self.get_serializer(customer_list, many=True)
         return Response(serializer.data)
 
@@ -197,3 +207,73 @@ def get_default_address(customer_obj):
             addresses['shipping_auto'] = False
 
     return addresses
+
+
+def order_customer_create(request, customer_id):
+    data = dict()
+    if request.method == 'POST':
+        #ignore the incoming customerid
+        post_customer_id = request.POST.get('customer_id')
+        new_order_obj = OcOrder()
+        customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+
+        new_order_obj.customer_id = customer_id
+        new_order_obj.payment_method = ''
+        new_order_obj.order_status_id = 10
+        new_order_obj.payment_status_id = 1
+        new_order_obj.payment_type_id = 4
+        new_order_obj.payment_method_rel_id = 8
+        new_order_obj.invoice_no = 0
+        new_order_obj.invoice_prefix = 'SSAN'
+        new_order_obj.store_id = customer_obj.store_id
+        new_order_obj.customer_group_id = customer_obj.customer_group_id
+        new_order_obj.total = 0.00
+        new_order_obj.language_id = 1
+        new_order_obj.currency_id = 1
+        new_order_obj.currency_value = 1
+        new_order_obj.tax_rate_id = 86
+
+        address_book = get_default_address(customer_obj)
+
+        new_order_obj.payment_fullname = address_book['billing'].fullname
+        new_order_obj.payment_company = address_book['billing'].company
+        new_order_obj.payment_email = address_book['billing'].email
+        new_order_obj.payment_telephone = address_book['billing'].telephone
+        new_order_obj.payment_address_1 = address_book['billing'].address_1
+        new_order_obj.payment_city = address_book['billing'].city
+        new_order_obj.payment_area = address_book['billing'].area
+        new_order_obj.payment_postcode = address_book['billing'].postcode
+        new_order_obj.payment_country_id = address_book['billing'].country_id
+        new_order_obj.payment_country = address_book['billing'].country
+
+
+        new_order_obj.shipping_fullname = address_book['shipping'].fullname
+        new_order_obj.shipping_company = address_book['shipping'].company
+        new_order_obj.shipping_email = address_book['shipping'].email
+        new_order_obj.shipping_telephone = address_book['shipping'].telephone
+        new_order_obj.shipping_address_1 = address_book['shipping'].address_1
+        new_order_obj.shipping_city = address_book['shipping'].city
+        new_order_obj.shipping_area = address_book['shipping'].area
+        new_order_obj.shipping_postcode = address_book['shipping'].postcode
+        new_order_obj.shipping_country_id = address_book['shipping'].country_id
+        new_order_obj.shipping_country = address_book['shipping'].country
+
+        new_order_obj.save()
+
+        new_order_obj.ocordertotal_set.create(code='sub_total', sort_order=1, title='Sub-Total', value=0)
+        new_order_obj.ocordertotal_set.create(code='shipping', sort_order=3, title='Shipping', value=0)
+        new_order_obj.ocordertotal_set.create(code='tax', sort_order=5, title='tax', value=0)
+        new_order_obj.ocordertotal_set.create(code='total', sort_order=9, title='Total', value=0)
+
+        data['form_is_valid'] = True
+        data['order_id'] = new_order_obj.order_id
+
+
+    context = {"customer_id": customer_id}
+
+    template_name = 'customer/dialogs/customer_add_order.html'
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
