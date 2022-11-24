@@ -1,0 +1,372 @@
+from django.shortcuts import render, get_object_or_404
+from apps.orders.models import OcOrder, OcOrderProduct
+from apps.orders.serializers import OrderProductListSerializer
+from django.template.loader import get_template
+from django.http import HttpResponse
+import os
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm, inch
+from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_LEFT, TA_CENTER
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, Frame, PageTemplate, NextPageTemplate, FrameBreak
+from reportlab_qrcode import QRCodeImage
+from reportlab.graphics import renderPDF
+from reportlab.lib import colors
+from apps.paperwork import utils
+from svglib.svglib import svg2rlg
+from django.db.models import Sum
+from functools import partial
+from decimal import Decimal, ROUND_HALF_UP
+import pathlib
+
+
+def gen_pick_list(request, order_id):
+    width = 210 * mm
+    height = 297 * mm
+    padding = 5 * mm
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+    response = HttpResponse(content_type='application/pdf')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Despatch-Note_'+order_ref_number,  # exchange with your title
+                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=10, leading=12))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
+
+#company logo
+    comp_logo = utils.create_company_logo(order_obj.store)
+
+#company contact & order details
+    header_address = utils.create_address(order_obj.store)
+
+# create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1),'MIDDLE'),
+                                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                                    ]))
+    elements.append(header_tbl)
+
+
+# Title
+    elements.append(Paragraph("Despatch Note", styles['title']))
+
+# order details
+    contacts_str = utils.contact_details(order_obj)
+    order_str = utils.order_details(order_obj)
+    order_tbl_data = [
+        [Paragraph(contacts_str, styles['header_main']), Paragraph(order_str, styles['header_main'])]
+    ]
+    order_col_width = 40 * mm
+    order_tbl_data = Table(order_tbl_data, colWidths=[doc.width - order_col_width, order_col_width])
+    order_tbl_data.setStyle(TableStyle([
+                                        ('ALIGN', (1, 1), (1, 1), "RIGHT")]))
+    elements.append(order_tbl_data)
+    elements.append(Spacer(doc.width, 5*mm))
+#order items
+# Code, Product, Options, image, Size, Material, QTY, P,S,C
+    items_tbl_data = [
+        ['Code', 'Product', 'Options', 'Image', 'Size', 'Material', 'QTY', 'P', 'S', 'C']
+    ]
+
+# Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+    order_items = order_obj.order_products.all()
+    for order_item_data in order_items.iterator():
+        if order_item_data.product_variant:
+            model = order_item_data.product_variant.variant_code
+        order_item_tbl_data = [''] * 10
+        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
+        order_item_tbl_data[2] = ""
+        if order_item_data.product_variant:
+            if order_item_data.product_variant.alt_image:
+                image_src = f'http://safetysigns/image/{order_item_data.product_variant.alt_image}'
+            else:
+                if order_item_data.product_variant.prod_var_core.variant_image:
+                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.variant_image}'
+                else:
+                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.product.image}'
+
+            img = Image(image_src)
+            img._restrictSize(image_max_w, image_max_h)
+        else:
+            img = ''
+
+        order_item_tbl_data[3] = img
+        order_item_tbl_data[4] = Paragraph(order_item_data.size_name, styles['table_data'])
+        order_item_tbl_data[5] = Paragraph(order_item_data.material_name, styles['table_data'])
+        order_item_tbl_data[6] = order_item_data.quantity
+        order_item_tbl_data[7] = ""
+        order_item_tbl_data[8] = ""
+        order_item_tbl_data[9] = ""
+        items_tbl_data.append(order_item_tbl_data)
+
+    items_tbl_cols = [20 * mm, 50 * mm, 20 * mm, (image_max_w ) + 5, 30 * mm, 30 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    row_height = image_max_h + 10
+    rows = len(items_tbl_data)
+    items_tbl_rowh = [row_height] * rows
+    items_tbl_rowh[0] = 20
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('ALIGN', (6, 1), (6, -1), "CENTRE"),
+                                     ('ALIGN', (6, 0), (-1, 0), "CENTRE"),
+                                     ('ALIGN', (3, 1), (3, -1), "CENTRE"),
+                                     ('VALIGN', (0, 0), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 10),
+                                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), (colors.white, colors.whitesmoke)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5*mm))
+    order_lines = order_items.count()
+    product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
+
+#add in the totals
+    total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
+    elements.append(total_text)
+    elements.append(Spacer(doc.width, 15*mm))
+    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
+    elements.append(signed_text)
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+
+def gen_invoice(request, order_id):
+    width = 210 * mm
+    height = 297 * mm
+    padding = 5 * mm
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+    response = HttpResponse(content_type='application/pdf')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Invoice_'+order_ref_number,  # exchange with your title
+                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=10, leading=12))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
+
+#company logo
+    comp_logo = utils.create_company_logo(order_obj.store)
+
+#company contact & order details
+    header_address = utils.create_address(order_obj.store)
+
+# create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1),'MIDDLE'),
+                                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                                    ]))
+    elements.append(header_tbl)
+# Title
+    elements.append(Paragraph("Invoice", styles['title']))
+
+# order details
+    shipping_address = utils.order_shipping(order_obj)
+    billing_address = utils.order_billing(order_obj)
+    order_details_dict = utils.order_invoice_details_tup(order_obj)
+    order_list = list(order_details_dict.items())
+    order_details_tbl_data = []
+    for order_details_data in order_list:
+        tmp_data = list(order_details_data)
+        order_details_tbl_data.append(tmp_data)
+
+    order_details_table = Table(order_details_tbl_data)
+    order_details_table.setStyle(TableStyle([
+                                ('ALIGN', (0, 0), (-1, -1), "RIGHT"),
+                                ('ALIGN', (1, 0), (-1, -1), "LEFT"),
+                                 ('VALIGN', (0, 0), (-1, -1), "TOP"),
+                                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                                ('FONTNAME', (1, 0), (1, 0), 'Helvetica-Bold'),
+                                 ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+                                 ('TOPPADDING', (0, 0), (-1, -1), 0)]))
+
+    order_tbl_info = [
+        [Paragraph(shipping_address, styles['header_main']),
+         Paragraph(billing_address, styles['header_main']),
+         order_details_table]
+    ]
+
+    #order_col_width_details = 75 * mm
+
+    #rder_address_col_width = (doc.width - order_col_width_details) / 2
+    order_tbl_data = Table(order_tbl_info)
+    order_tbl_data.setStyle(TableStyle([
+                                        ('ALIGN', (2, 0), (2, 0), "RIGHT"),
+                                        ('VALIGN', (0, 0), (-1, -1), "TOP"),
+                                       # ('BACKGROUND', (2, 0), (-1, 0), colors.green),
+                                        ]))
+    elements.append(order_tbl_data)
+    elements.append(Spacer(doc.width, 5*mm))
+
+#order items
+# Code, Item, Quantity, Unit Price, Line Price,
+    currency_symbol = order_obj.store.currency.symbol_left
+    items_tbl_cols = [30 * mm, 100 * mm, 20 * mm, 25 * mm, 25 * mm]
+    items_tbl_data = [
+        ['Code', 'Item', 'Quantity', f'Unit Price ({currency_symbol})', f'Line Price ({currency_symbol})']
+    ]
+
+# Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+    order_items = order_obj.order_products.all()
+    for order_item_data in order_items.iterator():
+        if order_item_data.product_variant:
+            model = order_item_data.product_variant.variant_code
+        order_item_tbl_data = [''] * 5
+        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
+        order_item_tbl_data[2] = ""
+        if order_item_data.product_variant:
+            if order_item_data.product_variant.alt_image:
+                image_src = f'http://safetysigns/image/{order_item_data.product_variant.alt_image}'
+            else:
+                if order_item_data.product_variant.prod_var_core.variant_image:
+                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.variant_image}'
+                else:
+                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.product.image}'
+
+            img = Image(image_src)
+            img._restrictSize(image_max_w, image_max_h)
+        else:
+            img = ''
+
+        #order_item_tbl_data[3] = img
+       # order_item_tbl_data[4] = Paragraph(order_item_data.size_name, styles['table_data'])
+        #order_item_tbl_data[5] = Paragraph(order_item_data.material_name, styles['table_data'])
+        order_item_tbl_data[2] = order_item_data.quantity
+        #order_subtotal = Decimal(order_subtotal_qs.first().value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        order_item_tbl_data[3] = round(order_item_data.price,2)
+        order_item_tbl_data[4] = round(order_item_data.total,2)
+        items_tbl_data.append(order_item_tbl_data)
+
+
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('LINEABOVE', (0, 1), (-1, 1), 1, colors.black),
+                                     ('ALIGN', (2, 0), (2, -1), "CENTRE"),
+                                     ('ALIGN', (3, 1), (-1, -1), "RIGHT"),
+                                     ('VALIGN', (0, 1), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 10),
+                                     ('ROWBACKGROUNDS', (0, 0), (-1, -1), (colors.whitesmoke, colors.white)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5*mm))
+    order_lines = order_items.count()
+    product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
+
+#add in the totals
+    total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
+    elements.append(total_text)
+    elements.append(Spacer(doc.width, 15*mm))
+    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
+    elements.append(signed_text)
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+
+def gen_shipping_page(request, order_id):
+    width = 210 * mm
+    height = 297 * mm
+    padding = 40 * mm
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+    response = HttpResponse(content_type='application/pdf')
+
+    buffer = BytesIO()
+
+    elements = []
+    top_address_frame = Frame(padding, height/2 + 20*mm, width - 2*padding, 100*mm, showBoundary=0)
+    bottom_address_frame = Frame(padding, 20*mm, width - 2*padding, 100 * mm, showBoundary=0)
+    mainPage = PageTemplate(frames=[top_address_frame, bottom_address_frame])
+
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Shipping_address_' + order_ref_number,  # exchange with your title
+                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            )
+
+    doc.addPageTemplates(mainPage)
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='address_top', alignment=TA_LEFT, fontSize=20, leading=22))
+    styles.add(ParagraphStyle(name='address_bottom', alignment=TA_LEFT, fontSize=14))
+
+    shipping_address = utils.get_shipping_address(order_obj)
+    shipping_address_keep = utils.shipping_address_keep(order_obj)
+    heading = Paragraph(shipping_address, styles['address_top'])
+    heading2 = Paragraph(shipping_address_keep, styles['address_bottom'])
+
+    elements.append(heading)
+    elements.append(FrameBreak())  # move to next frame
+    elements.append(heading2)
+
+    qr = QRCodeImage(f'http://www.totalsafetygroup.co.uk/paperwork/shipping/{order_id}', size=30 * mm)
+    elements.append(Spacer(doc.width, 5*mm))
+    elements.append(qr)
+
+    doc.build(elements)
+
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+
+
+

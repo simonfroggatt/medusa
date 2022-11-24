@@ -19,6 +19,8 @@ urlpatterns = [
     path('details/<int:customer_id>/address/delete/<int:address_id>', views.customer_address_delete, name='customeraddressdelete'),
     path('<int:customer_id>/addressbook', views.customer_address_book, name='customer_addressbook'),
     path('api/customer/<int:customer_id>/order_create', views.order_customer_create, name='api_createorder'),
+    path('details/<int:customer_id>/password/edit', views.customers_edit_password, name='customereditpassword'),
+    path('create', views.contact_create, name='create_customer'),
 
   #  path('address/<int:pk>', views.customer_address_view),
    # path('address/edit/<int:address_id>', views.customer_address_view),

@@ -145,7 +145,7 @@ class OrderDetailsEditForm(forms.ModelForm):
         fields = ['order_id',
                   'order_status',
                   'payment_status',
-                  'payment_type',
+                  'order_type',
                   'customer_order_ref',
                   'payment_method_rel',
                   'comment',

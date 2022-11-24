@@ -19,6 +19,7 @@ class OcCurrency(models.Model):
     def __str__(self):
         return self.code
 
+
 class OcStore(models.Model):
     store_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64)
@@ -29,6 +30,18 @@ class OcStore(models.Model):
     logo = models.CharField(max_length=255, blank=True, null=True)
     medusa_logo = models.CharField(max_length=255, blank=True, null=True)
     currency = models.ForeignKey(OcCurrency, models.DO_NOTHING, blank=True, null=True)
+    telephone = models.CharField(max_length=255, blank=True, null=True)
+    company_name = models.CharField(max_length=255, blank=True, null=True)
+    website = models.CharField(max_length=255, blank=True, null=True)
+    vat_number = models.CharField(max_length=25, blank=True, null=True)
+    registration_number = models.CharField(max_length=25, blank=True, null=True)
+    footer_text = models.CharField(max_length=255, blank=True, null=True)
+    email_address = models.CharField(max_length=255, blank=True, null=True)
+    prefix = models.CharField(max_length=10, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    postcode = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=255, blank=True, null=True)
+    logo_paperwork = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -154,4 +167,17 @@ class OcTsgPaymentTerms(models.Model):
 
     def __str__(self):
         return self.term_title
+
+
+class OcTsgAccountType(models.Model):
+    account_type_id = models.AutoField(primary_key=True)
+    account_type_name = models.CharField(max_length=32, blank=True, null=True)
+    account_type_description = models.CharField(max_length=1024, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_account_type'
+
+    def __str__(self):
+        return self.account_type_name
 

@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <style>
+
+        .paperwork-header {
+  top: 0mm;
+  width: 210mm;
+}
+
+.page-header, .page-header-space {
+  min-height: 100px;
+}
+
+.page-footer, .page-footer-space {
+  height: 30px;
+
+}
+
+.page-footer {
+  position: fixed;
+  bottom: 0;
+  width: 210mm;
+  border-top: 1px solid black; /* for demo */
+}
+
+.page-header {
+  position: fixed;
+  top: 0mm;
+  width: 210mm;
+  border-bottom: 1px solid black; /* for demo */
+  background: yellow; /* for demo */
+}
+
+.page {
+    width: 210mm;
+  page-break-after: always;
+}
+
+@page {
+  margin: 10mm
+}
+
+@media print {
+   thead {display: table-header-group;}
+   tfoot {display: table-footer-group;}
+
+   button {display: none;}
+
+   body {margin: 0;}
+}
+
+        .footer-text {
+            font-size: x-small;
+        }
+
+        .header-address {
+            font-size: small;
+            text-align: end;
+        }
+
+        .paperwork-logo {
+            max-width: 300px;
+
+        }
+
+        .column {
+            float: left;
+            width: 50%;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+    </style>
+
+    <meta charset="UTF-8">
+    <title>Picklist</title>
+</head>
+<body>
+  <div class="row paperwork-header">
+        <div class="column">
+            <img class="paperwork-logo" height="100px" src="{% static "" %}images/stores/{{order_obj.store.logo }}">
+            image
+        </div>
+        <div class="column header-address">
+                {{ order_obj.store.company_name }}<br>{{ order_obj.store.address|linebreaksbr }}<br>{{ order_obj.store.postcode }}<br>Tel: {{ order_obj.store.telephone}}<br>{{order_obj.store.email_address}}<br><strong>VAT# {{order_obj.store.vat_number}}</strong>
+            </address>
+        </div>
+    </div>
+  <div class="page-footer">
+      <span class="footer-text">{{ order_obj.store.company_name }} {{ order_obj.store.footer_text|default_if_none:"" }} Registered in England No. {{ order_obj.store.registration_number }}.</span>
+  </div>
+<table>
+
+    <thead>
+      <tr>
+        <td>
+          <!--place holder for the fixed-position header-->
+        </td>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          <!--*** CONTENT GOES HERE ***-->
+          <div class="page ">
+            <span class="h3">Despatch Note</span>
+              <div class="row">
+                  <div class="col-6">
+
+                  </div>
+                  <div class="col-6">
+                    <dl class="row text-nowrap">
+                        <dt>Invoice Number</dt>
+                        <dd >{{ order_obj.store.prefix }}-{{ order_obj.order_id }}</dd>
+                    </dl>
+                  </div>
+              </div>
+
+             </div>
+        </td>
+      </tr>
+    </tbody>
+
+    <tfoot>
+      <tr>
+        <td>
+          <!--place holder for the fixed-position footer-->
+          <div class="page-footer-space"></div>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</body>
+</html>

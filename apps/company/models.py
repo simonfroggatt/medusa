@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcStore, OcTaxRate, OcCurrency, OcTsgPaymentTerms, OcTsgCountryIso
+from medusa.models import OcStore, OcTaxRate, OcCurrency, OcTsgPaymentTerms, OcTsgCountryIso, OcTsgAccountType
 
 
 class OcTsgCustomerStatus(models.Model):
@@ -14,19 +14,6 @@ class OcTsgCustomerStatus(models.Model):
 
     def __str__(self):
         return self.status_title
-
-
-class OcTsgAccountType(models.Model):
-    account_type_id = models.AutoField(primary_key=True)
-    account_type_name = models.CharField(max_length=32, blank=True, null=True)
-    account_type_description = models.CharField(max_length=1024, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_account_type'
-
-    def __str__(self):
-        return self.account_type_name
 
 
 class OcTsgCompanyType(models.Model):

@@ -18,11 +18,11 @@
                                         <th >Date</th>
                                         <th >Day</th>
                                         <th >Company</th>
-                                        <th class="col-2">Contact</th>
-                                        <th class="col-2">Payment Status</th>
-                                        <th class="col-1">Order Status</th>
+                                        <th >Contact</th>
+                                        <th >£ Status</th>
+                                        <th >Status</th>
+                                        <th>Flags</th>
                                         <th class="col-1">Total</th>
-                                        <th class="col-1">Flags</th>
                                         <th class="text-end">&nbsp;</th>
                                     </tr>
                                     </thead>
@@ -134,7 +134,7 @@
                  }
             },
             {
-                data: "date_added",
+                data: "short_date",
             },
 
             {
@@ -184,13 +184,6 @@
                 data: "order_status.name",
             },
             {
-                data: "total",
-                class: "text-end",
-                render: function ( data, type, row ) {
-                    return parseFloat(data).toFixed(2);
-                 }
-            },
-            {
                 data: "orderflags",
                 searchable: false,
                 render: function (data, type, row){
@@ -219,6 +212,13 @@
                     flags += '</ul>'
                     return flags
                 }
+            },
+            {
+                data: "total",
+                class: "text-end",
+                render: function ( data, type, row ) {
+                    return parseFloat(data).toFixed(2);
+                 }
             },
             {
                 data: "order_id",

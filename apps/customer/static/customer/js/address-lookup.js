@@ -21,6 +21,10 @@ let TSGAddressLookup = function (inputFieldName, outputSelectName, fieldsToMatch
         initUI(blOutputSet)
     };
 
+    var newLookup = function(){
+        return 'fred'
+    }
+
     let initUI = function (blOutputSet) {
         let minChars = TSGlookup.minChars
         $.each(TSGlookup.inputField, function (key, value) {

@@ -48,7 +48,7 @@ class OrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcOrder
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['dow', 'days_since_order', 'is_order', 'orderflags', 'product_flags', 'shipping_flag'])
+        fields.extend(['dow', 'days_since_order', 'is_order', 'orderflags', 'product_flags', 'shipping_flag', 'short_date'])
 
         depth = 1
 

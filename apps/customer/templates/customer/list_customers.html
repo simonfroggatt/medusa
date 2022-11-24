@@ -5,7 +5,17 @@
 {% endblock extra_css %}
 
 {% block content %}
+    <div class="row top_bar">
+            <div class="col-3 col-lg-2">
 
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                {% include 'customer/sub_layouts/customer_list_top_navbar.html' %}
+            </div>
+        </div>
     <div class="row">
                     <div class="col-lg-12">
                         <div class="ibox">
@@ -37,6 +47,8 @@
 <script>
     $(document).ready(function() {
 
+        $("#js-customer-create").click(loadForm);
+
     $('#customers_table').DataTable( {
         "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
          "<'row'<'col-sm-12'tr>>" +
@@ -65,10 +77,7 @@
                  }
             },
             {data: "company"},
-            {data: null,
-                render: function ( data, type, row ) {
-                    return data.firstname +' '+ data.lastname
-            }},
+            {data: "fullname"},
             {data: "email"},
             {data: "telephone"},
             {
@@ -87,6 +96,9 @@
         ]
     } );
 } );
+
+
+
 </script>
 
 {% endblock javascript %}

@@ -21,6 +21,27 @@ $(function()
     return false;
   }
 
+  var SavePasswordForm = function() {
+        var form = $(this);
+        let url = form.attr("action");
+        let data = form.serialize();
+        let after = form.attr("after")
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+  }
+
   var updateAddressBook = function() {
     $.ajax({
       url: '/customer/'+customer_id+'/addressbook',
@@ -41,12 +62,15 @@ $(function()
     $(".js-address-edit").click(loadForm);
     $(".js-address-create").click(loadForm);
     $(".js-address-delete").click(loadForm);
+    $(".js-customer-edit").click(loadForm);
+
 
   }
 
   reinstateFunction()
 
    $("#modal-base").on("submit", ".js-address-submit", saveForm);
+  $(document).on("submit", "#form-customer-password", SavePasswordForm);
 
 
   let previous_order_table = $('#previous_order_table').DataTable( {

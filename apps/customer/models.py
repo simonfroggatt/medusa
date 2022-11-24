@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcStore, OcTaxRate
+from medusa.models import OcStore, OcTaxRate, OcTsgAccountType
 from apps.company.models import OcTsgCompany, OcTsgCountryIso
 
 
@@ -51,7 +51,8 @@ class OcCustomer(models.Model):
     date_added = models.DateTimeField(auto_now=True)
     xero_id = models.CharField(max_length=256, blank=True, null=True)
     parent_company = models.ForeignKey(OcTsgCompany, models.DO_NOTHING, db_column='company_id', blank=True, null=True, related_name='company_customer')  # Field renamed because of name conflict.
-
+    account_type = models.ForeignKey(OcTsgAccountType, models.DO_NOTHING, db_column='account_type', blank=True,
+                                     null=True)
 
 
     class Meta:

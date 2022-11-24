@@ -24,7 +24,10 @@
                          {% if order_obj.customer.company %}
                               <dd class="col-9">{{ order_obj.customer.company }}</dd>
                          {% else %}
-                             <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.firstname }} {{ order_obj.customer.lastname }}</a></dd>
+                             <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.fullname }}</a>
+                             {% if order_obj.customer.parent_company %}
+                                 - ( works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a> )
+                             {% endif %}</dd>
                          {% endif %}
                      {% endif %}
 

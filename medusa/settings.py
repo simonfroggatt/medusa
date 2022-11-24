@@ -49,13 +49,16 @@ INSTALLED_APPS = [
     'apps.category',
     'apps.orders',
     'apps.company',
+    'apps.emails',
+    'apps.paperwork',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
     'rest_framework_datatables',
     'bootstrap_modal_forms',
     'tinymce',
-    'pyreportjasper'
+    'pyreportjasper',
+
 ]
 
 MIDDLEWARE = [
@@ -153,6 +156,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/products/static/products'),
                     os.path.join(BASE_DIR, 'apps/pricing/static/pricing'),
                     os.path.join(BASE_DIR, 'apps/company/static/company'),
+                    os.path.join(BASE_DIR, 'apps/emails/static/emails'),
+                    os.path.join(BASE_DIR, 'apps/paperwork/static/paperwork')
                     ]
 
 

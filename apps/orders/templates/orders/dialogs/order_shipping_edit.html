@@ -57,10 +57,6 @@
     })
 </script>
 
-
-<script type="text/javascript" src="{% static 'js/address-lookup.js' %}"></script>
-
-
 <script>
 
 
@@ -78,7 +74,7 @@
 
         let inputFields = ['#addressLookup']
 
-        let lookupBilling = new TSGAddressLookup(inputFields, '', fieldMatch);//, '#js-fulladdress-billing');
+        TSGAddressLookup(inputFields, '', fieldMatch);//, '#js-fulladdress-billing');
 
 
         $('#id_{{ form.shipping_country_name.name }}').change( function() {

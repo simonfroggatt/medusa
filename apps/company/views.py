@@ -12,6 +12,7 @@ from apps.customer.forms import CustomerForm, AddressForm
 from apps.customer.models import OcCustomer
 
 
+
 # Create your views here.
 def company_list(request):
     template_name = 'company/company_list.html'
@@ -149,12 +150,21 @@ def company_create_contact(request, company_id):
         'safe': 1,
         'customer_group': 1
     }
-    company_address = {}
+
+    company_address = {
+        'address_1': company_obj.address,
+        'city': company_obj.city,
+        'postcode': company_obj.postcode,
+        'area': company_obj.area,
+        'country': company_obj.country,
+        'country_id': company_obj.country_id
+    }
 
     form = CustomerForm(initial=iniitial_data)
-    form_address = AddressForm()
+    form_address = AddressForm(initial=company_address)
+    del company_address['country']
 
-    content = {'form': form, 'form_address': form_address, 'company_id': company_id, 'initials': iniitial_data}
+    content = {'form': form, 'form_address': form_address, 'company_id': company_id, 'initials': iniitial_data, 'company_address': company_address}
 
     html_form = render_to_string(template_name, content, request=request)
     return JsonResponse({'html_form': html_form})
@@ -172,6 +182,8 @@ def company_contact_save(request):
             form_address = AddressForm(request.POST)
             form_address_instance = form_address.instance
             form_address_instance.customer_id = customer_id
+            form_address_instance.fullname = form.fullname
+            form_address_instance.company = form.company
             if form_address.is_valid():
                 form_address.save()
             else:
@@ -189,3 +201,5 @@ def company_contact_save(request):
     data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
 
     return JsonResponse(data)
+
+

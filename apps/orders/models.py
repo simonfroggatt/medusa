@@ -56,17 +56,17 @@ class OcTsgPaymentMethod(models.Model):
         return self.payment_method_name
 
 
-class OcTsgPaymentType(models.Model):
-    payment_type_id = models.AutoField(primary_key=True)
-    payment_type_name = models.CharField(max_length=255, blank=True, null=True)
-    payment_type_icon = models.CharField(max_length=255, blank=True, null=True)
+class OcTsgOrderType(models.Model):
+    order_type_id = models.AutoField(primary_key=True)
+    order_type_name = models.CharField(max_length=255, blank=True, null=True)
+    order_type_icon = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'oc_tsg_payment_type'
+        db_table = 'oc_tsg_order_type'
 
     def __str__(self):
-        return self.payment_type_name
+        return self.order_type_name
 
 
 class OcTsgPaymentStatus(models.Model):
@@ -200,7 +200,7 @@ class OcOrder(models.Model):
     date_due = models.DateField(blank=True, null=True)
     order_status = models.ForeignKey(OcOrderStatus, models.DO_NOTHING, blank=True, null=True)
     payment_method_rel = models.ForeignKey(OcTsgPaymentMethod,  models.DO_NOTHING, db_column='payment_method_id', blank=True, null=True)  # Field renamed because of name conflict.
-    payment_type = models.ForeignKey(OcTsgPaymentType, models.DO_NOTHING, blank=True, null=True)
+    order_type = models.ForeignKey('OcTsgOrderType', models.DO_NOTHING)
     payment_status = models.ForeignKey(OcTsgPaymentStatus, models.DO_NOTHING, blank=True, null=True)
     xero_id = models.CharField(max_length=256, blank=True, null=True)
     customer_order_ref = models.CharField(max_length=255, blank=True, null=True)
@@ -219,6 +219,9 @@ class OcOrder(models.Model):
         ordered = dt.datetime(self.date_added.year, self.date_added.month, self.date_added.day)
         delta = today - ordered
         return delta.days
+
+    def short_date(self):
+        return self.date_added.strftime('%-m %b, %H:%M')
 
     def testit(self):
         return 1

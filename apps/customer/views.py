@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core import serializers
 from .models import OcCustomer, OcAddress
 from .serializers import CustomerListSerializer
-from .forms import AddressForm
+from .forms import AddressForm, CustomerForm
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -11,6 +11,8 @@ from apps.orders.models import OcOrder, OcTsgPaymentMethod
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView
 from django.urls import reverse_lazy
 import json
+import hashlib
+from django.utils.crypto import get_random_string
 
 
 def customers_list(request):
@@ -221,7 +223,7 @@ def order_customer_create(request, customer_id):
         new_order_obj.payment_method = ''
         new_order_obj.order_status_id = 10
         new_order_obj.payment_status_id = 1
-        new_order_obj.payment_type_id = 4
+        new_order_obj.order_type_id = 1
         new_order_obj.payment_method_rel_id = 8
         new_order_obj.invoice_no = 0
         new_order_obj.invoice_prefix = 'SSAN'
@@ -277,3 +279,96 @@ def order_customer_create(request, customer_id):
                                          request=request
                                          )
     return JsonResponse(data)
+
+
+def customers_edit_password(request, customer_id):
+    data = dict()
+    customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    data['form_is_valid'] = False
+    if request.method == 'POST':
+        newpassword = request.POST.get('newpassword')
+        customer_id_edit = request.POST.get('customer_id')
+        customer_obj_edit = get_object_or_404(OcCustomer, pk=customer_id_edit)
+        if request.POST.get('checksend'):
+            send_email = True
+        else:
+            send_email = False
+
+        salt_clear = get_random_string(length=9)
+        salt = salt_clear.encode('utf-8')
+        p1 =  hashlib.sha1(newpassword.encode('utf-8')).hexdigest()
+        p1_2 = salt + p1.encode('utf-8')
+        p2 = hashlib.sha1(p1_2).hexdigest()
+        p2_3 = salt + p2.encode('utf-8')
+        p3 = hashlib.sha1(p2_3).hexdigest()
+        customer_obj_edit.password = p3
+        customer_obj_edit.salt = salt_clear
+        customer_obj_edit.save()
+        data['form_is_valid'] = True
+        data['send_email'] = send_email
+        data['password'] = newpassword
+        data['email'] = customer_obj_edit.email
+        data['contact'] = customer_obj_edit.fullname
+
+
+
+
+    context = {'customer_id': customer_id}
+
+    template_name = 'customer/dialogs/customer_create_password.html'
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+def contact_create(request):
+    data = dict()
+    template_name = 'customer/dialogs/create_contact.html'
+
+    initial_data = {
+        'language_id': 1,
+        'status': 1,
+        'ip': '0.0.0.0',
+        'account_type': 1,
+        'safe': 1,
+        'customer_group': 1,
+        'store': 1
+    }
+
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            form_instance = form.instance
+            data['form_is_valid'] = True
+            customer_id = form_instance.customer_id
+            form_address = AddressForm(request.POST)
+            form_address_instance = form_address.instance
+            form_address_instance.customer_id = customer_id
+            form_address_instance.fullname = form_instance.fullname
+            form_address_instance.company = form_instance.company
+            form_address_instance.default_shipping = 1
+            form_address_instance.default_billing = 1
+
+            if form_address.is_valid():
+                form_address.save()
+                data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
+            else:
+                data['form_is_valid'] = False
+
+
+        else:
+            data['form_is_valid'] = False
+
+    form = CustomerForm(initial=initial_data)
+
+    form_address = AddressForm()
+
+    content = {'form': form, 'form_address': form_address, 'initials': initial_data, 'data': data}
+
+    html_form = render_to_string(template_name, content, request=request)
+    return JsonResponse({'html_form': html_form})
+
+

@@ -1,0 +1,99 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">New Contact</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12 pe-0">
+                <form method="post" action="{% url 'create_customer'  %}"
+                      id="js-form-create-customer" class="align-items-center">
+                    {% csrf_token %}
+                    <input type="hidden" id="id_customer_group" name="customer_group_id"
+                           value="{{ initials.customer_group }}">
+                    <input type="hidden" id="language_id" name="language_id"
+                           value="{{ initials.language_id }}">
+                    <input type="hidden" id="id_{{ form.status.name}}" name="{{ form.status.name}}"
+                           value="{{ initials.status }}">
+                    <input type="hidden" id="id_{{ form.ip.name}}" name="{{ form.ip.name}}"
+                           value="{{ initials.ip }}">
+                    <input type="hidden" id="id_{{ form.safe.name}}" name="{{ form.safe.name}}"
+                           value="{{ initials.safe }}">
+                    <div class="row border-bottom">
+                        <div class="col-md-3">{{ form.fullname|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.telephone|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.email|as_crispy_field }}</div>
+                        <div class="col-md-2">{{ form.account_type|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="row">
+                                <input type="hidden" id="id_{{ form_address.customer.name}}" name="{{ form_address.customer.name}}"
+                           value="2">
+                                 <div class="col-12">{{ form_address.company|as_crispy_field }}</div>
+                                <div class="col-12">{{ form_address.address_1|as_crispy_field }}</div>
+                                <div class="col-6">{{ form_address.city|as_crispy_field }}</div>
+                                <div class="col-6">{{ form_address.area|as_crispy_field }}</div>
+                                <div class="col-6">{{ form_address.postcode|as_crispy_field }}</div>
+                                <div class="col-6">{{ form_address.country|as_crispy_field }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">{{ form.store|as_crispy_field }}
+                        </div>
+                        <div class="col-6 align-bottom" >
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                                <button type="submit" id="update" class="btn btn-primary pull-right">Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(function () {
+
+        let fieldMatch = {
+            'Company': 'id_{{ form_address.company.name}}',
+            'Line1': 'id_{{ form_address.address_1.name}}',
+            'Line2': 'id_{{ form_address.address_1.name}}',
+            'Line3': 'id_{{ form_address.address_1.name}}',
+            'City': 'id_{{ form_address.city.name}}',
+            'ProvinceName': 'id_{{ form_address.area.name}}',
+            'CountryIsoNumber': 'id_{{ form_address.country.name}}',
+            'PostalCode': 'id_{{ form_address.postcode.name}}',
+        }
+
+
+        let inputFields = ['#id_{{ form_address.company.name}}', '#id_{{ form_address.postcode.name}}', '#id_{{ form_address.address_1.name}}']
+        TSGAddressLookup(inputFields, '', fieldMatch)
+
+    })
+
+    function toggleCompAddressSwitch(){
+        let use_company_address = $('#switchUseCompanyAddress').is(":checked");
+
+        $('#id_{{ form_address.address_1.name}}').html(use_company_address?company_address['address_1']:'').prop('readonly', use_company_address)
+        $('#id_{{ form_address.postcode.name}}').val(use_company_address?company_address['postcode']:'').prop('readonly', use_company_address)
+        $('#id_{{ form_address.city.name}}').val(use_company_address?company_address['city']:'').prop('readonly', use_company_address)
+        $('#id_{{ form_address.area.name}}').val(use_company_address?company_address['area']:'').prop('readonly', use_company_address)
+        $('#id_{{ form_address.country.name}}').val(use_company_address?company_address['country_id']:0).prop('disabled', use_company_address)
+
+    }
+
+    $(document).on("submit", "#js-company-create-form", SaveDialogFormRedirect);
+    $("#switchUseCompanyAddress").change(function () {
+        toggleCompAddressSwitch()
+    })
+
+    $('#js-form-create-customer').on("submit", SaveDialogFormRedirect)
+</script>
