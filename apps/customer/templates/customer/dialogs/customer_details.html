@@ -1,0 +1,46 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update Contact</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'customerdetailsedit' customer_id %}" class="js-customer-details-submit">
+            {% csrf_token %}
+
+            <input type="hidden" id="id_{{ form.customer_group_id.name}}" name="{{ form.customer_group_id.name}}"
+                           value="{{ form.customer_group_id.value }}">
+            <input type="hidden" id="id_{{ form.store.name}}" name="{{ form.store.name}}"
+                           value="{{ form.store.value }}">
+            <input type="hidden" id="id_{{ form.language_id.name}}" name="{{ form.language_id.name}}"
+                           value="{{ form.language_id.value }}">
+             <input type="hidden" id="id_{{ form.status.name}}" name="{{ form.status.name}}"
+                           value="{{ form.status.value }}">
+            <input type="hidden" id="id_{{ form.ip.name}}" name="{{ form.ip.name}}"
+                          value="{{ form.ip.value }}">
+            <input type="hidden" id="id_{{ form.safe.name}}" name="{{ form.safe.name}}"
+                           value="{{ form.safe.value }}">
+
+            <div class="row">
+                <div class="col-md-6">{{ form.fullname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.company|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.email|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.mobile|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+
+

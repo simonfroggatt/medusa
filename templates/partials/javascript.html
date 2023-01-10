@@ -16,9 +16,17 @@
         <script type="text/javascript" src="{% static 'libs/bootstrap-table/js/bootstrap-table.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/medusa.js' %}"></script>
          <script type="text/javascript" src="{% static 'js/address-lookup.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/pricing.js' %}"></script>
+    <script type="text/javascript" src="{% static 'libs/copy-to-clipboard/clipboard.js' %}"></script>
 
         <script>
+        if (typeof static_const === 'undefined') {
             const static_const = {% get_static_prefix %};
-            const media_url = "{% get_media_prefix %}";
+        }
+        if (typeof media_url === 'undefined') {
+             const media_url = "{% get_media_prefix %}";
+        }
+
+
         </script>
 {% endblock %}

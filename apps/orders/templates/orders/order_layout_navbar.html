@@ -18,27 +18,28 @@
                     </button>
 
                     <div class="dropdown-menu px-2" aria-labelledby="dropdownMenuPrint">
-                        <form  id="form-order-print">
+                        <form  id="form-order-print" action="{% url 'order_paperwork_pdf' order_obj.order_id %}" target="_blank" method="post">
+                        {% csrf_token %}
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="print_picklist" checked>
+                            <input class="form-check-input" type="checkbox"  id="print_picklist" name="print_picklist" value=1 checked>
                             <label class="form-check-label" for="print_picklist">
                                 PickList
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="print_shipping" checked>
+                            <input class="form-check-input" type="checkbox"  id="print_shipping" name="print_shipping" value=1 checked>
                             <label class="form-check-label" for="print_shipping">
                                 Shipping
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="print_invoice">
+                            <input class="form-check-input" type="checkbox"  id="print_invoice" name="print_invoice" value=1 >
                             <label class="form-check-label" for="print_invoice">
                                 Invoice
                             </label>
                         </div>
                             <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="print_collection">
+                            <input class="form-check-input" type="checkbox"  id="print_collection" name="print_collection" value=1 >
                             <label class="form-check-label" for="print_collection">
                                 Collection
                             </label>
@@ -52,7 +53,7 @@
                 <a class="btn btn-primary js-order-product-edit" role="button" data-url="{% url 'orderproductadd' order_obj.order_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
                 <div class="dropdown dropstart">
                     <button class="btn btn-warning " type="button" id="dropdownOrderOptions"
-                            data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-cog"></i>
+                            data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fas fa-cog"></i>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
                         <li><a class="dropdown-item" href="#">E-Mail</a></li>

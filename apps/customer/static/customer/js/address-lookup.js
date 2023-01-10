@@ -1,6 +1,6 @@
 
 
-let TSGAddressLookup = function (inputFieldName, outputSelectName, fieldsToMatch, hiddenSection) {
+var TSGAddressLookup = function (inputFieldName, outputSelectName, fieldsToMatch, hiddenSection) {
 
     let TSGlookup = this;
     let inputField = [];

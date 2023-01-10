@@ -1,0 +1,171 @@
+<div class="container">
+    <div class="row">
+        <table id="quick_size_table" class="table table-hover table-condensed table-striped"
+                           style="width:100%">
+                        <thead>
+                        <tr>
+                            <th class="col-6">Size</th>
+                            <th class="col-3">Material</th>
+                            <th class="col-3">Price</th>
+                        </tr>
+                        </thead>
+</table>
+    </div>
+      <div class="row">
+        <div class="col-12">
+
+             <form method="post" id="form-size_material"
+             {% block form_vars %}{% endblock form_vars %}>
+                {% csrf_token %}
+             <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+             <input type="hidden" id="text_to_copy" name="text_to_copy"  value="">
+             <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
+             <input  id="string_to_copy_size" name="string_to_copy_size" class="hidden_copy" value="">
+
+                <div class="row">
+                    <div class="col-8">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk"
+                                   checked>
+                            <label class="form-check-label" for="stock-switchShowBulk">Apply bulk discount</label>
+                        </div>
+                        <div class="collapse show" id="collapseBulkDiscount">
+                            <div class="row">
+                                <div class="col-12" id="bulkTableDiv">
+                                    <select class="form-select bulk_group_select" id="stock-bulk_group_select">
+                                        {% for bulk_group in bulk_info %}
+                                            <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="row">
+                                        <div class="col-xs-12" id="bulk_pricing_div">
+                                            asdasdas
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="row">
+                            <div class="row d-flex justify-content-md-end mb-2">
+                                <div class="col-6 col-lg-4">
+
+                                    <label for="quantity"
+                                           class="form-label">QTY</label>
+                                    <input type="number" min="1" step="1" class="form-control calc_line_totals"
+                                           id="quantity" name="quantity"
+                                           value="1">
+                                </div>
+                                <div class="col-6 col-lg-4">
+                                    <label for="price"
+                                           class="form-label">Price</label>
+                                    <input type="number" id="price" name="price"
+                                           step="0.01"
+                                           value="0.00"
+                                           class="form-control calc_line_totals" readonly>
+                                </div>
+                                <div class="col-12 col-lg-4 d-flex align-items-end text-end">
+                                    <h3>£<span id="line_total_cal">0.00</span></h3>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-success pull-right btncopy" data-clipboard-target="#string_to_copy_size">Copy Price</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+
+        var quick_size_table = $('#quick_size_table').DataTable({
+            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": true,
+            "serverSide": false,
+            "ajax": {
+                "processing": true,
+                "url": "/pricing/api/storeprices/1/?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": true,
+            "search": {
+                "regex": true
+            },
+            "select": true,
+            "scroller": true,
+            scrollY: 300,
+            columns: [
+                {data: "size_material_comb.product_size.size_name"},
+                {data: "size_material_comb.product_material.material_name"},
+                {data: "price", searchable: false},
+            ]
+        });
+
+        quick_size_table.on('select', function (e, dt, type, indexes) {
+                if (type === 'row') {
+                    let data_row = quick_size_table.row(indexes).data()
+                     set_product_base_price_size(data_row)
+                     set_copy_string(data_row);
+                     SetPrice(true, '#form-size_material')
+
+                }
+        });
+
+        function set_product_base_price_size(data_row){
+                let product_info = data_row['size_material_comb'];
+               $('#form-size_material #single_unit_price').val(product_info['price'])
+
+            }
+
+            function set_copy_string(data_row)
+            {
+                 let product_info = data_row['size_material_comb'];
+
+                let text_string = "";
+                let size_str = product_info['product_size']['size_name'];
+                let material_str = product_info['product_material']['material_name'];
+                let orientation_str =  product_info['product_size']['orientation']['orientation_name'];
+
+                 text_string = size_str
+                    //+ " ( " + orientation_str + " ) "
+                    + " " +material_str;
+
+
+                $('#form-size_material #text_to_copy').val(text_string);
+
+            }
+
+            function set_copy_price(form_id) {
+             let price_string = "";
+             let price_str = $(form_id + ' #price').val();
+             let qty_str = $(form_id + ' #quantity').val();
+
+             price_string = " @ £" + price_str + " each for " + qty_str + " off";
+             $(form_id + ' #price_to_copy').val(price_string);
+
+
+            }
+
+            $('#form-size_material #line_total_cal').change(function() {
+                set_copy_price('#form-size_material');
+                let final_copy_str = $('#form-size_material #text_to_copy').val() + $('#form-size_material #price_to_copy').val()
+                $('#string_to_copy_size').val(final_copy_str);
+            });
+
+
+    })
+</script>

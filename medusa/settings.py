@@ -216,3 +216,8 @@ TINYMCE_DEFAULT_CONFIG = {
     "toolbar": 'h1 h2 bold italic | strikethrough Superscript Subscript | bullist numlist fontsizeselect removeformat ',
 }
 TINYMCE_COMPRESSOR = False
+
+TSG_PAYMENT_TYPES = {
+    'Proforma': 7,
+    'PO': 5
+}

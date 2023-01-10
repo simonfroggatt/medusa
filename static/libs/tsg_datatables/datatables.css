@@ -1215,6 +1215,14 @@ table.dataTable .failed-order td {
   background-color: #f8c8c8;
 }
 
+table.dataTable .pending-order td {
+  background-color: #FFC473;
+}
+
+table.dataTable .live-order td {
+  background-color: #c2f8a9;
+}
+
 table.dataTable .order-total {
   font-weight: bold;
   font-size: 120%;

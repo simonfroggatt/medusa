@@ -5,14 +5,13 @@
              <div class="card-header customer_details">
                  <div class="row">
                         <div class="col-9">
-                            <i class="fas fa-pound-sign "></i> Billing
-                                Address
+                            <i class="fas fa-pound-sign "></i> Billing Address
                                 {% if customer_address.billing_auto %}
                                     <i class="fas fa-magic fa-wizard"></i>{% endif %}
 
                         </div>
                         <div class="col-3">
-                            <div class="float-end pe-0">
+                            <div class="float-end pe-2">
 
                                 {% if customer_address.billing.pk %}
                                     <a class="btn btn-primary btn-xs js-address-edit"
@@ -35,8 +34,7 @@
             <div class="card-header customer_details">
                 <div class="row">
                         <div class="col-9 ">
-                            <i class="fas fa-shipping-fast"></i> Shipping
-                                Address
+                            <i class="fas fa-shipping-fast"></i> Shipping Address
                                 {% if customer_address.shipping_auto %}
                                     <i class="fas fa-magic fa-wizard"></i>{% endif %}
 

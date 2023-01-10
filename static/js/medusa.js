@@ -51,6 +51,7 @@ $(function()
      $(document).on('click', '.js-order-customer-create', LoadCustomerNewOrder);
      $(document).on("submit", "#js-order-customer-create-form", SaveCustomerNewOrder);
 
+     new ClipboardJS('.btncopy');
 });
 
 $(".two-decimals").change(function(){
@@ -59,7 +60,7 @@ $(".two-decimals").change(function(){
 
 $('#topmenu_quickcalc').on('click', function () {
     $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
-    $("#modal-base #modal-outer").addClass('modal-lg')
+    $("#modal-base #modal-outer").addClass('modal-xl')
     //$("#modal-base .modal-content").html(data.html_form);
     $("#modal-base .modal-content").load('/pricing/quick/')
     $("#modal-base").modal("show");
@@ -125,4 +126,5 @@ function SaveDialogFormRedirect() {
         });
         return false;
     }
+
 

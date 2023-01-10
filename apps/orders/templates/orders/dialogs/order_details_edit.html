@@ -36,5 +36,17 @@
 </div>
 
 <script>
+    //some some cool stuff with payment types etc.
+    $('#id_{{ form.payment_method_rel.name }}').change(function() {
+        changedto = $(this).val()
+        if(changedto == 7) { // PO
+            $('#id_{{ form.payment_status.name }}').val(3)  //waioting
+            $('#id_{{ form.order_status.name }}').val(2)  //received
+        }
+        if(changedto == 5) { //Proforma
+            $('#id_{{ form.payment_status.name }}').val(8)  //waioting
+            $('#id_{{ form.order_status.name }}').val(2)  //received
+        }
 
+    });
 </script>

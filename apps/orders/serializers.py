@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, OcTsgOrderProductStatus, \
     OcTsgOrderShipment
 from django.conf import settings
+from apps.orders import services as serv
 
 class OrderStatusSerializer(serializers.ModelSerializer):
 
@@ -44,11 +45,14 @@ class OrderListSerializer(serializers.ModelSerializer):
     orderflags = OrderFlagsListSerializer(many=True, read_only=True)
     product_flags = serializers.SerializerMethodField(read_only=True)
     shipping_flag = serializers.SerializerMethodField(read_only=True)
+    highlight_code = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OcOrder
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['dow', 'days_since_order', 'is_order', 'orderflags', 'product_flags', 'shipping_flag', 'short_date'])
+        read_only_fields = (['short_date'])
+        fields.extend(['dow', 'days_since_order', 'is_order', 'orderflags', 'product_flags', 'shipping_flag',
+                       'short_date', 'highlight_code'])
 
         depth = 1
 
@@ -62,8 +66,10 @@ class OrderListSerializer(serializers.ModelSerializer):
         shipping_status = OcTsgOrderShipment.objects.filter(order_id=obj.order_id).order_by('-date_added').select_related(
             'shipping_status'
             ).values('shipping_status__status_title', 'shipping_status__status_colour').first()
-
         return shipping_status
+
+    def get_highlight_code(self, obj):
+        return serv.order_highlight_code(obj)
 
 
 class OrderProductListSerializer(serializers.ModelSerializer):

@@ -10,12 +10,15 @@ from decimal import Decimal, ROUND_HALF_UP
 
 class OcOrderQuerySet(models.QuerySet):
     def successful(self):
-        valid_status = [2, 3, 4]
+        valid_status = [2]
         return self.filter(payment_status_id__in=valid_status)
 
     def days_since(self):
        #ß today_data = '2019-06-17'
         return 1
+
+    def test_it_qs(self):
+        return '123'
 
 
 class OcOrderManager(models.Manager):
@@ -27,6 +30,9 @@ class OcOrderManager(models.Manager):
 
     def days_since(self):
         return 3
+
+    def test_it_mm(self):
+        return self.get_queryset().test_it_qs()
 
 
 class OcOrderStatus(models.Model):
@@ -209,7 +215,8 @@ class OcOrder(models.Model):
 
     @property
     def is_order(self):
-        return self.order_status.order_status_id == 15
+        #return self.order_status.order_status_id == 15
+        return self.successful
 
     def dow(self):
         return self.date_added.strftime('%a')
@@ -222,10 +229,6 @@ class OcOrder(models.Model):
 
     def short_date(self):
         return self.date_added.strftime('%-m %b, %H:%M')
-
-    def testit(self):
-        return 1
-
 
     class Meta:
         managed = False
@@ -322,7 +325,7 @@ class OcOrderProduct(models.Model):
 
 class OcOrderTotal(models.Model):
     order_total_id = models.AutoField(primary_key=True)
-    order = models.ForeignKey(OcOrder, models.DO_NOTHING)
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, related_name='order_totals')
     code = models.CharField(max_length=32)
     title = models.CharField(max_length=255)
     value = models.DecimalField(max_digits=15, decimal_places=4)
@@ -352,6 +355,32 @@ class OcOrderOption(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_order_option'
+
+
+class OcOrderHistory(models.Model):
+    order_history_id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, related_name='order_history')
+    order_status = models.CharField(max_length=128, blank=True, null=True)
+    notify = models.IntegerField()
+    comment = models.TextField()
+    date_added = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'oc_order_history'
+
+
+class OcTsgPaymentHistory(models.Model):
+    payment_history_id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True, related_name='payment_history')
+    payment_status = models.CharField(max_length=128, blank=True, null=True)
+    payment_method = models.CharField(max_length=128, blank=True, null=True)
+    comment = models.CharField(max_length=255, blank=True, null=True)
+    date_added = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_payment_history'
 
 
 def calc_order_totals(order_id):

@@ -10,6 +10,8 @@ from .forms import SizesBSForm, MaterialsBSForm, MaterialForm
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
+from apps.products.models import OcTsgBulkdiscountGroups
+from apps.products import services as prod_services
 import json
 from django.db import connection
 
@@ -42,6 +44,16 @@ def quick_prices(request):
     template_name = 'dialogs/quick_price.html'
     context = dict()
     data = dict()
+    qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
+    default_bulk = 1
+
+    bulk_details = prod_services.create_bulk_arrays(qs_bulk)
+    context['bulk_info'] = bulk_details
+    context['material_obj'] = OcTsgProductMaterial.objects.all()
+
+    OcTsgProductMaterial.objects.all()
+
+
 
     # return render(request, template_name, context)
     data['html_dlg'] = render_to_string(template_name,

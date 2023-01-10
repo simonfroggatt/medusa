@@ -105,8 +105,9 @@
         "rowId" : 'order_id',
         "ajax": {
                  "processing": true,
-                 "url": "/orders/api/orders-list?format=datatables",
-                "type" : "POST",
+                 //"url": "/orders/api/orders-list?format=datatables",
+                "url": "/orders/api/orders?format=datatables",
+                "type" : "GET",
             "beforeSend": function(xhr) {
                 xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
             }
@@ -135,6 +136,7 @@
             },
             {
                 data: "short_date",
+                searchable: false
             },
 
             {
@@ -264,11 +266,24 @@
            {data: "customer", "visible": false, searchable: false},
            {data: "days_since_order", "visible": false, searchable: false },
            {data: "product_flags", "visible": false, searchable: false },
+           {data: "highlight_code", "visible": false, searchable: false },
         ],
         "createdRow": function( row, data, dataIndex ) {
-            if ( data.order_status.order_status_id != 15 ) {
+           /* if ( data.order_status.order_status_id != 15 ) {
                 $(row).addClass( 'failed-order' );
+            } */
+            if(data.shipping_flag == null) {
+                if (data.highlight_code == 1) {
+                    $(row).addClass('live-order');
+                }
+                if (data.highlight_code == 2) {
+                    $(row).addClass('pending-order');
+                }
+                if (data.highlight_code == 3) {
+                    $(row).addClass('failed-order');
+                }
             }
+
          },
     } );
 

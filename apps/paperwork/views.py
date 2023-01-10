@@ -20,16 +20,17 @@ from django.db.models import Sum
 from functools import partial
 from decimal import Decimal, ROUND_HALF_UP
 import pathlib
+from PyPDF2 import PdfFileMerger, PdfFileWriter, PdfFileReader
 
 
-def gen_pick_list(request, order_id):
+def gen_pick_list(order_id):
     width = 210 * mm
     height = 297 * mm
     padding = 5 * mm
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
 
-    response = HttpResponse(content_type='application/pdf')
+   # response = HttpResponse(content_type='application/pdf')
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
@@ -153,20 +154,166 @@ def gen_pick_list(request, order_id):
 
     doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
 
-    pdf = buffer.getvalue()
-    buffer.close()
-    response.write(pdf)
-    return response
+    #pdf = buffer.getvalue()
+    #uffer.close()
+    #response.write(pdf)
+    return buffer
 
 
-def gen_invoice(request, order_id):
+def gen_collection_note(order_id):
     width = 210 * mm
     height = 297 * mm
     padding = 5 * mm
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
 
-    response = HttpResponse(content_type='application/pdf')
+   # response = HttpResponse(content_type='application/pdf')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Despatch-Note_'+order_ref_number,  # exchange with your title
+                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=10, leading=12))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
+
+#company logo
+    comp_logo = utils.create_company_logo(order_obj.store)
+
+#company contact & order details
+    header_address = utils.create_address(order_obj.store)
+
+# create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1),'MIDDLE'),
+                                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                                    ]))
+    elements.append(header_tbl)
+
+
+# Title
+    elements.append(Paragraph("Collection Note", styles['title']))
+
+# order details
+    contacts_str = utils.contact_details(order_obj)
+    order_str = utils.order_details(order_obj)
+    order_tbl_data = [
+        [Paragraph(contacts_str, styles['header_main']), Paragraph(order_str, styles['header_main'])]
+    ]
+    order_col_width = 40 * mm
+    order_tbl_data = Table(order_tbl_data, colWidths=[doc.width - order_col_width, order_col_width])
+    order_tbl_data.setStyle(TableStyle([
+                                        ('ALIGN', (1, 1), (1, 1), "RIGHT")]))
+    elements.append(order_tbl_data)
+    elements.append(Spacer(doc.width, 5*mm))
+#order items
+# Code, Product, Options, image, Size, Material, QTY, P,S,C
+    items_tbl_data = [
+        ['Code', 'Product', 'Options', 'Image', 'Size', 'Material', 'QTY', 'P', 'S', 'C']
+    ]
+
+# Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+    order_items = order_obj.order_products.all()
+    for order_item_data in order_items.iterator():
+        if order_item_data.product_variant:
+            model = order_item_data.product_variant.variant_code
+        order_item_tbl_data = [''] * 10
+        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
+        order_item_tbl_data[2] = ""
+        if order_item_data.product_variant:
+            if order_item_data.product_variant.alt_image:
+                image_src = f'http://safetysigns/image/{order_item_data.product_variant.alt_image}'
+            else:
+                if order_item_data.product_variant.prod_var_core.variant_image:
+                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.variant_image}'
+                else:
+                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.product.image}'
+
+            img = Image(image_src)
+            img._restrictSize(image_max_w, image_max_h)
+        else:
+            img = ''
+
+        order_item_tbl_data[3] = img
+        order_item_tbl_data[4] = Paragraph(order_item_data.size_name, styles['table_data'])
+        order_item_tbl_data[5] = Paragraph(order_item_data.material_name, styles['table_data'])
+        order_item_tbl_data[6] = order_item_data.quantity
+        order_item_tbl_data[7] = ""
+        order_item_tbl_data[8] = ""
+        order_item_tbl_data[9] = ""
+        items_tbl_data.append(order_item_tbl_data)
+
+    items_tbl_cols = [20 * mm, 50 * mm, 20 * mm, (image_max_w ) + 5, 30 * mm, 30 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    row_height = image_max_h + 10
+    rows = len(items_tbl_data)
+    items_tbl_rowh = [row_height] * rows
+    items_tbl_rowh[0] = 20
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('ALIGN', (6, 1), (6, -1), "CENTRE"),
+                                     ('ALIGN', (6, 0), (-1, 0), "CENTRE"),
+                                     ('ALIGN', (3, 1), (3, -1), "CENTRE"),
+                                     ('VALIGN', (0, 0), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 10),
+                                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), (colors.white, colors.whitesmoke)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5*mm))
+    order_lines = order_items.count()
+    product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
+
+#add in the totals
+    total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
+    elements.append(total_text)
+    elements.append(Spacer(doc.width, 10*mm))
+    signed_str = 'Staff Signed:__________________'
+    customer_signed_str = 'Customer Name:__________________'
+    customer_signed_str += 'Customer signed:__________________<BR/><BR/>'
+    customer_signed_str += 'Date:___/___/_____'
+
+    signed_text = Paragraph(signed_str, styles['footer_right'])
+    customer_signed_text = Paragraph(customer_signed_str, styles['footer_right'])
+    elements.append(signed_text)
+    elements.append(Spacer(doc.width, 5 * mm))
+    elements.append(customer_signed_text)
+
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+
+    #pdf = buffer.getvalue()
+    #uffer.close()
+    #response.write(pdf)
+    return buffer
+
+
+def gen_invoice(order_id):
+    width = 210 * mm
+    height = 297 * mm
+    padding = 5 * mm
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+   # response = HttpResponse(content_type='application/pdf')
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
@@ -184,7 +331,7 @@ def gen_invoice(request, order_id):
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
-    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=10, leading=12))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=9, leading=11))
     styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
 
 #company logo
@@ -231,8 +378,6 @@ def gen_invoice(request, order_id):
          order_details_table]
     ]
 
-    #order_col_width_details = 75 * mm
-
     #rder_address_col_width = (doc.width - order_col_width_details) / 2
     order_tbl_data = Table(order_tbl_info)
     order_tbl_data.setStyle(TableStyle([
@@ -261,8 +406,8 @@ def gen_invoice(request, order_id):
             model = order_item_data.product_variant.variant_code
         order_item_tbl_data = [''] * 5
         order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
-        order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
-        order_item_tbl_data[2] = ""
+        product_description = utils.create_product_desc(order_item_data)
+        order_item_tbl_data[1] = Paragraph(product_description, styles['table_data'])
         if order_item_data.product_variant:
             if order_item_data.product_variant.alt_image:
                 image_src = f'http://safetysigns/image/{order_item_data.product_variant.alt_image}'
@@ -277,11 +422,7 @@ def gen_invoice(request, order_id):
         else:
             img = ''
 
-        #order_item_tbl_data[3] = img
-       # order_item_tbl_data[4] = Paragraph(order_item_data.size_name, styles['table_data'])
-        #order_item_tbl_data[5] = Paragraph(order_item_data.material_name, styles['table_data'])
         order_item_tbl_data[2] = order_item_data.quantity
-        #order_subtotal = Decimal(order_subtotal_qs.first().value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         order_item_tbl_data[3] = round(order_item_data.price,2)
         order_item_tbl_data[4] = round(order_item_data.total,2)
         items_tbl_data.append(order_item_tbl_data)
@@ -294,38 +435,57 @@ def gen_invoice(request, order_id):
                                      ('ALIGN', (2, 0), (2, -1), "CENTRE"),
                                      ('ALIGN', (3, 1), (-1, -1), "RIGHT"),
                                      ('VALIGN', (0, 1), (-1, -1), "MIDDLE"),
-                                     ('FONTSIZE', (0, 1), (-1, -1), 10),
-                                     ('ROWBACKGROUNDS', (0, 0), (-1, -1), (colors.whitesmoke, colors.white)),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 9),
+                                     #('ROWBACKGROUNDS', (0, 0), (-1, -1), (colors.whitesmoke, colors.white)),
                                      ]))
 
     elements.append(items_table)
     elements.append(Spacer(doc.width, 5*mm))
-    order_lines = order_items.count()
-    product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
 
 #add in the totals
-    total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
-    elements.append(total_text)
-    elements.append(Spacer(doc.width, 15*mm))
-    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
-    elements.append(signed_text)
+    order_total_obj = order_obj.order_totals.all()
+    order_totals = utils.order_total_table(order_total_obj, order_obj.store.currency.symbol_left)
+    order_total_table = Table(order_totals)
+    order_total_table.setStyle(TableStyle([
+                                    ('ALIGN', (0, 0), (-1, -1), "RIGHT"),
+                                    ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+                                    ('FONTSIZE', (0, 0), (-1, -1), 10),
+                                    ('FONTSIZE', (-2, -1), (-1, -1), 14),
+                                    ('FONTNAME', (-1, -1), (-1, -1), 'Helvetica-Bold'),
+                                    ('INNERGRID', (0, 0), (-1, -2), 0.25, colors.black),
+                                    ('BOX', (0, 0), (-1, -2), 0.25, colors.black),
+
+                                    ]))
+
+    order_payment_str = utils.order_payment_details_simple(order_obj, order_obj.store.currency.symbol_left)
+    order_obj.payment_status.name
+    order_total_info = [
+        [Paragraph(order_payment_str, styles['header_main']), order_total_table]
+    ]
+    order_total_footer = Table(order_total_info, colWidths=[100*mm, 100*mm])
+    order_total_footer.setStyle(TableStyle([
+        ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('VALIGN', (1, 0), (-1, -1), "TOP")]))
+
+    elements.append(order_total_footer)
 
     doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
 
-    pdf = buffer.getvalue()
-    buffer.close()
-    response.write(pdf)
-    return response
+    #pdf = buffer.getvalue()
+    #buffer.close()
+    #response.write(pdf)
+    return buffer
 
 
-def gen_shipping_page(request, order_id):
+def gen_shipping_page(order_id):
     width = 210 * mm
     height = 297 * mm
     padding = 40 * mm
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
 
-    response = HttpResponse(content_type='application/pdf')
+    #response = HttpResponse(content_type='application/pdf')
 
     buffer = BytesIO()
 
@@ -363,9 +523,45 @@ def gen_shipping_page(request, order_id):
     doc.build(elements)
 
     pdf = buffer.getvalue()
-    buffer.close()
+    #buffer.close()
+   # response.write(pdf)
+    return buffer
+
+
+def gen_merged_paperwork(request, order_id):
+    response = HttpResponse(content_type='application/pdf')
+    pdflist=[]
+
+    if 'print_picklist' in request.POST:
+        pdflist.append(gen_pick_list(order_id))
+        set_printed(order_id)
+    if 'print_shipping' in request.POST:
+        pdflist.append(gen_shipping_page(order_id))
+    if 'print_invoice' in request.POST:
+        pdflist.append(gen_invoice(order_id))
+    if 'print_collection' in request.POST:
+        pdflist.append(gen_collection_note(order_id))
+        set_printed(order_id)
+
+    result_pdf = PdfFileWriter()
+
+    merger = PdfFileMerger()
+    for pdf_buffer in pdflist:
+        merger.append(PdfFileReader(stream=pdf_buffer))
+        pdf_buffer.close()
+    buffer = BytesIO()
+
+    merger.write(buffer)
+    pdf = buffer.getvalue()
     response.write(pdf)
     return response
+
+
+def set_printed(order_id):
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_obj.printed = 1
+    order_obj.order_status_id = 3
+    order_obj.save()
 
 
 

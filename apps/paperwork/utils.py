@@ -63,7 +63,8 @@ def get_shipping_address(order_obj):
     if order_obj.shipping_address_2:
         shipping_str += order_obj.shipping_address_2 + "<BR/>"
     shipping_str += order_obj.shipping_city + "<BR/>"
-    shipping_str += order_obj.shipping_area + "<BR/>"
+    if order_obj.shipping_area:
+        shipping_str += order_obj.shipping_area + "<BR/>"
     shipping_str += order_obj.shipping_postcode
     return shipping_str
 
@@ -85,7 +86,8 @@ def order_billing(order_obj):
     if order_obj.payment_address_2:
         billing_str += order_obj.payment_address_2 + "<BR/>"
     billing_str += order_obj.payment_city + "<BR/>"
-    billing_str += order_obj.payment_area + "<BR/>"
+    if order_obj.payment_area:
+        billing_str += order_obj.payment_area + "<BR/>"
     billing_str += order_obj.payment_postcode + "<BR/>"
     billing_str += order_obj.payment_country
     return billing_str
@@ -129,6 +131,58 @@ def order_invoice_details_tup(order_obj):
     order_details_tup['Telephone'] = f'{order_obj.telephone}'
     order_details_tup['Email'] = f'{order_obj.email}'
     return order_details_tup
+
+
+def order_total_table(order_total_obj, currency_symbol):
+    order_total_tup = []
+    order_total_data = order_total_obj.values('title', 'value')
+    for order_total_pair in list(order_total_data):
+        tmp_data = [''] * 2
+        tmp_data[0] = order_total_pair['title']
+        value_round = round(order_total_pair['value'], 2)
+        tmp_data[1] = f'{currency_symbol}{value_round}'
+        order_total_tup.append(tmp_data)
+    return order_total_tup
+
+
+def order_payment_details(order_obj, currency_symbol):
+    order_payment_str = ''
+    if order_obj.payment_history:
+        order_history_obj = order_obj.payment_history.order_by('-date_added').first()
+        if order_history_obj.payment_status_id != 2:
+            order_payment_str = 'Payment not received / failed'
+            order_payment_str += '<BR/>Last Payment Attempt Type:' + order_history_obj.payment_status.name
+            order_payment_str += ' made by:' + order_history_obj.payment_method.payment_method_name
+            order_payment_str += '<BR/>Merchant message ' + order_history_obj.comment
+        else:
+            order_payment_str = 'Paid with thanks'
+            order_payment_str += '<BR/>Paid via ' + order_history_obj.payment_method.payment_method_name
+            if order_obj.date_due:
+                order_payment_str += ' at ' + order_obj.date_due.strftime('%d/%m/%Y')
+            order_payment_str += '<BR/>' + order_history_obj.comment
+    else:
+        order_payment_str = 'Payment Type:' + order_obj.payment_status.name
+        order_payment_str += '<BR/>Due Date:' + order_obj.date_added.strftime('%d/%m/%Y')
+    return order_payment_str
+
+
+def order_payment_details_simple(order_obj, currency_symbol):
+    order_payment_str = ''
+    if order_obj.payment_status_id == 2:
+        order_payment_str = 'Paid with thanks'
+    else:
+        order_payment_str = 'Payment Type:' + order_obj.payment_status.name
+        order_payment_str += '<BR/>Due Date:' + order_obj.date_added.strftime('%d/%m/%Y')
+    return order_payment_str
+
+
+def create_product_desc(order_line):
+    product_desc = ''
+    product_desc += order_line.name + "<BR/>"
+    product_desc += f'Size:{order_line.size_name}<BR/>'
+    product_desc += f'Material:{order_line.material_name} ({order_line.orientation_name})'
+    return product_desc
+
 
 
 def draw_footer(canvas, doc, order_obj):

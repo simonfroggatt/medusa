@@ -12,6 +12,7 @@ urlpatterns = [
     url('^api/', include(router.urls)),
     path('', views.customers_list, name='allcustomers'),
     path('details/<int:customer_id>', views.customers_details, name='customerdetails'),
+    path('details/<int:customer_id>/edit', views.customers_details_edit, name='customerdetailsedit'),
    # path('details/<int:customer_id>/address/edit/<int:pk>', views.AddressEditView.as_view(), name='customeraddresseditmodal'),
     path('details/<int:customer_id>/address/create', views.customer_address_create, name='customeraddresscreate'),
     path('details/<int:customer_id>/address/save', views.customer_address_save, name='customeraddresscreatesave'),

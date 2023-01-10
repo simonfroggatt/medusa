@@ -503,6 +503,7 @@ $(function () {
             tax_price = parseFloat(line_total * tax_rate).toFixed(2);
             $(form_id + ' #total').val(line_total);
             $(form_id + ' #line_total_cal').html(line_total);
+            $(form_id + ' #line_total_cal').trigger('change');
             $(form_id + ' #total').val(line_total);
             $(form_id + ' #tax').val(tax_price)
         }
@@ -541,6 +542,7 @@ $(function () {
         $(form_id + ' #total').val(parseFloat(line_price).toFixed(2));
         $(form_id + ' #tax').val(tax_price)
         $(form_id + ' #line_total_cal').html(line_price);
+        $(form_id + ' #line_total_cal').trigger('change');
     }
 
     $('.bulk_group_select').change(function () {
@@ -673,6 +675,11 @@ $(function () {
         return false;
     }
 
+    function PrintPaperWork() {
+        $('#form-order-print').submit()
+        return false;
+    }
+
 
     $(document).on('click', '.js-order-product-edit', loadProductEditForm);
     $(document).on("submit", "#js-product-edit-submit", saveProductEditForm);
@@ -697,6 +704,11 @@ $(function () {
 
     $(document).on("submit", "#js-order-tax-change-rate", SaveOrderShippingChoiceEditForm);
     $(document).on("submit", "#js-order-discount-change-form", SaveOrderDiscountForm);
+
+
+    $(document).on("click", "#dropdownMenuPrint", PrintPaperWork);
+
+
 
     //$(document).on("submit", ".order_billing_addressbook", BillingAddressQuick)
 

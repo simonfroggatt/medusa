@@ -53,10 +53,10 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
+
 
     <script>
-        //setup up the product ID so that products.js can get the value
+
         bulk_table_data = {{ bulk_info|safe }}
          tax_rate = parseFloat( {{ tax_rate }} / 100 ).toFixed(2);
 

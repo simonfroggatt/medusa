@@ -153,6 +153,11 @@ class OrderDetailsEditForm(forms.ModelForm):
                   'store'
                   ]
 
+        labels = {
+            'payment_method_rel': 'Payment Method',
+        }
+
+
         widgets = {
             'comment': forms.Textarea(attrs={'rows': 2}),
             'printed': forms.CheckboxInput,

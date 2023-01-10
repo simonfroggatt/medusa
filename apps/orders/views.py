@@ -24,6 +24,26 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Sum
 
 
+class Orders2(viewsets.ViewSet):
+    """
+    A simple ViewSet for listing or retrieving users.
+    """
+
+    queryset = OcOrder.objects.all()
+    serializer_class = OrderListSerializer
+
+    def list(self, request):
+        queryset = OcOrder.objects.all()
+        serializer = OrderListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = OcOrder.objects.all()
+        order_products = queryset.objects.filter(store_id=pk)
+        serializer = self.get_serializer(order_products, many=True)
+        return Response(serializer.data)
+
+
 def order_test(request, order_id):
     order_obj = OcOrder.objects.days_since()
     fred = 'hello'
@@ -31,13 +51,37 @@ def order_test(request, order_id):
 def order_list(request):
     template_name = 'orders/orders_list.html'
     context = {'pageview': 'All Orders'}
-
-
     return render(request, template_name, context)
 
 class Orders_asJSON(viewsets.ModelViewSet):
     queryset = OcOrder.objects.all()
     serializer_class = OrderListSerializer
+
+    def retrieve(self, request, pk=None):
+        order_products = OcOrder.objects.filter(store_id=pk)
+        serializer = self.get_serializer(order_products, many=True)
+        return Response(serializer.data)
+
+
+class Orders_Company(viewsets.ModelViewSet):
+    queryset = OcOrder.objects.all().order_by('-order_id')
+    serializer_class = OrderListSerializer
+
+    def retrieve(self, request, pk=None):
+        order_products = OcOrder.objects.filter(order_id=pk).order_by('-order_id')
+        serializer = self.get_serializer(order_products, many=True)
+        return Response(serializer.data)
+
+
+class Orders_Customer(viewsets.ModelViewSet):
+    queryset = OcOrder.objects.all()
+    serializer_class = OrderListSerializer
+
+    def retrieve(self, request, pk=None):
+        order_products = OcOrder.objects.filter(customer_id=pk).order_by('-order_id')
+        serializer = self.get_serializer(order_products, many=True)
+        return Response(serializer.data)
+
 
 
 class Orders_Products_asJSON(viewsets.ModelViewSet):
@@ -88,6 +132,7 @@ class OrderListView(generics.ListAPIView):
 
 
 
+
 class OrderTotalsViewSet(viewsets.ModelViewSet):
     queryset = OcOrderTotal.objects.all()
     serializer_class = OrderTotalsSerializer
@@ -104,7 +149,7 @@ def order_details(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
 
     context = {"order_obj": order_obj}
-    if order_obj.customer:
+    if order_obj.customer_id > 0:
         context["addressItem"] = order_obj.customer.ocaddress_set.all().order_by('postcode')
     else:
         context["addressItem"] = []
@@ -557,53 +602,6 @@ def update_order_shipping_from_address_book(request, order_id):
 
     data['is_valid'] = True
     return JsonResponse(data)
-
-
-
-def create_paperwork():
-
-    RESOURCES_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'resources')
-    REPORTS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'reports')
-
-    input_file = '/Users/simonfroggatt/PycharmProjects/medusa/reports/Blank_A4_1.jrxml'
-    output_file = '/Users/simonfroggatt/PycharmProjects/medusa/reports/blank'
-    pyreportjasper = PyReportJasper()
-    pyreportjasper.config(
-        input_file,
-        output_file,
-        output_formats=["pdf"],
-
-    )
-    pyreportjasper.process_report()
-    output_file = output_file + '.pdf'
-    if os.path.isfile(output_file):
-        print('Report generated successfully!')
-
-
-def compiling():
-    REPORTS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'reports')
-    input_file = os.path.join(REPORTS_DIR, 'test2.jrxml')
-    output_file = os.path.join(REPORTS_DIR, 'test2')
-
-    pyreportjasper = PyReportJasper()
-    pyreportjasper.config(
-        input_file,
-        output_file,
-        output_formats=["pdf"],
-
-    )
-    pyreportjasper.process_report()
-    output_file = output_file + '.pdf'
-    if os.path.isfile(output_file):
-        print('Report generated successfully!')
-
-    pyreportjasper = PyReportJasper()
-    pyreportjasper.config(
-        input_file,
-        output_file,
-        output_formats=["pdf"]
-    )
-    pyreportjasper.compile(write_jasper=True)
 
 
 def order_delete_dlg(request, order_id):

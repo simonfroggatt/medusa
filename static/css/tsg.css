@@ -337,3 +337,8 @@ table.table-mail tr td {
     margin-top: -20px;
     align-items: center;
 }
+
+.hidden_copy {
+    position: absolute;
+    left: -10000px;
+}

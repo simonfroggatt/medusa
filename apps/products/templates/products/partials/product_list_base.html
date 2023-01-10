@@ -33,25 +33,17 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <form method="post" action="{% url 'orderproductadd' order_id %}" class="js-product-add" id="form-stock">
+
+             <form method="post" id="form-stock"
+             {% block form_vars %}{% endblock form_vars %}>
                 {% csrf_token %}
-                <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
-                <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
-                <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
-                <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
-                <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
-                <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
-                <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
-                <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
-                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
-                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="0">
-                <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+                {% block form_hidden_block %}
 
-                <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
-                       value="{{ form.total.value|floatformat:2 }}">
-                <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
-                       value="{{ form.tax.value|floatformat:2 }}">
-
+                {% endblock form_hidden_block %}
+             <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+             <input type="hidden" id="text_to_copy" name="text_to_copy"  value="">
+             <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
+             <input id="string_to_copy" name="string_to_copy" class="hidden_copy"  value="">
 
                 <div class="row">
                     <div class="col-8">
@@ -82,34 +74,29 @@
                             <div class="row d-flex justify-content-md-end mb-2">
                                 <div class="col-6 col-lg-4">
 
-                                    <label for="{{ form.quantity.name }}"
-                                           class="form-label">{{ form.quantity.label }}</label>
+                                    <label for="quantity"
+                                           class="form-label">QTY</label>
                                     <input type="number" min="1" step="1" class="form-control calc_line_totals"
-                                           id="{{ form.quantity.name }}" name="{{ form.quantity.name }}"
+                                           id="quantity" name="quantity"
                                            value="1">
                                 </div>
                                 <div class="col-6 col-lg-4">
-                                    <label for="{{ form.price.name }}"
-                                           class="form-label">{{ form.price.name }}</label>
-                                    <input type="number" id="{{ form.price.name }}" name="{{ form.price.name }}"
+                                    <label for="price"
+                                           class="form-label">Price</label>
+                                    <input type="number" id="price" name="price"
                                            step="0.01"
-                                           value="{{ form.price.value|floatformat:2 }}"
+                                           value="0.00"
                                            class="form-control calc_line_totals" readonly>
                                 </div>
                                 <div class="col-12 col-lg-4 d-flex align-items-end text-end">
-                                    <h3>£<span id="line_total_cal">{{ form.total.value|floatformat:2 }}</span></h3>
+                                    <h3>£<span id="line_total_cal">0.oo</span></h3>
                                 </div>
                             </div>
                         </div>
-
+                        {% block form_buttons %}
+                        {% endblock form_buttons %}
                     </div>
                 </div>
-            <div class="row">
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
-                                <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
-                            </div>
-                        </div>
 
             </form>
         </div>
@@ -117,7 +104,6 @@
 
 </div>
 
-{% block javascript %}
 
     <style>
         .cards tbody tr {
@@ -173,9 +159,14 @@
 
     </style>
 
-
     <script>
+
+        bulk_table_data = {{ bulk_info|safe }}
+            tax_rate = parseFloat( 20 / 100 ).toFixed(2);  //TODO - make this a true tax rate
+
         $(document).ready(function () {
+
+
 
             var product_table = $('#product_table').DataTable({
                 "dom": "<'row'<'col-6'fl><'col-6'p>>" +
@@ -244,7 +235,7 @@
                 if (type === 'row') {
                     let product_id = product_table.row(indexes).id()
                     set_variant_url(product_id)
-                    set_product_details(product_table.row(indexes).data())
+                  //  set_product_details(product_table.row(indexes).data())
 
                 }
             });
@@ -306,35 +297,62 @@
             core_vars_tbl.on('select', function (e, dt, type, indexes) {
                 if (type === 'row') {
                     let product_variant_id = core_vars_tbl.row(indexes).id()
-                    set_product_variant_details(core_vars_tbl.row(indexes).data())
+                    set_product_base_price(core_vars_tbl.row(indexes).data())
+                    set_copy_string(core_vars_tbl.row(indexes).data());
                     SetPrice(true, '#form-stock')
+
                 }
             });
 
-            function set_product_details(data_row) {
 
-                $('#form-stock #{{ form.product_id.name }}').val(data_row['product_id'])
-                $('#form-stock #{{ form.name.name }}').val(data_row['productdescbase']['name'])
-            }
-
-            function set_product_variant_details(data_row) {
-                console.log(data_row);
+            function set_product_base_price(data_row){
                 let core_variant = data_row['prod_var_core'];
-                $('#form-stock #{{ form.size_name.name }}').val(core_variant['size_material']['product_size']['size_name'])
-                $('#form-stock #{{ form.material_name.name }}').val(core_variant['size_material']['product_material']['material_name'])
-                $('#form-stock #{{ form.orientation_name.name }}').val(core_variant['size_material']['product_size']['orientation']['orientation_name'])
-                $('#form-stock #{{ form.product_variant.name }}').val(core_variant['prod_variant_core_id'])
-                $('#form-stock #{{ form.model.name }}').val(data_row['variant_code'])
+
                 if (data_row['variant_overide_price'] > 0) {
-                    $('#form-stock #{{ form.price.name }}').val(data_row['variant_overide_price'])
+                    $('#form-stock #single_unit_price').val(data_row['variant_overide_price'])
                 } else {
-                    $('#form-stock #{{ form.price.name }}').val(core_variant['size_material']['price'])
+                    $('#form-stock #single_unit_price').val(core_variant['size_material']['price'])
                 }
-                $('#form-stock #single_unit_price').val($('#{{ form.price.name }}').val())
             }
+
+            function set_copy_string(data_row)
+            {
+                 let core_variant = data_row['prod_var_core'];
+
+                let text_string = "";
+                let size_str = core_variant['size_material']['product_size']['size_name'];
+                let material_str = core_variant['size_material']['product_material']['material_name'];
+                let orientation_str =  core_variant['size_material']['product_size']['orientation']['orientation_name'];
+                let model_str = data_row['variant_code'];
+
+                 text_string = model_str + " - " + size_str
+                    //+ " ( " + orientation_str + " ) "
+                    + " " +material_str;
+
+                $('#text_to_copy').val(text_string);
+            }
+
+            function set_copy_price(form_id){
+                let price_string = "";
+                let price_str = $(form_id + ' #price').val();
+                let qty_str = $(form_id +' #quantity').val();
+
+                price_string = " @ £"+price_str + " each for "+qty_str + " off";
+                $(form_id + ' #price_to_copy').val(price_string);
+
+            }
+
+            $('#form-stock #line_total_cal').change(function() {
+                set_copy_price('#form-stock');
+                let final_copy_str = $('#form-stock #text_to_copy').val() + $('#form-stock #price_to_copy').val()
+                $('#string_to_copy').val(final_copy_str);
+            });
+
+
         });
 
 
     </script>
 
+{% block javascript %}
 {% endblock javascript %}

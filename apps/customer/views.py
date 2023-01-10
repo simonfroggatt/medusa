@@ -59,6 +59,29 @@ def customers_details(request, customer_id):
     return render(request, template_name, content)
 
 
+def customers_details_edit(request, customer_id):
+    data = dict()
+    customer = get_object_or_404(OcCustomer, pk=customer_id)
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        form = CustomerForm(instance=customer)
+        form.fields['customer'] = customer_id
+
+    context = {'customer_id': customer_id,
+               'form': form}
+    data['html_form'] = render_to_string('customer/dialogs/customer_details.html',
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
 def customer_address_book(request, customer_id, view_type):
     template_name = 'customer/customer_addressbook.html'
     address_obj = OcAddress.objects.filter(customer=customer_id)
