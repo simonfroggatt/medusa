@@ -15,7 +15,7 @@ from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, Product
     OrderDiscountForm
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from apps.products import services as prod_services
-from apps.customer.models import OcCustomer, OcAddress
+from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
 from medusa.models import OcTsgShippingMethod
 from django.core import serializers
 from django.urls import reverse_lazy
@@ -23,6 +23,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.db.models import Sum
 
+from apps.customer.serializers import AddressSerializer
 
 class Orders2(viewsets.ViewSet):
     """
@@ -68,8 +69,10 @@ class Orders_Company(viewsets.ModelViewSet):
     serializer_class = OrderListSerializer
 
     def retrieve(self, request, pk=None):
-        order_products = OcOrder.objects.filter(order_id=pk).order_by('-order_id')
-        serializer = self.get_serializer(order_products, many=True)
+        #companyobj = OcTsgCompany.objects.filter(company_id=pk)
+        order_list = OcOrder.objects.filter(customer__parent_company__company_id=pk).order_by('-order_id')
+        #order_list = OcOrder.objects.filter(=pk).order_by('-order_id')
+        serializer = self.get_serializer(order_list, many=True)
         return Response(serializer.data)
 
 
@@ -540,6 +543,22 @@ def order_shipping_edit(request, order_id):
                                          )
     return JsonResponse(data)
 
+def order_shipping_search(request, order_id):
+    data = dict()
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    context = {'order_id': order_id}
+    if order_obj.customer:
+        context['order_customer_id'] = order_obj.customer_id
+    else:
+        context['order_customer_id'] = 0;
+
+
+    template_name = 'orders/dialogs/order_shipping_search.html'
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
 
 def add_customer_address(address_data):
     customer_id = address_data['customer_id']
@@ -718,3 +737,31 @@ def get_order_product_text(request):
     data['order_lines'] = order_lines
     data['order_product_count'] = product_count['quantity__sum']
     return JsonResponse(data)
+
+
+def get_order_shipping_addresses(request, order_id):
+    if request.method == 'GET':
+        order_details_obj = get_object_or_404(OcOrder, pk=order_id)
+        customer_id = order_details_obj.customer_id
+        customer_address_book = OcAddress.objects.all()
+       # customer_address_book = OcAddress.objects.filter(customer_id=customer_id)
+       # variant_list = OcTsgProductVariants.objects.filter(store_id=store_id, prod_var_core__product__product_id=product_id)
+        # serializer = get_serializer(customer_address_book, many=True)
+        address_serialiser  = AddressSerializer(customer_address_book, many=True)
+        return JsonResponse(address_serialiser.data, safe=False)
+
+
+
+
+class OrderShippingAddressList(viewsets.ModelViewSet):
+    #queryset = OcAddress.objects.filter(customer_id=2)
+    queryset = OcAddress.objects.all()
+    serializer_class = AddressSerializer
+
+
+    def retrieve(self, request, pk=None):
+        order_obj = get_object_or_404(OcOrder, pk=pk)
+        customer_id = order_obj.customer_id
+        queryset = OcAddress.objects.filter(customer_id=customer_id)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

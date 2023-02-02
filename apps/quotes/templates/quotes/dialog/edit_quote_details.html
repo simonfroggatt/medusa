@@ -1,0 +1,71 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update Quote Details</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'quotedetailsedit' quote_id %}"
+                      id="js-quote-details-edit-submit">
+                    {% csrf_token %}
+                    <input type="hidden" id="language_id" name="language_id"
+                           value="{{ initials.language_id }}">
+                    <input type="hidden" id="currency" name="currency"
+                           value="{{ initials.currency }}">
+                    <div class="row">
+                        <div class="col-md-4">{{ form.fullname|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.email|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.telephone|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.store|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.days_valid|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.quote_ref|as_crispy_field }}</div>
+
+                <div class="col-md-12">{{ form.company|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.quote_address|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.quote_city|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.quote_area|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.quote_postcode|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.quote_country|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.shipping_type|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.tax_rate|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.comment|as_crispy_field }}</div>
+                <div class="col-md-12">
+                     <div class="col-12">{{ form.sent|as_crispy_field }}</div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(function () {
+
+        let fieldMatch = {
+            'Company': 'id_{{ form.company.name}}',
+            'Line1': 'id_{{ form.quote_address.name}}',
+            'Line2': 'id_{{ form.quote_address.name}}',
+            'Line3': 'id_{{ form.quote_address.name}}',
+            'City': 'id_{{ form.quote_city.name}}',
+            'ProvinceName': 'id_{{ form.quote_area.name}}',
+            'CountryIsoNumber': 'id_{{ form.quote_country.name}}',
+            'PostalCode': 'id_{{ form.quote_postcode.name}}',
+        }
+
+
+        let inputFields = ['#id_{{ form.company.name}}', '#id_{{ form.quote_postcode.name}}', '#id_{{ form.quote_address.name}}']
+        TSGAddressLookup(inputFields, '', fieldMatch)
+
+    })
+</script>

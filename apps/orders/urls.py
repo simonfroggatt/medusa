@@ -12,11 +12,17 @@ router.register(r'customer', views.Orders_Customer)
 router.register(r'previous-products', views.Previous_Products_asJSON)
 router.register(r'flags', views.Order_Flags_asJSON)
 router.register(r'ordertotal', views.OrderTotalsViewSet)
+router.register(r'order-list-company', views.Orders_Company)
+router.register(r'shippingsearch', views.OrderShippingAddressList)
+
+
 
 urlpatterns = [
     url('^api/', include(router.urls)),
     url('^api/orders-list', views.OrderListView.as_view(), name='orders_post_list'),
-    url('^api/orders-list/company', views.Orders_Company, name='orders_company_list'),
+
+
+
     path('api/orders/delete', views.order_delete, name='api_ordersdelete'),
     path('api/orders/product_text', views.get_order_product_text, name='api_orders_product_text'),
     path('<int:order_id>', views.order_details, name='order_details'),
@@ -39,12 +45,15 @@ urlpatterns = [
          name='orderbillingaddressedit'),
     path('<int:order_id>/address/shipping/edit/', views.order_shipping_edit,
          name='ordershippingaddressedit'),
+    path('<int:order_id>/address/shipping/search/', views.order_shipping_search,
+         name='ordershippingaddresssearch'),
     path('<int:order_id>/address/billing/frombook', views.update_order_billing_from_address_book,
          name='orderbillingfrombook'),
     path('<int:order_id>/address/shipping/frombook', views.update_order_shipping_from_address_book,
          name='ordershippingfrombook'),
     path('api/<int:order_id>/updateshipping/', views.order_shipping_change, name='ordershippingchange'),
     path('api/<int:order_id>/shipit/', views.order_ship_it, name='ordershipit'),
+    path('api/<int:order_id>/shippingaddressbook', views.get_order_shipping_addresses, name='orders_shipping_address'),
     path('<int:order_id>/test/', views.order_test),
     path('', views.order_list, name='allorders'),
     ]

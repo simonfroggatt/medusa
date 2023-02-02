@@ -76,7 +76,7 @@ $(function()
 
 
   let previous_order_table = $('#previous_order_table').DataTable( {
-        "dom": "<'row'<'col-6'><'col-6'lT>>" +
+        "dom": "<'row'<'col-6'f><'col-6'lT>>" +
          "<'row'<'col-12'tr>>" +
          "<'row'<'col-6'i><'col-6'p>>",
         "processing" : true,
@@ -84,7 +84,7 @@ $(function()
         "pageLength": 25,
         "autoWidth": true,
         "responsive": true,
-        "serverSide": true,
+        "serverSide": false,
         "rowId" : 'order_id',
         "ajax": {
                  "processing": true,
@@ -106,7 +106,7 @@ $(function()
                 searchable: false,
                 name: "store.name",
                 render: function ( data, type, row ) {
-                    let image_src = static_const + '/images/stores/' + data.thumb;
+                    let image_src =  static_const + '/images/stores/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },

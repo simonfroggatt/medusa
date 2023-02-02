@@ -278,7 +278,7 @@ $(function () {
             dataType: 'json',
             success: function (data) {
                 let output_str = "<strong>"+data['order_lines']+"</strong> lines and <strong>" + data['order_product_count'] + "</strong> products"
-                $("#order_product_summary span").html(output_str);
+                $("#order_product_summary").html(output_str);
             }
         });
         return false;
@@ -641,7 +641,6 @@ $(function () {
         let add_id = $('input[name="addressListItem_shipping"]:checked').data('addressListIdShipping');
         $('#order_shipping_addressbook #address_book_id_shipping').val(add_id)
         let form = $('#order_shipping_addressbook');
-        let tmp = form.serialize();
         $.ajax({
             url: form.attr("action"),
             data: form.serialize(),
@@ -654,6 +653,21 @@ $(function () {
         });
 
         $('#collapseShippingAddress').collapse("hide");
+    }
+
+    function ShippingAddressSearchQuick() {
+        let form = $('#js-order-shipping-change');
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                updateAddressDiv()
+                $("#modal-base").modal("hide");  // <-- Close the modal
+            }
+        });
+        return false;
     }
 
     function SaveOrderDiscountForm() {
@@ -707,6 +721,8 @@ $(function () {
 
 
     $(document).on("click", "#dropdownMenuPrint", PrintPaperWork);
+
+    $(document).on("submit", "#js-order-shipping-change", ShippingAddressSearchQuick);
 
 
 

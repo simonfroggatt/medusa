@@ -55,15 +55,12 @@ $(function () {
         "pageLength": 25,
         "autoWidth": true,
         "responsive": true,
-        "serverSide": true,
+        "serverSide": false,
         "rowId" : 'order_id',
         "ajax": {
                  "processing": true,
-                 "url": "/orders/api/orders-list?format=datatables&company_id="+current_company_id,
-                "type" : "POST",
-            "beforeSend": function(xhr) {
-                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
-            }
+                 "url": "/orders/api/company/"+current_company_id+"/?format=datatables",
+                "type" : "GET",
             },
         "deferRender": false,
         "order": [[ 1, "desc" ]],
@@ -76,7 +73,7 @@ $(function () {
                 searchable: false,
                 name: "store.name",
                 render: function ( data, type, row ) {
-                    let image_src = static_const + '/images/stores/' + data.thumb;
+                    let image_src =  static_const + '/images/stores/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },
@@ -90,6 +87,9 @@ $(function () {
             },
             {
                 data: "customer_order_ref"
+            },
+            {
+                data: "customer.fullname"
             },
             {
                 data: "date_added",
@@ -121,20 +121,50 @@ $(function () {
                 data: "order_id",
                 sortable: false,
                 className: 'text-end',
-                render: function ( data, type, row ) {
+                render: function (data, type, row) {
 
-                     let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/orders/' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
+                    //let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
+                    // let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="' + data +'/delete/"><i class="fas fa-trash fa-sm"></i></a>'
+                    let shipping_colour = 'btn-grey'
+                    if (row['shipping_flag'] != null) {
+                        shipping_colour = 'btn-' + row['shipping_flag']['shipping_status__status_colour']
+                    }
+                    // let shipping_icon = '<i class="fas fa-shipping-fast ' + shipping_colour + ' "></i>'
+
+                    let printed_colour = 'btn-grey'
+                    if (row['printed'] == 1) {
+                        printed_colour = 'btn-green'
+                    }
+                    // let printed_icon = '<i class="fas fa-print ' + printed_colour + ' "></i>'
 
 
-                    return edit_icon;
+                    //return printed_icon + " " + shipping_icon + /* " " + delete_icon + "  " +*/ edit_icon;
+                    let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
+                    let printed_icon = '<button type="button" class="btn btn-sm disabled ' + printed_colour + '"><i class="fas fa-print  "></i></button>'
+                    let shipping_icon = '<button type="button" class="btn btn-sm disabled ' + shipping_colour + '"><i class="fas fa-shipping-fast "></i></button>'
+                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/orders/' + data + '"><i class="fas fa-edit "></i></a>'
+                    return btn_grp + shipping_icon + printed_icon + edit_icon + '</div>'
                 }
             },
            {data: "days_since_order", "visible": false, searchable: false },
+               {data: "highlight_code", "visible": false, searchable: false },
         ],
         "createdRow": function( row, data, dataIndex ) {
-            if ( data.order_status.order_status_id != 15 ) {
+           /* if ( data.order_status.order_status_id != 15 ) {
                 $(row).addClass( 'failed-order' );
+            } */
+            if(data.shipping_flag == null) {
+                if (data.highlight_code == 1) {
+                    $(row).addClass('live-order');
+                }
+                if (data.highlight_code == 2) {
+                    $(row).addClass('pending-order');
+                }
+                if (data.highlight_code == 3) {
+                    $(row).addClass('failed-order');
+                }
             }
+
          },
     } );
 

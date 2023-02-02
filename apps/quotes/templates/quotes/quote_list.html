@@ -1,0 +1,137 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="quote_table" class="table table-hover table-condensed table-striped" style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Website</th>
+                                        <th >Quote</th>
+                                        <th class="col-2">Date</th>
+                                        <th >Company</th>
+                                        <th >Contact</th>
+                                        <th class="col-1">Status</th>
+                                        <th class="col-1">Total</th>
+                                        <th class="text-end">&nbsp;</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+{% include 'partials/javascript.html' %}
+
+    <script>
+    $(document).ready(function() {
+
+    var quote_table = $('#quote_table').DataTable( {
+        "dom": "<'row'<'col-6'f><'col-6'lT>>" +
+         "<'row'<'col-12'tr>>" +
+         "<'row'<'col-6'i><'col-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "serverSide": false,
+        "rowId" : 'quote_id',
+        "ajax": {
+                 "processing": true,
+                "url": "/quotes/api/quotes?format=datatables",
+                "type" : "GET",
+            },
+        "deferRender": false,
+        columns :[
+
+            {
+                data: "store",
+                sortable: false,
+                searchable: false,
+                name: "store.name",
+                render: function ( data, type, row ) {
+                    let image_src = '{% static "images/stores/" %}' + data.thumb;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }
+            },
+            {
+                data: "quote_id",
+                 render: function ( data, type, row ) {
+                    let url = '/quotes/' + data;
+                    return '<a href="' + url + '">'+ data + '</a>';
+                 }
+            },
+            {
+                data: "date_added",
+            },
+            {
+                data: "company",
+
+            },
+            {
+                data: "fullname",
+                render : function (data, type, row) {
+                    if(data) {
+                        if(row['customer']){
+                            let url = '/customer/details/' + row['customer']['customer_id']
+                            return '<a href="' + url + '">'+ data + '</a>';
+                        }
+                        else {
+                            return data
+                        }
+                    }else
+                        return ""
+                },
+            },
+            {
+                data: "sent",
+                render: function ( data, type, row ) {
+                    if (data == 1) {
+                        return '<span class="badge rounded-pill badge-soft-success">SENT</span>'
+                    }else {
+                        return '<span class="badge rounded-pill badge-soft-danger">OPEN</span>'
+                    }
+
+                 }
+            },
+            {
+                data: "total",
+                class: "text-end",
+                render: function ( data, type, row ) {
+                    return parseFloat(data).toFixed(2);
+                 }
+            },
+            {
+                data: "quote_id",
+                sortable: false,
+                className: 'text-end',
+                render: function (data, type, row) {
+
+                    let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
+                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit "></i></a>'
+                    return btn_grp +  edit_icon + '</div>'
+                }
+            },
+            {data: "quote_postcode", "visible": false, searchable: false},
+        ],
+    } );
+
+} );
+    </script>
+
+
+{% endblock javascript %}
+

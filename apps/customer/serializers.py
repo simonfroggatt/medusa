@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OcCustomer
+from .models import OcCustomer, OcAddress
 
 
 class CustomerListSerializer(serializers.ModelSerializer):
@@ -18,3 +18,9 @@ class CustomerDetailsSerializer(serializers.ModelSerializer):
         model = OcCustomer
         fields = '__all__'
         depth = 2
+
+class AddressSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcAddress
+        fields = '__all__'

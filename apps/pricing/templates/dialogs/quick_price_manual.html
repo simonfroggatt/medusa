@@ -53,7 +53,6 @@
                                     </select>
                                     <div class="row">
                                         <div class="col-xs-12" id="bulk_pricing_div">
-                                            asdasdas
                                         </div>
                                     </div>
                                 </div>
@@ -137,8 +136,8 @@
         }
 
         function set_copy_material(){
-             let width = $('#manualWidth').val() ? $('#manualWidth').val() : 0;
-            let height = $('#manualHeight').val() ? $('#manualHeight').val() : 0;
+             let width = $('#manualCalcWidth').val() ? $('#manualCalcWidth').val() : 0;
+            let height = $('#manualCalcHeight').val() ? $('#manualCalcHeight').val() : 0;
              $('#form-quick_manual #text_to_copy').val(width + 'mm x ' + height + 'mm ' + $('#form-quick_manual #manualMaterial').val());
         }
 

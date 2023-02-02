@@ -7,25 +7,28 @@
 {% block content %}
     <div class="wrapper wrapper-content layout-details">
         <div class="row top_bar ">
-            <div class="col-3 col-lg-2">
-                <h2>Order - <a id="js-order-number"
-                        href="javascript: copy_orderno_to_clipboard({{ order_obj.order_id }})">{{ order_obj.order_id }}</a>
-                    <img src="{% static "" %}images/stores/{{ order_obj.store.thumb }}" class="img-responsive"
-                         alt="{{ order_obj.store.name }}"></h2>
-            </div>
-            <div class="col-3 col-lg-4">
-                {% include 'orders/sub_layout/order_flags.html' %}
-            </div>
             <div class="col-6 col-lg-6">
-                {% include 'orders/order_layout_navbar.html' %}
+                <h2>Quote - {{ quote_obj.quote_id }}
+                    <img src="{% static "" %}images/stores/{{ quote_obj.store.thumb }}" class="img-responsive"
+                         alt="{{ quote_obj.store.name }}">
+                    {% if quote_obj.sent %}
+                     <span class="badge rounded-p badge-soft-success font-size-14">SENT</span>
+                         {% else %}
+                     <span class="badge rounded-pill badge-soft-warning font-size-14">OPEN</span>
+                     {% endif %}
+                    </h2>
+            </div>
+
+            <div class="col-6 col-lg-6">
+                {% include 'quotes/sub_layout/quote_navbar.html' %}
             </div>
         </div>
         <div class="row">
             <div class="col pe-0">
-                {% include 'orders/order_layout_details.html' %}
+                {% include 'quotes/sub_layout/quote_details.html' %}
             </div>
         </div>
-        <div class="row" id="order-details-tabs">
+        <div class="row" id="quote-details-tabs">
             <div class="col">
                 <div class="ibox">
                     <div class="ibox-content tsg_navs">
@@ -55,18 +58,18 @@
                             <div role="tabpanel" id="tab-products" class="tab-pane fade show active">
                                 <div class="panel-body">
                                     <div class="row">
-                                        <div class="col-lg-12" id="order_products_table">
-                                            {% include 'orders/order_products.html' %}
+                                        <div class="col-lg-12" id="quote_products_table">
+                                            {% include 'quotes/sub_layout/quote_products.html' %}
                                         </div>
                                     </div>
                                     <div class="row justify-content-between">
                                         <div class="col-12 col-md-6 border">
-                                            <h6>Customer Order Notes: </h6>
-                                            <span id="order_comment">{{ order_obj.comment|linebreaksbr }}</span>
+                                            <h6>Notes: </h6>
+                                            <span id="quote_comment">{{ quote_obj.comment|linebreaksbr }}</span>
                                         </div>
-                                        <div class="col-12 col-md-4 text-end order-first order-md-last">
-                                            {% include 'orders/order_totals.html' %}
-                                            <span id="order_product_summary"><strong>{{ order_lines }}</strong> Lines and <strong>{{ order_product_count }}</strong> products
+                                        <div class="col-12 col-md-4 text-end quote-first quote-md-last">
+
+                                            <span id="quote_product_summary"><strong>{{ quote_lines }}</strong> Lines and <strong>{{ quote_product_count }}</strong> products
                                             </span>
                                         </div>
                                     </div>
@@ -102,13 +105,13 @@
 
     <script>
         //setup up the product ID so that products.js can get the value
-        const current_order_id = {{ order_obj.order_id }} ;
-        const currency_symbol = '{{ order_obj.store.currency.symbol_left }}' ;
+        const current_quote_id = {{ quote_obj.quote_id }} ;
+        const currency_symbol = '{{ quote_obj.store.currency.symbol_left }}' ;
         let tax_rate = 0.00;
         let bulk_table_data = [];
 
     </script>
-    <script type="text/javascript" src="{% static 'js/orders.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/quotes.js' %}"></script>
 
 
 

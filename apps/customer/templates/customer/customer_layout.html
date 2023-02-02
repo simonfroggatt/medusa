@@ -86,6 +86,8 @@
 
     <script>
     let customer_id = {{ customer_obj.pk }}
+    const static_const = {% get_static_prefix %};
+    const media_url = "{% get_media_prefix %}";
     </script>
 
     <script type="text/javascript" src="https://webservices.data-8.co.uk/javascript/predictiveaddress.js"></script>

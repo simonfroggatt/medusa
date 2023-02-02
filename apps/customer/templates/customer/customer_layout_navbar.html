@@ -7,7 +7,8 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <a class="btn btn-primary js-order-customer-create" role="button" data-url="{% url 'api_createorder'  customer_obj.pk  %}" data-dlgsize="modal-sm"><i class="fas fa-shopping-cart"></i> New Order</a>
+                <a class="btn btn-success js-order-customer-create" role="button" data-url="{% url 'api_createorder'  customer_obj.pk  %}" data-dlgsize="modal-sm"><i class="fas fa-shopping-cart"></i> New Order</a>
+                <a class="btn btn-primary js-order-customer-create" role="button" data-url="{% url 'api_createorder'  customer_obj.pk  %}" data-dlgsize="modal-sm"><i class="fas fa-file-invoice"></i> New Quote</a>
                 <div class="dropdown dropstart">
                     <button class="btn btn-warning " type="button" id="dropdownCustomerOptions"
                             data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-cog"></i>
@@ -15,6 +16,9 @@
                     <ul class="dropdown-menu" aria-labelledby="dropdownCustomerOptions">
                         <li><a class="dropdown-item js-customer-edit" role="button"
                                data-url="{% url 'customereditpassword'  customer_obj.pk  %}" data-dlgsize="modal-sm">Set Password</a>
+                           </li>
+                        <li><a class="dropdown-item" role="button" id="js-customer-set-company"
+                               data-url="{% url 'customereditpassword'  customer_obj.pk  %}" data-dlgsize="modal-sm">Assign Company</a>
                            </li>
                         <li class="list-group-item-danger">
                             <a class="dropdown-item js-customer-edit" role="button"
