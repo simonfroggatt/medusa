@@ -1,0 +1,78 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <form method="post" action="{% url 'sitecreate' %}">
+        {{ form.media }}
+        {% csrf_token %}
+        <div class="form-group">
+            <div class="row">
+                    <div class="col-6 col-md-4">{{ form.name|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.url|as_crispy_field }}</div>
+                    <div class="col-6 col-md-2">{{ form.prefix|as_crispy_field }}</div>
+                    <div class="col-6 col-md-2">{{ form.code|as_crispy_field }}</div>
+
+                <hr>
+                    <div class="col-6 col-md-4">{{ form.company_name|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.website|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.email_address|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.vat_number|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.registration_number|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.currency|as_crispy_field }}</div>
+                    <div class="col-12">{{ form.footer_text|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.address|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.postcode|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.country|as_crispy_field }}</div>
+                <hr>
+                    <div class="col-6 col-md-4">{{ form.thumb|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.logo|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.medusa_logo|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.logo_paperwork|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    {{ form.status|as_crispy_field }}
+                    <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-danger " onclick="location.href='{% url 'allsites' %}'">
+                            Cancel
+                        </button>
+                        <button type="submit" id="add" class="btn btn-primary pull-right">Add</button>
+                    </div>
+                </div>
+                </div>
+        </div>
+    </form>
+{% endblock content %}
+
+{% block javascript %}
+
+
+<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+
+<script>
+  var t1 = tinymce.init({
+      selector: 'textarea#editor',
+  })
+
+</script>
+
+
+
+
+
+
+{% endblock javascript %}
+
+
+
+
+
+

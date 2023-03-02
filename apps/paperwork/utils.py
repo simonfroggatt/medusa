@@ -3,6 +3,8 @@ from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 import pathlib
 from svglib.svglib import svg2rlg
+from django.db.models import Sum, F
+from decimal import Decimal, ROUND_HALF_UP
 
 
 def create_company_logo(company_obj):
@@ -176,13 +178,81 @@ def order_payment_details_simple(order_obj, currency_symbol):
     return order_payment_str
 
 
-def create_product_desc(order_line):
+def create_product_desc(order_line, bl_orientation=True):
     product_desc = ''
     product_desc += order_line.name + "<BR/>"
     product_desc += f'Size:{order_line.size_name}<BR/>'
-    product_desc += f'Material:{order_line.material_name} ({order_line.orientation_name})'
+    if bl_orientation:
+        product_orientaion = f'({order_line.orientation_name})'
+    else:
+        product_orientaion = ''
+    product_desc += f'Material:{order_line.material_name} {product_orientaion}'
     return product_desc
 
+def quote_shipping(quote_obj):
+    shipping_str = '<b>Address:</b><BR/>'
+    shipping_str += quote_obj.fullname + "<BR/>"
+    if quote_obj.company:
+        shipping_str += quote_obj.company + "<BR/>"
+
+    if quote_obj.quote_address:
+        shipping_str += quote_obj.quote_address + "<BR/>"
+
+    if quote_obj.quote_city:
+        shipping_str += quote_obj.quote_city + "<BR/>"
+
+    if quote_obj.quote_area:
+        shipping_str += quote_obj.quote_area + "<BR/>"
+
+    if quote_obj.quote_postcode:
+        shipping_str += quote_obj.quote_postcode + "<BR/>"
+    #shipping_str += quote_obj.shipping_country
+    return shipping_str
+
+
+def quote_details_tup(quote_obj):
+    quote_details_tup = dict()
+    quote_details_tup['Quote Number'] = f'Q-{quote_obj.store.prefix}-{quote_obj.quote_id}'
+    quote_details_tup['Quote Date'] = quote_obj.date_added.strftime('%d/%m/%Y')
+   # order_details_tup['Due Date'] = order_obj.date_due.strftime('%d/%m/%Y')
+    quote_details_tup['Main Contact'] = f'{quote_obj.fullname}'
+    quote_details_tup['Telephone'] = f'{quote_obj.telephone}'
+    quote_details_tup['Email'] = f'{quote_obj.email}'
+    return quote_details_tup
+
+def quote_total_table(quote_obj, quote_product_obj, currency_symbol):
+    quote_total_tup = dict()
+    tax_rate = quote_obj.tax_rate.rate
+    if quote_product_obj:
+        subtotal = quote_product_obj.aggregate(sum=Sum(F('price') * F('quantity')))['sum']
+        subtotal_rounded = Decimal(subtotal.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        quote_total_tup['SubTotal'] = f'{currency_symbol}{subtotal_rounded}'
+        discount = Decimal(quote_obj.discount)
+        discount_rounded = Decimal(discount.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        subtotal_net = subtotal_rounded - discount_rounded + quote_obj.shipping_type.price
+        tax_rounded = Decimal((subtotal_net * (tax_rate / 100)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        total_rounded = Decimal((subtotal_net + tax_rounded).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+
+        quote_total_tup[f'{quote_obj.shipping_type}'] = f'{currency_symbol}{quote_obj.shipping_type.price}'
+
+        quote_total_tup['Discount'] = f'{currency_symbol}{discount_rounded}'
+
+        quote_total_tup[f'{quote_obj.tax_rate}'] = f'{currency_symbol}{tax_rounded}'
+
+        quote_total_tup['Total'] = f'{currency_symbol}{total_rounded}'
+    else:
+        quote_total_tup[f'{quote_obj.shipping_type}'] = f'{currency_symbol}{quote_obj.shipping_type.price}'
+        quote_total_tup['Discount'] = 0.00
+        quote_total_tup[f'{quote_obj.tax_rate}'] = 0.00
+        quote_total_tup['Total'] = 0.00
+
+    return quote_total_tup
+
+
+def quote_valid_details(quote_obj, currency_symbol):
+    quote_valid_str = ''
+    quote_valid_str = f'Quote Valid for {quote_obj.days_valid} days'
+    return quote_valid_str
 
 
 def draw_footer(canvas, doc, order_obj):

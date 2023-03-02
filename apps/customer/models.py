@@ -1,5 +1,6 @@
 from django.db import models
-from medusa.models import OcStore, OcTaxRate, OcTsgAccountType
+from medusa.models import OcTaxRate, OcTsgAccountType
+from apps.sites.models import OcStore
 from apps.company.models import OcTsgCompany, OcTsgCountryIso
 
 

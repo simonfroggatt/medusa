@@ -1,5 +1,6 @@
 from django.db import models
-from medusa.models import OcStore, OcTaxRate, OcTsgCountryIso, OcTsgShippingMethod, OcCurrency
+from medusa.models import OcTaxRate, OcTsgCountryIso, OcTsgShippingMethod
+from apps.sites.models import OcStore, OcCurrency
 from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants
 import datetime as dt
@@ -28,8 +29,10 @@ class OcTsgQuote(models.Model):
     days_valid = models.IntegerField(blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate')
     sent = models.BooleanField(blank=True, null=True)
-    shipping_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     shipping_type = models.ForeignKey(OcTsgShippingMethod, models.DO_NOTHING, blank=True, null=True)
+    date_sent = models.DateTimeField(blank=True, null=True)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
 
     def valid_until(self):
         ordered = dt.datetime(self.date_added.year, self.date_added.month, self.date_added.day)
@@ -62,9 +65,12 @@ class OcTsgQuoteProduct(models.Model):
     material_name = models.CharField(max_length=255, blank=True, null=True)
     product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True,
                                         related_name='quote_product_variant')
-    is_bespoke = models.IntegerField(blank=True, null=True)
+    is_bespoke = models.BooleanField(blank=True, null=True, default=0)
     line_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_quote_product'
+
+
+

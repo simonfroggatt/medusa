@@ -33,9 +33,19 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <form method="post" action="{% url 'orderproductadd' order_id %}" class="js-product-add" id="form-stock">
+            <form method="post" action="{{form_post_url}}"
+                  {% if price_for|upper == "I" %} class="js-product-add"
+                  {% else %}
+                  class="js-quote-add"
+                  {% endif %}
+            id="form-stock">
                 {% csrf_token %}
+            {% if price_for|upper == "I" %}
                 <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
+                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
+            {% else %}
+                <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
+            {% endif %}
                 <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
                 <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
@@ -43,8 +53,8 @@
                 <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
                 <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
                 <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
-                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
-                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="0">
+
+                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="False">
                 <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
 
                 <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
@@ -105,6 +115,8 @@
                 </div>
             <div class="row">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" id="js-copy-to-manaul-stock" class="btn btn-primary ">Use with <i
+                                        class="fas fa-fist-raised"></i></button>
                                 <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
                                 <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
                             </div>
@@ -175,6 +187,8 @@
 
     <script>
         $(document).ready(function () {
+
+            var manual_data = {}
 
             var product_table = $('#product_table').DataTable({
                 "dom": "<'row'<'col-6'fl><'col-6'p>>" +
@@ -330,7 +344,36 @@
                     $('#form-stock #{{ form.price.name }}').val(core_variant['size_material']['price'])
                 }
                 $('#form-stock #single_unit_price').val($('#{{ form.price.name }}').val())
+
+                manual_data['width'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['calcwidth'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['height'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['calcheight'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['material'] = core_variant['size_material']['product_material']['material_name']
+                manual_data['price'] = $('#form-stock #{{ form.price.name }}').val()
+
+
             }
+
+            function copy_to_manual(){
+                console.log(manual_data)
+                $('#form-quick_manual #manualWidth').val(manual_data['width'])
+                $('#form-quick_manual #manualCalcWidth').val(manual_data['calcwidth'])
+                $('#form-quick_manual #manualHeight').val(manual_data['height'])
+                $('#form-quick_manual #manualCalcHeight').val(manual_data['calcheight'])
+                $('#form-quick_manual #manualPrice').val(manual_data['price'])
+                $('#form-quick_manual #single_unit_price').val(manual_data['price'])
+                $('#form-quick_manual #price').val(manual_data['price'])
+                $('#form-quick_manual #quantity').val(1)
+                $('#form-quick_manual #manualMaterial').val(manual_data['material'])
+
+                $('#order-add-product-tabs #manual-product-tab').tab('show');
+                $('#form-quick_manual #manualMaterial').trigger('change');
+
+
+            }
+
+            $('#js-copy-to-manaul-stock').click(copy_to_manual)
         });
 
 

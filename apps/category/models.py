@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcStore
+from apps.sites.models import OcStore
 from apps.products.models import OcTsgCategoryTypes
 from django.conf import settings
 

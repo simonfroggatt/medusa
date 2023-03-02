@@ -21,12 +21,12 @@ urlpatterns = [
     url('^api/', include(router.urls)),
     url('^api/orders-list', views.OrderListView.as_view(), name='orders_post_list'),
 
-
-
     path('api/orders/delete', views.order_delete, name='api_ordersdelete'),
+    path('api/orders/duplicate', views.order_duplicate, name='api_ordersduplicate'),
     path('api/orders/product_text', views.get_order_product_text, name='api_orders_product_text'),
     path('<int:order_id>', views.order_details, name='order_details'),
     path('<int:order_id>/delete/', views.order_delete_dlg, name='orderdeletedlg'),
+    path('<int:order_id>/duplicate/', views.order_duplicate_dlg, name='orderduplicatedlg'),
     path('<int:order_id>/details/edit/', views.order_details_edit,
          name='orderdetailsedit'),
     path('<int:order_id>/product/edit/<int:order_product_id>', views.order_product_edit,

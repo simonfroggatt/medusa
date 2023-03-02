@@ -25,11 +25,11 @@
                      <dt class="col-3 col-xl-2">Reference:</dt>
                      <dd class="col-9 col-xl-10">{{ quote_obj.quote_ref }}</dd>
                      {% if quote_obj.customer %}
-                         <dt class="col-3">Customer</dt>
+                         <dt class="col-3 col-xl-2">Company</dt>
                          {% if quote_obj.customer.company %}
-                              <dd class="col-9">{{ quote_obj.customer.company }}</dd>
+                              <dd class="col-9 col-xl-10">{{ quote_obj.customer.company }}</dd>
                          {% else %}
-                             <dd class="col-9"><a href="{% url 'customerdetails' quote_obj.customer.customer_id  %}">{{ quote_obj.customer.fullname }}</a>
+                             <dd class="col-9 col-xl-10"><a href="{% url 'customerdetails' quote_obj.customer.customer_id  %}">{{ quote_obj.customer.fullname }}</a>
                              {% if quote_obj.customer.parent_company %}
                                  - ( works at: <a href="{% url 'company_details' quote_obj.customer.parent_company.company_id %}">{{ quote_obj.customer.parent_company.company_name }}</a> )
                              {% endif %}</dd>
@@ -72,6 +72,9 @@
                      <dt class="col-2">Address:</dt>
                      <dd class="col-10">
                          <address >
+                                {% if quote_obj.company %}
+                             {{ quote_obj.company }}<br>
+                                {%  endif %}
                                 {{ quote_obj.quote_address|linebreaksbr  }}<br>
 
                                 {{ quote_obj.quote_city }}<br>

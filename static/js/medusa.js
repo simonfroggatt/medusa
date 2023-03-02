@@ -51,6 +51,13 @@ $(function()
      $(document).on('click', '.js-order-customer-create', LoadCustomerNewOrder);
      $(document).on("submit", "#js-order-customer-create-form", SaveCustomerNewOrder);
 
+     $(document).on('click', '.js-quote-customer-create', loadForm);
+     $(document).on("submit", "#js-quote-customer-create-form", SaveDialogFormRedirect);
+
+
+
+     $(document).on("click", "#topmenu_quickquote", loadForm);
+
      new ClipboardJS('.btncopy');
 });
 
@@ -78,7 +85,8 @@ function copy_price_to_clipboard(width, height, price, material = '', qty = 1) {
 
 var loadForm = function () {
         var btn = $(this);  // <-- HERE
-        let dlg_size = btn.attr("data-dlgsize")
+        let dlg_size = btn.attr("data-dlgsize");
+        let tmp_url = btn.attr("data-url");
         $.ajax({
             url: btn.attr("data-url"),  // <-- AND HERE
             type: 'get',

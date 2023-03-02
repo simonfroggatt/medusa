@@ -244,7 +244,7 @@ def order_customer_create(request, customer_id):
 
         new_order_obj.customer_id = customer_id
         new_order_obj.payment_method = ''
-        new_order_obj.order_status_id = 10
+        new_order_obj.order_status_id = 1
         new_order_obj.payment_status_id = 1
         new_order_obj.order_type_id = 1
         new_order_obj.payment_method_rel_id = 8

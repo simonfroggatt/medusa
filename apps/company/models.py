@@ -1,6 +1,6 @@
 from django.db import models
-from medusa.models import OcStore, OcTaxRate, OcCurrency, OcTsgPaymentTerms, OcTsgCountryIso, OcTsgAccountType
-
+from medusa.models import OcTaxRate, OcTsgPaymentTerms, OcTsgCountryIso, OcTsgAccountType
+from apps.sites.models import OcStore, OcCurrency
 
 class OcTsgCustomerStatus(models.Model):
     status_id = models.AutoField(primary_key=True)

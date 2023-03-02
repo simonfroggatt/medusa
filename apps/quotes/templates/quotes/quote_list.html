@@ -10,7 +10,7 @@
                     <div class="col-lg-12">
                         <div class="ibox">
                             <div class="ibox-content">
-                                <table id="quote_table" class="table table-hover table-condensed table-striped" style="width:100%">
+                                <table id="quote_table" class="table table-hover table-sm table-striped" style="width:100%">
                                     <thead>
                                     <tr>
                                         <th width="50px">Website</th>
@@ -18,6 +18,7 @@
                                         <th class="col-2">Date</th>
                                         <th >Company</th>
                                         <th >Contact</th>
+                                        <th >Email</th>
                                         <th class="col-1">Status</th>
                                         <th class="col-1">Total</th>
                                         <th class="text-end">&nbsp;</th>
@@ -55,6 +56,7 @@
                 "type" : "GET",
             },
         "deferRender": false,
+        "order": [[ 1, "desc" ]],
         columns :[
 
             {
@@ -72,7 +74,9 @@
                  render: function ( data, type, row ) {
                     let url = '/quotes/' + data;
                     return '<a href="' + url + '">'+ data + '</a>';
-                 }
+                 },
+                searchable: true,
+                sortable: true
             },
             {
                 data: "date_added",
@@ -95,6 +99,10 @@
                     }else
                         return ""
                 },
+            },
+            {
+                data: "email",
+
             },
             {
                 data: "sent",

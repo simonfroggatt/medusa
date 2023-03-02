@@ -61,7 +61,10 @@
                              <li><a class="dropdown-item" href="#">Convert to Customer</a></li>
                         {% else %}
                             <li><a class="dropdown-item js-order-customer-create" role="button" data-url="{% url 'api_createorder'  order_obj.customer.pk  %}" data-dlgsize="modal-sm">New Order</a></li>
-                            <li><a class="dropdown-item" href="#">Duplicate</a></li>
+                            <li>
+                            <a class="dropdown-item js-order-product-edit" role="button"
+                               data-url="{% url 'orderduplicatedlg' order_obj.order_id %}" data-dlgsize="modal-sm">Duplicate</a>
+                            </li>
                         {% endif %}
                         <li><a class="dropdown-item js-order-product-edit" role="button"
                                data-url="{% url 'ordertaxchange' order_obj.order_id %}" data-dlgsize="modal-sm">Tax Rate</a>

@@ -1,0 +1,36 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title" <strong>Quote as text</strong></h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post"
+                      id="js-quote-text">
+                    {% csrf_token %}
+                    <div class="form-group col-12 pb-2">
+    <label for="quoteText">Quote pricing</label>
+    <textarea class="form-control" id="quoteText" rows="10">{{ quote_text_str }}</textarea>
+  </div>
+
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
+                        <button type="button" id="copy" class="btn btn-primary pull-right btncopy" data-clipboard-target="#quoteText">Copy</button>
+                    </div>
+                </div>
+            </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+     new ClipboardJS('.btncopy');
+</script>
+

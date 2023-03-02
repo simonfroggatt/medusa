@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from apps.orders.models import OcOrder, OcOrderProduct
 from apps.orders.serializers import OrderProductListSerializer
+from apps.quotes.models import OcTsgQuote, OcTsgQuoteProduct
+from apps.quotes.serializers import QuoteProductListSerializer
 from django.template.loader import get_template
 from django.http import HttpResponse
 import os
@@ -557,12 +559,210 @@ def gen_merged_paperwork(request, order_id):
     return response
 
 
+def gen_quote_pdf(quote_id, bl_total=True):
+    width = 210 * mm
+    height = 297 * mm
+    padding = 5 * mm
+    quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
+    quote_ref_number = f'Q-{quote_obj.store.prefix}-{quote_obj.quote_id}'
+
+    # response = HttpResponse(content_type='application/pdf')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Quote_' + quote_ref_number,  # exchange with your title
+                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=9, leading=11))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
+
+    # company logo
+    comp_logo = utils.create_company_logo(quote_obj.store)
+
+    # company contact & quote details
+    header_address = utils.create_address(quote_obj.store)
+
+    # create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                                    ('TOPPADDING', (0, 0), (-1, -1), 0),
+                                    ]))
+    elements.append(header_tbl)
+    # Title
+    elements.append(Paragraph("Quotation", styles['title']))
+
+    # quote details
+    shipping_address = utils.quote_shipping(quote_obj)
+    quote_details_dict = utils.quote_details_tup(quote_obj)
+    quote_list = list(quote_details_dict.items())
+    quote_details_tbl_data = []
+    for quote_details_data in quote_list:
+        tmp_data = list(quote_details_data)
+        quote_details_tbl_data.append(tmp_data)
+
+    quote_details_table = Table(quote_details_tbl_data)
+    quote_details_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), "RIGHT"),
+        ('ALIGN', (1, 0), (-1, -1), "LEFT"),
+        ('VALIGN', (0, 0), (-1, -1), "TOP"),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('FONTNAME', (1, 0), (1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0)]))
+
+    quote_tbl_info = [
+        [Paragraph(shipping_address, styles['header_main']),
+         quote_details_table]
+    ]
+
+    # rder_address_col_width = (doc.width - order_col_width_details) / 2
+    quote_tbl_data = Table(quote_tbl_info)
+    quote_tbl_data.setStyle(TableStyle([
+        ('ALIGN', (2, 0), (2, 0), "RIGHT"),
+        ('VALIGN', (0, 0), (-1, -1), "TOP"),
+        # ('BACKGROUND', (2, 0), (-1, 0), colors.green),
+    ]))
+    elements.append(quote_tbl_data)
+    elements.append(Spacer(doc.width, 5 * mm))
+
+    # order items
+    # Code, Item, Quantity, Unit Price, Line Price,
+    currency_symbol = quote_obj.store.currency.symbol_left
+    items_tbl_cols = [30 * mm, 100 * mm, 20 * mm, 25 * mm, 25 * mm]
+    items_tbl_data = [
+        ['Code', 'Item', 'Quantity', f'Unit Price ({currency_symbol})', f'Line Price ({currency_symbol})']
+    ]
+
+    # Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+    quote_items = quote_obj.product_quote.all()
+    for quote_item_data in quote_items.iterator():
+        if quote_item_data.product_variant:
+            model = quote_item_data.product_variant.variant_code
+        quote_item_tbl_data = [''] * 5
+        quote_item_tbl_data[0] = Paragraph(quote_item_data.model, styles['table_data'])
+        product_description = utils.create_product_desc(quote_item_data,False)
+        quote_item_tbl_data[1] = Paragraph(product_description, styles['table_data'])
+        if quote_item_data.product_variant:
+            if quote_item_data.product_variant.alt_image:
+                image_src = f'http://safetysigns/image/{quote_item_data.product_variant.alt_image}'
+            else:
+                if quote_item_data.product_variant.prod_var_core.variant_image:
+                    image_src = f'http://safetysigns/image/{quote_item_data.product_variant.prod_var_core.variant_image}'
+                else:
+                    image_src = f'http://safetysigns/image/{quote_item_data.product_variant.prod_var_core.product.image}'
+
+            img = Image(image_src)
+            img._restrictSize(image_max_w, image_max_h)
+        else:
+            img = ''
+
+        quote_item_tbl_data[2] = quote_item_data.quantity
+        quote_item_tbl_data[3] = round(quote_item_data.price, 2)
+        quote_item_tbl_data[4] = round(quote_item_data.total, 2)
+        items_tbl_data.append(quote_item_tbl_data)
+
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('LINEABOVE', (0, 1), (-1, 1), 1, colors.black),
+                                     ('ALIGN', (2, 0), (2, -1), "CENTRE"),
+                                     ('ALIGN', (3, 1), (-1, -1), "RIGHT"),
+                                     ('VALIGN', (0, 1), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 9),
+                                     # ('ROWBACKGROUNDS', (0, 0), (-1, -1), (colors.whitesmoke, colors.white)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5 * mm))
+
+    if bl_total:
+        # add in the totals
+        quote_totals = list(utils.quote_total_table(quote_obj, quote_items, quote_obj.store.currency.symbol_left).items())
+        quote_total_table = Table(quote_totals)
+        quote_total_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), "RIGHT"),
+            ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('FONTSIZE', (-2, -1), (-1, -1), 14),
+            ('FONTNAME', (-1, -1), (-1, -1), 'Helvetica-Bold'),
+            ('INNERGRID', (0, 0), (-1, -2), 0.25, colors.black),
+            ('BOX', (0, 0), (-1, -2), 0.25, colors.black),
+        ]))
+
+
+        quote_valid_str = utils.quote_valid_details(quote_obj, quote_obj.store.currency.symbol_left)
+        order_total_info = [
+            [Paragraph(quote_valid_str, styles['header_main']), quote_total_table]
+        ]
+        quote_total_footer = Table(order_total_info, colWidths=[100 * mm, 100 * mm])
+        quote_total_footer.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('VALIGN', (1, 0), (-1, -1), "TOP")]))
+
+        elements.append(quote_total_footer)
+    else:
+        quote_valid_str = utils.quote_valid_details(quote_obj, quote_obj.store.currency.symbol_left)
+        elements.append(Paragraph(quote_valid_str, styles['header_main']))
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=quote_obj),
+              onLaterPages=partial(utils.draw_footer, order_obj=quote_obj))
+
+    # pdf = buffer.getvalue()
+    # buffer.close()
+    # response.write(pdf)
+    return buffer
+
+
+def gen_quote(quote_id):
+    buffer = BytesIO()
+    return buffer
+
+
+def gen_quote_paperwork(request, quote_id):
+    response = HttpResponse(content_type='application/pdf')
+    pdflist = []
+    if 'with_total_print' in request.POST:
+        pdflist.append(gen_quote_pdf(quote_id, True))
+    else:
+        pdflist.append(gen_quote_pdf(quote_id, False))
+
+    #result_pdf = PdfFileWriter()
+
+    merger = PdfFileMerger()
+    for pdf_buffer in pdflist:
+        merger.append(PdfFileReader(stream=pdf_buffer))
+        pdf_buffer.close()
+    buffer = BytesIO()
+
+    merger.write(buffer)
+    pdf = buffer.getvalue()
+    response.write(pdf)
+    return response
+
+
 def set_printed(order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_obj.printed = 1
     order_obj.order_status_id = 3
     order_obj.save()
-
 
 
 

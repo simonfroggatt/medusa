@@ -202,6 +202,76 @@ $(function()
          },
     } );
 
+  let previous_quote_table = $('#previous_quote_table').DataTable( {
+        "dom": "<'row'<'col-6'f><'col-6'lT>>" +
+         "<'row'<'col-12'tr>>" +
+         "<'row'<'col-6'i><'col-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "serverSide": false,
+        "rowId" : 'order_id',
+        "ajax": {
+                 "processing": true,
+                "url": '/quotes/api/customer/'+customer_id+'?format=datatables',
+                "type" : "GET",
+            "beforeSend": function(xhr) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
+            }
+            },
+        "deferRender": false,
+        "order": [[ 2, "desc" ]],
+
+        columns :[
+
+            {
+                data: "store",
+                sortable: false,
+                searchable: false,
+                name: "store.name",
+                render: function ( data, type, row ) {
+                    let image_src =  static_const + '/images/stores/' + data.thumb;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }
+            },
+            {
+                data: "quote_id",
+                 render: function ( data, type, row ) {
+                    let url = '/quotes/' + data;
+                    return '<a href="' + url + '">'+ data + '</a>';
+                 }
+
+            },
+            {
+                data: "date_added",
+            },
+            {
+                data: "sent",
+                render: function ( data, type, row ) {
+                    if (data == 1) {
+                        return '<span class="badge rounded-pill badge-soft-success">SENT</span>'
+                    }else {
+                        return '<span class="badge rounded-pill badge-soft-danger">OPEN</span>'
+                    }
+
+                 }
+            },
+            {
+                data: "quote_id",
+                sortable: false,
+                className: 'text-end',
+                render: function (data, type, row) {
+
+                    let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
+                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/quotes/' + data + '"><i class="fas fa-edit "></i></a>'
+                    return btn_grp +  edit_icon + '</div>'
+                }
+            },
+        ],
+    } );
+
 
 
 

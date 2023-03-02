@@ -1,0 +1,32 @@
+<table class="table table-sm">
+  <tbody>
+    <tr>
+      <td>Sub Total</td>
+        <td>{{ quote_obj.store.currency.symbol_left }}<span id="span_quote_subtotal">{{quote_total.subtotal|floatformat:2}}</span></td>
+    </tr>
+    <tr>
+
+      <td>{{ quote_obj.shipping_type }}</td>
+      <td>{{ quote_obj.store.currency.symbol_left }}{{ quote_obj.shipping_type.price }}</td>
+    </tr>
+    {% if quote_total.discount > 0 %}
+    <tr>
+      <td>Discount</td>
+        <td>{{ quote_obj.store.currency.symbol_left }}<span id="span_quote_discount">{{quote_total.discount|floatformat:2}}</span></td>
+    </tr>
+    {% endif %}
+    <tr>
+
+      <td>{{ quote_obj.tax_rate }}</td>
+        <td>{{ quote_obj.store.currency.symbol_left }}<span id="span_quote_tax">{{quote_total.tax_value|floatformat:2}}</span></td>
+    </tr>
+
+    <tfoot>
+
+  <tr class="order-total">
+      <td>Total</td>
+      <td>{{ quote_obj.currency.symbol_left }}<span id="span_quote_total">{{quote_total.total|floatformat:2}}</span></td>
+    </tr>
+    </tfoot>
+  </tbody>
+</table>

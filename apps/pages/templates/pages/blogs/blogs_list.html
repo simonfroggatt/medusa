@@ -1,0 +1,119 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="row top_bar">
+            <div class="col-3 col-lg-2">
+
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                {% include 'pages/sub_layouts/blogs_top_navbar.html' %}
+            </div>
+        </div>
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="blogs_table" class="table table-hover table-sm"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th>Website</th>
+                                        <th>Title</th>
+                                        <th>Subtitle</th>
+                                        <th>Added</th>
+                                        <th>Read count</th>
+                                        <th>Status</th>
+                                        <th width="100px"></th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+
+<script>
+    $(document).ready(function() {
+
+    //    $("#js-customer-create").click(loadForm);
+
+    $('#blogs_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "responsive": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "/pages/api/blogs/?format=datatables"
+             },
+        "deferRender": true,
+        "order": [[ 1, "desc" ]],
+         "search": {
+            "regex": true
+        },
+        columns :[
+            {
+                data: "store",
+                sortable: false,
+                searchable: false,
+                name: "store.name",
+                render: function ( data, type, row ) {
+                    let image_src = '{% static "images/stores/" %}' + data.thumb;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }
+            },
+            {data: "title"},
+            {data: "sub_title"},
+            {data: "date_added"},
+            {data: "read_count"},
+            {
+                data: "status",
+                render: function (data, type, row) {
+                    if (data == 1) {
+                        return '<span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>'
+                    } else {
+                        return '<span class="badge rounded-pill badge-soft-danger font-size-14">OFF-LINE</span>'
+                    }
+
+                }
+            },
+            {
+                data: null,
+                sortable: false,
+                className: 'text-md-end text-start',
+                render: function ( data, type, row ) {
+                let edit_icon = '<a class="btn btn-primary btn-sm" href="' + row['id'] + '/edit"><i class="fas fa-edit fa-sm"></i></a>';
+                let delete_icon = '<a  class="btn btn-danger btn-sm js-blog-delete" role="button" data-url="' + row['id'] + '/deletedlg"><i class="fas fa-trash fa-sm"></i></a>';
+                return  edit_icon + " " + delete_icon;
+
+                }
+            },
+            {data: "id", visible: false},
+        ]
+    } );
+
+
+} );
+
+$(document).on('click', '.js-blog-delete', loadForm);
+
+</script>
+
+{% endblock javascript %}

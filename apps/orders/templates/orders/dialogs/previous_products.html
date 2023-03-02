@@ -2,7 +2,7 @@
     <div class="row mb-3">
 
 
-                                <table id="previous_product_table" class="table table-hover table-condensed table-striped"
+                                <table id="previous_product_table" class="table table-hover table-sm table-striped"
                                        style="width:100%">
                                     <thead>
                                     <tr>
@@ -18,9 +18,19 @@
     </div>
     <div class="row">
         <div class="col-12">
-           <form method="post" action="{% url 'orderproductadd' order_id %}" class="js-product-add" id="form-previous">
+           <form method="post" action="{{form_post_url}}"
+                 {% if price_for|upper == "I" %} class="js-product-add"
+                  {% else %}
+                  class="js-quote-add"
+                  {% endif %}
+                 id="form-previous">
             {% csrf_token %}
-               <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id}}">
+           {% if price_for|upper == "I" %}
+                <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
+                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
+            {% else %}
+                <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
+            {% endif %}
                <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
                <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
                <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
@@ -28,7 +38,6 @@
                <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
                <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
                <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
-               <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}">
                <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
 

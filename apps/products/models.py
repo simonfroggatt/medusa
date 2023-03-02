@@ -1,5 +1,6 @@
 from django.db import models
-from medusa.models import OcStore, OcTsgCategoryTypes, OcLanguage
+from medusa.models import OcTsgCategoryTypes, OcLanguage
+from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 

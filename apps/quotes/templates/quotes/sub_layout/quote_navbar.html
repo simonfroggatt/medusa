@@ -9,23 +9,70 @@
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
 
                 <a class="btn btn-primary" id="js-quote-product-edit" role="button" data-url="{% url 'quoteproductadd' quote_obj.quote_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
-                <a class="btn btn-success js-order-ship-it" role="button" data-url="{% url 'ordershipit' quote_obj.quote_id %}" data-dlgsize="modal-lg"><i class="fas fa-envelope"></i> Email</a>
-                <a class="btn btn-success js-order-ship-it" role="button" data-url="{% url 'ordershipit' quote_obj.quote_id %}" data-dlgsize="modal-lg"><i class="fas fa-print"></i> Print</a>
+
+                <div class="btn-group">
+
+                    <button type="button" class="btn btn-success" id="dropdownMenuEmailQuote"><i class="fas fa-envelope"></i> Email
+                    </button>
+                    <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+
+                    <div class="dropdown-menu px-2" aria-labelledby="dropdownMenuEmailQuote">
+                        <form  id="form-order-print" action="" target="_blank" method="post">
+                        {% csrf_token %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"  id="with_total_email" name="with_total_email" value=1 checked>
+                            <label class="form-check-label" for="with_total_email">
+                                Totals
+                            </label>
+                        </div>
+                            </form>
+                    </div>
+
+                </div>
+
+
+                <div class="btn-group">
+
+                    <button type="button" class="btn btn-success" id="dropdownMenuPrintQuote"><i class="fas fa-print"></i> Print
+                    </button>
+                    <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+
+                    <div class="dropdown-menu px-2" aria-labelledby="dropdownMenuPrintQuote">
+                        <form  id="form-quote-print" action="{% url 'quote_paperwork_pdf' quote_obj.quote_id %}" target="_blank" method="post">
+                        {% csrf_token %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"  id="with_total_print" name="with_total_print" value=1 checked>
+                            <label class="form-check-label" for="with_total_print">
+                                Totals
+                            </label>
+                        </div>
+                            </form>
+                    </div>
+
+                </div>
+
+
                  <div class="dropdown dropstart">
-                    <button class="btn btn-warning " type="button" id="dropdownOrderOptions"
+                    <button class="btn btn-warning " type="button" id="dropdownQuoteOptions"
                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fas fa-cog"></i>
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
-                        <li><a class="dropdown-item" href="#">Text</a></li>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownQuoteOptions">
+                        <li><a class="dropdown-item js-quote-cog-option" role="button" data-url="{% url 'quotetext' quote_obj.quote_id %}" data-dlgsize="modal-lg">Text</a></li>
                              <li><a class="dropdown-item" href="#">Convert to Order</a></li>
                         <li>
-                            <a class="dropdown-item js-order-product-edit" role="button"
-                               data-url="{% url 'orderdiscountchange' quote_obj.quote_id %}" data-dlgsize="modal-sm">Discount</a>
+                            <a class="dropdown-item js-quote-product-edit" role="button"
+                               data-url="{% url 'quotediscountchange' quote_obj.quote_id %}" data-dlgsize="modal-sm">Discount</a>
                         </li>
 
                         <li class="list-group-item-danger">
-                            <a class="dropdown-item js-order-product-edit" role="button"
-                               data-url="{% url 'orderdeletedlg' quote_obj.quote_id %}" data-dlgsize="modal-sm">Delete</a>
+                            <a class="dropdown-item js-quote-product-edit" role="button"
+                               data-url="{% url 'quotedeletedlg' quote_obj.quote_id %}" data-dlgsize="modal-sm">Delete</a>
                            </li>
                     </ul>
                 </div>

@@ -2,6 +2,7 @@ from django.urls import path
 from apps.customer import views
 from django.conf.urls import url, include
 from rest_framework import routers
+from apps.quotes.views import create_quote_customer
 
 
 router = routers.SimpleRouter()
@@ -20,6 +21,7 @@ urlpatterns = [
     path('details/<int:customer_id>/address/delete/<int:address_id>', views.customer_address_delete, name='customeraddressdelete'),
     path('<int:customer_id>/addressbook', views.customer_address_book, name='customer_addressbook'),
     path('api/customer/<int:customer_id>/order_create', views.order_customer_create, name='api_createorder'),
+    path('api/customer/<int:customer_id>/quote_create', create_quote_customer, name='api_createquote'),
     path('details/<int:customer_id>/password/edit', views.customers_edit_password, name='customereditpassword'),
     path('create', views.contact_create, name='create_customer'),
 

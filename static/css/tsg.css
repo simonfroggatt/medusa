@@ -342,3 +342,18 @@ table.table-mail tr td {
     position: absolute;
     left: -10000px;
 }
+
+table .order-total {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+table .order-total td {
+  border-top: 1px solid black;
+  border-collapse: collapse;
+}
+
+table .order-total tr {
+  border-top: 1px solid black;
+  border-collapse: collapse;
+}

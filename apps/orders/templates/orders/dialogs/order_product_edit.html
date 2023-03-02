@@ -2,15 +2,19 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title">Update Order Product</h4>
+    <h4 class="modal-title">Update Product</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
     <div class="container">
         <div class="row pb-2">
             <div class="col-12">
-                <form method="post" action="{% url 'orderproductedit' order_id order_product_id %}"
-                      id="js-product-edit-submit">
+                     <form method="post" action="{{form_post_url}}"
+                  {% if price_for|upper == "I" %} class="js-product-edit-submit"
+                  {% else %}
+                  class="js-quote-product-edit-submit"
+                  {% endif %}
+                     id="js-product-edit-submit">
                     {% csrf_token %}
                     <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
                            value="{{ form.tax.value|floatformat:2 }}">
@@ -52,7 +56,14 @@
                                    class="form-control two-decimals calc_line_totals" id="label_{{ form.price.name }}"
                                    name="{{ form.price.name }}" value="{{ form.price.value|floatformat:2 }}">
                         </div>
-                        <div class="col-6">{{ form.status|as_crispy_field }}</div>
+                         {% if price_for|upper == "I" %}
+                <div class="col-4">{{ form.status|as_crispy_field }}</div>
+                             <div class="col-2">{{ form.is_bespoke|as_crispy_field }}</div>
+                             {% else %}
+                              <div class="col-6">{{ form.is_bespoke|as_crispy_field }}</div>
+                {% endif %}
+
+
                         <div class="col-12 d-md-flex justify-content-md-end">
                             <span class="h3">£<span
                                     id="line_total_cal">{{ form.total.value|floatformat:2 }}</span></span>
@@ -174,7 +185,7 @@
 
         let base_price = $('#single_unit_price').val()
         var bulk_array = $.grep(bulk_table_data, function(e){ return e.id == bulk_group_id; })[0];
-        var tbl = $('<table class="table table-bordered table-condensed"></table>').attr({ id: "bulk_pricing_tbl" });
+        var tbl = $('<table class="table table-bordered table-sm"></table>').attr({ id: "bulk_pricing_tbl" });
         var header = $('<thead></thead>').appendTo(tbl);
         var headerrow = $('<tr></tr>').appendTo(header);
         var body = $('<tbody></tbody>').appendTo(tbl);

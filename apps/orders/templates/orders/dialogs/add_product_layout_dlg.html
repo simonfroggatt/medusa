@@ -1,103 +1,115 @@
 {% load static %}
 <div class="modal-header">
-        <h5 class="modal-title">Add Product</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
+    <h5 class="modal-title">Add Product</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
 
-    <link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
-    <div class="container">
-        <div class="row" id="order-add-product-tabs">
-            <div class="col">
-                <div class="ibox">
-                    <div class="ibox-content tsg_navs">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <a class="nav-link active" id="products-stock-tab" data-bs-toggle="tab" href="#tab-stock-product"
-                                   role="tab">
-                                    <i class="fas fa-list"></i> Stock Items</a>
-                            </li>
-                            {% if customer_id > 0 %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+<div class="container">
+    <div class="row" id="order-add-product-tabs">
+        <div class="col">
+            <div class="ibox">
+                <div class="ibox-content tsg_navs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="products-stock-tab" data-bs-toggle="tab"
+                               href="#tab-stock-product"
+                               role="tab">
+                                <i class="fas fa-list"></i> Stock Items</a>
+                        </li>
+                        {% if customer_id > 0 %}
                             <li>
-                                <a class="nav-link" id="previous-product-tab" data-bs-toggle="tab" href="#tab-previous-product"
+                                <a class="nav-link" id="previous-product-tab" data-bs-toggle="tab"
+                                   href="#tab-previous-product"
                                    role="tab">
                                     <i class="fas fa-history"></i> Previous Items</a>
                             </li>
-                            {% endif %}
-                            <li>
-                                <a class="nav-link" id="bespoke-product-tab" data-bs-toggle="tab" href="#tab-bespoke-product" role="tab"><i
-                                        class="far fa-image"></i> Bespoke</a>
-                            </li>
-                        </ul>
-                        <div class="tab-content">
-                            <div role="tabpanel" id="tab-stock-product" class="tab-pane fade show active">
-                                <div class="panel-body">
-                                    {% include 'orders/dialogs/stock_product.html' %}
-                                </div>
+                        {% endif %}
+                        <li>
+                            <a class="nav-link" id="bespoke-product-tab" data-bs-toggle="tab"
+                               href="#tab-bespoke-product" role="tab"><i
+                                    class="far fa-image"></i> Bespoke</a>
+                        </li>
+                        <li>
+                            <a class="nav-link" id="manual-product-tab" data-bs-toggle="tab"
+                               href="#tab-manual-product" role="tab"><i
+                                    class="fas fa-fist-raised"></i> Manual</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" id="tab-stock-product" class="tab-pane fade show active">
+                            <div class="panel-body">
+                                {% include 'orders/dialogs/stock_product.html' %}
                             </div>
-                            <div role="tabpanel" id="tab-previous-product" class="tab-pane fade">
+                        </div>
+                        <div role="tabpanel" id="tab-previous-product" class="tab-pane fade">
                             <div class="panel-body">
                                 {% if customer_id > 0 %}
-                               {% include 'orders/dialogs/previous_products.html' %}
+                                    {% include 'orders/dialogs/previous_products.html' %}
                                 {% endif %}
                             </div>
                         </div>
-                            <div role="tabpanel" id="tab-bespoke-product" class="tab-pane fade">
+                        <div role="tabpanel" id="tab-bespoke-product" class="tab-pane fade">
                             <div class="panel-body">
-                                 {% include 'orders/dialogs/bespoke_product.html' %}
+                                {% include 'orders/dialogs/bespoke_product.html' %}
                             </div>
                         </div>
-                        </div>
+                        <div role="tabpanel" id="tab-manual-product" class="tab-pane fade">
+                                <div class="panel-body">
+                                    {% include 'pricing/dialogs/quick_price_manual.html' %}
+                                </div>
+                            </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 
+<script>
 
-    <script>
-
-        bulk_table_data = {{ bulk_info|safe }}
-         tax_rate = parseFloat( {{ tax_rate }} / 100 ).toFixed(2);
-
-
-        $(".switchApplyBulk").change(function(){
-            let form_id = '#'+$(this).parents("form").attr('id')
-            let product_price = form_id + " #{{ form.price.name }}";
-            $(product_price).prop('readonly', $(this).is(":checked"))
-        })
+    bulk_table_data = {{ bulk_info|safe }}
+        tax_rate = parseFloat({{ tax_rate }} / 100 ).toFixed(2);
 
 
-    $(".calc_line_totals").change(function(element){
-        let form_id = '#'+$(this).parents("form").attr('id')
-         let tax_price = 0.00;
+    $(".switchApplyBulk").change(function () {
+        let form_id = '#' + $(this).parents("form").attr('id')
+        let product_price = form_id + " #{{ form.price.name }}";
+        $(product_price).prop('readonly', $(this).is(":checked"))
+    })
+
+
+    $(".calc_line_totals").change(function (element) {
+        let form_id = '#' + $(this).parents("form").attr('id')
+        let tax_price = 0.00;
         let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
-        if(use_bulk)
+        if (use_bulk)
             SetPrice(true, form_id);
         else {
-             let qty = $(form_id+ ' #{{ form.quantity.name }}').val();
-            let price = $(form_id+ ' #{{ form.price.name }}').val();
+            let qty = $(form_id + ' #{{ form.quantity.name }}').val();
+            let price = $(form_id + ' #{{ form.price.name }}').val();
             let line_total = calc_totals(price, qty);
             tax_price = parseFloat(line_total * tax_rate).toFixed(2);
             $(form_id + ' #total').val(line_total);
             $(form_id + ' #line_total_cal').html(line_total);
-            $(form_id+ ' #{{ form.total.name }}').val(line_total);
-            $(form_id+ ' #{{ form.tax.name }}').val(tax_price)
+            $(form_id + ' #{{ form.total.name }}').val(line_total);
+            $(form_id + ' #{{ form.tax.name }}').val(tax_price)
         }
 
     });
 
-        $('#previous-product-tab').click(function() {
-           //load in the previous products - do an ajax call
+    $('#previous-product-tab').click(function () {
+        //load in the previous products - do an ajax call
 
-        })
+    })
 
 
-    function calc_totals(price, qty){
-        return (price*qty).toFixed(2);
+    function calc_totals(price, qty) {
+        return (price * qty).toFixed(2);
     }
 
-    function SetPrice(getbulk = true, form_id){
+    function SetPrice(getbulk = true, form_id) {
         let qty_field = form_id + " #{{ form.quantity.name }}";
         let product_price = form_id + " #{{ form.price.name }}";
         let line_price = 0.00;
@@ -109,37 +121,37 @@
 
         drawBulkTable(bulk_group_id, form_id);
 
-        if(getbulk){
+        if (getbulk) {
             discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
             discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
             line_price = parseFloat(qty * discount_price).toFixed(2);
             $(product_price).val(discount_price);
 
-        }
-        else {
+        } else {
             line_price = (qty * $('#single_unit_price').val()).toFixed(2);
         }
 
         tax_price = parseFloat(line_price * tax_rate).toFixed(2);
 
-        $(form_id + ' #{{ form.total.name }}').val(parseFloat( line_price).toFixed(2));
+        $(form_id + ' #{{ form.total.name }}').val(parseFloat(line_price).toFixed(2));
         $(form_id + ' #{{ form.tax.name }}').val(tax_price)
         $(form_id + ' #line_total_cal').html(line_price);
     }
 
-    $('.bulk_group_select').change(function() {
-        let form_id = '#'+$(this).parents("form").attr('id')
+    $('.bulk_group_select').change(function () {
+        let form_id = '#' + $(this).parents("form").attr('id')
         drawBulkTable(this.value, form_id)
         SetPrice(true, form_id)
     })
 
 
-   function drawBulkTable(bulk_group_id, form_id)
-    {
+    function drawBulkTable(bulk_group_id, form_id) {
 
         let base_price = $(form_id + ' #single_unit_price').val()
-        var bulk_array = $.grep(bulk_table_data, function(e){ return e.id == bulk_group_id; })[0];
-        var tbl = $('<table class="table table-bordered table-condensed"></table>').attr({ id: "bulk_pricing_tbl" });
+        var bulk_array = $.grep(bulk_table_data, function (e) {
+            return e.id == bulk_group_id;
+        })[0];
+        var tbl = $('<table class="table table-bordered table-sm"></table>').attr({id: "bulk_pricing_tbl"});
         var header = $('<thead></thead>').appendTo(tbl);
         var headerrow = $('<tr></tr>').appendTo(header);
         var body = $('<tbody></tbody>').appendTo(tbl);
@@ -147,60 +159,56 @@
 
         $(form_id + ' #bulk_pricing_div').empty();
 
-        $.each(bulk_array['breaks'], function( index, value) {
-            if(index == 0){
+        $.each(bulk_array['breaks'], function (index, value) {
+            if (index == 0) {
                 $('<th></th>').text(value['qty_range_min']).appendTo(headerrow);
-            }
-            else if (index == bulk_array['breaks'].length - 1)
-                {
-                    $('<th></th>').text(value['qty_range_min'] + "+").appendTo(headerrow);
-                }
-            else
-                {
-                    var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min'] - 1;
+            } else if (index == bulk_array['breaks'].length - 1) {
+                $('<th></th>').text(value['qty_range_min'] + "+").appendTo(headerrow);
+            } else {
+                var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min'] - 1;
 
-                    $('<th></th>').text(value['qty_range_min'] + "-" + nextbreak).appendTo(headerrow);
-                }
-            let bulkprice = base_price * ((100- value['discount_percent'])/100)
-            $('<td class="bulkcell" data-variant-cellid="'+ index +'"></td>').text(parseFloat(bulkprice).toFixed(2)).appendTo(row);
+                $('<th></th>').text(value['qty_range_min'] + "-" + nextbreak).appendTo(headerrow);
+            }
+            let bulkprice = base_price * ((100 - value['discount_percent']) / 100)
+            $('<td class="bulkcell" data-variant-cellid="' + index + '"></td>').text(parseFloat(bulkprice).toFixed(2)).appendTo(row);
         })
         tbl.appendTo(form_id + ' #bulk_pricing_div');
 
 
     }
 
-    function getBulkPriceDiscount(bulk_group_id, qty, form_id){
-        var bulk_array = $.grep(bulk_table_data, function(e){ return e.id == bulk_group_id; })[0];
+    function getBulkPriceDiscount(bulk_group_id, qty, form_id) {
+        var bulk_array = $.grep(bulk_table_data, function (e) {
+            return e.id == bulk_group_id;
+        })[0];
         let discount = 1;
         let cell_index = 1;
-        $.each(bulk_array['breaks'], function( index, value) {
-            if(index >= bulk_array['breaks'].length - 1)
-                {
-                    discount = 100 - value['discount_percent'];
-                    cell_index = index;
-                    return false;
-                }
+        $.each(bulk_array['breaks'], function (index, value) {
+            if (index >= bulk_array['breaks'].length - 1) {
+                discount = 100 - value['discount_percent'];
+                cell_index = index;
+                return false;
+            }
             var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min']
-            if( (value['qty_range_min'] <= qty) && qty < nextbreak)
-                {
-                    discount = 100 - value['discount_percent'];
-                    cell_index = index;
-                    return false;
-                }
+            if ((value['qty_range_min'] <= qty) && qty < nextbreak) {
+                discount = 100 - value['discount_percent'];
+                cell_index = index;
+                return false;
+            }
         })
         setDiscountCellColour(cell_index, form_id)
-        return (discount/100).toFixed(2)
+        return (discount / 100).toFixed(2)
     }
 
-    function setDiscountCellColour(cell_index, form_id){
+    function setDiscountCellColour(cell_index, form_id) {
 
         var allCells = $(form_id + " .bulkcell");
         allCells.removeClass("table-success");
 
-            var cellToColour = $(form_id + ' [data-variant-cellid="' + cell_index + '"]');
-            cellToColour.addClass("table-success");
+        var cellToColour = $(form_id + ' [data-variant-cellid="' + cell_index + '"]');
+        cellToColour.addClass("table-success");
 
     }
 
-    </script>
+</script>
 

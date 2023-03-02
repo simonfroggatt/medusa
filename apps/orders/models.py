@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcStore
+from apps.sites.models import OcStore
 from django.utils import timezone
 import datetime as dt
 from apps.customer.models import OcCustomer

@@ -41,7 +41,7 @@ def material_details(request, material_id):
     return render(request, template_name, context)
 
 def quick_prices(request):
-    template_name = 'dialogs/quick_price.html'
+    template_name = 'pricing/dialogs/quick_price.html'
     context = dict()
     data = dict()
     qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
@@ -50,18 +50,11 @@ def quick_prices(request):
     bulk_details = prod_services.create_bulk_arrays(qs_bulk)
     context['bulk_info'] = bulk_details
     context['material_obj'] = OcTsgProductMaterial.objects.all()
-
+    context['price_for'] = "P"
     OcTsgProductMaterial.objects.all()
 
-
-
-    # return render(request, template_name, context)
-    data['html_dlg'] = render_to_string(template_name,
-                                         context,
-                                         request=request)
-
     return render(request, template_name, context)
-    return JsonResponse(data)
+
 
 class Sizes(viewsets.ModelViewSet):
     queryset = OcTsgProductSizes.objects.all()

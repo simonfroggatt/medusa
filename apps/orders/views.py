@@ -25,6 +25,8 @@ from django.db.models import Sum
 
 from apps.customer.serializers import AddressSerializer
 
+from collections import OrderedDict
+
 class Orders2(viewsets.ViewSet):
     """
     A simple ViewSet for listing or retrieving users.
@@ -256,6 +258,8 @@ def order_add_product(request, order_id):
         "order_id": order_id,
         "tax_rate": order_data['tax_rate__rate'],
         "customer_id": order_data['customer_id'],
+        "form_post_url": reverse_lazy('orderproductadd', kwargs={'order_id': order_id}),
+        "price_for": "I",  #
         "form" : form}
 
     template_name = 'orders/dialogs/add_product_layout_dlg.html'
@@ -419,7 +423,10 @@ def order_product_edit(request, order_id, order_product_id):
                'form': form,
                'bulk_info': bulk_details,
                "tax_rate": order_data['tax_rate__rate'],
-               'default_bulk': default_bulk}
+               'default_bulk': default_bulk,
+               "form_post_url": reverse_lazy('orderproductedit', kwargs={'order_id': order_id, 'order_product_id': order_product_id}),
+               "price_for": "I",  #
+               }
 
     #return render(request, template_name, context)
     data['html_form'] = render_to_string(template_name,
@@ -765,3 +772,102 @@ class OrderShippingAddressList(viewsets.ModelViewSet):
         queryset = OcAddress.objects.filter(customer_id=customer_id)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+def order_duplicate_dlg(request, order_id):
+        data = dict()
+
+        template_name = 'orders/dialogs/duplicate_order.html'
+        context = {'order_id': order_id}
+
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+        return JsonResponse(data)
+
+def order_duplicate(request):
+    data = dict()
+    data['form_is_valid'] = False
+
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        order_obj = get_object_or_404(OcOrder, pk=order_id)
+        order_products = OcOrderProduct.objects.filter(order_id=order_id)
+        order_totals = OcOrderTotal.objects.filter(order_id=order_id)
+        #order_products = order_obj.order_products.all()
+        #order_totals = order_obj.order_totals.all()
+        order_obj.order_id = None
+        order_obj.save()
+        order_obj.payment_method = ''
+        order_obj.order_status_id = 1
+        order_obj.payment_status_id = 1
+        order_obj.order_type_id = 1
+        order_obj.payment_method_rel_id = 8
+        order_obj.customer_order_ref = ''
+        order_obj.save()
+        new_order_id = order_obj.order_id
+
+#products
+        for order_prod in order_products:
+            order_prod.order_product_id = None;
+            order_prod.order_id = new_order_id
+            order_prod.status_id = 1
+            order_prod.save()
+
+#totals
+        for order_total in order_totals:
+            order_total.order_total_id = None
+            order_total.order_id = new_order_id
+            order_total.save()
+
+        data['redirect_url'] = reverse_lazy('order_details', kwargs={'order_id': new_order_id})
+        data['form_is_valid'] = True
+
+    return JsonResponse(data)
+
+
+# from django.db import models
+#
+# class Book(models.Model)
+#
+# class Chapter(models.Model)
+#     book = models.ForeignKey(Book, related_name='chapters')
+#
+# class Page(models.Model)
+#     chapter = models.ForeignKey(Chapter, related_name='pages')
+#
+# WHITELIST = ['books', 'chapters', 'pages']
+# original_record = models.Book.objects.get(pk=1)
+# duplicate_record = duplicate_model_with_descendants(original_record, WHITELIST)
+
+def duplicate_model_with_descendants(obj, whitelist, _new_parent_pk=None):
+    kwargs = {}
+    children_to_clone = OrderedDict()
+    for field in obj._meta.get_fields():
+        if field.name == "id":
+            pass
+        elif field.one_to_many:
+            if field.name in whitelist:
+                these_children = list(getattr(obj, field.name).all())
+                if field.name in children_to_clone:
+                    children_to_clone[field.name] |= these_children
+                else:
+                    children_to_clone[field.name] = these_children
+            else:
+                pass
+        elif field.many_to_one:
+            if _new_parent_pk:
+                kwargs[field.name + '_id'] = _new_parent_pk
+        elif field.concrete:
+            kwargs[field.name] = getattr(obj, field.name)
+        else:
+            pass
+    new_instance = obj.__class__(**kwargs)
+    new_instance.save()
+    new_instance_pk = new_instance.pk
+    for ky in children_to_clone.keys():
+        child_collection = getattr(new_instance, ky)
+        for child in children_to_clone[ky]:
+            child_collection.add(duplicate_model_with_descendants(child, whitelist=whitelist, _new_parent_pk=new_instance_pk))
+    return new_instance

@@ -1,10 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% load static %}
+ <table id="quote_product_list" class="table table-hover table-sm table-striped"
+        style="width:100%">
+     <thead>
+     <tr>
+         <th>Code</th>
+         <th width="100px">Image</th>
+         <th>Name</th>
+         <th>Size</th>
+         <th>Material</th>
+         <!-- <th>Options</th> -->
+         <th>Qty</th>
+         <th>{{ quote_obj.store.currency.symbol_left }}/Unit</th>
+         <th>Line {{ quote_obj.store.currency.symbol_left }}</th>
+         <th width="100px" ></th>
+     </tr>
+     </thead>
+ </table>

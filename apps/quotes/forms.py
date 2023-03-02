@@ -68,3 +68,32 @@ class ProductAddForm(forms.ModelForm):
         widgets = {
             'is_bespoke': forms.CheckboxInput(),
          }
+
+
+class ProductEditForm(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgQuoteProduct
+        fields = [
+            'name',
+            'model',
+            'quantity',
+            'price',
+            'total',
+            'tax',
+            'size_name',
+            'material_name',
+            'orientation_name',
+            'is_bespoke',
+        ]
+
+        labels = {
+            #"model": "Nome da Key",
+            'size_name' : "Size",
+            'material_name': "Material",
+            'is_bespoke': "Bespoke"
+        }
+
+        widgets = {
+            'is_bespoke': forms.CheckboxInput(),
+         }

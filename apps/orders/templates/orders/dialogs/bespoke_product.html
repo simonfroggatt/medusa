@@ -15,7 +15,7 @@
             <div role="tabpanel" id="tab-standard" class="tab-pane fade show active">
                 <div class="panel-body">
 
-                    <table id="bespoke_size_table" class="table table-hover table-condensed table-striped"
+                    <table id="bespoke_size_table" class="table table-hover table-sm table-striped"
                            style="width:100%">
                         <thead>
                         <tr>
@@ -68,7 +68,7 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            <table id="bespoke_calc_table" class="table table-hover table-condensed table-striped"
+                            <table id="bespoke_calc_table" class="table table-hover table-sm table-striped"
                                    style="width:100%">
                                 <thead>
                                 <tr>
@@ -87,17 +87,25 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <form method="post" class="js-product-add" action="{% url 'orderproductadd' order_id %}"
+            <form method="post" action="{{form_post_url}}"
+                  {% if price_for|upper == "I" %} class="js-product-add"
+                  {% else %}
+                  class="js-quote-add"
+                  {% endif %}
                   id="form-bespoke">
                 {% csrf_token %}
-                 <input type="hidden" id="material_id" name="material_id" value="0">
+            {% if price_for|upper == "I" %}
                 <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
+                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
+            {% else %}
+                <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
+            {% endif %}
+                 <input type="hidden" id="material_id" name="material_id" value="0">
                 <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}"
                        value=Null>
                 <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
-                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
-                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="1">
+                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="True">
 
                 <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
                        value="{{ form.total.value|floatformat:2 }}">
@@ -188,6 +196,8 @@
                         </div>
                         <div class="row">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" id="js-copy-to-manaul-bespoke" class="btn btn-primary ">Use with <i
+                                        class="fas fa-fist-raised"></i></button>
                                 <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
                                 <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
                             </div>
@@ -204,6 +214,8 @@
 {% block javascript %}
     <script>
         $(document).ready(function () {
+
+            var manual_data_bespoke = {}
 
             var bespoke_size_table = $('#bespoke_size_table').DataTable({
                 "dom": "<'row'<'col-6'fl><'col-6'p>>" +
@@ -279,6 +291,15 @@
                 $('#form-bespoke #{{ form.price.name }}').val(data_row['price'])
                 $('#form-bespoke #single_unit_price').val(data_row['price'])
 
+                manual_data_bespoke['width'] = data_row['size_material_comb']['product_size']['size_width']
+                manual_data_bespoke['calcwidth'] = data_row['size_material_comb']['product_size']['size_width']
+                manual_data_bespoke['height'] = data_row['size_material_comb']['product_size']['size_width']
+                manual_data_bespoke['calcheight'] = data_row['size_material_comb']['product_size']['size_width']
+                manual_data_bespoke['material'] = data_row['size_material_comb']['product_material']['material_name']
+                manual_data_bespoke['price'] = data_row['price']
+
+                console.log(manual_data_bespoke);
+
             }
 
             $('.js-calc_size_change').on('keyup', function(){
@@ -323,6 +344,15 @@
                 $('#form-bespoke #{{ form.price.name }}').val(customer_price)
                 $('#form-bespoke #single_unit_price').val(customer_price)
 
+                console.log(data_row)
+
+                manual_data_bespoke['width'] = data_row['product_size']['size_width'];
+                manual_data_bespoke['calcwidth'] = $('#calc_width').val();
+                manual_data_bespoke['height'] = data_row['product_size']['size_height'];
+                manual_data_bespoke['calcheight'] = $('#calc_height').val();
+                manual_data_bespoke['material'] = data_row['product_material']['material_name'];
+                manual_data_bespoke['price'] = data_row['price'];
+
             }
 
             bespoke_calc_table.on('select', function (e, dt, type, indexes) {
@@ -332,6 +362,25 @@
                     SetPrice(true, '#form-bespoke')
                 }
             });
+
+            function copy_to_manua_bespoke(){
+                $('#form-quick_manual #manualWidth').val(manual_data_bespoke['width'])
+                $('#form-quick_manual #manualCalcWidth').val(manual_data_bespoke['calcwidth'])
+                $('#form-quick_manual #manualHeight').val(manual_data_bespoke['height'])
+                $('#form-quick_manual #manualCalcHeight').val(manual_data_bespoke['calcheight'])
+                $('#form-quick_manual #manualPrice').val(manual_data_bespoke['price'])
+                $('#form-quick_manual #single_unit_price').val(manual_data_bespoke['price'])
+                $('#form-quick_manual #price').val(manual_data_bespoke['price'])
+                $('#form-quick_manual #quantity').val(1)
+                $('#form-quick_manual #manualMaterial').val(manual_data_bespoke['material'])
+
+                $('#order-add-product-tabs #manual-product-tab').tab('show');
+                $('#form-quick_manual #manualMaterial').trigger('change');
+
+
+            }
+
+            $('#js-copy-to-manaul-bespoke').click(copy_to_manua_bespoke)
         })
     </script>
 

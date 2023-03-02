@@ -31,6 +31,8 @@ urlpatterns = [
     path('category/', include('apps.category.urls')),
     path('company/', include('apps.company.urls')),
     path('paperwork/', include('apps.paperwork.urls')),
+    path('pages/', include('apps.pages.urls')),
+    path('sites/', include('apps.sites.urls')),
     path('', views.StarterPageView.as_view(), name='apps-pages-starter'),
     path('dashboard', views.dashboard, name='dashboard'),  # Dashboard
     path('password_change/', views.DashboardView.as_view(), name='change_password'),  # Change Password

@@ -73,7 +73,7 @@ $(".switchApplyBulk").change(function () {
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
         })[0];
-        var tbl = $('<table class="table table-bordered table-condensed"></table>').attr({id: "bulk_pricing_tbl"});
+        var tbl = $('<table class="table table-bordered table-sm"></table>').attr({id: "bulk_pricing_tbl"});
         var header = $('<thead></thead>').appendTo(tbl);
         var headerrow = $('<tr></tr>').appendTo(header);
         var body = $('<tbody></tbody>').appendTo(tbl);
