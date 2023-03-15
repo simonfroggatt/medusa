@@ -328,10 +328,11 @@
 
                 $('#form-stock #{{ form.product_id.name }}').val(data_row['product_id'])
                 $('#form-stock #{{ form.name.name }}').val(data_row['productdescbase']['name'])
+                 manual_data['name'] = data_row['productdescbase']['name']
             }
 
             function set_product_variant_details(data_row) {
-                console.log(data_row);
+
                 let core_variant = data_row['prod_var_core'];
                 $('#form-stock #{{ form.size_name.name }}').val(core_variant['size_material']['product_size']['size_name'])
                 $('#form-stock #{{ form.material_name.name }}').val(core_variant['size_material']['product_material']['material_name'])
@@ -350,6 +351,7 @@
                 manual_data['height'] = core_variant['size_material']['product_size']['size_width']
                 manual_data['calcheight'] = core_variant['size_material']['product_size']['size_width']
                 manual_data['material'] = core_variant['size_material']['product_material']['material_name']
+                manual_data['code'] = data_row['variant_code']
                 manual_data['price'] = $('#form-stock #{{ form.price.name }}').val()
 
 
@@ -366,6 +368,8 @@
                 $('#form-quick_manual #price').val(manual_data['price'])
                 $('#form-quick_manual #quantity').val(1)
                 $('#form-quick_manual #manualMaterial').val(manual_data['material'])
+                $('#form-quick_manual #model').val(manual_data['code'])
+                $('#form-quick_manual #name').val(manual_data['name'])
 
                 $('#order-add-product-tabs #manual-product-tab').tab('show');
                 $('#form-quick_manual #manualMaterial').trigger('change');

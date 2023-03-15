@@ -100,13 +100,19 @@ def order_shipping(order_obj):
     shipping_str += order_obj.shipping_fullname + "<BR/>"
     if order_obj.shipping_company:
         shipping_str += order_obj.shipping_company + "<BR/>"
-    shipping_str += order_obj.shipping_address_1 + "<BR/>"
+    if order_obj.shipping_address_1:
+        shipping_str += order_obj.shipping_address_1 + "<BR/>"
     if order_obj.shipping_address_2:
         shipping_str += order_obj.shipping_address_2 + "<BR/>"
-    shipping_str += order_obj.shipping_city + "<BR/>"
-    shipping_str += order_obj.shipping_area + "<BR/>"
-    shipping_str += order_obj.shipping_postcode + "<BR/>"
-    shipping_str += order_obj.shipping_country
+    if order_obj.shipping_city:
+        shipping_str += order_obj.shipping_city + "<BR/>"
+    if order_obj.shipping_area:
+        shipping_str += order_obj.shipping_area + "<BR/>"
+    if order_obj.shipping_postcode:
+        shipping_str += order_obj.shipping_postcode + "<BR/>"
+    if order_obj.shipping_country:
+        shipping_str += order_obj.shipping_country + "<BR/>"
+
     return shipping_str
 
 

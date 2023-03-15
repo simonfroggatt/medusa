@@ -12,7 +12,7 @@ router.register(r'bespokeprices', views.BespokePrices)
 
 urlpatterns = [
     url('^api/', include(router.urls)),
-    path('sizes/', views.all_sizes, name='allsizes' ),
+    path('sizes/', views.all_sizes, name='allsizes'),
     path('sizes/create/', views.SizeCreateView.as_view(), name='create_size'),
     path('sizes/edit/<int:pk>', views.SizeUpdateView.as_view(), name='edit_size'),
     path('sizes/delete/<int:pk>', views.SizeDeleteView.as_view(), name='delete_size'),
@@ -23,6 +23,7 @@ urlpatterns = [
    # path('materials/edittest/<int:material_id>', views.material_test, name='edit_material'),
     path('materials/delete/<int:pk>', views.MaterialDeleteView.as_view(), name='delete_material'),
     path('prices/', views.all_base_prices, name='allbaseprices'),
+    path('prices/<int:pk>/edit', views.PriceComboUpdate.as_view(), name='basepriceupdate'),
     path('quick/', views.quick_prices, name='quickprices'),
     path('materials/details/<int:material_id>', views.material_details, name='materialdetails'),
     ]

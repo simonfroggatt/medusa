@@ -97,3 +97,11 @@ class ProductEditForm(forms.ModelForm):
         widgets = {
             'is_bespoke': forms.CheckboxInput(),
          }
+
+
+class QuoteTextForm(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgQuoteProduct
+        fields = '__all__'
+

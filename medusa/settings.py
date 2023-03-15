@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'apps.quotes',
     'apps.pages',
     'apps.sites',
+    'apps.templating',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -153,6 +154,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
+                    os.path.join(BASE_DIR, 'apps/templating/static/templating'),
                     os.path.join(BASE_DIR, 'apps/authentication/static/authentication'),
                     os.path.join(BASE_DIR, 'apps/orders/static/orders'),
                     os.path.join(BASE_DIR, 'apps/customer/static/customer'),
@@ -163,7 +165,9 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/paperwork/static/paperwork'),
                     os.path.join(BASE_DIR, 'apps/pages/static/pages'),
                     os.path.join(BASE_DIR, 'apps/sites/static/sites'),
-                    os.path.join(BASE_DIR, 'apps/quotes/static/quotes')
+                    os.path.join(BASE_DIR, 'apps/quotes/static/quotes'),
+                    os.path.join(BASE_DIR, 'apps/category/static/category'),
+
                     ]
 
 
@@ -228,6 +232,8 @@ TSG_PAYMENT_TYPES = {
     'PO': 5
 }
 
+TSG_PRODUCT_STATUS_SHIPPING = [8, 9]
+
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -235,3 +241,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sales@safetysignsandnotices.co.uk' # Replace with your Google Workspace email address
 EMAIL_HOST_PASSWORD = '$me11yb0nes' # Replace with your Google Workspace email password
+

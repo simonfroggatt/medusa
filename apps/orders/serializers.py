@@ -3,6 +3,7 @@ from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFl
     OcTsgOrderShipment
 from django.conf import settings
 from apps.orders import services as serv
+from apps.products.models import OcTsgProductVariants, OcTsgProductVariantCore
 
 class OrderStatusSerializer(serializers.ModelSerializer):
 
@@ -83,13 +84,24 @@ class OrderProductListSerializer(serializers.ModelSerializer):
         depth = 3
 
 
+class PreviousVariant(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcTsgProductVariants
+        fields = '__all__'
+        depth = 2
+
+
 class OrderPreviousProductListSerializer(serializers.ModelSerializer):
+    product_variant_data = PreviousVariant(many=True, read_only=True)
 
     class Meta:
         model = OcOrderProduct
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['order_product_option', 'order_id'])
+        fields.extend(['order_product_option', 'order_id', 'product_variant_data'])
         fields.remove('order')
+        fields.remove('status')
+
         depth = 1
 
 

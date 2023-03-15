@@ -1,0 +1,17 @@
+{% load static %}
+<nav class="navbar navbar-expand-md navbar-light pe-0" id="navbar-category">
+    <div class="container-fluid justify-content-end pe-0">
+        <button class="navbar-toggler " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+
+                <a class="btn btn-primary" id="js-category_create" role="button" href="{% url 'categorycreate' %}">
+                    <i class="fas fa-list"></i> New Category</a>
+
+            </div>
+        </div>
+    </div>
+</nav>

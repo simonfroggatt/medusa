@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core import serializers
 from django.template.loader import render_to_string
-from .models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
-from .serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer
-from .forms import SizesBSForm, MaterialsBSForm, MaterialForm
+from apps.pricing.models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
+from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer
+from apps.pricing.forms import SizesBSForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
@@ -179,3 +179,12 @@ class MaterialUpdateView(UpdateView):
         context['pageview'] = 'Materials'
         context['pageview_url'] = reverse_lazy('allmaterials')
         return context
+
+
+class PriceComboUpdate(UpdateView):
+    model = OcTsgSizeMaterialComb
+    form_class = SizeMaterialCombo
+    template_name = 'pricing/prices/base_prices_edit.html'
+    success_url = reverse_lazy('allbaseprices')
+
+

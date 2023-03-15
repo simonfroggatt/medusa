@@ -6,7 +6,7 @@
         {% endif %}
 >
     <h4>Known size and price</h4>
-    <div class="row">
+    <div class="row pb-2">
         <div class="col-4">
             <label for="manualWidth" class="form-label">Width</label>
             <input type="number" class="form-control" id="manualWidth" min="0" placeholder="0" onchange="reCalc()">
@@ -21,15 +21,22 @@
                    onchange="reCalc()">
         </div>
     </div>
-    <h4>Size you want</h4>
-    <div class="row">
+<hr>
+    <div><h4>Size you want</h4> <div class="form-switch form-check">
+                <input class="form-check-input switchScale" type="checkbox" id="switchScale"
+                       >
+                <label class="form-check-label" for="switchScale">Lock Aspect</label>
+            </div>
+    </div>
+    <div class="row pb-2">
         <div class="col-4">
             <label for="manualCalcWidth" class="form-label">Width</label>
-            <input type="number" class="form-control" id="manualCalcWidth" min="0" placeholder="0" onchange="reCalc()">
+            <input type="number" class="form-control" id="manualCalcWidth" min="0" placeholder="0">
+
         </div>
         <div class="col-4">
             <label for="manualCalcHeight" class="form-label">Height</label>
-            <input type="number" class="form-control" id="manualCalcHeight" min="0" placeholder="0" onchange="reCalc()">
+            <input type="number" class="form-control" id="manualCalcHeight" min="0" placeholder="0">
         </div>
         <div class="col-4">
             <label for="manualMaterial" class="form-label">Material</label>
@@ -42,6 +49,8 @@
                 {% endfor %}
             </datalist>
         </div>
+    </div>
+<div class="row">
         {% if price_for|upper == "I" or price_for|upper == "Q" %}
             <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="True">
             <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
@@ -53,8 +62,6 @@
                        value="{{ form.total.value|floatformat:2 }}">
             <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
                        value="{{ form.tax.value|floatformat:2 }}">
-            <input type="text" class="form-control" id="{{ form.material_name.name }}"
-                               name="{{ form.material_name.name }}" value="">
 
             <div class="col-4">
                 <label for="{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
@@ -84,7 +91,7 @@
     {% endif %}
 
 
-
+<hr>
     <div class="row">
         <div class="col-8">
             <div class="form-check form-switch">
@@ -148,7 +155,6 @@
                     </div>
                 </div>
             {% endif %}
-
         </div>
     </div>
 
@@ -221,6 +227,43 @@
             let final_copy_str = $('#form-quick_manual #text_to_copy').val() + $('#form-quick_manual #price_to_copy').val()
             $('#string_to_copy_manual').val(final_copy_str);
         });
+
+        $(document).on('focusin', '#manualCalcHeight', function () {
+            $(this).data('val', $(this).val() ? $(this).val() : 0);
+        });
+
+        $(document).on('change', '#manualCalcHeight', function () {
+            var prev = $(this).data('val')
+            var current = $(this).val();
+
+            var keep_aspect = $('#switchScale').is(':checked');
+            if (keep_aspect) {
+                let oldwidth = $('#manualCalcWidth').val()
+                let aspect = oldwidth / prev;
+                let newwidth = Math.round(aspect * current)
+                $('#manualCalcWidth').val(newwidth)
+            }
+            reCalc()
+        });
+
+        $(document).on('focusin', '#manualCalcWidth', function () {
+            $(this).data('val', $(this).val() ? $(this).val() : 0);
+        });
+
+        $(document).on('change', '#manualCalcWidth', function () {
+            var prev = $(this).data('val')
+            var current = $(this).val();
+
+            var keep_aspect = $('#switchScale').is(':checked');
+            if (keep_aspect) {
+                let oldwidth = $('#manualCalcHeight').val()
+                let aspect = oldwidth / prev;
+                let newwidth = Math.round(aspect * current)
+                $('#manualCalcHeight').val(newwidth)
+            }
+            reCalc()
+        });
+
 
     });
 

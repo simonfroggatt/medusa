@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class OcCurrency(models.Model):
@@ -47,6 +48,12 @@ class OcStore(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_store'
+
+    def store_thumb_url(self):
+        if self.thumb:
+            return f"{settings.MEDIA_URL}{self.thumb}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
 
     def __str__(self):
         return self.name

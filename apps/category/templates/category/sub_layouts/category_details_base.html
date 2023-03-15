@@ -1,0 +1,84 @@
+{% load static %}
+<div class="row pb-2">
+    <div class="col-12 col-sm-2 pe-0">
+        <img src="{{ category_obj.category_image_url }}" alt="{{ category_obj.name }} category image" class="img-fluid img-thumbnail">
+    </div>
+    <div class="col-12 col-sm-5 pe-0" id="card_category_base_desc">
+        <div class="card h-100 mb-0">
+            <div class="card-header category_base_desc">
+                <div class="row">
+                    <div class="col-9 ">Base Text</div>
+                    <div class="col-3">
+                        <div class="float-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <a type="button" class="btn btn-primary btn-sm js-company-dlg"
+                                        href="{% url 'categorybaseedit' category_obj.category_id %}"
+                                        data-dlgsize="modal-lg"
+                                ><i class="fas fa-edit fa-pull-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <dl class="row " id="category_desc_{{ category_obj.category_id }}">
+                            <dt class="col-3">Name</dt>
+                            <dd class="col-9">{{ category_obj.name }}</dd>
+                            <dt class="col-3">Description</dt>
+                            <dd class="col-9">{{ category_obj.description|truncatechars:128 }}</dd>
+                            <dt class="col-3">Language</dt>
+                            <dd class="col-9">{{ category_obj.language }}</dd>
+                            <dt class="col-3">Type</dt>
+                            <dd class="col-9">{{ category_obj.category.category_type }}</dd>
+                            <dt class="col-3">Status</dt>
+                            <dd class="col-9">{% if category_obj.category.status %}
+                                <span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>
+                            {% else %}
+                                <span class="badge rounded-pill badge-soft-warning font-size-14">OFF-LINE</span>
+                            {% endif %}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-5 pe-0" id="card_category_base_meta">
+        <div class="card h-100 mb-0">
+            <div class="card-header category_base_meta">
+                <div class="row">
+                    <div class="col-9 ">Base Meta Info</div>
+                    <div class="col-3">
+                        <div class="float-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <button type="button" class="btn btn-primary btn-sm js-company-dlg"
+                                        data-url=""
+                                        data-dlgsize="modal-lg"
+                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <dl class="row " id="category_meta_{{ category_obj.category_id }}">
+                            <dt class="col-3">Meta Title</dt>
+                            <dd class="col-9">{{ category_obj.meta_title }}</dd>
+                            <dt class="col-3">Meta Keywords</dt>
+                            <dd class="col-9">{{ category_obj.meta_keyword }}</dd>
+                            <dt class="col-3">Meta Description</dt>
+                            <dd class="col-9">{{ category_obj.meta_description|truncatechars:128 }}</dd>
+                            <dt class="col-3">Adwords Name</dt>
+                            <dd class="col-9">{{ category_obj.adwords_name }}</dd>
+                        </dl>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>

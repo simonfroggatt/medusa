@@ -54,9 +54,10 @@ class OcCategoryDescriptionBase(models.Model):
     category = models.OneToOneField(OcCategory, models.DO_NOTHING, primary_key=True, related_name='categorybasedesc')
     language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
     name = models.CharField(max_length=255)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
-    image = models.CharField(max_length=255, blank=True, null=True)
+    #image = models.CharField(max_length=255, blank=True, null=True)
+    image = models.ImageField(max_length=255, blank=True, null=True)
     meta_title = models.CharField(max_length=255)
     meta_description = models.CharField(max_length=1024)
     meta_keyword = models.CharField(max_length=512)
@@ -67,24 +68,42 @@ class OcCategoryDescriptionBase(models.Model):
         managed = False
         db_table = 'oc_category_description_base'
 
+    def category_image_url(self):
+        if self.image:
+            return f"{settings.MEDIA_URL}{self.image}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
+
+    def __str__(self):
+        return self.name
 
 
 class OcCategoryDescription(models.Model):
-    category_desc_id = models.AutoField(primary_key=True)
+    category = models.OneToOneField(OcCategory, models.DO_NOTHING, primary_key=True, related_name='descriptioncategory')
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, related_name='descriptionstore')
     language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
-    name = models.CharField(max_length=255)
-    title = models.CharField(max_length=255)
-    description = models.TextField()
+    name = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     image = models.CharField(max_length=255, blank=True, null=True)
-    meta_title = models.CharField(max_length=255)
-    meta_description = models.CharField(max_length=1024)
-    meta_keyword = models.CharField(max_length=512)
+    meta_title = models.CharField(max_length=255, blank=True, null=True)
+    meta_description = models.CharField(max_length=1024, blank=True, null=True)
+    meta_keyword = models.CharField(max_length=512, blank=True, null=True)
     adwords_name = models.CharField(max_length=255, blank=True, null=True)
     clean_url = models.CharField(max_length=255, blank=True, null=True)
+
+    def category_image_url(self):
+        if self.image:
+            return f"{settings.MEDIA_URL}{self.image}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
 
     class Meta:
         managed = False
         db_table = 'oc_category_description'
+
+    def __str__(self):
+        return self.name
 
 
 class OcCategoryPath(models.Model):
@@ -101,8 +120,7 @@ class OcCategoryPath(models.Model):
 class OcCategoryToStore(models.Model):
     category_store_id = models.AutoField(primary_key=True)
     category = models.ForeignKey(OcCategory, models.DO_NOTHING, blank=True, null=True)
-    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
-    category_desc = models.ForeignKey(OcCategoryDescription, models.DO_NOTHING, blank=True, null=True)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True, related_name='storecategory')
 
     class Meta:
         managed = False

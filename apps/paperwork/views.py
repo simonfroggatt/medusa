@@ -23,16 +23,12 @@ from functools import partial
 from decimal import Decimal, ROUND_HALF_UP
 import pathlib
 from PyPDF2 import PdfFileMerger, PdfFileWriter, PdfFileReader
+from medusa.settings import TSG_PRODUCT_STATUS_SHIPPING
 
 
-def gen_pick_list(order_id):
-    width = 210 * mm
-    height = 297 * mm
-    padding = 5 * mm
+def gen_pick_list(order_id, bl_excl_shipped=False):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
-
-   # response = HttpResponse(content_type='application/pdf')
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
@@ -95,7 +91,11 @@ def gen_pick_list(order_id):
     image_max_h = 10 * mm
     image_max_w = 20 * mm
 
-    order_items = order_obj.order_products.all()
+    if bl_excl_shipped:
+        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+    else:
+        order_items = order_obj.order_products.all()
+
     for order_item_data in order_items.iterator():
         if order_item_data.product_variant:
             model = order_item_data.product_variant.variant_code
@@ -162,7 +162,7 @@ def gen_pick_list(order_id):
     return buffer
 
 
-def gen_collection_note(order_id):
+def gen_collection_note(order_id, bl_excl_shipped=False):
     width = 210 * mm
     height = 297 * mm
     padding = 5 * mm
@@ -232,7 +232,11 @@ def gen_collection_note(order_id):
     image_max_h = 10 * mm
     image_max_w = 20 * mm
 
-    order_items = order_obj.order_products.all()
+    if bl_excl_shipped:
+        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+    else:
+        order_items = order_obj.order_products.all()
+
     for order_item_data in order_items.iterator():
         if order_item_data.product_variant:
             model = order_item_data.product_variant.variant_code
@@ -534,15 +538,19 @@ def gen_merged_paperwork(request, order_id):
     response = HttpResponse(content_type='application/pdf')
     pdflist=[]
 
+    bl_exclude_shipped = False
+    if 'print_shipped' in request.POST:
+        bl_exclude_shipped = True
+
     if 'print_picklist' in request.POST:
-        pdflist.append(gen_pick_list(order_id))
+        pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
         set_printed(order_id)
     if 'print_shipping' in request.POST:
         pdflist.append(gen_shipping_page(order_id))
     if 'print_invoice' in request.POST:
         pdflist.append(gen_invoice(order_id))
     if 'print_collection' in request.POST:
-        pdflist.append(gen_collection_note(order_id))
+        pdflist.append(gen_collection_note(order_id, bl_exclude_shipped))
         set_printed(order_id)
 
     result_pdf = PdfFileWriter()

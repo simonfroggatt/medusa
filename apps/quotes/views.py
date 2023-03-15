@@ -11,11 +11,11 @@ from django.urls import reverse_lazy
 from apps.products import services as prod_services
 from django.db.models import Sum, F
 from decimal import Decimal, ROUND_HALF_UP
-from medusa.services import get_text_template
 from .services import create_quote_prices_text
 from django.core.mail import send_mail
 from apps.customer.models import OcCustomer
 from apps.customer.views import get_default_address
+from apps.templating.services import get_template_data
 
 
 class Quotes_asJSON(viewsets.ModelViewSet):
@@ -253,26 +253,47 @@ def quote_product_edit(request, quote_id, quote_product_id):
 
 def quote_get_text(request, quote_id):
     data = dict()
-    template_obj = get_text_template('quote_text')
-
+    store_id = OcTsgQuote.objects.filter(quote_id=quote_id).first().store_id
+    template_obj = get_template_data('quote_text', store_id)['main']
+    pricing_template = get_template_data('quote_prices', store_id)['main']
+    #shipping_template = get_template_data('shipping_price', store_id)['main']
     quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
     firstname = quote_obj.fullname.split()[0]
 
     quote_products_obj = OcTsgQuoteProduct.objects.filter(quote_id=quote_id)
 
     quote_prices_str = ""
-    #TODO - what if it's bespoke? Need the bespoke text not the model
-    for quote_row in quote_products_obj:
-        if quote_row.is_bespoke:
-            quote_prices_str += quote_row.name
+    line_str_dict = {
+        '{{size}}': 'size_name',
+        '{{material}}': 'material_name',
+        '{{price}}': 'price',
+        '{{qty}}': 'quantity',
+    }
+
+    for quote_row in list(quote_products_obj.values()):
+        line_str = pricing_template
+
+        if quote_row['is_bespoke']:
+            line_str_dict['{{model}}'] = 'name'
         else:
-            quote_prices_str += quote_row.model
-        quote_prices_str += " - " + quote_row.size_name + " " + quote_row.material_name + " @ "+ \
-                            quote_obj.currency.symbol_left + ("{0:.2f}".format(quote_row.price)) +" each for " + str(quote_row.quantity) + " off" + "\r\n"
+            line_str_dict['{{model}}'] = 'model'
+
+        for i, j in line_str_dict.items():
+            tmpval = quote_row[j]
+            if isinstance(tmpval, Decimal):
+                tmpval = "{0:.2f}".format(tmpval)
+            else:
+                tmpval = str(tmpval)
+            line_str = line_str.replace(i, tmpval)
+
+        #quote_prices_str += " - " + quote_row['size_name'] + " " + quote_row.material_name + " @ "+ \
+                   #         quote_obj.currency.symbol_left + ("{0:.2f}".format(quote_row.price)) +" each for " + str(quote_row.quantity) + " off" + "\r\n"
+        line_str = line_str.replace('{{currency}}', quote_obj.currency.symbol_left)
+        quote_prices_str += line_str + '\r'
 
     text_shipping = quote_obj.shipping_type.title + " @ " + quote_obj.currency.symbol_left + ("{0:.2f}".format(quote_obj.shipping_type.price))
-    template_str = template_obj['header'].replace('{{firstname}}', firstname)
-    template_str += template_obj['main'].replace('{{quote_prices}}', quote_prices_str)
+    template_str = template_obj.replace('{{firstname}}', firstname)
+    template_str = template_str.replace('{{quote_prices}}', quote_prices_str)
     template_str = template_str.replace('{{shipping_price}}', text_shipping)
     template_name = 'quotes/dialog/quote_text.html'
 

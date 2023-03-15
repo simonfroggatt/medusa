@@ -1,4 +1,5 @@
 {% load static %}
+<link href="{% static 'css/bootstrap2-toggle.css'%}" id="app-style" rel="stylesheet" type="text/css" />
 <div class="modal-header">
     <h4 class="modal-title">Quick Price</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -53,8 +54,9 @@
         </div>
     </div>
 </div>
-
+    {% include 'partials/javascript.html' %}
     <script type="text/javascript" src="{% static 'js/pricing.js' %}"></script>
+
 
 
 

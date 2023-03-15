@@ -1,116 +1,123 @@
 <div class="container">
     <div class="row mb-3">
-
-
-                                <table id="previous_product_table" class="table table-hover table-sm table-striped"
-                                       style="width:100%">
-                                    <thead>
-                                    <tr>
-                                        <th class="col-1">Order</th>
-                                        <th class="col-2">Code</th>
-                                        <th class="col-auto">Name</th>
-                                        <th class="col-1">Qty</th>
-                                        <th class="col-1">Price</th>
-                                    </tr>
-                                    </thead>
-                                </table>
-
+        <div class="col">
+            <table id="previous_product_table" class="table table-hover table-sm table-striped">
+                <thead>
+                <tr>
+                    <th class="col-1">Order</th>
+                    <th class="col-2">Code</th>
+                    <th class="col-3">Name</th>
+                    <th class="col-2">Size</th>
+                    <th class="col-2">Material</th>
+                    <th class="col-1">Qty</th>
+                    <th class="col-1">Price</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
     </div>
     <div class="row">
         <div class="col-12">
-           <form method="post" action="{{form_post_url}}"
-                 {% if price_for|upper == "I" %} class="js-product-add"
-                  {% else %}
+            <form method="post" action="{{ form_post_url }}"
+                    {% if price_for|upper == "I" %} class="js-product-add"
+                    {% else %}
                   class="js-quote-add"
-                  {% endif %}
-                 id="form-previous">
-            {% csrf_token %}
-           {% if price_for|upper == "I" %}
-                <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
-                <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
-            {% else %}
-                <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
-            {% endif %}
-               <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
-               <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
-               <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
-               <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
-               <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
-               <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
-               <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
-               <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}">
-               <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+                    {% endif %}
+                  id="form-previous">
+                {% csrf_token %}
+                {% if price_for|upper == "I" %}
+                    <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
+                    <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
+                {% else %}
+                    <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
+                {% endif %}
+                <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
+                <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
+                <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
+                <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
+                <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
+                <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
+                <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
+                <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}">
+                <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
 
-               <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
-                           value="{{ form.total.value|floatformat:2 }}">
-               <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
-                           value="{{ form.tax.value|floatformat:2 }}">
+                <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
+                       value="{{ form.total.value|floatformat:2 }}">
+                <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
+                       value="{{ form.tax.value|floatformat:2 }}">
 
 
-               <div class="row">
-                   <div class="col-8">
+                <div class="row">
+                    <div class="col-8">
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-check form-switch">
-                           <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk" checked>
-                           <label class="form-check-label" for="switchApplyBulk">Apply bulk discount</label>
-                       </div>
+                                    <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk"
+                                           checked>
+                                    <label class="form-check-label" for="switchApplyBulk">Apply bulk discount</label>
+                                </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-check form-switch">
-                           <input class="form-check-input switchAddPreviousNumber" type="checkbox" name="switchAddPreviousNumber" id="switchAddPreviousNumber">
-                           <label class="form-check-label" for="switchAddPreviousNumber">Add Order Number</label>
-                       </div>
+                                    <input class="form-check-input switchAddPreviousNumber" type="checkbox"
+                                           name="switchAddPreviousNumber" id="switchAddPreviousNumber">
+                                    <label class="form-check-label" for="switchAddPreviousNumber">Add Order
+                                        Number</label>
+                                </div>
                             </div>
                         </div>
-                       <div class="collapse show" id="collapseBulkDiscount">
-                           <div class="row">
-                               <div class="col-12" id="bulkTableDiv">
-                                   <select class="form-select bulk_group_select" id="previous-bulk_group_select">
-                                       {% for bulk_group in bulk_info %}
-                                           <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
-                                       {% endfor %}
-                                   </select>
-                                   <div class="row">
-                                       <div class="col-xs-12" id="bulk_pricing_div">
-                                       </div>
-                                   </div>
-                               </div>
-                           </div>
-                       </div>
-                   </div>
-                   <div class="col-4">
-                       <div class="row">
-                           <div class="row d-flex justify-content-md-end mb-2">
-                   <div class="col-6 col-lg-4">
-
-                            <label for="{{ form.quantity.name }}"
-                                   class="form-label">{{ form.quantity.label }}</label>
-                            <input type="number" min="1" step="1" class="form-control calc_line_totals"
-                                   id="{{ form.quantity.name }}" name="{{ form.quantity.name }}"
-                                   value="1">
+                        <div class="collapse show" id="collapseBulkDiscount">
+                            <div class="row">
+                                <div class="col-12" id="bulkTableDiv">
+                                    <select class="form-select bulk_group_select" id="previous-bulk_group_select">
+                                        {% for bulk_group in bulk_info %}
+                                            <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="row">
+                                        <div class="col-xs-12" id="bulk_pricing_div">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                   <div class="col-6 col-lg-4">
-                        <label for="{{ form.price.name }}"
-                                   class="form-label">{{ form.price.name }}</label>
-                            <input type="number" id="{{ form.price.name }}" name="{{ form.price.name }}" step="0.01"
-                           value="{{ form.price.value|floatformat:2 }}" class="form-control calc_line_totals" readonly>
-                   </div>
-                   <div class="col-12 col-lg-4 d-flex align-items-end text-end">
-                       <h3>£<span id="line_total_cal"></span></h3>
-                   </div>
-               </div>
-                       </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="row">
+                            <div class="row d-flex justify-content-md-end mb-2">
+                                <div class="col-6 col-lg-4">
+
+                                    <label for="{{ form.quantity.name }}"
+                                           class="form-label">{{ form.quantity.label }}</label>
+                                    <input type="number" min="1" step="1" class="form-control calc_line_totals"
+                                           id="{{ form.quantity.name }}" name="{{ form.quantity.name }}"
+                                           value="1">
+                                </div>
+                                <div class="col-6 col-lg-4">
+                                    <label for="{{ form.price.name }}"
+                                           class="form-label">{{ form.price.name }}</label>
+                                    <input type="number" id="{{ form.price.name }}" name="{{ form.price.name }}"
+                                           step="0.01"
+                                           value="{{ form.price.value|floatformat:2 }}"
+                                           class="form-control calc_line_totals" readonly>
+                                </div>
+                                <div class="col-12 col-lg-4 d-flex align-items-end text-end">
+                                    <h3>£<span id="line_total_cal"></span></h3>
+                                </div>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <!-- <button type="button" id="js-copy-to-manaul-stock" class="btn btn-primary ">Use with <i
+                                         class="fas fa-fist-raised"></i></button> -->
                                 <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
                                 <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
                             </div>
                         </div>
-                   </div>
-               </div>
+                    </div>
+                </div>
 
-           </form>
+            </form>
         </div>
     </div>
 
@@ -119,6 +126,8 @@
 {% block javascript %}
     <script>
     $(document).ready(function() {
+
+        var manual_data = {}
 
         var previous_product_table = $('#previous_product_table').DataTable({
             "dom": "<'row'<'col-6'fl><'col-6'p>>" +
@@ -137,11 +146,8 @@
                 "processing": true,
                 "url": "/orders/api/previous-products/{{ customer_id }}?format=datatables",
                 "type": "GET",
-                "beforeSend": function (xhr) {
-                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
-                }
             },
-            'order': [[0, 'desc']],
+             'order': [[0, 'desc']],
             "deferRender": false,
 
             "search": {
@@ -155,6 +161,16 @@
                 {data: "model"},
                 {
                     data: "name",
+                    defaultContent: "",
+                     sortable: true
+                },
+                {
+                    data: "size_name",
+                    defaultContent: "",
+                     sortable: true
+                },
+                {
+                    data: "material_name",
                     defaultContent: ""
                 },
                 {
@@ -207,6 +223,16 @@
              $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
              $('#form-previous #single_unit_price').val(data_row['price'])
 
+            /*let core_variant = data_row['prod_var_core'];
+            console.log(data_row);
+                manual_data['width'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['calcwidth'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['height'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['calcheight'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['material'] = core_variant['size_material']['product_material']['material_name']
+                manual_data['code'] = data_row['model']
+                manual_data['price'] = data_row['price']
+*/
         }
 
          $(".switchAddPreviousNumber").change(function(){
@@ -220,6 +246,29 @@
                     $('#form-previous #{{ form.model.name }}').val(selected_row['model'])
                  }
          })
+
+        function copy_to_manual(){
+                console.log(manual_data)
+                $('#form-quick_manual #manualWidth').val(manual_data['width'])
+                $('#form-quick_manual #manualCalcWidth').val(manual_data['calcwidth'])
+                $('#form-quick_manual #manualHeight').val(manual_data['height'])
+                $('#form-quick_manual #manualCalcHeight').val(manual_data['calcheight'])
+                $('#form-quick_manual #manualPrice').val(manual_data['price'])
+                $('#form-quick_manual #single_unit_price').val(manual_data['price'])
+                $('#form-quick_manual #price').val(manual_data['price'])
+                $('#form-quick_manual #quantity').val(1)
+                $('#form-quick_manual #manualMaterial').val(manual_data['material'])
+                $('#form-quick_manual #model').val(manual_data['code'])
+                $('#form-quick_manual #name').val(manual_data['name'])
+
+                $('#order-add-product-tabs #manual-product-tab').tab('show');
+                $('#form-quick_manual #manualMaterial').trigger('change');
+
+
+            }
+
+            $('#js-copy-to-manaul-stock').click(copy_to_manual)
+
     })
     </script>
 

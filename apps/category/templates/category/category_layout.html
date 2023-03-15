@@ -1,0 +1,70 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="wrapper wrapper-content layout-details">
+        <input type="hidden" id="static_store_url" value="{% static "images/stores/" %}">
+        <input type="hidden" id="static_media_url" value="{% get_media_prefix %}">
+        <div class="row top_bar">
+            <div class="col-6">
+                <h2>{{ category_obj.name }}</h2>
+            </div>
+            <div class="col-6" id="top_nav_bar">
+                {% include 'category/sub_layouts/category_details_topnav.html' %}
+            </div>
+        </div>
+
+        <div class="row pb-2">
+            <div class="col">
+               {% include 'category/sub_layouts/category_details_base.html' %}
+            </div>
+        </div>
+
+        <div class="row" id="customer-details-tabs">
+            <div class="col">
+                 <div class="ibox">
+                     <div class="ibox-content tsg_navs">
+                        <ul class="nav nav-tabs " role="tablist">
+
+                            <li>
+                        <a class="nav-link active" id="address-tab" data-bs-toggle="tab" href="#tab-texts" role="tab">
+                            <i class="fas fa-align-left"></i>  Texts</a>
+                    </li>
+                             <li class="nav-item" role="presentation">
+                        <a class="nav-link " id="variants-tab" data-bs-toggle="tab" href="#tab-structure" role="tab">
+                            <i class="fas fa-image"></i>  Structure</a>
+                    </li>
+                </ul>
+                        <div class="tab-content">
+                    <div role="tabpanel" id="tab-texts" class="tab-pane fade show active">
+                        <div class="panel-body">
+                            {% include 'category/sub_layouts/category_list_descriptions.html' %}
+                        </div>
+                    </div>
+                            <div role="tabpanel" id="tab-structure" class="tab-pane fade">
+                        <div class="panel-body">
+                           This will be where quotes will be
+                        </div>
+                    </div>
+                </div>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+    <script>
+        const current_cat_id = {{ category_obj.category_id }}
+    </script>
+
+<script type="text/javascript" src="{% static 'js/category.js' %}"></script>
+
+{% endblock javascript %}
+

@@ -62,7 +62,7 @@
                 sortable: false,
                 className: 'text-end',
                 render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="details/' + row['id'] + '"><i class="fas fa-edit fa-sm"></i></a>';
+                let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + row['id'] + '/edit"><i class="fas fa-edit fa-sm"></i></a>';
                 let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + row['id'] + '"><i class="fas fa-trash fa-sm"></i></a>'
                 return delete_icon + "  " + edit_icon;
                 }

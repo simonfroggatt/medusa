@@ -1,5 +1,5 @@
 from django import forms
-from .models import OcTsgProductSizes, OcTsgOrientation, OcTsgProductMaterial
+from .models import OcTsgProductSizes, OcTsgOrientation, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from bootstrap_modal_forms.forms import BSModalModelForm
 from django.conf import settings
 from tinymce.widgets import TinyMCE
@@ -40,4 +40,13 @@ class MaterialForm(forms.ModelForm):
         fields = ['material_id','material_name', 'code', 'material_desc',  'material_desc_full', 'image',
                   'mounting_desc_full', 'mounting_desc', 'thickness_desc', 'thickness_desc_full', 'fixing_desc', 'fixing_desc_full',
                   'colour_desc', 'colour_desc_full']
+
+
+class SizeMaterialCombo(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgSizeMaterialComb
+        fields ='__all__'
+        depth = 2
+
 

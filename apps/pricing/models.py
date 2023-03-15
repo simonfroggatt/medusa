@@ -31,6 +31,9 @@ class OcTsgProductSizes(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_sizes'
+
+    def __str__(self):
+        return self.size_name
         
 
 class OcTsgProductMaterial(models.Model):
@@ -52,6 +55,9 @@ class OcTsgProductMaterial(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_material'
+
+    def __str__(self):
+        return self.material_name
 
     @property
     def material_image_url(self):

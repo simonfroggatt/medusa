@@ -1,0 +1,79 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+      <form method="post">
+        {{ form.media }}
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-12 col-md-4">
+                        <div class="col-12">{{ form.name|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.template_type|as_crispy_field }}</div>
+
+                            <div class="col-6">{{ form.store|as_crispy_field }}</div>
+                            <div class="col-6">{{ form.plain_text|as_crispy_field }}</div>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <div class="col-12">{{ form.header|as_crispy_field }}</div>
+                        <div class="col-md-12">{{ form.main|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.description|as_crispy_field }}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger "
+                                    onclick="location.href='{{ view.get_success_url }}'">Cancel
+                            </button>
+                            <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                        </div>
+                    </div>
+                </div>
+
+    </form>
+{% endblock content %}
+
+{% block javascript %}
+
+
+<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+
+<script>
+    let bl_plaintext = false
+    {% if form.plain_text.value %}
+        bl_plaintext = true
+    {% endif %}
+
+    if(bl_plaintext === false) {
+        tinymce.init({
+        selector: '#id_main',
+       themes: 'modern',
+        height: 400,
+        })
+
+        tinymce.init({
+        selector: '#id_header',
+       themes: 'modern',
+        height: 200
+        })
+    }
+
+
+</script>
+
+
+
+
+
+
+{% endblock javascript %}
+
+
+
+
+
+
