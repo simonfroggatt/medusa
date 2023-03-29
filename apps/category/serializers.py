@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryToStore
+from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryToStore, OcCategoryPath, OcTsgCategoryStoreParent
 from apps.sites.models import OcStore
 from django.conf import settings
 
@@ -39,7 +39,7 @@ class CategoryDescriptionSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = OcCategoryDescription
-        fields = ['category_id', 'language_id', 'name', 'description', 'image', 'category_image_url', 'store', 'category_image_url']
+        fields = ['id', 'category_id', 'language_id', 'name', 'description', 'image', 'category_image_url', 'store', 'category_image_url']
 
         depth = 3
 
@@ -48,5 +48,24 @@ class CategoryToStoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcCategoryToStore
-        fields = '__all__'
+        fields = [field.name for field in model._meta.fields]
+        fields.extend(['category_image_url'])
         depth = 3
+
+
+class CategoryStoreParentPaths(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcTsgCategoryStoreParent
+        fields = '__all__'
+        depth = 2
+
+
+class StoreCategoriesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcCategoryToStore
+        fields = [field.name for field in model._meta.fields]
+        fields.extend(['category_image_url'])
+        depth = 1
+

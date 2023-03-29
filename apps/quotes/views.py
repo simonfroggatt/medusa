@@ -15,6 +15,7 @@ from .services import create_quote_prices_text
 from django.core.mail import send_mail
 from apps.customer.models import OcCustomer
 from apps.customer.views import get_default_address
+from medusa.models import OcTsgShippingMethod
 from apps.templating.services import get_template_data
 
 
@@ -86,11 +87,19 @@ def quote_details_edit(request, quote_id):
     else:
         form = QuoteDetailsEditForm(instance=quote_details_obj)
 
+    shipping_obj = OcTsgShippingMethod.objects.filter(store_id=quote_details_obj.store_id)
+    shipping_rates = []
+    for shipping_data in shipping_obj:
+        shipping_rate_vals = {'shipping_id': shipping_data.shipping_method_id,
+                              'rate': float(shipping_data.price)}
+        shipping_rates.append(shipping_rate_vals)
+
     template_name = 'quotes/dialog/edit_quote_details.html'
 
     context = {'quote_id': quote_id,
                'form': form,
-               'initials': initial_data}
+               'initials': initial_data,
+               'shipping_rates': shipping_rates}
 
     data['html_form'] = render_to_string(template_name, context, request= request)
 
@@ -169,7 +178,7 @@ def get_quote_totals(quote_id, tax_rate):
         discount = quote_obj.discount
         data['subtotal'] = Decimal(subtotal.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         data['discount'] = discount
-        subtotal_net = subtotal - discount + quote_obj.shipping_type.price
+        subtotal_net = subtotal - discount + quote_obj.shipping_rate
         data['tax_value'] = Decimal((subtotal_net*(tax_rate/100)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         data['total'] = Decimal((subtotal_net + data['tax_value']).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
     else:
@@ -291,7 +300,7 @@ def quote_get_text(request, quote_id):
         line_str = line_str.replace('{{currency}}', quote_obj.currency.symbol_left)
         quote_prices_str += line_str + '\r'
 
-    text_shipping = quote_obj.shipping_type.title + " @ " + quote_obj.currency.symbol_left + ("{0:.2f}".format(quote_obj.shipping_type.price))
+    text_shipping = quote_obj.shipping_type.title + " @ " + quote_obj.currency.symbol_left + ("{0:.2f}".format(quote_obj.shipping_rate))
     template_str = template_obj.replace('{{firstname}}', firstname)
     template_str = template_str.replace('{{quote_prices}}', quote_prices_str)
     template_str = template_str.replace('{{shipping_price}}', text_shipping)
@@ -342,6 +351,7 @@ def quick_quote(request):
         'tax_rate': 86,
         'days_valid': 30,
         'shipping_type': 1,
+        'shipping_rate': 0,
         'sent': False,
         'store': 1
     }

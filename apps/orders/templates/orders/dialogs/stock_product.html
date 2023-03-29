@@ -190,69 +190,73 @@
 
             var manual_data = {}
 
-            var product_table = $('#product_table').DataTable({
-                "dom": "<'row'<'col-6'fl><'col-6'p>>" +
-                    "<'row'<'col-12'tr>>",
-                "processing": true,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                "pageLength": 10,
-                "autoWidth": false,
-                "responsive": false,
-                "serverSide": true,
-                "select": true,
-                "scroller": true,
-                scrollY: 300,
-                "rowId": 'product_id',
-                "ajax": {
+            if ( $.fn.dataTable.isDataTable( '#product_table' ) ) {
+                var product_table = $('#product_table').DataTable();
+            }
+            else {
+                var product_table = $('#product_table').DataTable({
+                    "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                        "<'row'<'col-12'tr>>",
                     "processing": true,
-                    "url": "/products/api/post-list/products/?format=datatables",
-                    "type": "POST",
-                    "beforeSend": function (xhr) {
-                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
-                    }
-                },
-                "deferRender": false,
-
-                "search": {
-                    "regex": true
-                },
-                columns: [
-
-                    {
-                        data: "image_url",
-                        name: "thumbnail",
-                        searchable: "false",
-                        sortable: "false",
-                        render: function (data, type, row, meta) {
-                            return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                    "pageLength": 10,
+                    "autoWidth": false,
+                    "responsive": false,
+                    "serverSide": true,
+                    "select": true,
+                    "scroller": true,
+                    scrollY: 300,
+                    "rowId": 'product_id',
+                    "ajax": {
+                        "processing": true,
+                        "url": "/products/api/post-list/products/?format=datatables",
+                        "type": "POST",
+                        "beforeSend": function (xhr) {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
                         }
                     },
-                    {data: "model"},
-                    {
-                        data: "productdescbase.name",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "productdescbase.title",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "productdescbase.description",
-                        defaultContent: "",
-                        "visible": false
-                    },
-                    {
-                        data: "product_id",
-                        "visible": false
-                    },
-                    {
-                        data: "corevariants",
-                        name: "corevariants.supplier_code",
-                        "visible": false
-                    }
-                ]
-            });
+                    "deferRender": false,
 
+                    "search": {
+                        "regex": true
+                    },
+                    columns: [
+
+                        {
+                            data: "image_url",
+                            name: "thumbnail",
+                            searchable: "false",
+                            sortable: "false",
+                            render: function (data, type, row, meta) {
+                                return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
+                            }
+                        },
+                        {data: "model"},
+                        {
+                            data: "productdescbase.name",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "productdescbase.title",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "productdescbase.description",
+                            defaultContent: "",
+                            "visible": false
+                        },
+                        {
+                            data: "product_id",
+                            "visible": false
+                        },
+                        {
+                            data: "corevariants",
+                            name: "corevariants.supplier_code",
+                            "visible": false
+                        }
+                    ]
+                });
+            }
             product_table.on('select', function (e, dt, type, indexes) {
                 if (type === 'row') {
                     let product_id = product_table.row(indexes).id()

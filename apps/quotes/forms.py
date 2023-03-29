@@ -22,6 +22,7 @@ class QuoteDetailsEditForm(forms.ModelForm):
                   'sent',
                   'store',
                   'shipping_type',
+                  'shipping_rate',
                   'currency',
                   'tax_rate',
                   ]
@@ -34,7 +35,7 @@ class QuoteDetailsEditForm(forms.ModelForm):
         widgets = {
             'quote_address': forms.Textarea(attrs={'rows': 3}),
             'comment': forms.Textarea(attrs={'rows': 2}),
-            'sent': forms.CheckboxInput,
+            'sent': forms.CheckboxInput
         }
 
 

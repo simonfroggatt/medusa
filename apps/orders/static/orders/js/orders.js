@@ -553,7 +553,6 @@ $(function () {
 
 
     function drawBulkTable(bulk_group_id, form_id) {
-
         let base_price = $(form_id + ' #single_unit_price').val()
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;

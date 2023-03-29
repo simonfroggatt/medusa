@@ -30,6 +30,7 @@ class OcTsgQuote(models.Model):
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate')
     sent = models.BooleanField(blank=True, null=True)
     shipping_type = models.ForeignKey(OcTsgShippingMethod, models.DO_NOTHING, blank=True, null=True)
+    shipping_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     date_sent = models.DateTimeField(blank=True, null=True)
     discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 

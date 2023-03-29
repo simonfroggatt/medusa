@@ -12,7 +12,6 @@
 
 {% block content %}
     <form method="post">
-        {{ form.media }}
         {% csrf_token %}
 
         <div class="row">
@@ -28,9 +27,9 @@
                             <div class="col-12">{{ form.name|as_crispy_field }}</div>
                             <div class="col-12">{{ form.meta_title|as_crispy_field }}</div>
                             <div class="col-12">{{ form.meta_description|as_crispy_field }}</div>
-                            <div class="col-12">{{ form.meta_keyword|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.meta_keywords|as_crispy_field }}</div>
                             <div class="col-12">{{ form.adwords_name|as_crispy_field }}</div>
-                            <div class="col-12">{{ form.language|as_crispy_field }}</div>
+
                         </div>
 
                     </div>
@@ -42,7 +41,7 @@
                     <div class="col-md-12">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <button type="button" class="btn btn-danger "
-                                    onclick="location.href='{{ view.get_success_url }}'">Cancel
+                                    onclick="location.href='{{ return_url }}'">Cancel
                             </button>
                             <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
                         </div>

@@ -86,34 +86,39 @@
 <script>
     $(document).ready(function () {
 
-        var quick_size_table = $('#quick_size_table').DataTable({
-            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
-                "<'row'<'col-12'tr>>",
-            "processing": true,
-            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            "pageLength": 10,
-            "autoWidth": false,
-            "responsive": true,
-            "serverSide": false,
-            "ajax": {
-                "processing": true,
-                "url": "/pricing/api/storeprices/1/?format=datatables",
-                "type": "GET",
-            },
-            "deferRender": true,
-            "search": {
-                "regex": true
-            },
-            "select": true,
-            "scroller": true,
-            scrollY: 300,
-            columns: [
-                {data: "size_material_comb.product_size.size_name"},
-                {data: "size_material_comb.product_material.material_name"},
-                {data: "price", searchable: false},
-            ]
-        });
+        if ( $.fn.dataTable.isDataTable( '#quick_size_table' ) ) {
+                var quick_size_table = $('#quick_size_table').DataTable();
+            }
+            else {
 
+            var quick_size_table = $('#quick_size_table').DataTable({
+                "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                    "<'row'<'col-12'tr>>",
+                "processing": true,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "pageLength": 10,
+                "autoWidth": false,
+                "responsive": true,
+                "serverSide": false,
+                "ajax": {
+                    "processing": true,
+                    "url": "/pricing/api/storeprices/1/?format=datatables",
+                    "type": "GET",
+                },
+                "deferRender": true,
+                "search": {
+                    "regex": true
+                },
+                "select": true,
+                "scroller": true,
+                scrollY: 300,
+                columns: [
+                    {data: "size_material_comb.product_size.size_name"},
+                    {data: "size_material_comb.product_material.material_name"},
+                    {data: "price", searchable: false},
+                ]
+            });
+        }
         quick_size_table.on('select', function (e, dt, type, indexes) {
                 if (type === 'row') {
                     let data_row = quick_size_table.row(indexes).data()

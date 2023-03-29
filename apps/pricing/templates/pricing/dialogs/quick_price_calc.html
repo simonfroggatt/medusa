@@ -127,7 +127,11 @@
 <script>
      $(document).ready(function() {
 
-    var quick_calc_table = $('#quick_calc_table').DataTable({
+          if ( $.fn.dataTable.isDataTable( '#quick_calc_table' ) ) {
+                var quick_calc_table = $('#quick_calc_table').DataTable();
+            }
+            else {
+                var quick_calc_table = $('#quick_calc_table').DataTable({
                 'searching': false,
 
         "info": false,
@@ -149,7 +153,7 @@
                     {data: "price", searchable: false},
                 ]
             });
-
+          }
 
          $('#form-quick_size_calc #calc_material').on('change', function(){
                let selectedOption = $("#datalistMaterials option[value='" + $(this).val() + "']");

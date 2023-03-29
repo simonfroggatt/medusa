@@ -30,7 +30,8 @@
                         <div class="col-md-6">{{ form.quote_area|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.quote_postcode|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.quote_country|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.shipping_type|as_crispy_field }}</div>
+                <div class="col-md-3">{{ form.shipping_type|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.shipping_rate|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.tax_rate|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.comment|as_crispy_field }}</div>
                 <div class="col-md-12">
@@ -50,6 +51,7 @@
 
 <script>
 
+    shipping_rates = {{shipping_rates | safe}}
     $(function () {
 
         let fieldMatch = {
@@ -67,5 +69,15 @@
         let inputFields = ['#id_{{ form.company.name}}', '#id_{{ form.quote_postcode.name}}', '#id_{{ form.quote_address.name}}']
         TSGAddressLookup(inputFields, '', fieldMatch)
 
-    })
+        $(document).on('change', '#id_shipping_type', function () {
+            let shipping_id_selected =  $(this).val();
+
+            if(shipping_id_selected > 0) {
+                let shipping_data = shipping_rates.find(obj => obj.shipping_id == shipping_id_selected);
+                console.log(shipping_data['rate'])
+                $('#id_{{form.shipping_rate.name}}').val(shipping_data['rate'])
+            }
+        });
+
+    });
 </script>

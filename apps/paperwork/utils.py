@@ -235,11 +235,11 @@ def quote_total_table(quote_obj, quote_product_obj, currency_symbol):
         quote_total_tup['SubTotal'] = f'{currency_symbol}{subtotal_rounded}'
         discount = Decimal(quote_obj.discount)
         discount_rounded = Decimal(discount.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
-        subtotal_net = subtotal_rounded - discount_rounded + quote_obj.shipping_type.price
+        subtotal_net = subtotal_rounded - discount_rounded + quote_obj.shipping_rate
         tax_rounded = Decimal((subtotal_net * (tax_rate / 100)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         total_rounded = Decimal((subtotal_net + tax_rounded).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
 
-        quote_total_tup[f'{quote_obj.shipping_type}'] = f'{currency_symbol}{quote_obj.shipping_type.price}'
+        quote_total_tup[f'{quote_obj.shipping_type}'] = f'{currency_symbol}{quote_obj.shipping_rate}'
 
         quote_total_tup['Discount'] = f'{currency_symbol}{discount_rounded}'
 
@@ -247,7 +247,7 @@ def quote_total_table(quote_obj, quote_product_obj, currency_symbol):
 
         quote_total_tup['Total'] = f'{currency_symbol}{total_rounded}'
     else:
-        quote_total_tup[f'{quote_obj.shipping_type}'] = f'{currency_symbol}{quote_obj.shipping_type.price}'
+        quote_total_tup[f'{quote_obj.shipping_type}'] = f'{currency_symbol}{quote_obj.shipping_rate}'
         quote_total_tup['Discount'] = 0.00
         quote_total_tup[f'{quote_obj.tax_rate}'] = 0.00
         quote_total_tup['Total'] = 0.00

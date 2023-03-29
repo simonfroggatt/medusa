@@ -68,7 +68,6 @@ $(".switchApplyBulk").change(function () {
 
 
     function drawBulkTable(bulk_group_id, form_id) {
-
         let base_price = $(form_id + ' #single_unit_price').val()
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
@@ -83,20 +82,18 @@ $(".switchApplyBulk").change(function () {
 
         $.each(bulk_array['breaks'], function (index, value) {
             if (index == 0) {
-                $('<th></th>').text(value['qty_range_min']).appendTo(headerrow);
+                $('<th data-variant-headerid="'+index+'"></th>').text(value['qty_range_min']).appendTo(headerrow);
             } else if (index == bulk_array['breaks'].length - 1) {
-                $('<th></th>').text(value['qty_range_min'] + "+").appendTo(headerrow);
+                $('<th data-variant-headerid="'+index+'"></th>').text(value['qty_range_min'] + "+").appendTo(headerrow);
             } else {
                 var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min'] - 1;
 
-                $('<th></th>').text(value['qty_range_min'] + "-" + nextbreak).appendTo(headerrow);
+                $('<th data-variant-headerid="'+index+'"></th>').text(value['qty_range_min'] + "-" + nextbreak).appendTo(headerrow);
             }
             let bulkprice = base_price * ((100 - value['discount_percent']) / 100)
             $('<td class="bulkcell" data-variant-cellid="' + index + '"></td>').text(parseFloat(bulkprice).toFixed(2)).appendTo(row);
         })
         tbl.appendTo(form_id + ' #bulk_pricing_div');
-
-
     }
 
     function getBulkPriceDiscount(bulk_group_id, qty, form_id) {

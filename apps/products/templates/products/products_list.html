@@ -88,118 +88,125 @@
     <script>
     $(document).ready(function() {
 
-    var product_table = $('#product_table').DataTable( {
-        "dom": "<'row'<'col-sm-6'fB><'col-sm-6'lT>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
-        "processing" : true,
-        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
-        "pageLength": 25,
-        "autoWidth": false,
-        "responsive": true,
-        "serverSide": true,
-        "rowId" : 'product_id',
-        "ajax": {
-                 "processing": true,
-                 "url": "/products/api/post-list/products/?format=datatables",
-                "type" : "POST",
-            "beforeSend": function(xhr) {
-                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
-            }
+    if ( $.fn.dataTable.isDataTable( '#product_table' ) ) {
+        let product_table = $('#product_table').DataTable();
+    }
+    else {
+        let product_table = $('#product_table').DataTable({
+            "dom": "<'row'<'col-sm-6'fB><'col-sm-6'lT>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 25,
+            "autoWidth": false,
+            "responsive": true,
+            "serverSide": true,
+            "rowId": 'product_id',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/post-list/products/?format=datatables",
+                "type": "POST",
+                "beforeSend": function (xhr) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
+                }
             },
-        "deferRender": false,
-        "order": [[ 7, "asc" ]],
-         "search": {
-            "regex": true
-        },
-        buttons: [
-                    {
-                        text: ' <i class="fa fa-id-badge fa-fw fa-lg" aria-hidden="true"></i>',
-                        className: '',
-                        action: function () {
+            "deferRender": false,
+            "order": [[7, "asc"]],
+            "search": {
+                "regex": true
+            },
+            buttons: [
+                {
+                    text: ' <i class="fa fa-id-badge fa-fw fa-lg" aria-hidden="true"></i>',
+                    className: '',
+                    action: function () {
 
-                            $("#product_table").toggleClass("cards");
-                            $("#product_table thead").toggle();
-                            $("#card-toggle .fa").toggleClass("fa-table");
-                            $("#card-toggle .fa").toggleClass("fa-id-badge");
+                        $("#product_table").toggleClass("cards");
+                        $("#product_table thead").toggle();
+                        $("#card-toggle .fa").toggleClass("fa-table");
+                        $("#card-toggle .fa").toggleClass("fa-id-badge");
 
-                            if($("#product_table").hasClass("cards")){
+                        if ($("#product_table").hasClass("cards")) {
 
-                                var max = 0;
-                                $('#product_table tr').each(function() {
-                                    max = Math.max($(this).height(), max);
-                                }).height(max);
-                            } else {
-                                $("#product_table tr").each(function(){
-                                    $(this).height("auto");
-                                });
-                            }
-
-                        },
-                        attr:  {
-                            title: 'Change views',
-                            id: 'card-toggle'
+                            var max = 0;
+                            $('#product_table tr').each(function () {
+                                max = Math.max($(this).height(), max);
+                            }).height(max);
+                        } else {
+                            $("#product_table tr").each(function () {
+                                $(this).height("auto");
+                            });
                         }
+
+                    },
+                    attr: {
+                        title: 'Change views',
+                        id: 'card-toggle'
                     }
-                ],
-        columns :[
-
-            {
-                data: "image_url",
-                name: "thumbnail",
-                searchable: "false",
-                sortable: "false",
-                render: function (data, type, row, meta ) {
-                    return '<img class="rounded mx-auto d-block product-thumb" src="'+data+'">';
                 }
-            },
-            {data: "model"},
-            {
-                data: "productdescbase.name",
-            },
-            {data: "productdescbase.title"},
-            {
-                data: "status",
-                name: "viewstatus",
-                searchable: "false",
-                render: function (data) {
-                    let vis_class = "icon_enabled"
-                    if(data == 0){
-                        vis_class = "icon_disable"
+            ],
+            columns: [
+
+                {
+                    data: "image_url",
+                    name: "thumbnail",
+                    searchable: "false",
+                    sortable: "false",
+                    render: function (data, type, row, meta) {
+                        return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
                     }
-                    let vis_icon = '<i class="far fa-eye '+ vis_class+'"></i>'
-                    return vis_icon
-                }},
-            {
-                data: "product_id",
-                sortable: false,
-                className: 'text-end',
-                render: function ( data, type, row ) {
+                },
+                {data: "model"},
+                {
+                    data: "productdescbase.name",
+                },
+                {data: "productdescbase.title"},
+                {
+                    data: "status",
+                    name: "viewstatus",
+                    searchable: "false",
+                    render: function (data) {
+                        let vis_class = "icon_enabled"
+                        if (data == 0) {
+                            vis_class = "icon_disable"
+                        }
+                        let vis_icon = '<i class="far fa-eye ' + vis_class + '"></i>'
+                        return vis_icon
+                    }
+                },
+                {
+                    data: "product_id",
+                    sortable: false,
+                    className: 'text-end',
+                    render: function (data, type, row) {
 
-                     let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + row['id'] + '"><i class="fas fa-trash fa-sm"></i></a>'
+                        let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
+                        let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + row['id'] + '"><i class="fas fa-trash fa-sm"></i></a>'
 
 
-                    return delete_icon + "  " + edit_icon;;
+                        return delete_icon + "  " + edit_icon;
+                        ;
+                    }
+                },
+                {
+                    data: "productdescbase.description",
+                    "visible": false
+                },
+                {
+                    data: "product_id",
+                    "visible": false
+                },
+                {
+                    data: "corevariants",
+                    name: "corevariants.supplier_code",
+                    "visible": false
                 }
-            },
-            {
-                data: "productdescbase.description",
-                "visible": false
-            },
-            {
-                data: "product_id",
-                "visible": false
-            },
-            {
-                data: "corevariants",
-                name: "corevariants.supplier_code",
-                "visible": false
-            }
 
 
-        ]
-    } );
+            ]
+        });
+    }
 
 
 

@@ -129,65 +129,70 @@
 
         var manual_data = {}
 
-        var previous_product_table = $('#previous_product_table').DataTable({
-            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
-                "<'row'<'col-12'tr>>",
-            "processing": true,
-            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            "pageLength": 10,
-            "autoWidth": false,
-            "responsive": false,
-            "serverSide": false,
-            "select": true,
-            "scroller": true,
-            scrollY: 400,
-            "rowId": 'product_id',
-            "ajax": {
+        if ( $.fn.dataTable.isDataTable( '#previous_product_table' ) ) {
+                var previous_product_table = $('#previous_product_table').DataTable();
+            }
+            else {
+
+            var previous_product_table = $('#previous_product_table').DataTable({
+                "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                    "<'row'<'col-12'tr>>",
                 "processing": true,
-                "url": "/orders/api/previous-products/{{ customer_id }}?format=datatables",
-                "type": "GET",
-            },
-             'order': [[0, 'desc']],
-            "deferRender": false,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "pageLength": 10,
+                "autoWidth": false,
+                "responsive": false,
+                "serverSide": false,
+                "select": true,
+                "scroller": true,
+                scrollY: 400,
+                "rowId": 'product_id',
+                "ajax": {
+                    "processing": true,
+                    "url": "/orders/api/previous-products/{{ customer_id }}?format=datatables",
+                    "type": "GET",
+                },
+                'order': [[0, 'desc']],
+                "deferRender": false,
 
-            "search": {
-                "regex": true
-            },
-            columns: [
-                {
-                    data: "order_id",
-                    sortable: true
+                "search": {
+                    "regex": true
                 },
-                {data: "model"},
-                {
-                    data: "name",
-                    defaultContent: "",
-                     sortable: true
-                },
-                {
-                    data: "size_name",
-                    defaultContent: "",
-                     sortable: true
-                },
-                {
-                    data: "material_name",
-                    defaultContent: ""
-                },
-                {
-                    data: "quantity",
-                    defaultContent: ""
-                },
-                {
-                    data: "price",
-                    defaultContent: ""
-                },
-                {
-                    data: "product_id",
-                    "visible": false
-                }
-            ]
-        });
-
+                columns: [
+                    {
+                        data: "order_id",
+                        sortable: true
+                    },
+                    {data: "model"},
+                    {
+                        data: "name",
+                        defaultContent: "",
+                        sortable: true
+                    },
+                    {
+                        data: "size_name",
+                        defaultContent: "",
+                        sortable: true
+                    },
+                    {
+                        data: "material_name",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "quantity",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "price",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "product_id",
+                        "visible": false
+                    }
+                ]
+            });
+        }
         previous_product_table.on('select', function (e, dt, type, indexes) {
             if (type === 'row') {
                 let product_id = previous_product_table.row(indexes).id()

@@ -1,5 +1,5 @@
 from django import forms
-from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryDescriptionBase
+from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryDescriptionBase, OcCategoryToStore, OcTsgCategoryStoreParent
 from tinymce.widgets import TinyMCE
 
 
@@ -28,6 +28,10 @@ class CategoryBaseDescriptionForm(forms.ModelForm):
 
         fields = '__all__'
 
+        widgets = {
+            'category': forms.HiddenInput()
+        }
+
 
 class CategoryStoreDescriptionForm(forms.ModelForm):
 
@@ -42,6 +46,39 @@ class CategoryStoreDescriptionForm(forms.ModelForm):
             'store': forms.HiddenInput(),
             'category': forms.HiddenInput()
         }
+
+
+class CategoryStoreForm(forms.ModelForm):
+
+    description = forms.CharField(widget=TinyMCE(attrs={'rows': 30}), required=False)
+
+    class Meta:
+        model = OcCategoryToStore
+
+        fields = '__all__'
+
+        widgets = {
+            'store': forms.HiddenInput(),
+            'id': forms.HiddenInput(),
+            'category': forms.HiddenInput()
+        }
+
+
+class CategoryStoreParentForm(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgCategoryStoreParent
+        fields = '__all__'
+
+        widgets = {
+            'category_store': forms.HiddenInput(),
+        }
+
+        labels = {
+            'status': 'live'
+        }
+
+
 
 
 

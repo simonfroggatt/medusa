@@ -7,7 +7,7 @@
     <tr>
 
       <td>{{ quote_obj.shipping_type }}</td>
-      <td>{{ quote_obj.store.currency.symbol_left }}{{ quote_obj.shipping_type.price }}</td>
+      <td>{{ quote_obj.store.currency.symbol_left }}{{ quote_obj.shipping_rate }}</td>
     </tr>
     {% if quote_total.discount > 0 %}
     <tr>

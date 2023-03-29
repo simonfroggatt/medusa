@@ -29,24 +29,25 @@
                      <div class="ibox-content tsg_navs">
                         <ul class="nav nav-tabs " role="tablist">
 
-                            <li>
-                        <a class="nav-link active" id="address-tab" data-bs-toggle="tab" href="#tab-texts" role="tab">
-                            <i class="fas fa-align-left"></i>  Texts</a>
-                    </li>
+
                              <li class="nav-item" role="presentation">
-                        <a class="nav-link " id="variants-tab" data-bs-toggle="tab" href="#tab-structure" role="tab">
-                            <i class="fas fa-image"></i>  Structure</a>
+                        <a class="nav-link active" id="variants-tab" data-bs-toggle="tab" href="#tab-structure" role="tab">
+                            <i class="fa-solid fa-folder-tree"></i>  Structure</a>
+                    </li>
+                            <li>
+                        <a class="nav-link " id="address-tab" data-bs-toggle="tab" href="#tab-texts" role="tab">
+                            <i class="fa-solid fa-align-left"></i>  Text</a>
                     </li>
                 </ul>
                         <div class="tab-content">
-                    <div role="tabpanel" id="tab-texts" class="tab-pane fade show active">
+                    <div role="tabpanel" id="tab-texts" class="tab-pane fade ">
                         <div class="panel-body">
                             {% include 'category/sub_layouts/category_list_descriptions.html' %}
                         </div>
                     </div>
-                            <div role="tabpanel" id="tab-structure" class="tab-pane fade">
+                            <div role="tabpanel" id="tab-structure" class="tab-pane fade show active">
                         <div class="panel-body">
-                           This will be where quotes will be
+                          {% include 'category/sub_layouts/category_list_site_parents.html' %}
                         </div>
                     </div>
                 </div>
