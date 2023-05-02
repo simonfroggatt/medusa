@@ -1,0 +1,5 @@
+<ul>
+    {% for values in group_class_value_obj %}
+        <li>{{ values.class_field.label }} - {{ values.value }}</li>
+    {% endfor %}
+</ul>

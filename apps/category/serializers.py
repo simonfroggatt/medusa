@@ -67,5 +67,5 @@ class StoreCategoriesSerializer(serializers.ModelSerializer):
         model = OcCategoryToStore
         fields = [field.name for field in model._meta.fields]
         fields.extend(['category_image_url'])
-        depth = 1
+        depth = 2
 

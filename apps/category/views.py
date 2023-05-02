@@ -265,7 +265,7 @@ def category_store_parent_add(request, base_category_id):
 
         #store_cat_obj = get_object_or_404(OcCategoryToStore, category_id=base_category_id, store_id=request.POST.get('store_id'))
         if store_cat_obj:
-            store_cat_id = store_cat_obj.category_store_id
+            store_cat_id = store_cat_obj.first().category_store_id
         else:
             store_cat_id = create_category_to_store(base_category_id, request.POST.get('store_id'))
 

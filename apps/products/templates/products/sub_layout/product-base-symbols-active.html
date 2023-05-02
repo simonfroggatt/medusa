@@ -1,0 +1,70 @@
+{% load static %}
+<h3>Current Symbols</h3>
+                <table id="product_symbol_table" class="table table-hover table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th width="col-2">Symbol</th>
+                        <th class="col-9">Name</th>
+                        <th class="text-end">&nbsp;</th>
+                    </tr>
+                    </thead>
+                </table>
+
+<script>
+$(document).ready(function() {
+
+    var manual_data = {}
+
+    if ($.fn.dataTable.isDataTable('#product_symbol_table')) {
+        var product_symbol_table = $('#product_symbol_table').DataTable();
+    } else {
+
+        var product_symbol_table = $('#product_symbol_table').DataTable({
+            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "select": 'single',
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'product_id',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/productsymbols/{{ product_obj.product_id }}?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": false,
+
+            "search": {
+                "regex": true
+            },
+            columns: [
+                {data: "symbol.image_path",
+                    render: function ( data, type, row ) {
+                    img_path = {% get_media_prefix %} + data
+                     return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'">';
+                    },
+                },
+                {data: "symbol.referent"},
+                {
+                    data: "symbol.id",
+                    render: function (data, type, row) {
+                        let remove_icon = '<a class="btn btn-warning btn-sm js-product-symbol-edit" role="button" data-url="api/product/' + {{ product_obj.product_id }} +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-minus"></i></a>';
+                        return remove_icon
+                    },
+                }
+
+            ]
+        });
+    }
+})
+
+
+
+</script>
+

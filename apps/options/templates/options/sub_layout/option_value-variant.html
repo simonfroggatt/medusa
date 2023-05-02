@@ -1,0 +1,21 @@
+{% load static %}
+<div class="row">
+<div class="col-6">
+    <dl class="row text-wrap">
+    <dt class="col-3">Size:</dt>
+    <dd class="col-9">{{ new_product_variant_obj.size_material.product_size.size_name }}</dd>
+    <dt class="col-3">Material:</dt>
+    <dd class="col-9">{{ new_product_variant_obj.size_material.product_material.material_name }}</dd>
+        <dt class="col-3">Code:</dt>
+    <dd class="col-9">{{ new_product_obj.model}}</dd>
+    <dt class="col-3">Title:</dt>
+    <dd class="col-9">{{ new_product_obj.productdescbase.name}}</dd>
+</dl>
+    <a class="btn btn-primary btn-sm" id="js-value-product" data-url="{% url 'choose_option_value_variant'  %}" data-dlgsize="modal-lg" role="button" ><i class="fas fa-edit"></i> Change Variant</a>
+
+</div>
+<div class="col-6">
+    <img class="img-fluid img-thumbnail" src="{{ new_product_obj.image_url}}">
+</div>
+    </div>
+

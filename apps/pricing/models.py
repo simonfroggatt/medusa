@@ -77,6 +77,9 @@ class OcTsgSizeMaterialComb(models.Model):
         db_table = 'oc_tsg_size_material_comb'
         unique_together = (('id', 'product_size', 'product_material'),)
 
+    #def __str__(self):
+     #   return f"{self.product_size.size_name} - {self.product_material.material_name}"
+
 
 class OcTsgSizeMaterialCombPrices(models.Model):
     size_material_comb = models.OneToOneField(OcTsgSizeMaterialComb, models.DO_NOTHING, primary_key=True, related_name='sizecombo_base')

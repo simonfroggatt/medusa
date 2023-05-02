@@ -1,0 +1,28 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> <strong>DELETE</strong> Class</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'class-delete-dlg' class_value_id %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="class_value_id" name="class_value_id"
+                           value="{{ class_value_id }}">
+                    <p>Are you sure you want to delete this Class?</p>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="delete" class="btn btn-primary pull-right">Delete</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

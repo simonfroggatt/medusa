@@ -1,0 +1,56 @@
+{% load static %}
+<div class="modal-header">
+    <h5 class="modal-title">Add Product Variant</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+<div class="container">
+    <div class="row" id="order-add-product-tabs">
+        <div class="col-12">
+            <div class="ibox">
+                <table id="value_product_table_for_variant" class="table table-hover table-sm table-striped"
+                   style="width:100%">
+                <thead>
+                <tr>
+                    <th width="col-2">Image</th>
+                    <th class="col-2">Code</th>
+                    <th class="col-8">Name</th>
+                </tr>
+                </thead>
+            </table>
+            </div>
+            <div class="ibox">
+                <table id="value_product_variants_table" class="table table-hover table-sm table-striped"
+                   style="width:100%">
+                <thead>
+                <tr>
+                    <th width="col-1">Supplier Code</th>
+                    <th class="col-4">Size</th>
+                    <th class="col-4">Material</th>
+                </tr>
+                </thead>
+            </table>
+
+            </div>
+        </div>
+
+        <div class="col-12 pb-2">
+            <form action="{% url 'option_value_product_variant-details' %}" method="post" id="form-option_value_product_variant">
+                {% csrf_token %}
+            <input type="hidden" name="product_id" id="product_id">
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                                <button type="submit" id="value_product-submit" class="btn btn-success pull-right" disabled="disabled" >Use</button>
+                            </div>
+                </form>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script type="text/javascript" src="{% static 'js/options.js' %}"></script>
+

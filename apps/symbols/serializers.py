@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.products.models import OcTsgSymbols
+from apps.symbols.models import OcTsgSymbols
 from django.conf import settings
 
 

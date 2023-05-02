@@ -5,14 +5,20 @@
 {% endblock extra_css %}
 
 {% block content %}
+    <div class="row top_bar">
+            <div class="col-3 col-lg-2">
 
-    <div class="row">
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                {% include 'symbols/sub_layout/symbol_list_navbar.html' %}
+            </div>
+        </div>
+      <div class="row">
                     <div class="col-lg-12">
                         <div class="ibox">
-
-                            <div class="ibox-heading">
-<button id="create-size" class="btn btn-primary" type="button" name="button">Create Symbol</button>
-                            </div>
                             <div class="ibox-content">
                                 <table id="symbol_table" class="table table-hover table-sm"
                                        style="width:100%">
@@ -31,16 +37,6 @@
                         </div>
                     </div>
                 </div>
-
-
-
-    <div class="modal fade" tabindex="-1" role="dialog" id="modal">
-        <div class="modal-dialog" role="document">
-             <div class="modal-content"></div>
-         </div>
-    </div>
-
-
 
 
 {% endblock content %}
@@ -105,10 +101,11 @@
             {
                 data: null,
                 sortable: false,
-                className: 'text-end',
+                className: 'text-md-end text-start',
                 render: function ( data, type, row ) {
                 let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + row['id'] + '"><i class="fas fa-edit fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm" data-form-url="delete/' + row['size_id'] + '"><i class="fas fa-trash fa-sm"></i></a>';
+                let delete_icon = '<a  class="btn btn-danger btn-sm js-symbol-delete" role="button" data-url="' + row['id'] + '/deletedlg"><i class="fas fa-trash fa-sm"></i></a>';
+
                 return delete_icon + "  " + edit_icon;
                 //    return  data_button
                 }
@@ -119,6 +116,11 @@
 
 
 } );
+
+    $(document).on('click', '.js-symbol-delete', loadForm);
+
 </script>
+
+
 
 {% endblock javascript %}

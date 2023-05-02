@@ -1,0 +1,50 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <h1>NEW CLASS</h1>
+     <form method="post" action="{% url 'class-create' %}">
+        {{ form.media }}
+        {% csrf_token %}
+            <div class="form-group">
+                <div class="row">
+                            <div class="col-12">{{ form.label|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.descr|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.name|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.default_dropdown_title|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.order_by|as_crispy_field }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger " onclick="location.href='{% url 'alloptionsclass' %}'">
+                            Cancel
+                            </button>
+                            <button type="submit" id="add" class="btn btn-primary pull-right">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    </form>
+{% endblock content %}
+
+{% block javascript %}
+
+
+{% endblock javascript %}
+
+
+
+
+
+

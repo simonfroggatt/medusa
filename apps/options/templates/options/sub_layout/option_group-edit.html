@@ -1,0 +1,94 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <form method="post">
+        {{ form.media }}
+        {% csrf_token %}
+
+
+        <div class="form-group">
+            <div class="row">
+                <div class="col-12">{{ form.name|as_crispy_field }}</div>
+                <div class="col-12">{{ form.description|as_crispy_field }}</div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-3">
+                    <h3>Current Vales</h3>
+                </div>
+                <div class="col-9 pb-2">
+                    <div class="container-fluid justify-content-end pe-0">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+
+                            <a class="btn btn-primary" id="js-group-value-add" role="button"
+                               data-url="{% url 'group_value-create-dlg' group_id %}">New Value</a>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="ibox">
+                        <div class="ibox-content">
+                            <table id="group_values_table" class="table table-hover table-sm table-striped"
+                                   style="width:100%">
+                                <thead>
+                                <tr>
+                                    <th class="col-4">Class</th>
+                                    <th class="col-4">Value</th>
+                                    <th class="col-3">Order</th>
+                                    <th width="100px">&nbsp;</th>
+                                </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-danger "
+                                onclick="location.href='{{ view.get_success_url }}'">Cancel
+                        </button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+{% endblock content %}
+
+
+
+{% block javascript %}
+
+
+
+    <script>
+      var current_group_id = {{ group_id }}
+    </script>
+
+     <script type="text/javascript" src="{% static 'js/options.js' %}"></script>
+
+
+{% endblock javascript %}
+
+
+
+
+
+

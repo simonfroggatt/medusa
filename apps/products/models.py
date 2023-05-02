@@ -3,6 +3,8 @@ from medusa.models import OcTsgCategoryTypes, OcLanguage
 from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
+from medusa.models import OcTaxRate, OcSupplier, OcTaxClass
+from apps.category.models import OcCategoryToStore
 
 
 class OcProduct(models.Model):
@@ -11,14 +13,14 @@ class OcProduct(models.Model):
     location = models.CharField(max_length=128)
     image = models.CharField(max_length=255, blank=True, null=True)
     manufacturer_id = models.IntegerField()
-    tax_class_id = models.IntegerField()
+    tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING)
     sort_order = models.IntegerField()
-    status = models.IntegerField()
+    status = models.BooleanField()
     viewed = models.IntegerField()
-    date_added = models.DateTimeField()
-    date_modified = models.DateTimeField()
-    mib_logo = models.IntegerField(blank=True, null=True)
-    include_google_merchant = models.IntegerField(blank=True, null=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+    mib_logo = models.BooleanField()
+    supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True, related_name='productsupplier')
 
     @property
     def image_url(self):
@@ -30,6 +32,7 @@ class OcProduct(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_product'
+
 
 
 class OcProductDescription(models.Model):
@@ -51,14 +54,17 @@ class OcProductDescription(models.Model):
         db_table = 'oc_product_description'
         unique_together = (('product', 'store', 'language'),)
 
+    def __str__(self):
+        return self.name
+
 
 class OcProductDescriptionBase(models.Model):
     product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productdescbase')
     language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
     name = models.CharField(max_length=255)
-    title = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255)
     description = models.TextField()
-    tag = models.TextField()
+    tag = models.TextField(blank=True, null=True)
     meta_title = models.CharField(max_length=255)
     meta_description = models.CharField(max_length=255)
     meta_keyword = models.CharField(max_length=255)
@@ -70,12 +76,27 @@ class OcProductDescriptionBase(models.Model):
         db_table = 'oc_product_description_base'
         unique_together = (('product', 'language'),)
 
+    def __str__(self):
+        return self.name
+
 
 class OcProductToStore(models.Model):
-    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='productstore')
-    store = models.OneToOneField(OcStore, models.DO_NOTHING, primary_key=True)
-    product_desc = models.ForeignKey(OcProductDescription, models.DO_NOTHING, blank=True, null=True)
-    status = models.IntegerField(blank=True, null=True)
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='storeproduct')
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, related_name='productstore')
+    status = models.BooleanField()
+    price_from = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    image = models.CharField(max_length=1024, blank=True, null=True)
+    include_google_merchant = models.BooleanField()
+    tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    long_description = models.TextField(blank=True, null=True)
+    meta_title = models.CharField(max_length=255, blank=True, null=True)
+    meta_description = models.CharField(max_length=255, blank=True, null=True)
+    meta_keywords = models.CharField(max_length=255, blank=True, null=True)
+    sign_reads = models.TextField(blank=True, null=True)
+    tag = models.CharField(max_length=512, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -103,6 +124,9 @@ class OcTsgProductMaterial(models.Model):
         managed = False
         db_table = 'oc_tsg_product_material'
 
+    def __str__(self):
+        return self.material_name
+
 
 class OcTsgProductSizes(models.Model):
     size_id = models.AutoField(primary_key=True)
@@ -120,18 +144,23 @@ class OcTsgProductSizes(models.Model):
         managed = False
         db_table = 'oc_tsg_product_sizes'
 
+    def __str__(self):
+        return self.size_name
+
 
 
 class OcTsgProductVariantCore(models.Model):
-    prod_variant_core_id = models.IntegerField(primary_key=True)
-    product = models.ForeignKey('OcProduct', models.DO_NOTHING, blank=True, null=True, related_name='corevariants')
-    size_material = models.ForeignKey(OcTsgSizeMaterialComb, models.DO_NOTHING, blank=True, null=True, related_name='sizematerials')
-    supplier_id = models.IntegerField(blank=True, null=True)
+    prod_variant_core_id = models.AutoField(primary_key=True)
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, blank=True, null=True, related_name='corevariants')
+    size_material = models.ForeignKey(OcTsgSizeMaterialComb, models.DO_NOTHING, related_name='sizematerials')
+    supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True)
     supplier_code = models.CharField(max_length=255, blank=True, null=True)
     supplier_price = models.DecimalField(max_digits=5, decimal_places=2)
-    exclude_fpnp = models.IntegerField()
+    exclude_fpnp = models.BooleanField()
     variant_image = models.CharField(max_length=244, blank=True, null=True)
     gtin = models.CharField(max_length=255, blank=True, null=True)
+    shipping_cost = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    bl_live = models.BooleanField()
 
     class Meta:
         managed = False
@@ -143,6 +172,9 @@ class OcTsgProductVariantCore(models.Model):
             return f"{settings.MEDIA_URL}{self.variant_image}"
         else:
             return self.product.image_url
+
+
+
 
 
 class OcTsgProductVariants(models.Model):
@@ -162,6 +194,8 @@ class OcTsgProductVariants(models.Model):
         unique_together = (('prod_variant_id', 'prod_var_core'),)
 
 
+
+
 class OcTsgDepOptionClass(models.Model):
     option_class_id = models.AutoField(primary_key=True)
     label = models.CharField(max_length=30)
@@ -174,6 +208,9 @@ class OcTsgDepOptionClass(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_dep_option_class'
+
+    def __str__(self):
+        return self.name
 
 
 class OcTsgProductVariantOptions(models.Model):
@@ -199,11 +236,14 @@ class OcTsgDepOptionOptions(models.Model):
     price_modifier = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     image = models.CharField(max_length=255, blank=True, null=True)
     store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
-    show_at_checkout = models.IntegerField(blank=True, null=True)
+    show_at_checkout = models.BooleanField()
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_dep_option_options'
+
+    def __str__(self):
+        return self.title
 
 
 class OcTsgDepOptionTypes(models.Model):
@@ -214,6 +254,9 @@ class OcTsgDepOptionTypes(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_dep_option_types'
+
+    def __str__(self):
+        return self.name
 
 
 class OcTsgDepOptionClassValues(models.Model):
@@ -239,73 +282,10 @@ class OcTsgOptionDepExtra(models.Model):
         unique_together = (('option_class_id', 'option_options_id'),)
 
 
-class OcTsgProductSymbols(models.Model):
-    product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productsymbols')
-    symbol = models.ForeignKey('OcTsgSymbols', models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_product_symbols'
-        unique_together = (('product', 'symbol'),)
-
-
-class OcTsgSymbolCategory(models.Model):
-    title = models.CharField(max_length=255, blank=True, null=True)
-    description = models.CharField(max_length=2048, blank=True, null=True)
-    default_colour_rgb = models.CharField(db_column='default_colour_RGB', max_length=20, blank=True, null=True)  # Field name made lowercase.
-    default_colour_hex = models.CharField(db_column='default_colour_HEX', max_length=10, blank=True, null=True)  # Field name made lowercase.
-    default_text_hex = models.CharField(db_column='default_text_HEX', max_length=10, blank=True, null=True)  # Field name made lowercase.
-    default_colour = models.CharField(max_length=20, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_symbol_category'
-
-    def __str__(self):
-        return self.title
-
-
-class OcTsgSymbolStandards(models.Model):
-    id = models.IntegerField(primary_key=True)
-    title = models.CharField(max_length=255)
-    target_url = models.CharField(max_length=255)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_symbol_standards'
-
-    def __str__(self):
-        return self.title
-
-
-class OcTsgSymbols(models.Model):
-    image_path = models.CharField(max_length=255, blank=True, null=True)
-    refenceno = models.CharField(max_length=48, blank=True, null=True)
-    referent = models.CharField(max_length=255, blank=True, null=True)
-    function = models.CharField(max_length=1024, blank=True, null=True)
-    content = models.CharField(max_length=1024, blank=True, null=True)
-    hazard = models.CharField(max_length=1024, blank=True, null=True)
-    humanbehav = models.CharField(max_length=1024, blank=True, null=True)
-    svg_path = models.CharField(max_length=255, blank=True, null=True)
-    category = models.ForeignKey(OcTsgCategoryTypes, models.DO_NOTHING, db_column='category', blank=True, null=True, related_name='symbolcats')
-    standard = models.ForeignKey(OcTsgSymbolStandards, models.DO_NOTHING, blank=True, null=True, related_name='symbolstandards')
-    image_width = models.IntegerField(blank=True, null=True)
-    image_height = models.IntegerField(blank=True, null=True)
-    title = models.CharField(max_length=255, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_symbols'
-
-    @property
-    def symbol_image_url(self):
-       return f"{settings.MEDIA_URL}{self.image_path}"
-
-
 class OcTsgBulkdiscountGroups(models.Model):
     bulk_group_id = models.AutoField(primary_key=True)
     group_name = models.CharField(max_length=255)
-    is_active = models.IntegerField()
+    is_active = models.BooleanField()
 
     class Meta:
         managed = False
@@ -335,6 +315,19 @@ class OcTsgProductToBulkDiscounts(models.Model):
         managed = False
         db_table = 'oc_tsg_product_to_bulk_discounts'
         unique_together = (('product', 'bulk_discount_group'),)
+
+
+class OcProductToCategory(models.Model):
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING)
+    category_store = models.ForeignKey(OcCategoryToStore, models.DO_NOTHING)
+    status = models.BooleanField()
+
+
+    class Meta:
+        managed = False
+        db_table = 'oc_product_to_category'
+
+
 
 
 

@@ -1,0 +1,86 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <h1>NEW VALUE</h1>
+     <form method="post" action="{% url 'value-create' %}">
+        {{ form.media }}
+        {% csrf_token %}
+
+            <div class="form-group">
+                <div class="row">
+                    {{ form.product_id|as_crispy_field }}
+
+                            <div class="col-6">{{ form.title|as_crispy_field }}</div>
+                            <div class="col-6">{{ form.dropdown_title|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.descr|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.internal_descr|as_crispy_field }}</div>
+                            <div class="col-6">{{ form.option_type|as_crispy_field }}</div>
+                            <div class="col-6">{{ form.price_modifier|as_crispy_field }}<p class="help-block" id="price_mod_helper">Here's some help text</p></div>
+                            <div class="col-6">
+                                <img src="asdasd">
+                                <a class="btn btn-primary btn-lg js-order-product-edit" href="class" role="button" ><i class="fas fa-edit"></i> Change Product</a>
+                            </div>
+                            <div class="col-6">{{ form.show_at_checkout|as_crispy_field }}</div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger " onclick="location.href='{% url 'alloptionsvalues' %}'">
+                            Cancel
+                            </button>
+                            <button type="submit" id="add" class="btn btn-primary pull-right">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    </form>
+{% endblock content %}
+
+{% block javascript %}
+
+    <script>
+
+    var typeinfo_data = {{option_types | safe}}
+
+    $('#id_option_type').change(function () {
+        changedto = $(this).val()
+
+        price_desc_text = getTypeDesc(changedto)
+         $('#price_mod_helper').html(price_desc_text)
+    })
+
+    function getTypeDesc(type_id){
+        type_price_desc = "";
+         $.each(typeinfo_data, function(key, value) {
+            if(value.option_type_id == parseInt(type_id)) {
+                type_price_desc = value.price_modifier_description
+                return false; // breaks
+            }
+        });
+         return type_price_desc
+    }
+
+    $(function () {
+        $('#id_option_type').trigger('change')
+    })
+    </script>
+
+{% endblock javascript %}
+
+
+
+
+
+

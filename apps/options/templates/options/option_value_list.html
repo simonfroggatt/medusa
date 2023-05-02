@@ -5,42 +5,34 @@
 {% endblock extra_css %}
 
 {% block content %}
+    <div class="row top_bar">
+            <div class="col-3 col-lg-2">
+
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                {% include 'options/sub_layout/value_top_navbar.html' %}
+            </div>
+        </div>
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox">
                 <div class="ibox-content">
-                <button id="create-type" class="btn btn-primary mb-4" type="button" name="create-type">Create Value</button>
 
-                    <table id="option_type_table" class="table table-hover table-sm table-striped table-bordered">
+                    <table id="option_value_table" class="table table-hover table-sm table-striped"
+                                       style="width:100%">
                         <thead>
                         <tr>
                             <th class="col-2">Title</th>
                             <th class="col-2">Type</th>
-                            <th class="col-2">Dropdown</th>
-                            <th class="col-2">Description</th>
-                            <th class="col-1">Product ID</th>
-                            <th class="col-1">Price Modifier</th>
+                            <th class="col-3">Dropdown</th>
+                            <th class="col-4">Value Type</th>
                             <th class="col-1">Show at Checkout</th>
-                            <th class="col-1 text-end">&nbsp;</th>
+                            <th width="50px" class="text-end">&nbsp;</th>
                         </tr>
                         </thead>
-                        <tbody>
-                        {% for values in  option_values %}
-                            <tr>
-                                <td>{{ values.title }}</td>
-                                <td>{{ values.option_type }}</td>
-                                <td>{{ values.dropdown_title }}</td>
-                                <td>{{ values.descr }}</td>
-                                <td>{{ values.product_id }}</td>
-                                <td>{{ values.price_modifier }}</td>
-                                <td>{{ values.show_at_checkout }}</td>
-                            <td class="text-end">
-                                <a role="button" data-url="" class="btn btn-danger btn-sm "><i class="fas fa-trash-alt fa-sm"></i></a>
-                                <a role="button" data-url="" class="btn btn-primary btn-sm "><i class="fas fa-edit fa-sm"></i></a>
-                            </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
                     </table>
 
 
@@ -58,5 +50,54 @@
 
 {% block javascript %}
 
+            <script>
+       $(document).ready(function() {
+
+    $('#option_value_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "responsive": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "/options/api/values/?format=datatables"
+             },
+        "deferRender": false,
+         "search": {
+            "regex": true
+        },
+        columns :[
+            {data: "title"},
+            {data: "option_type.name"},
+            {data: "dropdown_title"},
+            {data: "option_type.descr"},
+            {data: "show_at_checkout",
+                render: function (data, type, row) {
+                    if (data == 1) {
+                        return '<span class="badge rounded-pill badge-soft-success font-size-14">YES</span>'
+                    } else {
+                        return '<span class="badge rounded-pill badge-soft-danger font-size-14">NO</span>'
+                    }
+
+                }
+            },
+            {
+                data: "id",
+                sortable: false,
+                render: function ( data, type, row ) {
+                 let edit_icon = '<a class="btn btn-primary btn-sm js-order-product-edit" href="values/'+data+'" role="button" ><i class="fas fa-edit fa-sm"></i></a>';
+                return edit_icon;
+                }
+            },
+        ]
+    } );
+
+
+} );
+    </script>
 
 {% endblock javascript %}

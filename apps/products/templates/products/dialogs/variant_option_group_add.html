@@ -1,0 +1,39 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> Add Option Group</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+     <div class="container">
+        <form method="post" action="{% url 'product_variant_core_group_option-add' core_variant_id %}" id="from-core_variant_group_option_add">
+            {% csrf_token %}
+             <input type="hidden" id="core_variant_id" name="core_variant_id" value="{{ core_variant_id }}">
+
+            <div class="row">
+            <label for="group_option_select" class="label">Select the group</label>
+            <select class="form-select" id="js-group_option_select" name="group_option_select_id" data-url="{% url 'group_class_values' 0 %}">
+                {% for class_group in object_groups %}
+                {{ class_group.name }}
+                        <option value="{{ class_group.id }}">{{ class_group.name }}</option>
+                {% endfor %}
+            </select>
+            </div>
+            <div class="row pt-2" id="group_option_values">
+                Nothing in here
+            </div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Add</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+</script>
+

@@ -122,15 +122,12 @@
     });
 
      cat_parent_table.on( 'select', function ( e, dt, type, indexes ) {
-    if ( type === 'row' ) {
-         var parent_id = dt.row(indexes).id();
-        $('#parent_id').val(parent_id)
-        // do something with the ID of the selected items
-    }
-} );
-
-
-
+        if ( type === 'row' ) {
+             var parent_id = dt.row(indexes).id();
+             $('#parent_id').val(parent_id)
+            // do something with the ID of the selected items
+        }
+    } );
  })
 
 

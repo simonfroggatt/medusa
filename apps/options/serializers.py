@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from .models import OcTsgOptionValuesBase, OcTsgOptionClassGroups, OcTsgOptionTypes, OcTsgOptionClassBase
+from .models import OcTsgOptionValues, OcTsgOptionClassGroups, OcTsgOptionTypes, OcTsgOptionClass, OcTsgOptionClassGroupValues
 
 
-class OptionValueBaseSerializer(serializers.ModelSerializer):
+class OptionValuesSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = OcTsgOptionValuesBase
+        model = OcTsgOptionValues
         fields = '__all__'
         depth = 2
 
@@ -29,6 +29,17 @@ class OptionTypeSerializer(serializers.ModelSerializer):
 class OptionClassSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = OcTsgOptionClassBase
+        model = OcTsgOptionClass
+        #fields = [field.name for field in model._meta.fields]
+        #read_only_fields = (['drop_down'])
+        #fields.extend(['drop_down'])
+        fields = '__all__'
+        depth = 2
+
+
+class OptionGroupValueSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcTsgOptionClassGroupValues
         fields = '__all__'
         depth = 2

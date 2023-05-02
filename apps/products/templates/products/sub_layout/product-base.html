@@ -1,0 +1,81 @@
+{% load static %}
+
+<div class="row" id="product-base-details">
+    <div class="col-12 col-sm-2 pe-0">
+        <img src="{{ product_obj.image_url }}" alt="{{ category_obj.name }} category image"
+             class="img-fluid img-thumbnail">
+    </div>
+
+    <div class="col-12 col-sm-5 pe-0" id="card_product_base_desc">
+        <div class="card h-100 mb-0">
+            <div class="card-header product_base_desc">
+                <div class="row">
+                    <div class="col-9 ">Base Text</div>
+                    <div class="col-3">
+                        <div class="float-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <a type="button" class="btn btn-primary btn-sm js-company-dlg"
+                                   href="{% url 'product_base_details_edit' product_obj.product_id %}"
+                                   data-dlgsize="modal-lg"
+                                ><i class="fas fa-edit fa-pull-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <dl class="row " id="product_desc_{{ product_obj.product_id }}">
+                            <dt class="col-3">Product ID</dt>
+                            <dd class="col-9">{{ product_obj.product_id }}</dd>
+                            <dt class="col-3">Name</dt>
+                            <dd class="col-9">{{ product_obj.productdescbase.name }}</dd>
+                            <dt class="col-3">Title</dt>
+                            <dd class="col-9">{{ product_obj.productdescbase.title }}</dd>
+                            <dt class="col-3">Description</dt>
+                            <dd class="col-9">{{ product_obj.productdescbase.description|truncatechars:100 }}</dd>
+                            <dt class="col-3">Supplier</dt>
+                            <dd class="col-9">{{ product_obj.supplier }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-5 pe-0" id="card_product_base_meta">
+        <div class="card h-100 mb-0">
+            <div class="card-header product_base_meta">
+                <div class="row">
+                    <div class="col-9 ">Base Meta Info</div>
+                    <div class="col-3">
+                        <div class="float-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                                <a type="button" class="btn btn-primary btn-sm js-company-dlg"
+                                   href="{% url 'product_base_details_edit' product_obj.product_id %}"
+                                   data-dlgsize="modal-lg"><i class="fas fa-edit fa-pull-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <dl class="row " id="product_meta_{{ product_obj.product_id }}">
+                            <dt class="col-3">Meta Title</dt>
+                            <dd class="col-9">{{ product_obj.productdescbase.meta_title }}</dd>
+                            <dt class="col-3">Meta Description</dt>
+                            <dd class="col-9">{{ product_obj.productdescbase.meta_description|truncatechars:100 }}</dd>
+                            <dt class="col-3">Meta Keywords</dt>
+                            <dd class="col-9">{{ product_obj.productdescbase.meta_keyword }}</dd>
+                            <dt class="col-3">Tags</dt>
+                            <dd class="col-9">{{ product_obj.productdescbase.tags }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

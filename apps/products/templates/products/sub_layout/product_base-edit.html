@@ -1,0 +1,92 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <form method="post" action="">
+        {{ form.media }}
+        {% csrf_token %}
+        <div class="row">
+            <div class="form-group">
+                <div class="row ibox-content">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-4">{{ form_product.supplier|as_crispy_field }}</div>
+                            <div class="col-4">{{ form_product.tax_class|as_crispy_field }}</div>
+                            <div class="col-2" >{{ form_product.status|as_crispy_field }}</div>
+                            <div class="col-2">{{ form_product.mib_logo|as_crispy_field }}</div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row ibox-content">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-12 col-md-4">
+                                <div class="row">
+                                    <div class="col-12">{{ form_product_desc.product|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.name|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.title|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.meta_title|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.meta_description|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.meta_keyword|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.tag|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.language|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-8">
+                                <div class="row">
+                                    <div class="col-12">{{ form_product_desc.description|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.long_description|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form_product_desc.sign_reads|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger "
+                                    onclick="location.href='{{ get_success_url }}'">Cancel
+                            </button>
+                            <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                        </div>
+                    </div>
+                </div>
+
+    </form>
+{% endblock content %}
+
+{% block javascript %}
+
+
+    <script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+
+    <script>
+        var t1 = tinymce.init({
+            selector: '.tinymce',
+        })
+
+    </script>
+
+
+{% endblock javascript %}
+
+
+
+
+
+

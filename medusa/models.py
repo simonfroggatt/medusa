@@ -2,6 +2,20 @@ from django.db import models
 from apps.sites.models import OcStore
 
 
+class OcTaxClass(models.Model):
+    tax_class_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=32)
+    description = models.CharField(max_length=255)
+    date_added = models.DateTimeField()
+    date_modified = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tax_class'
+
+    def __str__(self):
+        return self.title
+
 class OcTaxRate(models.Model):
     tax_rate_id = models.AutoField(primary_key=True)
     geo_zone_id = models.IntegerField()
@@ -133,3 +147,22 @@ class OcTsgAccountType(models.Model):
         return self.account_type_name
 
 
+class OcSupplier(models.Model):
+    code = models.CharField(max_length=20, blank=True, null=True)
+    company = models.CharField(max_length=255, blank=True, null=True)
+    main_contact = models.CharField(max_length=255, blank=True, null=True)
+    order_email = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    area = models.CharField(max_length=255, blank=True, null=True)
+    postcode = models.CharField(max_length=255, blank=True, null=True)
+    country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, blank=True, null=True)
+    main_telephone = models.CharField(max_length=255, blank=True, null=True)
+    alt_telephone = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_supplier'
+
+    def __str__(self):
+        return self.company

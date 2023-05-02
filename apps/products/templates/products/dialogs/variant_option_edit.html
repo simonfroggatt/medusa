@@ -1,0 +1,29 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> Change Option Order</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+     <div class="container">
+        <form method="post" action="{% url 'product_variant_core_option-edit' variant_option_id %}"
+              id="from-core_variant_option_edit">
+            {% csrf_token %}
+             <input type="hidden" id="variant_option_id" name="variant_option_id" value="{{ variant_option_id }}">
+            {{ form.product_variant|as_crispy_field }}
+            <div class="row">
+                <div class="col-md-12">{{ form.option_class|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.option_value|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.order_by|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+

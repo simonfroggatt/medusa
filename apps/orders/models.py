@@ -211,7 +211,8 @@ class OcOrder(models.Model):
     xero_id = models.CharField(max_length=256, blank=True, null=True)
     customer_order_ref = models.CharField(max_length=255, blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate')
-    printed = models.BooleanField(blank=True, null=True)  #note - must be BooleanField
+    printed = models.BooleanField()  #note - must be BooleanField
+    plain_label = models.BooleanField()
 
     @property
     def is_order(self):

@@ -66,6 +66,16 @@ class Materials(viewsets.ModelViewSet):
     serializer_class = MaterialsSerializer
 
 
+class SizeMaterials(viewsets.ModelViewSet):
+    queryset = OcTsgSizeMaterialComb.objects.all()
+    serializer_class = BasePricesSerializer
+
+    def retrieve(self, request, pk=None):
+        materials_obj = OcTsgSizeMaterialComb.objects.filter(product_size__size_id=pk).order_by('price')
+        serializer = self.get_serializer(materials_obj, many=True)
+        return Response(serializer.data)
+
+
 class BasePrices(viewsets.ModelViewSet):
     queryset = OcTsgSizeMaterialComb.objects.all()
     serializer_class = BasePricesSerializer

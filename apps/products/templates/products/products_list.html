@@ -167,12 +167,11 @@
                     name: "viewstatus",
                     searchable: "false",
                     render: function (data) {
-                        let vis_class = "icon_enabled"
-                        if (data == 0) {
-                            vis_class = "icon_disable"
-                        }
-                        let vis_icon = '<i class="far fa-eye ' + vis_class + '"></i>'
-                        return vis_icon
+                        if (data == 1) {
+                        return '<span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>'
+                    } else {
+                        return '<span class="badge rounded-pill badge-soft-danger font-size-14">OFF-LINE</span>'
+                    }
                     }
                 },
                 {
@@ -185,7 +184,7 @@
                         let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + row['id'] + '"><i class="fas fa-trash fa-sm"></i></a>'
 
 
-                        return delete_icon + "  " + edit_icon;
+                        return /*delete_icon + "  " +*/ edit_icon;
                         ;
                     }
                 },

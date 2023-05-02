@@ -1,7 +1,10 @@
 from rest_framework import serializers
-from .models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, OcTsgSizeMaterialComb, OcTsgProductVariants
+from .models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, \
+    OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory
+from apps.category.models import OcCategoryToStore
 from django.conf import settings
-
+from apps.symbols.models import OcTsgProductSymbols
+from apps.options.models import OcTsgProductVariantCoreOptions
 
 class ProductSerializer(serializers.ModelSerializer):
     #corevariants = serializers.RelatedField(many=True)
@@ -98,7 +101,7 @@ class CoreVariantSerializer(serializers.ModelSerializer):
     size_material = SizeMaterialCombSerializer(read_only=True)
     class Meta:
         model = OcTsgProductVariantCore
-        fields = ['prod_variant_core_id','supplier_code', 'variant_image_url', 'gtin', 'size_material']
+        fields = ['prod_variant_core_id','supplier_code', 'variant_image_url', 'gtin', 'bl_live', 'size_material']
         depth = 3
 
 
@@ -133,7 +136,31 @@ class TestProduct(serializers.ModelSerializer):
         fields = ['product_id', 'model', 'image']
 
 
+class ProductStoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcProductToStore
+        fields = '__all__'
 
+        depth = 1
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcProductToCategory
+        fields = '__all__'
+        depth = 2
+
+class ProductSymbolSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductSymbols
+        fields = '__all__'
+        depth = 1
+
+class ProductCoreVariantOptionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductVariantCoreOptions
+        fields= '__all__'
+        depth = 2
 
 
 
