@@ -9,7 +9,8 @@ router.register(r'productsite', views.ProductSite)
 router.register(r'categories', views.Category)
 router.register(r'productsymbols', views.ProductSymbols)
 router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
-router.register(r'product_variant_options', views.ProductVariantOption)
+router.register(r'product_core_variant_options', views.ProductCoreVariantOption)
+router.register(r'product_site_variant_options', views.ProductSiteVariantOption)
 
 
 
@@ -25,14 +26,18 @@ urlpatterns = [
     path('api/storevariantsreverse/<int:product_id>/<int:store_id>', views.StoreVariantListViewReverse.as_view({'get': 'list'}), name='sitevariantreverse'),
     path('api/corevariants/<int:product_id>', views.BaseVariantListView.as_view({'get': 'list'}), name='corevariant'),
     path('api/storeadd', views.product_store_add_text, name='productstoreadd'),
+    path('api/variantstore/<int:pk>', views.get_product_variant_stores, name='productvariantstorelist'),
     path('variant/<int:core_variant_id>/option/add', views.product_variant_core_add_option, name='product_variant_core_option-add'),
     path('variant/<int:pk>/option/edit', views.product_variant_core_edit_option, name='product_variant_core_option-edit'),
     path('variant/<int:pk>/option/delete', views.product_variant_core_delete_option, name='product_variant_core_option-delete'),
+    path('sitevariant/<int:pk>/option/edit', views.site_variant_edit_option, name='site_variant_core_option-edit'),
+    path('sitevariant/<int:pk>/option/add', views.site_variant_options_edit, name='site_variant_option-add'),
     path('variant/<int:core_variant_id>/group_option/add', views.product_variant_core_add_group_option, name='product_variant_core_group_option-add'),
     path('group_class/<int:group_id>', views.group_class_list_html, name='group_class_values'),
     path('<int:product_id>', views.product_details, name='product_details'),
     path('<int:product_id>/edit', views.product_edit_base, name='product_base_details_edit'),
     path('<int:pk>/corevariant/add', views.product_core_variant_add, name='product_core_variant-add'),
+    path('<int:pk>/variant/site/<int:store_id>/add', views.product_variant_site_add, name='product_variant_site-add'),
     path('corevariant/<int:pk>/edit', views.product_core_variant_edit, name='product_core_variant-edit'),
     path('<int:pk>/categoryedit', views.product_category_edit, name='productcatgoryedit'),
     path('<int:pk>/storeedit', views.ProductSiteUpdate.as_view(), name='product_store_details_edit'),

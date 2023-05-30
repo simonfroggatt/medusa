@@ -7,6 +7,7 @@ from medusa.models import OcTaxRate, OcSupplier, OcTaxClass
 from apps.category.models import OcCategoryToStore
 
 
+
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     model = models.CharField(max_length=64)
@@ -187,11 +188,13 @@ class OcTsgProductVariants(models.Model):
     digital_artwork = models.IntegerField(blank=True, null=True)
     digital_artwork_price = models.FloatField(blank=True, null=True)
     digital_artwork_def = models.IntegerField(blank=True, null=True)
+    isdeleted = models.BooleanField()
+
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_variants'
-        unique_together = (('prod_variant_id', 'prod_var_core'),)
+
 
 
 
@@ -213,15 +216,15 @@ class OcTsgDepOptionClass(models.Model):
         return self.name
 
 
-class OcTsgProductVariantOptions(models.Model):
-    product_variant = models.OneToOneField('OcTsgProductVariants', models.DO_NOTHING, primary_key=True, related_name='productvariant')
-    option_class = models.ForeignKey(OcTsgDepOptionClass, models.DO_NOTHING, related_name='optionclass')
-    order_by = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_product_variant_options'
-        unique_together = (('product_variant', 'option_class'),)
+# class OcTsgProductVariantOptions(models.Model):
+#     product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, related_name='productvariant')
+#     option_class = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, blank=True, null=True)
+#     #option_value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
+#     order_by = models.IntegerField(blank=True, null=True)
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'oc_tsg_product_variant_options'
 
 
 class OcTsgDepOptionOptions(models.Model):
@@ -326,7 +329,6 @@ class OcProductToCategory(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_product_to_category'
-
 
 
 

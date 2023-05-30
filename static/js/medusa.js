@@ -87,6 +87,7 @@ var loadForm = function () {
         var btn = $(this);  // <-- HERE
         let dlg_size = btn.attr("data-dlgsize");
         let tmp_url = btn.attr("data-url");
+        $("#modal-base .modal-content").html("<html><body></body></html>");
         $.ajax({
             url: btn.attr("data-url"),  // <-- AND HERE
             type: 'get',

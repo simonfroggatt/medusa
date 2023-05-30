@@ -3,6 +3,15 @@ from apps.sites.models import OcStore
 from django.conf import settings
 
 
+class StorePriceManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+
+class StorePricesQuerySet(models.QuerySet):
+    def get_queryset(self):
+        return super().get_queryset()
+
+
 
 class OcTsgOrientation(models.Model):
     orientation_id = models.AutoField(primary_key=True)
@@ -71,6 +80,7 @@ class OcTsgSizeMaterialComb(models.Model):
     product_size = models.ForeignKey(OcTsgProductSizes, models.DO_NOTHING)
     product_material = models.ForeignKey(OcTsgProductMaterial, models.DO_NOTHING)
     price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    bl_live = models.BooleanField()
 
     class Meta:
         managed = False
@@ -82,11 +92,10 @@ class OcTsgSizeMaterialComb(models.Model):
 
 
 class OcTsgSizeMaterialCombPrices(models.Model):
-    size_material_comb = models.OneToOneField(OcTsgSizeMaterialComb, models.DO_NOTHING, primary_key=True, related_name='sizecombo_base')
+    size_material_comb = models.ForeignKey(OcTsgSizeMaterialComb, models.DO_NOTHING, related_name='sizecombo_base')
     store = models.ForeignKey(OcStore, models.DO_NOTHING)
     price = models.DecimalField(max_digits=5, decimal_places=2)
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_size_material_comb_prices'
-        unique_together = (('size_material_comb', 'store'),)

@@ -2,7 +2,7 @@ from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductDescription, OcProductToStore, \
     OcProductToCategory, OcTsgProductVariantCore
 
-from apps.options.models import OcTsgProductVariantCoreOptions
+from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions
 
 from tinymce.widgets import TinyMCE
 
@@ -87,6 +87,22 @@ class VariantCoreOptionsForm(forms.ModelForm):
         }
 
 
+class VariantCoreOptionsOrderForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgProductVariantCoreOptions
+        fields = '__all__'
+
+        widgets = {
+            'product_variant': forms.HiddenInput,
+            'option_value': forms.HiddenInput,
+            'option_class': forms.HiddenInput,
+        }
+
+        labels = {
+            'order_by': 'New order position',
+        }
+
+
 class VariantCoreForm(forms.ModelForm):
     class Meta:
         model = OcTsgProductVariantCore
@@ -122,6 +138,24 @@ class VariantCoreEditForm(forms.ModelForm):
             'exclude_fpnp': 'Exclude from Free Shipping',
             'shipping_cost': 'Cost for this Shipping',
             'gtin': 'GTIN ',
+            'bl_live': 'LIVE',
+        }
+
+
+
+class SiteVariantOptionsForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgProductVariantOptions
+        fields = '__all__'
+
+        widgets = {
+            'product_variant': forms.HiddenInput,
+            'option_class': forms.HiddenInput,
+            'option_value': forms.HiddenInput,
+        }
+
+        labels = {
+            'order_by': 'New order position',
         }
 
 

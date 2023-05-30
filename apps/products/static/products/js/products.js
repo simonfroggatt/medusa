@@ -126,7 +126,42 @@ $(function () {
             "rowId": 'id',
             "ajax": {
                 "processing": true,
-                "url": "/products/api/product_variant_options/-1?format=datatables",
+                "url": "/products/api/product_core_variant_options/-1?format=datatables",
+            },
+            columns: [
+                {
+                    data: "option_class.label"
+
+                }
+                    ,
+                {
+                    data: "option_value.title"
+                },
+                {
+                    data: "order_by"
+                },
+
+            ]
+
+        });
+    }
+
+    if ($.fn.dataTable.isDataTable('#site_variants_options')) {
+        var site_variants_options = $('#site_variants_options').DataTable();
+    } else {
+        var site_variants_options = $('#site_variants_options').DataTable({
+            "processing": true,
+            "pageLength": 100,
+            "paging": false,
+            "info": false,
+            "autoWidth": false,
+            "searching": false,
+            "responsive": true,
+            "select": true,
+            "rowId": 'id',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/product_site_variant_options/-1?format=datatables",
             },
             columns: [
                 {
@@ -192,10 +227,81 @@ $(function () {
         });
     }
 
+    if ($.fn.dataTable.isDataTable('#product_variants_site_table')) {
+        var product_variants_site_table = $('#product_variants_site_table').DataTable();
+    } else {
+        var product_variants_site_table = $('#product_variants_site_table').DataTable({
+            "processing": true,
+            "pageLength": 100,
+            "paging": false,
+            "info": false,
+            "autoWidth": false,
+            "searching": false,
+            "responsive": true,
+            "select": 'single',
+            "rowId": 'prod_variant_id',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/storevariants/" + js_product_id + "/0?format=datatables",
+            },
+            columns: [
+                {data: "store.thumb",
+                    render: function ( data, type, row ) {
+                    let image_src =  static_const + 'images/stores/' + data;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }},
+                {
+                    data: "variant_code", defaultContent: ""},
+                {
+                    data: "prod_var_core.size_material.product_size.size_name", defaultContent: ""
+                },
+                {
+                    data: "prod_var_core.size_material.product_material.material_name" , defaultContent: ""
+                },
+                {
+                    data: "prod_var_core.size_material.price" , defaultContent: 0.00
+                },
+                {
+                    data: "alt_image", defaultContent: "no-image.png",
+                    render: function (data, type, row, meta) {
+                        if (data == null)
+                        {
+                            let base_image = row['prod_var_core']['variant_image']
+                            if(base_image == null)
+                            {
+                                var base_image_url = row['prod_var_core']['product']['image']
+                            }
+                            else {
+                                var base_image_url = base_image
+                            }
+                            return '<img height="30px" class="rounded mx-auto d-block" src="'+media_url + base_image_url + '">';
+                        }
+                        else{
+                            return '<img height="30px" class="rounded mx-auto d-block" src="'+media_url + data + '">';
+                        }
+
+                    }
+                },
+                {
+                    data: "prod_variant_id",
+                    sortable: false,
+                    className: 'text-md-end text-start',
+                    render: function (data, type, row) {
+                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="corevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="fas fa-edit table-button"></i></a>';
+                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="fas fa-trash table-button"></i></a>';
+                        return edit_icon;//+ " " + delete_icon
+                    }
+                },
+            ]
+
+        });
+
+    }
+
     product_core_variants_table.on('select', function (e, dt, type, indexes) {
         if (type === 'row') {
             let data = dt.row(indexes).id();
-            let variant_url = '/products/api/product_variant_options/'+data+'?format=datatables'
+            let variant_url = '/products/api/product_core_variant_options/'+data+'?format=datatables'
             core_variants_options.ajax.url(variant_url).load()
             $('#js-variant_core_option-add').removeClass('disabled');
             $('#js-variant_core_group_option-add').removeClass('disabled');
@@ -206,17 +312,39 @@ $(function () {
         }
     });
 
+    product_variants_site_table.on('select', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = dt.row(indexes).id();
+            let variant_url = '/products/api/product_site_variant_options/'+data+'?format=datatables'
+            site_variants_options.ajax.url(variant_url).load()
+            $('#js-product-site-variant_option-add').removeClass('disabled');
+
+            let btn_add_url = 'sitevariant/'+data+'/option/add';
+            $('#js-product-site-variant_option-add').attr('data-url', btn_add_url)
+           // $('#js-variant_core_group_option-add').attr('data-url', 'variant/'+data+'/group_option/add')
+            // do something with the ID of the selected items
+        }
+    });
+
     product_core_variants_table.on('deselect', function (e, dt, type, indexes) {
         if (type === 'row') {
             $('#js-variant_core_option-add').addClass('disabled')
             $('#js-variant_core_group_option-add').addClass('disabled');
+            $('#dropdownVariantOptions').addClass('disabled')
+        }
+    });
+
+    product_variants_site_table.on('deselect', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            $('#js-product-site-variant_option-add').addClass('disabled')
+            $('#dropdownSiteVariantOptions').addClass('disabled')
+            //$('#js-variant_core_group_option-add').addClass('disabled');
         }
     });
 
     core_variants_options.on('select', function (e, dt, type, indexes) {
         if (type === 'row') {
             let data = dt.row(indexes).id();
-            let variant_url = '/products/api/product_variant_options/'+data+'?format=datatables'
             $('#dropdownVariantOptions').removeClass('disabled');
             $('#js-core_variant_edit_order').attr('data-url', 'variant/'+data+'/option/edit')
             $('#js-variant_core_option-delete').attr('data-url', 'variant/'+data+'/option/delete')
@@ -227,6 +355,22 @@ $(function () {
     core_variants_options.on('deselect', function (e, dt, type, indexes) {
         if (type === 'row') {
             $('#dropdownVariantOptions').addClass('disabled')
+        }
+    });
+
+    site_variants_options.on('select', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = dt.row(indexes).id();
+            $('#dropdownSiteVariantOptions').removeClass('disabled');
+            $('#js-site_variant_edit_order').attr('data-url', 'sitevariant/'+data+'/option/edit')
+            $('#js-site_variant_option-delete').attr('data-url', 'sitevariant/'+data+'/option/delete')
+            // do something with the ID of the selected items
+        }
+    });
+
+    site_variants_options.on('deselect', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            $('#dropdownSiteVariantOptions').addClass('disabled')
         }
     });
 
@@ -382,19 +526,89 @@ $(function () {
         return false;
     }
 
+    function AddProductVariantSite(form){
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    updateProductVariantSiteTable();
+                    $("#modal-base").modal("hide");
+                }
+                else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
+    function get_product_stores(product_id){
+        $.ajax({
+            url: "/products/api/variantstore/" + product_id,
+            type: "GET",
+            dataType: 'json',
+            success: function (data) {
+                if (data.html_text) {
+                    $('#tab-site-variants_contents').html(data.html_text)
+                    product_variants_site_table.ajax.reload()
+                }
+                else {
+                   $('#tab-site-variants_contents').html("No values")
+                }
+            }
+        });
+        return false;
+    }
+
+
+    function SaveSiteOption(){
+        form = $(this)
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    updateSiteVariantOptionTable();
+                    $("#modal-base").modal("hide");
+                }
+                else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
+    function updateSiteVariantOptionTable(){
+        site_variants_options.ajax.reload()
+    }
+
+
 
     function updateProductVariantCoreTable(){
         product_core_variants_table.ajax.reload()
+    }
+
+    function updateProductVariantSiteTable(){
+        product_variants_site_table.ajax.reload()
     }
 
     $(document).on("click", ".js-product-symbol-edit", AddRemoveProductSymbol);
     $(document).on("click", ".js-variant-option-edit", loadForm);
     $(document).on("click", ".js-variant-edit", loadForm);
     $(document).on("click", "#js-product_variant_core-add", loadForm);
+    $(document).on("click", "#js-product_variant_core_site-add", loadForm);
     $(document).on("submit", "#from-core_variant_option_add", SaveVariantOptionAdd);
     $(document).on("submit", "#dlg-product_variant_core_option-delete", SaveVariantOptionAdd);
     $(document).on("submit", "#form-core_variant_edit", EditProductVariantCore);
     $(document).on("submit", "#from-core_variant_group_option_add", SaveVariantGroupAdd);
+    $(document).on("submit", "#from-site_variant_option_edit", SaveSiteOption);
+    $(document).on("submit", "#form-core_variant_option_edit", SaveVariantOptionAdd);
     $(document).on("change", "#js-group_option_select", function(){
          let newval = $(this).val()
          get_group_option_text(newval)
@@ -405,8 +619,28 @@ $(function () {
         AddProductVariantCore(form = $(this))
     })
 
+    $("#form-site_variant_add").on("submit" , function (e) {
+        e.preventDefault()
+        AddProductVariantSite(form = $(this))
+    })
 
 
+    $('#js-variant-store_id').on('change', function() {
+        let newval = $(this).val()
+        let ajax_url = "/products/api/storevariants/" + js_product_id + "/"+newval+"?format=datatables";
+        product_variants_site_table.ajax.url(ajax_url).load();
+    });
+
+    $('#js-variant-add-store_id').on('change', function() {
+        let newval = $(this).val()
+        $('#variant-select').multiSelect('deselect_all');
+        let site_current_select = site_selected_vars[newval]
+        $('#variant-select').multiSelect('select', site_current_select);
+    });
+
+    /*$('#site-variants-tab').on("click", function(){
+        get_product_stores(1)
+    })*/
 
 
 })

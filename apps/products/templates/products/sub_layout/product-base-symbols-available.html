@@ -54,10 +54,16 @@ $(document).ready(function() {
                         return add_icon
                     },
                     },
-                {data: "image_path",
+                {data: "image_path", defaultContent: "no-image.png",
                     render: function ( data, type, row ) {
-                    img_path = {% get_media_prefix %} + data
-                     return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'">';
+                    if(data == null ){
+                        img_path = {% get_media_prefix %} + "no-image.png"
+                    }
+                    else{
+                        img_path = {% get_media_prefix %} + data
+                    }
+
+                     return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';
                     },
                 },
                 {data: "referent"},

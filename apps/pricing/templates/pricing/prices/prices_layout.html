@@ -1,0 +1,55 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+        <div class="row" id="prices-tabs">
+            <div class="col">
+                <div class="ibox">
+                    <div class="ibox-content tsg_navs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="allprice-tab" data-bs-toggle="tab" href="#tab-allprices"
+                                   role="tab">
+                                    <i class="fas fa-list"></i> ALL prices</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="siteprices-tab" data-bs-toggle="tab" href="#tab-siteprices"
+                                   role="tab">
+                                    <i class="fas fa-globe"></i> Site Specific</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" id="tab-allprices" class="tab-pane fade show active">
+                                <div class="panel-body">
+                                    {% include 'pricing/prices/price-comb-list.html' %}
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-siteprices" class="tab-pane fade">
+                                <div class="panel-body">
+                                    {% include 'pricing/prices/store_price-comb-list.html' %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+
+
+    <script>
+        //setup up the product ID so that products.js can get the value
+        const static_const = {% get_static_prefix %};
+        const media_url = "{% get_media_prefix %}";
+
+
+    </script>
+
+{% endblock javascript %}

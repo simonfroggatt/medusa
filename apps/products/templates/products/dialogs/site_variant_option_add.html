@@ -1,0 +1,46 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> Add Site Specific Option</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'site_variant_option-add' product_variant_id %}" id="form-site_variant_add"
+              novalidate>
+            {% csrf_token %}
+            <input type="hidden" id="product_variant_id" name="product_variant_id" value="{{ product_id }}">
+
+            <div class="row">
+                <div class="col-12 pt-2 pb-2">
+                    <select multiple="multiple" id="option-select" name="option-select[]">
+                        {% for core_variant_options in core_variant_options_obj %}
+                            <option id={{ core_variant_options.id }} value={{ core_variant_options.id }}>
+                                {{ core_variant_options.option_class.label }}
+                                - {{ core_variant_options.option_value.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="btn_product_core_var_add" class="btn btn-primary pull-right">Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript" src="{% static 'js/products.js' %}"></script>
+<script type="text/javascript" src="{% static 'libs/multiselect/jquery.multi-select.js' %}"></script>
+
+<script>
+   // var options_selected_vars = {{ current_options_list|safe }}
+        $('#option-select').multiSelect();
+   // $('#option').multiSelect('select', site_selected_vars[{{ first_store_id }}]);
+
+</script>

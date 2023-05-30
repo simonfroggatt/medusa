@@ -1,5 +1,5 @@
 from django.db import models
-from apps.products.models import OcTsgProductVariantCore
+from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants
 # Create your models here.
 
 class OcTsgOptionTypes(models.Model):
@@ -135,3 +135,14 @@ class OcTsgOptionClassGroupValues(models.Model):
         managed = False
         db_table = 'oc_tsg_option_class_group_values'
         unique_together = (('id', 'group', 'class_field', 'value'),)
+
+
+class OcTsgProductVariantOptions(models.Model):
+    product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, related_name='productvariant')
+    option_class = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, blank=True, null=True)
+    option_value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_variant_options'

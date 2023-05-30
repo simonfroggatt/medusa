@@ -1,3 +1,127 @@
+$(function(){
+
+        var base_prices_table = $('#base_prices_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "select": 'single',
+        "responsive": false,
+        "ajax": {
+                 "processing": true,
+                 "url": "/pricing/api/prices/?format=datatables"
+             },
+        "deferRender": false,
+         "search": {
+            "regex": true
+        },
+        columns :[
+
+            {data: "product_size.size_name", defaultContent: ""},
+            {data: "product_size.size_width",defaultContent: ""},
+            {data: "product_size.size_height", defaultContent: ""},
+            {data: "product_material.material_name", defaultContent: ""},
+            {data: "price", defaultContent: 0.00},
+            {
+                data: "id",
+                sortable: false,
+                className: 'text-end',
+                render: function ( data, type, row ) {
+                let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' +data+ '/edit"><i class="fas fa-edit fa-sm"></i></a>';
+                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + data + '"><i class="fas fa-trash fa-sm"></i></a>';
+                let add_icon = '<a class="btn btn-success btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fas fa-globe fa-sm"></i></a>';
+                return delete_icon + "  " + edit_icon + " " +add_icon
+                }
+            }
+
+        ]
+    } );
+
+         var store_prices_table = $('#store_prices_table').DataTable({
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "select": 'single',
+        "responsive": false,
+        "ajax": {
+                 "processing": true,
+                 "url": "/pricing/api/storeprices/1?format=datatables"
+             },
+        "deferRender": false,
+         "search": {
+            "regex": true
+        },
+        columns :[
+            {data: "store.thumb",
+            render: function ( data, type, row ) {
+                    let image_src =  static_const + 'images/stores/' + data;
+                    return '<img height="15px" src="' + image_src + '">'
+                 }},
+            {data: "size_material_comb.product_size.size_name", defaultContent: ""},
+            {data: "size_material_comb.product_size.size_width", defaultContent: ""},
+            {data: "size_material_comb.product_size.size_height", defaultContent: ""},
+            {data: "size_material_comb.product_material.material_name", defaultContent: ""},
+            {data: "price", defaultContent: 0.00},
+            {data: "size_material_comb.price", defaultContent: 0.00},
+            {
+                data: "id",
+                sortable: false,
+                className: 'text-end',
+                render: function ( data, type, row ) {
+                    let store_id = row['store']['store_id'];
+                    let size_material_id = row['size_material_comb']['id'];
+                let edit_icon = '<a class="btn btn-primary btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/edit"><i class="fas fa-edit fa-sm"></i></a>';
+                let delete_icon = '<a class="btn btn-danger btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/delete"><i class="fas fa-trash fa-sm"></i></a>'
+                return delete_icon + "  " + edit_icon;
+                }
+            }
+
+        ]
+    } );
+
+    $('#select_prices_by_store_id').on('change', function() {
+        let newval = $(this).val()
+        let ajax_url = "/pricing/api/storeprices/"+newval+"?format=datatables"
+        store_prices_table.ajax.url(ajax_url).load();
+    });
+
+    function saveStoreComboPriceSave()
+    {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    store_prices_table.ajax.reload();
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
+    $(document).on('click', '.js-pricing-edit', loadForm);
+    $(document).on('submit', '#form-store_price-edit', saveStoreComboPriceSave);
+    $(document).on('submit', '#form-store_price-create', saveStoreComboPriceSave);
+    $(document).on('submit', '#form-store_price-delete', saveStoreComboPriceSave);
+
+
+});
+
+
+
 $(".switchApplyBulk").change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         let product_price = form_id + " #price";

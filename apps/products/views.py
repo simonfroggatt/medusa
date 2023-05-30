@@ -2,28 +2,29 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from .models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, \
-    OcTsgProductVariantOptions, OcTsgDepOptionClass, OcTsgProductVariants, OcProductToStore, OcProductToCategory
+    OcTsgDepOptionClass, OcTsgProductVariants, OcProductToStore, OcProductToCategory
+    #OcTsgProductVariantOptions, \
+
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
-    ProductCoreVariantOptionsSerializer #, BaseProductListSerializer, ProductTestSerializer
+    ProductCoreVariantOptionsSerializer, ProductSiteVariantOptionsSerializer #, BaseProductListSerializer, ProductTestSerializer
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
 
-from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups
+from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups , OcTsgProductVariantOptions#, \
+   # OcTsgOptionClass, OcTsgOptionValues
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core import serializers
 from django.template.loader import render_to_string
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
-    VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm
+    VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
 
-# Create your views here.
-# Create your views here.
 
 
 class ProductSite(viewsets.ModelViewSet):
@@ -86,12 +87,21 @@ class Symbols(viewsets.ModelViewSet):
     queryset = OcTsgSymbols.objects.all()
     serializer_class = ProductSymbolSerialzer
 
-class ProductVariantOption(viewsets.ModelViewSet):
+class ProductCoreVariantOption(viewsets.ModelViewSet):
     queryset = OcTsgProductVariantCoreOptions.objects.all()
     serializer_class = ProductCoreVariantOptionsSerializer
 
     def retrieve(self, request, pk=None):
         category_object = OcTsgProductVariantCoreOptions.objects.filter(product_variant__prod_variant_core_id=pk)
+        serializer = self.get_serializer(category_object, many=True)
+        return Response(serializer.data)
+
+class ProductSiteVariantOption(viewsets.ModelViewSet):
+    queryset = OcTsgProductVariantOptions.objects.all()
+    serializer_class = ProductSiteVariantOptionsSerializer
+
+    def retrieve(self, request, pk=None):
+        category_object = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk)
         serializer = self.get_serializer(category_object, many=True)
         return Response(serializer.data)
 
@@ -132,6 +142,8 @@ def product_details(request, product_id):
 
     context['pageview'] = 'All products'
     context['heading'] = 'product details'
+    store_obj = OcStore.objects.exclude(store_id=0)
+    context['store_obj'] = store_obj
     return render(request, template_name, context)
 
 
@@ -153,7 +165,12 @@ class StoreVariantListView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         product_id = kwargs['product_id']
         store_id = kwargs['store_id']
-        variant_list = OcTsgProductVariants.objects.filter(store_id=store_id, prod_var_core__product__product_id=product_id)
+        if store_id > 0:
+            variant_list = OcTsgProductVariants.objects.filter(store_id=store_id, prod_var_core__product__product_id=product_id,
+                                                               prod_var_core__bl_live=True,isdeleted=False)
+        else:
+            variant_list = OcTsgProductVariants.objects.filter(prod_var_core__product__product_id=product_id,
+                                                               prod_var_core__bl_live=True, isdeleted=False)
         serializer = self.get_serializer(variant_list, many=True)
         return Response(serializer.data)
 
@@ -382,7 +399,7 @@ def product_variant_core_edit_option(request, pk):
     template_name = 'products/dialogs/variant_option_edit.html/'
 
     if request.method == 'POST':
-        form_obj = VariantCoreOptionsForm(request.POST)
+        form_obj = VariantCoreOptionsOrderForm(request.POST)
         if form_obj.is_valid():
             form_instance = form_obj.instance
             form_instance.id = pk
@@ -392,7 +409,9 @@ def product_variant_core_edit_option(request, pk):
             data['form_is_valid'] = False
     else:
         variant_option_core_obj = get_object_or_404(OcTsgProductVariantCoreOptions, id=pk)
-        form_obj = VariantCoreOptionsForm(instance=variant_option_core_obj)
+        form_obj = VariantCoreOptionsOrderForm(instance=variant_option_core_obj)
+        context['class_name'] = variant_option_core_obj.option_class.label
+        context['value_name'] = variant_option_core_obj.option_value.title
 
     context['form'] = form_obj
     data['html_form'] = render_to_string(template_name,
@@ -479,6 +498,8 @@ def product_core_variant_add(request, pk):
     return JsonResponse(data)
 
 
+
+
 def product_core_variant_edit(request, pk):
     data = dict()
     context = {'prod_variant_core_id' : pk}
@@ -518,4 +539,193 @@ def group_class_list_html(request, group_id):
                                          )
 
     return JsonResponse(data)
+
+
+def get_product_variant_stores(request, pk):
+    data = dict()
+    store_obj = OcStore.objects.exclude(store_id=0)
+    product_obj = get_object_or_404(OcProduct, product_id=pk)
+    context = {'store_obj': store_obj, 'product_obj': product_obj}
+    template_name = 'products/sub_layout/site_specific/product-variant-list_by_site.html'
+    data['html_text'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def product_variant_site_add(request, pk, store_id):
+    data = dict()
+    context = {'product_id': pk}
+    site_specific_data = dict()
+
+    if request.method == 'POST':
+        selected_list = request.POST.getlist('variant-select[]')
+        store_id = request.POST.get('store_id')
+        product_id = request.POST.get('product_id')
+        #get the current variants first
+        current_site_specific_variants = OcTsgProductVariants.objects.filter(prod_var_core__product_id=product_id, isdeleted=False)\
+            .filter(store_id=store_id).values_list('prod_var_core_id')
+        site_specific_variants_list = list(chain(*current_site_specific_variants))
+        site_specific_variants_list_as_str = list(map(str, site_specific_variants_list))
+
+        #create the add list
+        add_list = list(map(int, set(selected_list) - set(site_specific_variants_list_as_str)))
+
+        #now create the new records
+
+        for addid in add_list:
+            #check if it's already there bit hidden using the isdeleted flag
+            obj_product_variants_deleted = OcTsgProductVariants.objects.filter(prod_var_core_id=addid,store_id=store_id)
+            if obj_product_variants_deleted:
+                obj_product_variants = obj_product_variants_deleted.first()
+                obj_product_variants.isdeleted = False
+                obj_product_variants.save()
+
+            else:
+                obj_product_variants = OcTsgProductVariants()
+                obj_product_variant_core = get_object_or_404(OcTsgProductVariantCore, prod_variant_core_id=addid)
+                obj_product_variants.prod_var_core_id = addid
+                obj_product_variants.store_id = store_id
+                obj_product_variants.variant_code = obj_product_variant_core.supplier_code
+                obj_product_variants.variant_overide_price = 0.00
+                obj_product_variants.isdeleted = False
+                obj_product_variants.save()
+                new_id = obj_product_variants.prod_variant_id
+                product_variant_site_add_options(addid, new_id)
+
+        # create the remove list
+        removed_list = list(set(site_specific_variants_list_as_str) - set(selected_list))
+        for outid in removed_list:
+            obj_product_variant_site = OcTsgProductVariants.objects.filter(prod_var_core_id=outid, store_id=store_id)
+            #check if this variant has even been quoted or ordered.  If so, we can't delete it, just set the delete flag to True
+            row_product_variant_site = obj_product_variant_site.first()
+            bl_delete = True
+            if row_product_variant_site.order_product_variant:
+                row_product_variant_site.isdeleted = True
+                bl_delete = False
+
+            if row_product_variant_site.quote_product_variant:
+                row_product_variant_site.isdeleted = True
+                bl_delete = False
+
+            if bl_delete:
+                obj_product_variant_site.delete()
+            else:
+                row_product_variant_site.save()
+
+        data['form_is_valid'] = True
+
+
+    core_variants = OcTsgProductVariantCore.objects.filter(product_id=pk, bl_live=True).order_by(
+            'size_material__product_size__size_width', 'size_material__product_size__size_height', 'size_material__sizecombo_base__price')
+
+    store_obj = OcStore.objects.exclude(store_id=0)
+    context['store_obj'] = store_obj
+
+    template_name = 'products/dialogs/product_variant_site_add.html'
+    context['core_variants'] = core_variants
+
+    for item in store_obj.iterator():
+        var_site_id = item.store_id
+        site_specific_data[var_site_id] = get_site_selected_variants(pk, var_site_id)
+
+    context['current_variants_list'] = site_specific_data
+    context['first_store_id'] = store_obj.first().store_id
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+def site_variant_edit_option(request, pk):
+    data = dict()
+    context = {'site_option_id': pk}
+    template_name = 'products/dialogs/site_option_edit.html/'
+
+    if request.method == 'POST':
+        form_obj = SiteVariantOptionsForm(request.POST)
+        if form_obj.is_valid():
+            form_instance = form_obj.instance
+            form_instance.id = pk
+            form_instance.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        variant_option_core_obj = get_object_or_404(OcTsgProductVariantOptions, id=pk)
+        context['class_name'] = variant_option_core_obj.option_class.label
+        context['value_name'] = variant_option_core_obj.option_value.title
+        form_obj = SiteVariantOptionsForm(instance=variant_option_core_obj)
+
+    context['form'] = form_obj
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+def get_site_selected_variants(pk, store_id):
+    site_specific_variants = current_variants = OcTsgProductVariants.objects.filter(prod_var_core__product_id=pk,
+                store_id=store_id, isdeleted=False, prod_var_core__bl_live=True).values_list('prod_var_core_id')
+
+    site_specific_variants_list = list(chain(*site_specific_variants))
+    list_as_str = list(map(str, site_specific_variants_list))
+    return list_as_str
+
+
+def product_variant_site_add_options(core_variant_id, site_variant_id):
+    data = dict()
+
+    core_variant_options_obj = OcTsgProductVariantCoreOptions.objects.filter(product_variant_id=core_variant_id)
+    if core_variant_options_obj:
+        for values in core_variant_options_obj:
+            new_variant_option = OcTsgProductVariantOptions()
+            new_variant_option.product_variant_id = site_variant_id
+            new_variant_option.option_class_id = values.option_class_id
+            new_variant_option.option_value_id = values.option_value_id
+            new_variant_option.order_by = values.order_by
+            new_variant_option.save()
+
+    return True
+
+def site_variant_options_edit(request, pk):
+    data = dict()
+    context = {'product_variant_id': pk}
+    template_name = 'products/dialogs/site_variant_option_add.html/'
+
+    if request.method == 'POST':
+        form_obj = SiteVariantOptionsForm(request.POST)
+        if form_obj.is_valid():
+            form_instance = form_obj.instance
+            form_instance.id = pk
+            form_instance.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        site_variant_obj = get_object_or_404(OcTsgProductVariants, prod_variant_id=pk)
+        core_variant_id = site_variant_obj.prod_var_core_id
+        #now we need to know the core variant.
+        core_variant_options_obj = OcTsgProductVariantCoreOptions.objects.filter(product_variant_id=core_variant_id)
+        context['core_variant_options_obj'] = core_variant_options_obj
+        form_obj = SiteVariantOptionsForm(instance=site_variant_obj)
+
+        site_selected_options = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk).values_list(
+            'product_variant_id')
+
+        site_selected_options_list = list(chain(*site_selected_options))
+        list_as_str = list(map(str, site_selected_options_list))
+
+
+    context['form'] = form_obj
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
 

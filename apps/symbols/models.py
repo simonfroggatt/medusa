@@ -64,4 +64,7 @@ class OcTsgSymbols(models.Model):
 
     @property
     def symbol_image_url(self):
-       return f"{settings.MEDIA_URL}{self.image_path}"
+        if self.image_path:
+            return f"{settings.MEDIA_URL}{self.image_path}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"

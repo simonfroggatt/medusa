@@ -1,0 +1,32 @@
+{% load static %}
+ <div class="row" id="product_variant_by_store">
+    <div class="col pe-0">
+        <div class="ibox">
+            <div class="ibox-content">
+                <ul class="nav nav-tabs " role="tablist">
+                    {% for store_info in store_obj %}
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link {% if forloop.counter == 1 %} active {% endif %}" id="tab_variants-site-{{ store_info.store_id }}" data-bs-toggle="tab" href="#variants-site-{{ store_info.store_id }}"
+                               role="tab">
+                                <img height="20px" src="{% static 'images/stores/'%}{{ store_info.thumb }}">{{ store_info.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="tab-content">
+                    {% for store_info in store_obj %}
+                        <div role="tabpanel" id="variants-site-{{ store_info.store_id }}" class="tab-pane fade
+                        {% if forloop.counter == 1 %}
+                            show active ">
+                        {% endif %}
+                            <div class="panel-body">
+                                {% include 'products/sub_layout/site_specific/product-variant-list_by_site.html' with store_id=store_info.store_id %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

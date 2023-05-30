@@ -1,0 +1,94 @@
+{% load static %}
+<div class="ibox">
+    <div class="ibox-content">
+        <div class="row">
+            <div class="col-12 col-md-6">
+                <div class="row">
+                     <div class="col-6">
+                         <select class="form-select pb-2" aria-label="Store" id="js-variant-store_id" name="store_id">
+                        <option value=0>All Websites</option>
+                    {% for store_data in store_obj.all %}
+                        <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+
+                    {% endfor %}
+                </select>
+                     </div>
+                    <div class="col-6">
+                        <div class="container-fluid justify-content-end pe-0">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+
+                                <a class="btn btn-primary btn-xs" id="js-product_variant_core_site-add" role="button"
+                                   data-url="{% url 'product_variant_site-add' product_obj.product_id 0%}" data-dlgsize="modal-lg"><i class="fas fa-plus table-button"></i> Edit Site Variants</a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <table id="product_variants_site_table" class="table table-hover table-sm table-striped"
+                           style="width:100%">
+                        <thead>
+                        <tr>
+                             <th class="col-1">Site</th>
+                            <th width="col-2">Code</th>
+                            <th class="col-3">Size</th>
+                            <th class="col-3">Material</th>
+                            <th class="col-1">Price</th>
+                            <th class="col-1">Image</th>
+                            <th width="80px"></th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="container-fluid justify-content-end pe-0">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+
+                                <div class="dropdown dropstart">
+                                    <button class="btn btn-warning btn-xs disabled" type="button" id="dropdownSiteVariantOptions"
+                                            data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i
+                                            class="fas fa-cog"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-left"
+                                        aria-labelledby="dropdownSiteVariantOptions">
+                                        <li class="dropdown-item">
+                                            <a class="dropdown-item js-variant-option-edit" role="button" id="js-site_variant_edit_order"
+                                               data-url="" data-dlgsize="modal-sm">Change Order</a>
+                                        </li>
+                                        <li class="list-group-item-danger">
+                                            <a class="dropdown-item js-variant-option-edit" id="js-site_variant_option-delete" role="button"
+                                               data-url="" data-dlgsize="modal-sm">Delete</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <a class="btn btn-success btn-xs js-variant-option-edit disabled"
+                                   id="js-product-site-variant_option-add" role="button"
+                                   data-url="{% url 'site_variant_option-add' 0 %}" data-dlgsize="modal-lg"><i
+                                        class="fas fa-plus table-button"></i> Add Options</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <table id="site_variants_options" class="table table-hover table-sm table-striped"
+                           style="width:100%">
+                        <thead>
+                        <tr>
+                            <th width="col-5">Class</th>
+                            <th class="col-5">Value</th>
+                            <th class="col-2">Order</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

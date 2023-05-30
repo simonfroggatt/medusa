@@ -7,14 +7,14 @@
 </div>
 <div class="modal-body">
     <div class="container">
-        <form method="post" >
+        <form method="post" action="{% url 'delete_size' 0 %}">
             {% csrf_token %}
-
+            <input type="hidden" id="size_id" name="size_id" value="{{ pk }}">
+                <h3>Are you sure what to delete this size?</h3>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
                         <button type="submit" id="update" class="btn btn-primary pull-right">Delete</button>
                     </div>
-
         </form>
     </div>
 </div>

@@ -23,7 +23,7 @@ class BasePricesSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgSizeMaterialComb
         fields = '__all__'
-        depth = 3
+        depth = 2
 
 
 class StorePriceSerializer(serializers.ModelSerializer):
@@ -31,5 +31,5 @@ class StorePriceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcTsgSizeMaterialCombPrices
-        fields = ['price', 'size_material_comb']
-        depth = 1
+        fields = ['id', 'price', 'size_material_comb', 'store']
+        depth = 2

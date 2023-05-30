@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, \
+from apps.products.models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory
+from apps.options.models import OcTsgProductVariantOptions
 from apps.category.models import OcCategoryToStore
 from django.conf import settings
 from apps.symbols.models import OcTsgProductSymbols
@@ -108,7 +109,7 @@ class CoreVariantSerializer(serializers.ModelSerializer):
 class ProductVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgProductVariants
-        fields = ['variant_code', 'variant_overide_price', 'prod_var_core']
+        fields = ['prod_variant_id', 'variant_code', 'variant_overide_price', 'prod_var_core', 'alt_image', 'store', 'isdeleted']
         depth = 3
 
 
@@ -154,6 +155,7 @@ class ProductSymbolSerialzer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgProductSymbols
         fields = '__all__'
+
         depth = 1
 
 class ProductCoreVariantOptionsSerializer(serializers.ModelSerializer):
@@ -162,6 +164,12 @@ class ProductCoreVariantOptionsSerializer(serializers.ModelSerializer):
         fields= '__all__'
         depth = 2
 
+
+class ProductSiteVariantOptionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductVariantOptions
+        fields= '__all__'
+        depth = 2
 
 
 

@@ -6,7 +6,8 @@ from django.core import serializers
 from django.template.loader import render_to_string
 from apps.pricing.models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer
-from apps.pricing.forms import SizesBSForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo
+from apps.pricing.forms import SizesForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo, StorePriceComboForm
+from apps.sites.models import OcStore
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
@@ -14,6 +15,7 @@ from apps.products.models import OcTsgBulkdiscountGroups
 from apps.products import services as prod_services
 import json
 from django.db import connection
+from itertools import chain
 
 
 def all_sizes(request):
@@ -29,8 +31,15 @@ def all_materials(request):
 
 
 def all_base_prices(request):
-    template_name = 'pricing/price-comb-list.html';
+    template_name = 'pricing/prices/price-comb-list.html';
     context = {'pageview': 'Base Prices'}
+    return render(request, template_name, context)
+
+def all_prices(request):
+    template_name = 'pricing/prices/prices_layout.html';
+    context = {'pageview': 'Prices'}
+    store_obj = OcStore.objects.exclude(store_id=0)
+    context = {'store_obj': store_obj}
     return render(request, template_name, context)
 
 
@@ -132,17 +141,23 @@ class BespokePrices(viewsets.ModelViewSet):
 
 
 
-class SizeCreateView(BSModalCreateView):
+class SizeCreateView(CreateView):
     template_name = 'pricing/sizes/sizes-create.html'
-    form_class = SizesBSForm
+
+   #initial = {'size_code': '', 'size_name': '', 'size_width': 0, 'size_height': 0, 'size_units': 'mm', 'orientation': 1 }
+    model = OcTsgProductSizes
+    form_class = SizesForm
+
+    #['size_id', 'size_code', 'size_name', 'size_width', 'size_height', 'size_units', 'orientation']
     success_message = 'Success: Size was created.'
     success_url = reverse_lazy('allsizes')
 
 
-class SizeUpdateView(BSModalUpdateView):
+
+class SizeUpdateView(UpdateView):
     model = OcTsgProductSizes
     template_name = 'pricing/sizes/sizes-edit.html'
-    form_class = SizesBSForm
+    form_class = SizesForm
     success_message = 'Success: Size was updated.'
     success_url = reverse_lazy('allsizes')
 
@@ -198,3 +213,185 @@ class PriceComboUpdate(UpdateView):
     success_url = reverse_lazy('allbaseprices')
 
 
+def test_base_price(request, pk, store_id):
+    price_obj = OcTsgSizeMaterialCombPrices.objects.filter(size_material_comb_id=pk).filter(store_id=store_id)
+    template_name = 'pricing/test.html';
+    context = {'pageview': 'Base Prices', 'price_obj': price_obj}
+    return render(request, template_name, context)
+
+
+def store_price_combo_change(request, pk):
+    data = dict()
+    context = {}
+
+    if request.method == 'POST':
+        new_price = request.POST.get('price');
+        size_material_id = request.POST.get('size_material_id');
+        store_id = request.POST.get('store_id');
+        obj_store_price_combo = get_object_or_404(OcTsgSizeMaterialCombPrices, pk=pk)
+        obj_store_price_combo.price = new_price
+        obj_store_price_combo.save()
+        data['form_is_valid'] = True
+
+    else:
+        obj_store_price_combo = get_object_or_404(OcTsgSizeMaterialCombPrices, pk=pk)
+        form_obj = StorePriceComboForm(instance=obj_store_price_combo)
+        context['form'] = form_obj
+        context['size_material_id'] = obj_store_price_combo.size_material_comb_id
+        context['store_id'] = obj_store_price_combo.store_id
+        context['pk'] = pk
+        template_name = 'pricing/dialogs/store_price_combo_change.html'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)
+
+
+def size_create(request):
+    data = dict()
+    context = {}
+    context['return_url'] = reverse_lazy('allsizes')
+
+    if request.method == 'POST':
+        form = SizesForm(request.POST)
+        if form.is_valid():
+            form.save()
+            success_url = reverse_lazy('allsizes')
+            return HttpResponseRedirect(success_url)
+
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        size_obj = OcTsgProductSizes()
+        size_initials = {'size_name': '', 'size_width': 0, 'size_height': 0, 'size_units': 'mm',
+                        'size_extra': '', 'size_template': '', 'size_code': 'code', 'symbol_default_location': 1,
+                        'orientation_id': 1, 'shipping_width':0, 'shipping_height': 0 }
+
+        form_obj = SizesForm(instance=size_obj, initial=size_initials)
+        context['form'] = form_obj
+        template_name = 'pricing/sizes/sizes-create.html'
+        #data['html_form'] = render_to_string(template_name,
+         #                                        context,
+         #                                        request=request
+         #                                        )
+    return render(request, template_name, context)
+
+
+
+def store_price_combo_create(request, size_material_id):
+    data = dict()
+    context = {}
+
+    if request.method == 'POST':
+        new_price = request.POST.get('price');
+        size_material_id = request.POST.get('size_material_id');
+        store_id = request.POST.get('store_id');
+        obj_store_price_combo = OcTsgSizeMaterialCombPrices()
+        obj_store_price_combo.price = new_price
+        obj_store_price_combo.store_id = store_id
+        obj_store_price_combo.size_material_comb_id = size_material_id
+        #need to do a force insert or create a new id for this table
+        obj_store_price_combo.save()
+        data['form_is_valid'] = True
+
+    else:
+        obj_store_price_combo = OcTsgSizeMaterialCombPrices()
+        store_price_combo_initials = {
+            'size_material_comb_id': size_material_id,
+            'price': 0.00,
+            'store': 1
+        }
+        form_obj = StorePriceComboForm(instance=obj_store_price_combo, initial=store_price_combo_initials)
+        context['form'] = form_obj
+
+        site_prices_defined = OcTsgSizeMaterialCombPrices.objects.filter(
+            size_material_comb_id=size_material_id).values_list('store_id')
+        store_cat_list = list(chain(*site_prices_defined))
+
+        store_obj = OcStore.objects.exclude(store_id__in=store_cat_list).exclude(store_id=0)
+        if len(store_obj) > 0:
+            context['size_material_id'] = size_material_id
+            context['store_obj'] = store_obj
+            template_name = 'pricing/dialogs/store_price_combo_create.html'
+            data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+        else:
+            template_name = 'pricing/dialogs/store_price_combo_create_none.html'
+            data['html_form'] = render_to_string(template_name,
+                                                 context,
+                                                 request=request
+                                                 )
+    return JsonResponse(data)
+
+
+def store_price_combo_delete(request, pk):
+    data = dict()
+    context = {}
+
+    if request.method == 'POST':
+        obj_store_price_combo = get_object_or_404(OcTsgSizeMaterialCombPrices, pk=pk)
+        obj_store_price_combo.delete()
+        data['form_is_valid'] = True
+
+    else:
+        context['pk'] = pk
+        template_name = 'pricing/dialogs/store_price_combo_delete.html'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
+
+def sizes_delete(request, pk):
+    data = dict()
+    context = {}
+
+    if request.method == 'POST':
+        size_id = request.POST.get('size_id')
+        obj_size = get_object_or_404(OcTsgProductSizes, pk=size_id)
+        obj_size.delete()
+        data['form_is_valid'] = True
+
+    else:
+        context['pk'] = pk
+        template_name = 'pricing/sizes/sizes-delete.html'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
+
+def material_create(request):
+    data = dict()
+    context = {}
+    context['return_url'] = reverse_lazy('allmaterials')
+
+    if request.method == 'POST':
+        form = MaterialForm(request.POST)
+        if form.is_valid():
+            form.save()
+            success_url = reverse_lazy('allmaterials')
+            return HttpResponseRedirect(success_url)
+
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        material_obj = OcTsgProductMaterial()
+        material_initials = {'material_name': '', 'material_desc': 'description', 'material_desc_full': '', 'mounting_desc': '',
+                             'mounting_desc_full': '', 'thickness_desc': '', 'thickness_desc_full': '',
+                             'fixing_desc': '', 'fixing_desc_full': '', 'colour_desc': '', 'colour_desc_full': '',
+                             'code': '', 'image': ''}
+
+        form_obj = MaterialForm(instance=material_obj, initial=material_initials)
+        context['form'] = form_obj
+        template_name = 'pricing/materials/materials-create.html'
+
+    return render(request, template_name, context)

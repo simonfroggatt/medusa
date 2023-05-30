@@ -1,0 +1,38 @@
+{% load static %}
+<div class="row pb-2">
+    <div class="col-6">
+        <select class="form-select pb-2" aria-label="Store" id="select_prices_by_store_id" name="select_prices_by_store_id">
+                    {% for store_data in store_obj.all %}
+                        <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+                    {% endfor %}
+                </select>
+    </div>
+    <div class="col-6">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+         </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <table id="store_prices_table" class="table table-hover table-sm table-striped"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th class="col-1">Site</th>
+                        <th class="col-4">Size</th>
+                        <th class="col-1">Width</th>
+                        <th class="col-1">Height</th>
+                        <th class="col-3">Material</th>
+                        <th class="col-1">Site Price</th>
+                        <th class="col-1">Base Price</th>
+                        <th width="100px" class="float-end">&nbsp</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -5,7 +5,7 @@ from django.conf import settings
 from tinymce.widgets import TinyMCE
 
 
-class SizesBSForm(BSModalModelForm):
+class SizesForm(forms.ModelForm):
     class Meta:
         model = OcTsgProductSizes
         fields = ['size_id', 'size_code', 'size_name', 'size_width', 'size_height', 'size_units', 'orientation']
@@ -29,7 +29,7 @@ class MaterialsBSForm(BSModalModelForm):
 
 
 class MaterialForm(forms.ModelForm):
-    material_desc = forms.CharField(widget=TinyMCE(attrs={'rows': 2}))
+    material_desc = forms.CharField(widget=TinyMCE(attrs={'rows': 2}), required=True)
     material_desc_full = forms.CharField(widget=TinyMCE(attrs={'rows': 5}), required=False)
 
     def get_material_image_url(self, material):
@@ -46,7 +46,17 @@ class SizeMaterialCombo(forms.ModelForm):
 
     class Meta:
         model = OcTsgSizeMaterialComb
-        fields ='__all__'
+        fields = '__all__'
         depth = 2
 
 
+class StorePriceComboForm(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgSizeMaterialCombPrices
+        fields = '__all__'
+
+    widgets = {
+        'size_material_comb': forms.Select(attrs={"hidden":True}),
+        'store_id': forms.HiddenInput,
+    }

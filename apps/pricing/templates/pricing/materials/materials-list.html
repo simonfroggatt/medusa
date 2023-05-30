@@ -5,7 +5,17 @@
 {% endblock extra_css %}
 
 {% block content %}
+    <div class="row top_bar">
+            <div class="col-3 col-lg-2">
 
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                 {% include 'pricing/materials/materials_top_navbar.html' %}
+            </div>
+        </div>
     <div class="row">
         <div class="col-12 col-lg-8">
             <div class="ibox">
@@ -36,13 +46,6 @@
         </div>
     </div>
 
-    <div class="modal fade " tabindex="-1" role="dialog" id="modal">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
-             <div class="modal-content"></div>
-         </div>
-    </div>
-
-    <button id="create-material" class="btn btn-primary" type="button" name="button">Create Size</button>
 
 {% endblock content %}
 

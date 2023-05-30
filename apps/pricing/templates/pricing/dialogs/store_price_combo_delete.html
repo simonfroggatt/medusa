@@ -1,0 +1,28 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Delete Store Price</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'storepricecombodelete' pk %}" id="form-store_price-delete">
+            {% csrf_token %}
+            <input type="hidden" id="size_material_id" name="size_material_id" value="{{ size_material_id }}">
+            <h3>Are you sure you wish to delete this store price?</h3>
+            <h4>The price will revert back to the default price for this size and material combination</h4>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="delete" class="btn btn-primary pull-right">Delete</button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

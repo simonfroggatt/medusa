@@ -1,8 +1,21 @@
-{% load crispy_forms_tags %}
+{% extends 'partials/base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
-<form method="post" action="">
-  {% csrf_token %}
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+
+        <form method="post" action="{% url 'create_size' %}">
+            {{ form.media }}
+            {% csrf_token %}
+
 
  <div class="modal-header">
     <h5 class="modal-title">Create Size</h5>
@@ -12,18 +25,20 @@
   <div class="modal-body">
 
   <div class="row">
-                <div class="col-md-6">{{ form.size_name|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.size_width|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.size_height|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.size_units|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.orientation|as_crispy_field }}</div>
-                <div class="col-md-12">{{ form.size_code|as_crispy_field }}</div>
+                <div class="col-md-5">{{ form.size_width|as_crispy_field }}</div>
+                <div class="col-md-5">{{ form.size_height|as_crispy_field }}</div>
+                <div class="col-md-2">{{ form.size_units|as_crispy_field }}</div>
+                <div class="col-md-5">{{ form.size_name|as_crispy_field }}</div>
+                <div class="col-md-5">{{ form.orientation|as_crispy_field }}</div>
+                <div class="col-md-2">{{ form.size_code|as_crispy_field }}</div>
+                <div class="row">
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
-                        <button type="submit" id="update" class="btn btn-primary pull-right">Create</button>
+                        <button type="button" class="btn btn-danger " onclick="location.href='{{ return_url }}'">Cancel</button>
+                        <button type="submit" id="update" class="btn btn-primary pull-right">Add</button>
                     </div>
                 </div>
             </div>
 
-</form>
+        </form>
+{% endblock content %}
