@@ -20,7 +20,8 @@ from django.core import serializers
 from django.template.loader import render_to_string
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
-    VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm
+    VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm,\
+    SiteProductVariantForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
@@ -101,7 +102,7 @@ class ProductSiteVariantOption(viewsets.ModelViewSet):
     serializer_class = ProductSiteVariantOptionsSerializer
 
     def retrieve(self, request, pk=None):
-        category_object = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk)
+        category_object = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk, isdeleted=False)
         serializer = self.get_serializer(category_object, many=True)
         return Response(serializer.data)
 
@@ -384,6 +385,7 @@ def product_variant_core_add_option(request, core_variant_id):
         variant_option_core_initials = {'product_variant': core_variant_id, 'option_class': 1, 'option_value': 1,
                                          'order_by': 99}
         form_obj = VariantCoreOptionsForm(instance=variant_option_core_obj, initial=variant_option_core_initials)
+        data['form_is_valid'] = False
 
     context['form'] = form_obj
     data['html_form'] = render_to_string(template_name,
@@ -412,6 +414,7 @@ def product_variant_core_edit_option(request, pk):
         form_obj = VariantCoreOptionsOrderForm(instance=variant_option_core_obj)
         context['class_name'] = variant_option_core_obj.option_class.label
         context['value_name'] = variant_option_core_obj.option_value.title
+        data['form_is_valid'] = False
 
     context['form'] = form_obj
     data['html_form'] = render_to_string(template_name,
@@ -460,6 +463,8 @@ def product_variant_core_add_group_option(request, core_variant_id):
                 new_variant_option.save()
 
         data['form_is_valid'] = True
+    else:
+        data['form_is_valid'] = False
 
     option_group_obj = OcTsgOptionClassGroups.objects.all()
     context['object_groups'] = option_group_obj
@@ -487,6 +492,7 @@ def product_core_variant_add(request, pk):
                                  'supplier_price': 0.00, 'exclude_fpnp': False, 'gtin': '', 'shipping_cost': 0.00,
                                  'bl_live': True}
         form_obj = VariantCoreForm(instance=variant_core_obj, initial=variant_core_initials)
+        data['form_is_valid'] = False
 
     context['form'] = form_obj
     template_name = 'products/dialogs/product_core_variant_add.html'
@@ -516,6 +522,7 @@ def product_core_variant_edit(request, pk):
         variant_core_obj = get_object_or_404(OcTsgProductVariantCore,prod_variant_core_id=pk)
         context['size_material'] = f"{variant_core_obj.size_material.product_size.size_name} - {variant_core_obj.size_material.product_material.material_name}"
         form_obj = VariantCoreEditForm(instance=variant_core_obj)
+        data['form_is_valid'] = False
 
     context['form'] = form_obj
     template_name = 'products/dialogs/product_core_variant_edit.html'
@@ -616,7 +623,8 @@ def product_variant_site_add(request, pk, store_id):
                 row_product_variant_site.save()
 
         data['form_is_valid'] = True
-
+    else:
+        data['form_is_valid'] = False
 
     core_variants = OcTsgProductVariantCore.objects.filter(product_id=pk, bl_live=True).order_by(
             'size_material__product_size__size_width', 'size_material__product_size__size_height', 'size_material__sizecombo_base__price')
@@ -657,9 +665,10 @@ def site_variant_edit_option(request, pk):
             data['form_is_valid'] = False
     else:
         variant_option_core_obj = get_object_or_404(OcTsgProductVariantOptions, id=pk)
-        context['class_name'] = variant_option_core_obj.option_class.label
-        context['value_name'] = variant_option_core_obj.option_value.title
+        context['class_name'] = variant_option_core_obj.product_var_core_option.option_class.label
+        context['value_name'] = variant_option_core_obj.product_var_core_option.option_value.title
         form_obj = SiteVariantOptionsForm(instance=variant_option_core_obj)
+        data['form_is_valid'] = False
 
     context['form'] = form_obj
     data['html_form'] = render_to_string(template_name,
@@ -685,9 +694,9 @@ def product_variant_site_add_options(core_variant_id, site_variant_id):
         for values in core_variant_options_obj:
             new_variant_option = OcTsgProductVariantOptions()
             new_variant_option.product_variant_id = site_variant_id
-            new_variant_option.option_class_id = values.option_class_id
-            new_variant_option.option_value_id = values.option_value_id
+            new_variant_option.product_var_core_option_id = values.id
             new_variant_option.order_by = values.order_by
+            new_variant_option.isdeleted = False
             new_variant_option.save()
 
     return True
@@ -698,14 +707,44 @@ def site_variant_options_edit(request, pk):
     template_name = 'products/dialogs/site_variant_option_add.html/'
 
     if request.method == 'POST':
-        form_obj = SiteVariantOptionsForm(request.POST)
-        if form_obj.is_valid():
-            form_instance = form_obj.instance
-            form_instance.id = pk
-            form_instance.save()
-            data['form_is_valid'] = True
-        else:
-            data['form_is_valid'] = False
+        selected_list = request.POST.getlist('option-select[]')
+        product_variant_id = request.POST.get('product_variant_id')
+        #get the current options
+        site_selected_options = OcTsgProductVariantOptions.objects.filter(product_variant_id=product_variant_id).values_list(
+            'product_var_core_option_id')
+        site_specific_options_list = list(chain(*site_selected_options))
+        site_specific_options_list_as_str = list(map(str, site_specific_options_list))
+
+        # create the add list
+        add_list = list(map(int, set(selected_list) - set(site_specific_options_list_as_str)))
+        for addid in add_list:
+            obj_site_prod_options_deleted = OcTsgProductVariantOptions.objects.filter(product_variant_id=product_variant_id, product_var_core_option_id=addid)
+            if obj_site_prod_options_deleted:
+                obj_site_prod_option = obj_site_prod_options_deleted.first()
+                obj_site_prod_option.isdeleted = False
+                obj_site_prod_option.save()
+            else:
+                obj_site_prod_option = OcTsgProductVariantOptions()
+                obj_site_prod_option.isdeleted = False
+                obj_site_prod_option.product_var_core_option_id = addid
+                obj_site_prod_option.product_variant_id = product_variant_id
+                obj_product_core_option = get_object_or_404(OcTsgProductVariantCoreOptions, id=addid)
+                obj_site_prod_option.order_by = obj_product_core_option.order_by
+                obj_site_prod_option.save()
+
+
+        # now create the new records
+        removed_list = list(set(site_specific_options_list_as_str) - set(selected_list))
+        for outid in removed_list:
+            obj_site_prod_options = OcTsgProductVariantOptions.objects.filter(product_variant_id=product_variant_id, product_var_core_option_id=outid)
+            row_site_prod_options = obj_site_prod_options.first()
+            row_site_prod_options.isdeleted = True
+            row_site_prod_options.save()
+
+        data['form_is_valid'] = True
+
+
+
     else:
         site_variant_obj = get_object_or_404(OcTsgProductVariants, prod_variant_id=pk)
         core_variant_id = site_variant_obj.prod_var_core_id
@@ -714,14 +753,16 @@ def site_variant_options_edit(request, pk):
         context['core_variant_options_obj'] = core_variant_options_obj
         form_obj = SiteVariantOptionsForm(instance=site_variant_obj)
 
-        site_selected_options = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk).values_list(
-            'product_variant_id')
+        site_selected_options = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk, isdeleted=False).values_list(
+            'product_var_core_option_id')
 
         site_selected_options_list = list(chain(*site_selected_options))
         list_as_str = list(map(str, site_selected_options_list))
+        context['current_options_list'] = list_as_str
 
+        context['form'] = form_obj
+        data['form_is_valid'] = False
 
-    context['form'] = form_obj
     data['html_form'] = render_to_string(template_name,
                                          context,
                                          request=request
@@ -729,3 +770,31 @@ def site_variant_options_edit(request, pk):
     return JsonResponse(data)
 
 
+def site_variant_edit(request, pk):
+    data = dict()
+    context = {'product_variant_id': pk}
+    template_name = 'products/dialogs/product_site_variant_edit.html/'
+
+    if request.method == 'POST':
+        product_variant_id_posted = request.POST.get('product_variant_id')
+        posted_form = SiteProductVariantForm(request.POST)
+        product_variant_obj = get_object_or_404(OcTsgProductVariants, prod_variant_id=product_variant_id_posted)
+        product_variant_obj.variant_code = request.POST.get('variant_code')
+        product_variant_obj.variant_overide_price = request.POST.get('variant_overide_price')
+        product_variant_obj.save()
+        data['form_is_valid'] = True
+    else:
+        product_variant_obj = get_object_or_404(OcTsgProductVariants, prod_variant_id=pk )
+        data['form_is_valid'] = False
+
+
+
+    context['product_variant_obj'] = product_variant_obj
+    form_obj = SiteProductVariantForm(instance=product_variant_obj)
+    context['form'] = form_obj
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)

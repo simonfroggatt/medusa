@@ -113,6 +113,7 @@ class OcTsgProductVariantCoreOptions(models.Model):
         db_table = 'oc_tsg_product_variant_core_options'
 
 
+
 class OcTsgOptionClassGroups(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=1024, blank=True, null=True)
@@ -139,10 +140,15 @@ class OcTsgOptionClassGroupValues(models.Model):
 
 class OcTsgProductVariantOptions(models.Model):
     product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, related_name='productvariant')
-    option_class = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, blank=True, null=True)
-    option_value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
+    product_var_core_option = models.ForeignKey(OcTsgProductVariantCoreOptions, models.DO_NOTHING, blank=True,
+                                                    null=True, related_name='core_options')
     order_by = models.IntegerField(blank=True, null=True)
+    isdeleted = models.BooleanField()
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_variant_options'
+
+    def delete(self, using=None, keep_parents=False):
+        self.isdeleted = True
+        self.save()

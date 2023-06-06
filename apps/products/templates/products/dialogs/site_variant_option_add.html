@@ -10,7 +10,7 @@
         <form method="post" action="{% url 'site_variant_option-add' product_variant_id %}" id="form-site_variant_add"
               novalidate>
             {% csrf_token %}
-            <input type="hidden" id="product_variant_id" name="product_variant_id" value="{{ product_id }}">
+            <input type="hidden" id="product_variant_id" name="product_variant_id" value="{{ product_variant_id }}">
 
             <div class="row">
                 <div class="col-12 pt-2 pb-2">
@@ -18,7 +18,7 @@
                         {% for core_variant_options in core_variant_options_obj %}
                             <option id={{ core_variant_options.id }} value={{ core_variant_options.id }}>
                                 {{ core_variant_options.option_class.label }}
-                                - {{ core_variant_options.option_value.title }}
+                                - {{ core_variant_options.option_value.title }} - {{ core_variant_options.id }}
                             </option>
                         {% endfor %}
                     </select>
@@ -39,8 +39,8 @@
 <script type="text/javascript" src="{% static 'libs/multiselect/jquery.multi-select.js' %}"></script>
 
 <script>
-   // var options_selected_vars = {{ current_options_list|safe }}
+    var options_selected_vars = {{ current_options_list|safe }}
         $('#option-select').multiSelect();
-   // $('#option').multiSelect('select', site_selected_vars[{{ first_store_id }}]);
+    $('#option-select').multiSelect('select', options_selected_vars);
 
 </script>

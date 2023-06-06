@@ -7,7 +7,7 @@
 </div>
 <div class="modal-body">
     <div class="container">
-        <form method="post" action="{% url 'product_core_variant_site-add' product_id 0 %}" id="form-site_variant_add"
+        <form method="post" action="{% url 'product_variant_site-add' product_id 0 %}" id="form-site_variant_add"
               novalidate>
             {% csrf_token %}
             <input type="hidden" id="product_id" name="product_id" value="{{ product_id }}">

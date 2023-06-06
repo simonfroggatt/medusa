@@ -31,6 +31,7 @@ urlpatterns = [
     path('variant/<int:pk>/option/edit', views.product_variant_core_edit_option, name='product_variant_core_option-edit'),
     path('variant/<int:pk>/option/delete', views.product_variant_core_delete_option, name='product_variant_core_option-delete'),
     path('sitevariant/<int:pk>/option/edit', views.site_variant_edit_option, name='site_variant_core_option-edit'),
+    path('sitevariant/<int:pk>/edit', views.site_variant_edit, name='site_variant-edit'),
     path('sitevariant/<int:pk>/option/add', views.site_variant_options_edit, name='site_variant_option-add'),
     path('variant/<int:core_variant_id>/group_option/add', views.product_variant_core_add_group_option, name='product_variant_core_group_option-add'),
     path('group_class/<int:group_id>', views.group_class_list_html, name='group_class_values'),

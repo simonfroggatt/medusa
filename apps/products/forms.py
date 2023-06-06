@@ -1,6 +1,6 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductDescription, OcProductToStore, \
-    OcProductToCategory, OcTsgProductVariantCore
+    OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions
 
@@ -150,12 +150,26 @@ class SiteVariantOptionsForm(forms.ModelForm):
 
         widgets = {
             'product_variant': forms.HiddenInput,
-            'option_class': forms.HiddenInput,
-            'option_value': forms.HiddenInput,
+            'product_var_core_option': forms.HiddenInput
         }
 
         labels = {
             'order_by': 'New order position',
+        }
+
+
+class SiteProductVariantForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgProductVariants
+        fields = '__all__'
+
+        widgets = {
+            'prod_var_core_id': forms.HiddenInput,
+            'store': forms.HiddenInput,
+            'digital_artwork': forms.HiddenInput,
+            'digital_artwork_price': forms.HiddenInput,
+            'digital_artwork_def': forms.HiddenInput,
+            'isdeleted': forms.HiddenInput,
         }
 
 

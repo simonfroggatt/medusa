@@ -1,0 +1,44 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> Edit Site Variant</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+     <div class="container">
+         <h4>{{ product_variant_obj.store.name }}</h4>
+         <h4>{{ product_variant_obj.prod_var_core.size_material.product_size.size_name }} - {{ product_variant_obj.prod_var_core.size_material.product_material.material_name }}</h4>
+         <h5>Current default prices is {{ product_variant_obj.prod_var_core.size_material.price }}</h5>
+         <hr>
+         <form method="post" action="{% url 'site_variant-edit' product_variant_id %}" id="form-site_variant_edit" >
+            {% csrf_token %}
+             <input type="hidden" id="product_variant_id" name="product_variant_id" value="{{ product_variant_id }}">
+             <input type="hidden" id="prod_core_id" name="prod_core_id" value="{{ product_variant_obj.prod_var_core_id }}">
+            {{ form.digital_artwork|as_crispy_field }}
+            {{ form.digital_artwork_price|as_crispy_field }}
+            {{ form.store|as_crispy_field }}
+            {{ form.isdeleted|as_crispy_field }}
+            <div class="row">
+                <div class="col-6">
+                    {{ form.variant_code|as_crispy_field }}
+                </div>
+                <div class="col-5">
+                    {{ form.variant_overide_price|as_crispy_field}}
+
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
+                        <button type="submit" id="btn_product_core_var_add" class="btn btn-primary pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript" src="{% static 'js/products.js' %}"></script>

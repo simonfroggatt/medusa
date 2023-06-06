@@ -165,12 +165,12 @@ $(function () {
             },
             columns: [
                 {
-                    data: "option_class.label"
+                    data: "product_var_core_option.option_class.label"
 
                 }
                     ,
                 {
-                    data: "option_value.title"
+                    data: "product_var_core_option.option_value.title"
                 },
                 {
                     data: "order_by"
@@ -259,7 +259,15 @@ $(function () {
                     data: "prod_var_core.size_material.product_material.material_name" , defaultContent: ""
                 },
                 {
-                    data: "prod_var_core.size_material.price" , defaultContent: 0.00
+                    data: "variant_overide_price",
+                    render: function (data, type, row, meta) {
+                        if (data > 0) {
+                            return '<span class="text-danger">'+data+'</span>'
+                        }
+                        else {
+                            return  row['prod_var_core']['size_material']['price'];
+                        }
+                    }
                 },
                 {
                     data: "alt_image", defaultContent: "no-image.png",
@@ -287,7 +295,7 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="corevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="fas fa-edit table-button"></i></a>';
+                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="sitevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="fas fa-edit table-button"></i></a>';
                         let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="fas fa-trash table-button"></i></a>';
                         return edit_icon;//+ " " + delete_icon
                     }
@@ -609,6 +617,7 @@ $(function () {
     $(document).on("submit", "#from-core_variant_group_option_add", SaveVariantGroupAdd);
     $(document).on("submit", "#from-site_variant_option_edit", SaveSiteOption);
     $(document).on("submit", "#form-core_variant_option_edit", SaveVariantOptionAdd);
+    $(document).on("submit", "#form-site_variant_edit", AddProductVariantSite);
     $(document).on("change", "#js-group_option_select", function(){
          let newval = $(this).val()
          get_group_option_text(newval)
@@ -620,6 +629,11 @@ $(function () {
     })
 
     $("#form-site_variant_add").on("submit" , function (e) {
+        e.preventDefault()
+        AddProductVariantSite(form = $(this))
+    })
+
+    $("#form-site_variant_edit").on("submit" , function (e) {
         e.preventDefault()
         AddProductVariantSite(form = $(this))
     })
