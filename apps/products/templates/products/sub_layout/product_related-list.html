@@ -1,0 +1,36 @@
+{% load static %}
+<div class="row pe-2">
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn-sm btn-success js-product-dlg" data-url="{% url 'related_product-add' product_obj.product_id %}" data-dlgsize="modal-lg">Add</button>
+            </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <table id="product_related_table" class="table table-hover table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th class="col-3">Product</th>
+                        <th class="col-7">Title</th>
+                        <th class="col-1">Order</th>
+                        <th class="col-1">Status</th>
+                        <th width="100px"></th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascript %}
+
+{% include 'partials/javascript.html' %}
+
+
+{% endblock %}
+
+
+

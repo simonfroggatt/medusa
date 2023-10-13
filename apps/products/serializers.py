@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.products.models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, \
-    OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory
+    OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
 from apps.options.models import OcTsgProductVariantOptions
 from apps.category.models import OcCategoryToStore
 from django.conf import settings
@@ -171,6 +171,21 @@ class ProductSiteVariantOptionsSerializer(serializers.ModelSerializer):
         fields= '__all__'
         depth = 2
 
+
+class RelatedBaseDescriptionSerializer(serializers.ModelSerializer):
+    productdescbase = ProductDescriptionBase(read_only=True)
+    class Meta:
+        model = OcProduct
+        fields = ['product_id', 'model', 'image', 'status', 'productdescbase']
+        depth = 2
+
+
+class RelatedSerializer(serializers.ModelSerializer):
+    related = RelatedBaseDescriptionSerializer(read_only=True)
+    class Meta:
+        model = OcProductRelated
+        fields = ['id', 'product', 'related', 'order']
+        depth = 2
 
 
 

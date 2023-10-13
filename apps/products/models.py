@@ -331,6 +331,13 @@ class OcProductToCategory(models.Model):
         db_table = 'oc_product_to_category'
 
 
+class OcProductRelated(models.Model):
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING)
+    related = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='related_product')
+    order = models.IntegerField(blank=True, null=True)
 
-
+    class Meta:
+        managed = False
+        db_table = 'oc_product_related'
+        unique_together = (('product', 'related'),)
 

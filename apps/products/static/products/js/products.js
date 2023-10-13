@@ -306,6 +306,57 @@ $(function () {
 
     }
 
+     if ($.fn.dataTable.isDataTable('#product_related_table')) {
+        var product_related_table = $('#product_related_table').DataTable();
+    } else {
+        var product_related_table = $('#product_related_table').DataTable({
+            "dom": "<'row'<'col-sm-6'f><'col-sm-6'T>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'><'col-sm-6'>>",
+            "processing": true,
+            "select": 'single',
+            "search": true,
+            "info": false,
+            "rowId": 'id',
+            "autoWidth": false,
+            "order": [[2, 'asc']],
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/related/" + js_product_id + "?format=datatables",
+            },
+            columns: [
+                {   data: "related.image",
+                    render: function ( data, type, row ) {
+                    let image_src =  media_url + data;
+                    return '<img height="50px" src="' + image_src + '">';
+                 },
+                 defaultContent: "" },
+                {   data: "related.productdescbase.name", defaultContent: "" },
+                {   data: "order", defaultContent: 0 },
+                {
+                    data: "related.status",
+                    render: function (data, type, row) {
+                    if (data) {
+                        return '<span class="badge rounded-pill badge-soft-success font-size-10">LIVE</span>'
+                    } else {
+                        return '<span class="badge rounded-pill badge-soft-danger font-size-10">OFF-LINE</span>'
+                    }
+
+                }
+                },
+                {
+                    data: "id",
+                    sortable: false,
+                    className: 'text-md-end text-start',
+                    render: function (data, type, row) {
+                           let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="related/'+data+'/delete" role="button" data-dlgsize="modal-sm" ><i class="fas fa-trash table-button"></i></a>';
+                        return delete_icon;//+ " " + delete_icon
+                    }
+                }
+            ]
+        });
+    }
+
     product_core_variants_table.on('select', function (e, dt, type, indexes) {
         if (type === 'row') {
             let data = dt.row(indexes).id();
@@ -592,11 +643,29 @@ $(function () {
         return false;
     }
 
+    function RelatedProductUpdate(){
+        form = $(this)
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    product_related_table.ajax.reload();
+                    $("#modal-base").modal("hide");
+                }
+                else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
     function updateSiteVariantOptionTable(){
         site_variants_options.ajax.reload()
     }
-
-
 
     function updateProductVariantCoreTable(){
         product_core_variants_table.ajax.reload()
@@ -618,6 +687,7 @@ $(function () {
     $(document).on("submit", "#from-site_variant_option_edit", SaveSiteOption);
     $(document).on("submit", "#form-core_variant_option_edit", SaveVariantOptionAdd);
     $(document).on("submit", "#form-site_variant_edit", AddProductVariantSite);
+    $(document).on("submit", "#dlg-related_product-delete", RelatedProductUpdate);
     $(document).on("change", "#js-group_option_select", function(){
          let newval = $(this).val()
          get_group_option_text(newval)

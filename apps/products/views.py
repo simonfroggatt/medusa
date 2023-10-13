@@ -2,12 +2,12 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from .models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, \
-    OcTsgDepOptionClass, OcTsgProductVariants, OcProductToStore, OcProductToCategory
+    OcTsgDepOptionClass, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
     #OcTsgProductVariantOptions, \
 
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
-    ProductCoreVariantOptionsSerializer, ProductSiteVariantOptionsSerializer #, BaseProductListSerializer, ProductTestSerializer
+    ProductCoreVariantOptionsSerializer, ProductSiteVariantOptionsSerializer, RelatedSerializer #, BaseProductListSerializer, ProductTestSerializer
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
@@ -25,6 +25,8 @@ from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsFo
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
+
+from django.core.mail import send_mail
 
 
 
@@ -65,6 +67,16 @@ class Category(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         category_object = OcProductToCategory.objects.filter(product_id=pk)
         serializer = self.get_serializer(category_object, many=True)
+        return Response(serializer.data)
+
+
+class Related(viewsets.ModelViewSet):
+    queryset = OcProductRelated.objects.all()
+    serializer_class = RelatedSerializer
+
+    def retrieve(self, request, pk=None):
+        related_object = OcProductRelated.objects.filter(product_id=pk)
+        serializer = self.get_serializer(related_object, many=True)
         return Response(serializer.data)
 
 
@@ -798,3 +810,50 @@ def site_variant_edit(request, pk):
                                          request=request
                                          )
     return JsonResponse(data)
+
+
+def related_item_delete(request, pk):
+    data = dict()
+    context = {'related_id': pk}
+    template_name = 'products/dialogs/related_product-delete.html/'
+
+    if request.method == 'POST':
+        related_id = request.POST.get('related_id')
+        related_obj = get_object_or_404(OcProductRelated, id=related_id)
+        related_obj.delete()
+        data['form_is_valid'] = True
+    else:
+        data['form_is_valid'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+def related_item_add(request, pk):
+    data = dict()
+    context = {'related_id': pk}
+    template_name = 'products/dialogs/related_product-add.html/'
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+def related_item_edit(request, pk):
+    data = dict()
+    context = {'related_id': pk}
+    template_name = 'products/dialogs/related_product-edit.html/'
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+

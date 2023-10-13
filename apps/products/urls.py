@@ -7,6 +7,7 @@ router = routers.SimpleRouter()
 router.register(r'productslist', views.base_product_list_asJSON)
 router.register(r'productsite', views.ProductSite)
 router.register(r'categories', views.Category)
+router.register(r'related', views.Related)
 router.register(r'productsymbols', views.ProductSymbols)
 router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
 router.register(r'product_core_variant_options', views.ProductCoreVariantOption)
@@ -30,6 +31,10 @@ urlpatterns = [
     path('variant/<int:core_variant_id>/option/add', views.product_variant_core_add_option, name='product_variant_core_option-add'),
     path('variant/<int:pk>/option/edit', views.product_variant_core_edit_option, name='product_variant_core_option-edit'),
     path('variant/<int:pk>/option/delete', views.product_variant_core_delete_option, name='product_variant_core_option-delete'),
+    path('related/<int:pk>/add', views.related_item_add, name='related_product-add'),
+    path('related/<int:pk>/edit', views.related_item_edit, name='related_product-edit'),
+    path('related/<int:pk>/delete', views.related_item_delete, name='related_product-delete'),
+
     path('sitevariant/<int:pk>/option/edit', views.site_variant_edit_option, name='site_variant_core_option-edit'),
     path('sitevariant/<int:pk>/edit', views.site_variant_edit, name='site_variant-edit'),
     path('sitevariant/<int:pk>/option/add', views.site_variant_options_edit, name='site_variant_option-add'),
