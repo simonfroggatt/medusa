@@ -1,0 +1,88 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+
+    <div class="container">
+        <div class="row pb-2">
+        <div class="col-12">
+                    <select class="form-select pb-2" aria-label="Store" id="js-variant-add-store_id" name="store_id">
+                        {% for store_data in store_obj.all %}
+                            <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+        </div>
+    <div class="row">
+    <div class="col-6">
+        {% include 'products/sub_layout/product-variants-available.html' %}
+    </div>
+    <div class="col-6">
+        {% include 'products/sub_layout/product-variants-active.html' %}
+    </div>
+</div>
+    </div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    var js_product_id = {{ product_id }}
+</script>
+
+    <script type="text/javascript" src="{% static 'js/products.js' %}"></script>
+
+    <script>
+        $(function(){
+            $('#js-variant-add-store_id').on('change', function(){
+                let store_id = $(this).val();
+                let newAvailableURL = "/products/api/corevariants/{{ product_id }}/exclude/"+store_id+"?format=datatables"
+                let dtAvailable = $('#product_variant_table_available').DataTable();
+                dtAvailable.ajax.url(newAvailableURL ).load();
+
+                let newURL = "/products/api/storevariants/{{ product_id }}/"+store_id+"?format=datatables"
+                let dt = $('#product_variant_active_table').DataTable();
+                dt.ajax.url(newURL ).load();
+            })
+
+
+            $('.js-variant_site-add').on('click', function() {
+        alert('here')
+        var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'POST',
+            data: {csrfmiddlewaretoken: window.CSRF_TOKEN},
+            success: function (data) {
+                if (data.is_saved) {
+                    updateSiteVariantTables()
+                }
+            }
+        });
+        return false;
+
+    });
+
+    function updateSiteVariantTables(){
+        let dtAvailable = $('#product_variant_table_available').DataTable();
+        dtAvailable.ajax.reload();
+
+        let dtActive = $('#product_variant_active_table').DataTable();
+        dtActive.ajax.reload()
+    }
+
+
+        })
+
+
+
+    </script>
+{% endblock %}

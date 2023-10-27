@@ -5,6 +5,7 @@ $(function()
     let LoadCustomerNewOrder = function () {
         var btn = $(this);  // <-- HERE
         let dlg_size = btn.attr("data-dlgsize")
+
         $.ajax({
             url: btn.attr("data-url"),  // <-- AND HERE
             type: 'get',
@@ -12,6 +13,7 @@ $(function()
             beforeSend: function () {
                 $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
                 $("#modal-base #modal-outer").addClass(dlg_size)
+
                 $("#modal-base").modal("show");
             },
 
@@ -59,6 +61,19 @@ $(function()
      $(document).on("click", "#topmenu_quickquote", loadForm);
 
      new ClipboardJS('.btncopy');
+
+     const myModalEl = document.getElementById('modal-base')
+
+     myModalEl.addEventListener('hidden.bs.modal', function(event) {
+         var onclose = $(this).attr('data-onclose')
+         switch(onclose) {
+             case "site_variant": UpdateSiteVarientTable(); break;
+             default: console.log(onclose);
+         }
+
+    });
+
+
 });
 
 $(".two-decimals").change(function(){
@@ -87,6 +102,10 @@ var loadForm = function () {
         var btn = $(this);  // <-- HERE
         let dlg_size = btn.attr("data-dlgsize");
         let tmp_url = btn.attr("data-url");
+        let onclose = ''
+        if(btn.attr("data-onclose"))
+            onclose = btn.attr("data-onclose");
+
         $("#modal-base .modal-content").html("<html><body></body></html>");
         $.ajax({
             url: btn.attr("data-url"),  // <-- AND HERE
@@ -95,6 +114,7 @@ var loadForm = function () {
             beforeSend: function () {
                 $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
                 $("#modal-base #modal-outer").addClass(dlg_size)
+                $("#modal-base").attr("data-onclose", onclose)
                 $("#modal-base").modal("show");
             },
 
@@ -136,4 +156,11 @@ function SaveDialogFormRedirect() {
         return false;
     }
 
+    /***   Modal close functions **/
+
+function UpdateSiteVarientTable(){
+
+     var product_symbol_table_available = $('#product_variants_site_table').DataTable();
+     product_symbol_table_available.ajax.reload();
+    }
 

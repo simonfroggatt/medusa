@@ -2,56 +2,51 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title"> Add Site Specific Variant</h4>
+    <h4 class="modal-title"> Add Variants</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
     <div class="container">
-        <form method="post" action="{% url 'product_variant_site-add' product_id 0 %}" id="form-site_variant_add"
-              novalidate>
-            {% csrf_token %}
-            <input type="hidden" id="product_id" name="product_id" value="{{ product_id }}">
-
-            <div class="row">
-                <div class="col-12">
-                    <select class="form-select pb-2" aria-label="Store" id="js-variant-add-store_id" name="store_id">
-                        {% for store_data in store_obj.all %}
-                            <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12 pt-2 pb-2">
-                    <select multiple="multiple" id="variant-select" name="variant-select[]">
-                        {% for core_variant_info in core_variants %}
-                            <option id={{ core_variant_info.prod_variant_core_id }} value={{ core_variant_info.prod_variant_core_id }}>
-                                {{ core_variant_info.size_material.product_size }}
-                                - {{ core_variant_info.size_material.product_material }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-6>">
-                    <label for="check_add_options">Include Variant Options</label>
-                    <input type="checkbox" checked name="check_add_options" id="check_add_options"></div>
-                </div>
-                <div class="col-6">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
-                        <button type="submit" id="btn_product_core_var_add" class="btn btn-primary pull-right">Add
-                        </button>
+        <div class="row pb-2">
+            <div class="col-12">
+                        <select class="form-select pb-2" aria-label="Store" id="js-variant-add-store_id" name="store_id">
+                            {% for store_data in store_obj.all %}
+                                <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
+
             </div>
-        </form>
+        <div class="row">
+            <div class="col-6">
+                {% include 'products/sub_layout/product-variants-available.html' %}
+            </div>
+            <div class="col-6">
+                {% include 'products/sub_layout/product-variants-active.html' %}
+            </div>
+        </div>
+        <div class="row pt-2">
+            <div class="col-12 text-end">
+                <button type="button" data-bs-dismiss="modal" class="btn btn-outline-danger ">Close</button>
+            </div>
+        </div>
     </div>
+
 </div>
 
 <script type="text/javascript" src="{% static 'js/products.js' %}"></script>
-<script type="text/javascript" src="{% static 'libs/multiselect/jquery.multi-select.js' %}"></script>
 
 <script>
-    var site_selected_vars = {{ current_variants_list|safe }}
-        $('#variant-select').multiSelect();
-    $('#variant-select').multiSelect('select', site_selected_vars[{{ first_store_id }}]);
+
+    $('#js-variant-add-store_id').on('change', function(){
+                let store_id = $(this).val();
+                let newAvailableURL = "/products/api/corevariants/{{ product_id }}/exclude/"+store_id+"?format=datatables"
+                let dtAvailable = $('#product_variant_table_available').DataTable();
+                dtAvailable.ajax.url(newAvailableURL ).load();
+
+                let newURL = "/products/api/storevariants/{{ product_id }}/"+store_id+"?format=datatables"
+                let dt = $('#product_variant_active_table').DataTable();
+                dt.ajax.url(newURL ).load();
+            })
 
 </script>

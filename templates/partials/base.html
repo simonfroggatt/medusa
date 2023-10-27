@@ -108,13 +108,17 @@
             </div>
             <!-- End Page-content -->
             {% block footer %}
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Launch demo modal
+</button>
                 {% include 'partials/footer.html' %}
+
             {% endblock footer %}
         </div>
         <!-- end main content-->
 
 
-     <div class="modal fade" id="modal-base" role="dialog">
+     <div class="modal fade" id="modal-base" role="dialog" data-onclose="something">
         <div class="modal-dialog modal-dialog-centered modal-xl" role="document" id="modal-outer">
             <div class="modal-content">
             </div>
@@ -122,10 +126,17 @@
     </div>
 
 
+
+
+
     </div>
     <!-- END layout-wrapper -->
     {% include 'partials/javascript.html' %}
     {% block javascript %}
+        <script>
+        //const myModalEl = document.getElementById('modal-base');
+        </script>
+
     {% endblock javascript %}
 </body>
 </html>

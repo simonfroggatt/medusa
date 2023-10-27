@@ -31,5 +31,5 @@ urlpatterns = [
     path('prices/<int:pk>/store/delete', views.store_price_combo_delete, name='storepricecombodelete'),
     path('prices/<int:size_material_id>/store/create', views.store_price_combo_create, name='storepricecombocreate'),
     path('materials/details/<int:material_id>', views.material_details, name='materialdetails'),
-    #path('test/<int:pk>/<store_id>', views.test_base_price, name='test'),
+    path('test/<int:pk>/<store_id>', views.test_base_price, name='test'),
     ]

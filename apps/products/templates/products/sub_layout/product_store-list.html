@@ -8,8 +8,8 @@
     <div class="col-12">
         <div class="ibox">
             <div class="ibox-content">
-                <table id="product_sites_table" class="table table-hover table-sm"
-                       style="width:100%">
+
+                <table id="product_sites_table" class="table table-hover table-sm"  style="width:100%" >
                     <thead>
                     <tr>
                         <th width="col-1">Store</th>
@@ -26,76 +26,6 @@
 </div>
 
 {% block javascript %}
-
-{% include 'partials/javascript.html' %}
-
-    <script>
-    $(document).ready(function() {
-
-    //    $("#js-customer-create").click(loadForm);
-
-    $('#product_sites_table').DataTable( {
-        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
-        "processing" : true,
-        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
-        "pageLength": 25,
-        "autoWidth": false,
-        "responsive": true,
-        "ajax": {
-                 "processing": true,
-                 "url": "/products/api/productsite/"+ {{product_obj.product_id}}+"?format=datatables"
-             },
-        "deferRender": true,
-        "order": [[ 1, "desc" ]],
-         "search": {
-            "regex": true
-        },
-        select: 'single',
-        columns :[
-            {
-                data: "store.thumb",
-                sortable: false,
-                searchable: false,
-                render: function ( data, type, row ) {
-                    let image_src = '{% static "images/stores/" %}' + data;
-                    return '<img height="15px" src="' + image_src + '">'
-                 }
-            },
-            {data: "name"},
-            {data: "description"},
-            {
-                data: "status",
-                render: function (data, type, row) {
-                    if (data == 1) {
-                        return '<span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>'
-                    } else {
-                        return '<span class="badge rounded-pill badge-soft-danger font-size-14">OFF-LINE</span>'
-                    }
-
-                }
-            },
-            {
-                data: "id",
-                sortable: false,
-                className: 'text-md-end text-start',
-                render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm" href="' + data + '/storeedit"><i class="fas fa-edit fa-sm"></i></a>';
-                 return  edit_icon;
-
-                }
-            },
-        ]
-    } );
-
-
-} );
-
-    $(document).on('click', '.js-product-dlg', loadForm);
-
-</script>
-
 
 {% endblock %}
 

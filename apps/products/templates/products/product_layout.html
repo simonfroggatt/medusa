@@ -8,8 +8,8 @@
 
 {% block content %}
     <div class="wrapper wrapper-content layout-details">
-         <div class="row">
-             <div class="col-6">
+        <div class="row">
+            <div class="col-6">
                 <h2>{{ product_obj.productdescbase.name }}</h2>
             </div>
             <div class="col-6">
@@ -23,93 +23,101 @@
         </div>
         <div class="row" id="customer-details-tabs">
             <div class="col pe-0">
-                 <div class="ibox">
-                     <div class="ibox-content tsg_navs">
+                <div class="ibox">
+                    <div class="ibox-content tsg_navs">
                         <ul class="nav nav-tabs " role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link active" id="variants-tab" data-bs-toggle="tab" href="#tab-orders" role="tab">
-                            <i class="fas fa-cogs"></i>  <strong>CORE</strong> Variants</a>
-                    </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="variants-tab" data-bs-toggle="tab" href="#tab-orders"
+                                   role="tab">
+                                    <i class="fas fa-cogs"></i> <strong>CORE</strong> Variants</a>
+                            </li>
+                             <li>
+                                <a class="nav-link" id="alt-text-tab" data-bs-toggle="tab" href="#tab-alt-text"
+                                   role="tab">
+                                    <i class="fa-solid fa-globe"></i> Sites & Text</a>
+                            </li>
                             <li>
-                        <a class="nav-link" id="site-variants-tab" data-bs-toggle="tab" href="#tab-site-variants" role="tab">
-                            <i class="fa-solid fa-gear"></i>  Site Variants</a>
-                    </li>
+                                <a class="nav-link" id="site-variants-tab" data-bs-toggle="tab"
+                                   href="#tab-site-variants" role="tab">
+                                    <i class="fa-solid fa-gear"></i> Site Variants & Options</a>
+                            </li>
                             <li>
-                        <a class="nav-link" id="alt-text-tab" data-bs-toggle="tab" href="#tab-alt-text" role="tab">
-                            <i class="fa-solid fa-globe"></i>  Site Text</a>
-                    </li>
-                            <li>
-                        <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#tab-address" role="tab">
-                            <i class="fas fa-image"></i>  Images</a>
-                    </li>
+                                <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#tab-address"
+                                   role="tab">
+                                    <i class="fas fa-image"></i> Images</a>
+                            </li>
 
                             <li>
-                        <a class="nav-link" id="category-tab" data-bs-toggle="tab" href="#tab-categories" role="tab">
-                            <i class="fa-solid fa-folder-tree"></i>  Categories</a>
-                    </li>
+                                <a class="nav-link" id="category-tab" data-bs-toggle="tab" href="#tab-categories"
+                                   role="tab">
+                                    <i class="fa-solid fa-folder-tree"></i> Categories</a>
+                            </li>
 
-                    <li>
-                        <a class="nav-link" id="symbol-tab" data-bs-toggle="tab" href="#tab-symbols" role="tab">
-                            <i class="fas fa-exclamation-triangle"></i>  Symbols</a>
-                    </li>
                             <li>
-                        <a class="nav-link" id="related-tab" data-bs-toggle="tab" href="#tab-related" role="tab">
-                            <i class="fa-solid fa-link"></i> </i> Related</a>
-                    </li>
+                                <a class="nav-link" id="symbol-tab" data-bs-toggle="tab" href="#tab-symbols" role="tab">
+                                    <i class="fas fa-exclamation-triangle"></i> Symbols</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="related-tab" data-bs-toggle="tab" href="#tab-related"
+                                   role="tab">
+                                    <i class="fa-solid fa-link"></i> </i> Related</a>
+                            </li>
 
-                    <li>
-                        <a class="nav-link" id="artwork-tab" data-bs-toggle="tab" href="#tab-artwork" role="tab">
-                            <i class="fas fa-folder-open"></i> Artwork</a>
-                    </li>
                             <li>
-                        <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents" role="tab">
-                            <i class="fas fa-folder-open"></i> Documents</a>
-                    </li>
-                </ul>
+                                <a class="nav-link" id="artwork-tab" data-bs-toggle="tab" href="#tab-artwork"
+                                   role="tab">
+                                    <i class="fas fa-folder-open"></i> Artwork</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents"
+                                   role="tab">
+                                    <i class="fas fa-folder-open"></i> Documents</a>
+                            </li>
+                        </ul>
                         <div class="tab-content">
-                    <div role="tabpanel" id="tab-orders" class="tab-pane fade show active">
-                        <div class="panel-body">
-                            {% include 'products/sub_layout/product-variant-list.html' %}
-                        </div>
-                    </div>
+                            <div role="tabpanel" id="tab-orders" class="tab-pane fade show active">
+                                <div class="panel-body">
+                                    {% include 'products/sub_layout/product-variant-list.html' %}
+                                </div>
+                            </div>
                             <div role="tabpanel" id="tab-site-variants" class="tab-pane fade ">
-                        <div class="panel-body" id="tab-site-variants_contents">
-                            {% include 'products/sub_layout/site_specific/product-variant-list_by_site.html' %}
-                        </div>
-                    </div>
-                    <div role="tabpanel" id="tab-alt-text" class="tab-pane fade">
-                        <div class="panel-body">
-                            {% include 'products/sub_layout/product_store-list.html' %}
-                        </div>
-                    </div>
+                                <div class="panel-body" id="tab-site-variants_contents">
+                                    {% include 'products/sub_layout/site_specific/product-variant-list_by_site.html' %}
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-alt-text" class="tab-pane fade">
+                                <div class="panel-body">
+                                    {% include 'products/sub_layout/product_store-list.html' with productid=product_obj.product_id %}
+                                </div>
+                            </div>
                             <div role="tabpanel" id="tab-address" class="tab-pane fade">
-                        <div class="panel-body">
-                           This will be where quotes will be
-                        </div>
-                    </div>
-                    <div role="tabpanel" id="tab-symbols" class="tab-pane fade">
-                        <div class="panel-body">
-                            {% include 'products/sub_layout/product-base-symbols.html' %}
-                        </div>
-                    </div>
-                    <div role="tabpanel" id="tab-documents" class="tab-pane fade">
-                        <div class="panel-body">
-                            documents in here
-                        </div>
-                    </div>
+                                <div class="panel-body">
+                                    This will be where quotes will be
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-symbols" class="tab-pane fade">
+                                <div class="panel-body">
+                                    {% include 'products/sub_layout/product-base-symbols.html' %}
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-documents" class="tab-pane fade">
+                                <div class="panel-body">
+                                    documents in here
+                                </div>
+                            </div>
                             <div role="tabpanel" id="tab-related" class="tab-pane fade">
-                        <div class="panel-body">
-                            {% include 'products/sub_layout/product_related-list.html' %}
-                        </div>
-                    </div>
+                                <div class="panel-body">
+                                    {% include 'products/sub_layout/product_related-list.html' %}
+                                </div>
+                            </div>
                             <div role="tabpanel" id="tab-categories" class="tab-pane fade">
-                        <div class="panel-body">
-                            {% include 'products/sub_layout/product_category-list.html' %}
+                                <div class="panel-body">
+                                    {% include 'products/sub_layout/product_category-list.html' %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                     </div>
-                 </div>
             </div>
         </div>
     </div>
@@ -119,16 +127,19 @@
 
 {% block javascript %}
 
-           <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
-            <script>
-            //setup up the product ID so that products.js can get the value
-            let js_product_id = {{ product_obj.product_id }}
-            const static_const = {% get_static_prefix %};
-            const media_url = "{% get_media_prefix %}";
+    <script type="text/javascript" src="{% static 'libs/tsg_datatables/datatables.js' %}"></script>
+    <script>
+        //setup up the product ID so that products.js can get the value
+        let js_product_id =
+        {{ product_obj.product_id }}
+        const static_const = {% get_static_prefix %};
+        const media_url = "{% get_media_prefix %}";
+
+        sessionStorage.setItem("product_id",  {{ product_obj.product_id }} );
 
 
-            </script>
-           <script type="text/javascript" src="{% static 'js/products.js' %}"></script>
+    </script>
+    <script type="text/javascript" src="{% static 'js/products.js' %}"></script>
 
 {% endblock javascript %}
 

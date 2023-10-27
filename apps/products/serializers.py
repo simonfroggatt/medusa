@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.products.models import OcProduct, OcProductDescription, OcProductDescriptionBase, OcTsgProductVariantCore, \
+from apps.products.models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
 from apps.options.models import OcTsgProductVariantOptions
 from apps.category.models import OcCategoryToStore
@@ -63,12 +63,6 @@ class ProductVariantCoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgProductVariantCore
         fields = ['supplier_code']
-
-class ProductDescriptionSites(serializers.ModelSerializer):
-    class Meta:
-        model = OcProductDescription
-        fields = ['name', 'title', 'description']
-
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -180,12 +174,36 @@ class RelatedBaseDescriptionSerializer(serializers.ModelSerializer):
         depth = 2
 
 
+class ProductToStoreRelatedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcProductToStore
+        fields = ['product', 'store']
+        depth = 1
+
+
 class RelatedSerializer(serializers.ModelSerializer):
-    related = RelatedBaseDescriptionSerializer(read_only=True)
+    product_desc = serializers.SerializerMethodField(read_only=True)
+    product_related_store = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = OcProductRelated
-        fields = ['id', 'product', 'related', 'order']
-        depth = 2
+
+        fields = ['id', 'order', 'product_desc', 'product_related_store']
+        depth = 2;
+
+    def get_product_desc(self, obj):
+       # productdesc = OcProductToStore.objects.select_related('storeproduct').select_related('productdescbysite').filter(pk=obj.related_id).values('storeproduct__image',
+        #                                                                                                     'productdescbase__name')
+      #  productdesc = OcProduct.objects.select_related('productdescbysite').filter(pk=obj.related_id).values('image','productdescbase__name')
+
+        productdesc = OcProductToStore.objects.select_related('product__productdescbase').filter(pk=obj.related_id).values('product__image', 'product__productdescbase__name')
+        return productdesc.first()
+
+
+    def get_product_related_store(self, obj):
+        productstore = OcProductToStore.objects.select_related('store').filter(pk=obj.related_id).values('store__thumb')
+        return productstore.first()
+
 
 
 

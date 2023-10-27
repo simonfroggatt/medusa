@@ -98,4 +98,4 @@ class OcTsgSizeMaterialCombPrices(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'oc_tsg_size_material_comb_prices'
+        db_table = 'oc_tsg_size_material_store_combs'

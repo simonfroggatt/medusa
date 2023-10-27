@@ -1,5 +1,5 @@
 from django import forms
-from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductDescription, OcProductToStore, \
+from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
     OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions

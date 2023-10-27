@@ -152,3 +152,13 @@ class OcTsgProductVariantOptions(models.Model):
     def delete(self, using=None, keep_parents=False):
         self.isdeleted = True
         self.save()
+
+
+class TsgOcOptionClassValues(models.Model):
+    option_class = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, blank=True, null=True)
+    option_value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
+    order_id = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tsg_oc_option_class_values'

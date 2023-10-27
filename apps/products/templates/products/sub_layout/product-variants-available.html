@@ -1,0 +1,87 @@
+{% load static %}
+<h3>Available Variants</h3>
+                <table id="product_variant_table_available" class="table table-hover table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th class="col-auto">Image</th>
+                        <th class="col-4">Size</th>
+                        <th class="col-4">Material</th>
+                        <th class="text-end col-auto">&nbsp;</th>
+                    </tr>
+                    </thead>
+                </table>
+
+
+<script>
+
+$(document).ready(function() {
+
+   window.CSRF_TOKEN = "{{ csrf_token }}";
+
+    var manual_data = {}
+
+    if ($.fn.dataTable.isDataTable('#product_variant_table_available')) {
+        var product_symbol_table_available = $('#product_variant_table_available').DataTable();
+    } else {
+
+        var product_symbol_table_available = $('#product_variant_table_available').DataTable({
+            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "select": false,
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'prod_variant_core_id',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/corevariants/{{ product_id }}/exclude/{{ first_store_id }}?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": false,
+
+            "search": {
+                "regex": true
+            },
+            "order": [[ 1, "asc" ]],
+            columns: [
+                {data: "variant_image_url", defaultContent: "no-image.png",
+                    render: function ( data, type, row ) {
+                    if(data == null ){
+                        img_path = {% get_media_prefix %} + "no-image.png"
+                    }
+                    else{
+                        img_path =  data
+                    }
+
+                     return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';
+                    },
+                    sortable: false,
+                },
+                {data: "size_material.product_size.size_name"},
+                {data: "size_material.product_material.material_name"},
+                {data: "prod_variant_core_id",
+                        render: function ( data, type, row ) {
+                            let current_store_id = $('#js-variant-add-store_id').val();
+                            let dataurl = "/products/sitevariant/add/"+data+"/"+current_store_id;
+                            return '<a class="btn btn-outline-success btn-sm js-variant_site-add" data-url='+dataurl+' role="button"><i class="fa-solid fa-plus"></i></a>';
+
+                        },
+                    sortable: false,
+                    class: "text-end",
+                    },
+            ]
+        });
+    }
+})
+
+
+
+
+
+</script>

@@ -35,30 +35,6 @@ class OcProduct(models.Model):
         db_table = 'oc_product'
 
 
-
-class OcProductDescription(models.Model):
-    product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productdescbysite')
-    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
-    store = models.ForeignKey(OcStore, models.DO_NOTHING)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    title = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    tag = models.TextField(blank=True, null=True)
-    meta_title = models.CharField(max_length=255, blank=True, null=True)
-    meta_description = models.CharField(max_length=255, blank=True, null=True)
-    meta_keyword = models.CharField(max_length=255, blank=True, null=True)
-    long_description = models.TextField(blank=True, null=True)
-    sign_reads = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_product_description'
-        unique_together = (('product', 'store', 'language'),)
-
-    def __str__(self):
-        return self.name
-
-
 class OcProductDescriptionBase(models.Model):
     product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productdescbase')
     language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
@@ -199,21 +175,21 @@ class OcTsgProductVariants(models.Model):
 
 
 
-class OcTsgDepOptionClass(models.Model):
-    option_class_id = models.AutoField(primary_key=True)
-    label = models.CharField(max_length=30)
-    descr = models.CharField(max_length=100)
-    name = models.CharField(max_length=100)
-    store = models.ForeignKey(OcStore, models.DO_NOTHING)
-    default_dropdown_title = models.CharField(max_length=100)
-    order_by = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_dep_option_class'
-
-    def __str__(self):
-        return self.name
+# class OcTsgDepOptionClass(models.Model):
+#     option_class_id = models.AutoField(primary_key=True)
+#     label = models.CharField(max_length=30)
+#     descr = models.CharField(max_length=100)
+#     name = models.CharField(max_length=100)
+#     store = models.ForeignKey(OcStore, models.DO_NOTHING)
+#     default_dropdown_title = models.CharField(max_length=100)
+#     order_by = models.IntegerField(blank=True, null=True)
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'oc_tsg_dep_option_class'
+#
+#     def __str__(self):
+#         return self.name
 
 
 # class OcTsgProductVariantOptions(models.Model):
@@ -227,62 +203,62 @@ class OcTsgDepOptionClass(models.Model):
 #         db_table = 'oc_tsg_product_variant_options'
 
 
-class OcTsgDepOptionOptions(models.Model):
-    option_options_id = models.AutoField(primary_key=True)
-    option_type = models.ForeignKey('OcTsgDepOptionTypes', models.DO_NOTHING, related_name='optiontypes')
-    title = models.CharField(max_length=50, blank=True, null=True)
-    dropdown_title = models.CharField(max_length=255, blank=True, null=True)
-    descr = models.CharField(max_length=100, blank=True, null=True)
-    internal_descr = models.CharField(max_length=100, blank=True, null=True)
-    product_id = models.IntegerField(blank=True, null=True)
-    extra_option_class_id_old = models.IntegerField(blank=True, null=True)
-    price_modifier = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    image = models.CharField(max_length=255, blank=True, null=True)
-    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
-    show_at_checkout = models.BooleanField()
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_dep_option_options'
-
-    def __str__(self):
-        return self.title
-
-
-class OcTsgDepOptionTypes(models.Model):
-    option_type_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=20)
-    descr = models.CharField(max_length=255)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_dep_option_types'
-
-    def __str__(self):
-        return self.name
-
-
-class OcTsgDepOptionClassValues(models.Model):
-    option_class = models.OneToOneField(OcTsgDepOptionClass, models.DO_NOTHING, primary_key=True, related_name='value_optionclass')
-    option_value = models.ForeignKey('OcTsgDepOptionOptions', models.DO_NOTHING, related_name='optionvalues')
-    order_by = models.IntegerField()
-    store = models.ForeignKey(OcStore, models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_dep_option_class_values'
-        unique_together = (('option_class', 'option_value'),)
-
-
-class OcTsgOptionDepExtra(models.Model):
-    option_class_id = models.IntegerField(primary_key=True)
-    option_options_id = models.IntegerField()
-    order_by = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_option_dep_extra'
-        unique_together = (('option_class_id', 'option_options_id'),)
+# class OcTsgDepOptionOptions(models.Model):
+#     option_options_id = models.AutoField(primary_key=True)
+#     option_type = models.ForeignKey('OcTsgDepOptionTypes', models.DO_NOTHING, related_name='optiontypes')
+#     title = models.CharField(max_length=50, blank=True, null=True)
+#     dropdown_title = models.CharField(max_length=255, blank=True, null=True)
+#     descr = models.CharField(max_length=100, blank=True, null=True)
+#     internal_descr = models.CharField(max_length=100, blank=True, null=True)
+#     product_id = models.IntegerField(blank=True, null=True)
+#     extra_option_class_id_old = models.IntegerField(blank=True, null=True)
+#     price_modifier = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+#     image = models.CharField(max_length=255, blank=True, null=True)
+#     store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
+#     show_at_checkout = models.BooleanField()
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'oc_tsg_dep_option_options'
+#
+#     def __str__(self):
+#         return self.title
+#
+#
+# class OcTsgDepOptionTypes(models.Model):
+#     option_type_id = models.AutoField(primary_key=True)
+#     name = models.CharField(max_length=20)
+#     descr = models.CharField(max_length=255)
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'oc_tsg_dep_option_types'
+#
+#     def __str__(self):
+#         return self.name
+#
+#
+# class OcTsgDepOptionClassValues(models.Model):
+#     option_class = models.OneToOneField(OcTsgDepOptionClass, models.DO_NOTHING, primary_key=True, related_name='value_optionclass')
+#     option_value = models.ForeignKey('OcTsgDepOptionOptions', models.DO_NOTHING, related_name='optionvalues')
+#     order_by = models.IntegerField()
+#     store = models.ForeignKey(OcStore, models.DO_NOTHING)
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'oc_tsg_dep_option_class_values'
+#         unique_together = (('option_class', 'option_value'),)
+#
+#
+# class OcTsgOptionDepExtra(models.Model):
+#     option_class_id = models.IntegerField(primary_key=True)
+#     option_options_id = models.IntegerField()
+#     order_by = models.IntegerField(blank=True, null=True)
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'oc_tsg_option_dep_extra'
+#         unique_together = (('option_class_id', 'option_options_id'),)
 
 
 class OcTsgBulkdiscountGroups(models.Model):
@@ -332,8 +308,8 @@ class OcProductToCategory(models.Model):
 
 
 class OcProductRelated(models.Model):
-    product = models.ForeignKey(OcProduct, models.DO_NOTHING)
-    related = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='related_product')
+    product = models.ForeignKey(OcProductToStore, models.DO_NOTHING, related_name='relatedmaster')
+    related = models.ForeignKey(OcProductToStore, models.DO_NOTHING, related_name='relatedslave')
     order = models.IntegerField(blank=True, null=True)
 
     class Meta:
@@ -341,3 +317,24 @@ class OcProductRelated(models.Model):
         db_table = 'oc_product_related'
         unique_together = (('product', 'related'),)
 
+
+class OcProductImage(models.Model):
+    product_image_id = models.AutoField(primary_key=True)
+    product_id = models.IntegerField()
+    image = models.CharField(max_length=1024, blank=True, null=True)
+    sort_order = models.IntegerField()
+    main = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_product_image'
+
+
+class OcStoreProductImages(models.Model):
+    store_product = models.ForeignKey(OcProductToStore, models.DO_NOTHING, blank=True, null=True)
+    image = models.ForeignKey(OcProductImage, models.DO_NOTHING, blank=True, null=True)
+    order_id = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_store_product_images'
