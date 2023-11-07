@@ -8,10 +8,10 @@
                      <div class="col-3">
                          <div class="float-end">
                              <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
-                                <button type="button" class="btn btn-primary btn-sm js-order-details-edit"
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-details-edit"
                                         data-url="{% url 'orderdetailsedit' order_obj.order_id %}"
                                         data-dlgsize=""
-                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
                         </div>
                          </div>
                      </div>

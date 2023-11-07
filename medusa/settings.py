@@ -88,8 +88,14 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.media',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                'medusa.icon_list.icons_processor',
+                'medusa.icon_list.button_colours',
+                'medusa.icon_list.js_icons',
+                'medusa.icon_list.js_buttons'
             ],
         },
     },
@@ -215,7 +221,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-MEDIA_ROOT = '/Users/simonfroggatt/Sites/totalsafetygroup_oc/stores/image/'
+MEDIA_ROOT = '/Users/simonfroggatt/Sites/totalsafetygroup_stores/image/'
 MEDIA_URL = '/media/'
 
 REPORT_PATH = os.path.join(BASE_DIR, "static/reports")

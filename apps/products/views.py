@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
-    OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
+    OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
+    OcProductImage, OcStoreProductImages
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
 
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
@@ -23,7 +24,7 @@ from django.template.loader import render_to_string
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
     VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm, \
-    SiteProductVariantForm
+    SiteProductVariantForm, AdditionalProductStoreImages
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
@@ -967,6 +968,142 @@ def related_item_edit(request, pk):
                                          request=request
                                          )
     return JsonResponse(data)
+
+def product_additional_images_load(request, product_id, store_id):
+    data = dict()
+    context = {'product_id': product_id,
+               'store_id': store_id}
+
+
+    if store_id > 0:
+        store_images_obj = OcStoreProductImages.objects.select_related('image').filter(store_product__product_id=product_id).filter(store_product__store_id=store_id).order_by('order_id')
+        context['images_obj'] = store_images_obj;
+    else:
+        base_images_obj = OcProductImage.objects.filter(product_id=product_id).order_by('sort_order')
+        context['images_obj'] = base_images_obj;
+
+
+    if store_id > 0:
+        template_name = 'products/sub_layout/product_images_bystore_ajax.html'
+    else:
+        template_name = 'products/sub_layout/product_images_ajax.html'
+    return render(request, template_name, context)
+
+
+def product_additional_images_add(request, product_id, store_id):
+    data = dict()
+
+
+    if store_id > 0:
+        data['html_form'] = product_additional_images_store_add(request, product_id, store_id)
+    else:
+        template = 'products/dialogs/product_additional_images-add.html'
+        #store_product_additional_obj = OcStoreProductImages.objects.filter(pk=pk)
+        context = {'product_id': product_id}
+        data['html_form'] = render_to_string(template,
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
+
+#get a list of images available that are not currently selected
+def product_additional_images_store_add(request, product_id, store_id):
+    data = dict()
+    template = 'products/dialogs/product_additional_images-store_add.html'
+    store_obj = get_object_or_404(OcStore, store_id=store_id)
+    store_product_active_additional_obj = OcStoreProductImages.objects.select_related('image').filter(
+        store_product__product_id=product_id).filter(store_product__store_id=store_id)
+#get the list of active images
+    if request.method == 'POST':
+        #get the list of selected images
+        selected_list = request.POST.getlist('check_images')
+        store_product_id = request.POST.get('store_product_id')
+        product_images_selected = OcProductImage.objects.filter(product_image_id__in=selected_list)
+        last_image_order = store_product_active_additional_obj.order_by('-order_id').first().order_id
+        if product_images_selected:
+            for values in product_images_selected:
+                new_additional_image = OcStoreProductImages()
+                new_additional_image.store_product_id = store_product_id
+                new_additional_image.image_id = values.product_image_id
+                new_additional_image.order_id = last_image_order
+                new_additional_image.alt_text = None
+                new_additional_image.save()
+                last_image_order += 1
+        data['is_saved'] = True
+        return JsonResponse(data)
+
+    else:
+        store_product_active_additional_obj = OcStoreProductImages.objects.select_related('image').filter(store_product__product_id=product_id).filter(store_product__store_id=store_id)
+        store_product_id = store_product_active_additional_obj.first().store_product_id
+        store_product_active_additional_defined = store_product_active_additional_obj.values_list('image_id')
+        store_product_active_additional_list = list(chain(*store_product_active_additional_defined))
+        store_product_additional_image_obj = OcProductImage.objects.filter(product_id=product_id).exclude(product_image_id__in=store_product_active_additional_list)
+        context = {'store': store_obj,
+                   'store_product_id': store_product_id,
+                   'images_obj': store_product_additional_image_obj,
+                   'product_id': product_id}
+        return render_to_string(template, context, request=request)
+
+
+
+def store_product_additional_images_delete_dlg(request, product_id, pk):
+    data = dict()
+    template = 'products/dialogs/product_additional_images-delete.html'
+    store_product_additional_obj = OcStoreProductImages.objects.filter(pk=pk)
+
+    context = {'pk': pk, 'product_id': product_id}
+    data['html_form'] = render_to_string(template,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+def store_product_additional_images_delete(request, product_id, pk):
+    data = dict()
+
+    if request.method == 'POST':
+        store_product_additional_obj = OcStoreProductImages.objects.filter(pk=pk)
+        store_product_additional_obj.delete()
+        data['is_saved'] = True
+    else:
+        data['is_saved'] = False
+
+    return JsonResponse(data)
+
+
+def store_product_addional_image_store_edit(request, product_id, pk):
+    data = dict()
+    context = {'site_option_id': pk}
+    template_name = 'products/dialogs/product_additional_images_store-edit.html/'
+
+    if request.method == 'POST':
+        form_obj = AdditionalProductStoreImages(request.POST)
+        if form_obj.is_valid():
+            form_instance = form_obj.instance
+            store_image_id = request.POST.get('store_image_id')
+            store_images_obj = get_object_or_404(OcStoreProductImages, pk=store_image_id)
+            store_images_obj.alt_text = form_instance.alt_text
+            store_images_obj.order_id = form_instance.order_id
+            store_images_obj.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        store_images_obj = get_object_or_404(OcStoreProductImages, pk=pk)
+        form_obj = AdditionalProductStoreImages(instance=store_images_obj)
+        data['form_is_valid'] = False
+
+    context['form'] = form_obj
+    context['product_id'] = product_id
+    context['pk'] = pk
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
 
 
 def test(request, pk, store_id):

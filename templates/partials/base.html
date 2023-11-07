@@ -34,7 +34,7 @@
 
     <link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
 
-<script src="https://kit.fontawesome.com/7bfee5acb0.js" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/018df5a581.js" crossorigin="anonymous"></script>
 
 
 
@@ -108,9 +108,6 @@
             </div>
             <!-- End Page-content -->
             {% block footer %}
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-  Launch demo modal
-</button>
                 {% include 'partials/footer.html' %}
 
             {% endblock footer %}
@@ -118,7 +115,7 @@
         <!-- end main content-->
 
 
-     <div class="modal fade" id="modal-base" role="dialog" data-onclose="something">
+     <div class="modal fade" id="modal-base" role="dialog" data-onclose="">
         <div class="modal-dialog modal-dialog-centered modal-xl" role="document" id="modal-outer">
             <div class="modal-content">
             </div>
@@ -130,13 +127,23 @@
 
 
     </div>
+{{ JS_ICONS|json_script:"my_icons" }}
+{{ JS_BUTTONS|json_script:"my_buttons" }}
+<script>
+        <!--footer icons -->
+        const icons_context = JSON.parse(document.getElementById('my_icons').textContent);
+        const button_context = JSON.parse(document.getElementById('my_buttons').textContent);
+        const media_context = '{{ MEDIA_URL }}';
+        const static_context = '{{ STATIC_URL }}';
+        </script>
+
     <!-- END layout-wrapper -->
     {% include 'partials/javascript.html' %}
     {% block javascript %}
-        <script>
-        //const myModalEl = document.getElementById('modal-base');
-        </script>
+
 
     {% endblock javascript %}
+
+
 </body>
 </html>

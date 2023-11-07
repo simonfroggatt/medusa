@@ -153,8 +153,8 @@ $(function()
                 className: 'text-end',
                 render: function (data, type, row) {
 
-                    //let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="fas fa-edit fa-sm"></i></a>';
-                    // let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="' + data +'/delete/"><i class="fas fa-trash fa-sm"></i></a>'
+                    //let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                    // let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="' + data +'/delete/"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
                     let shipping_colour = 'btn-grey'
                     if (row['shipping_flag'] != null) {
                         shipping_colour = 'btn-' + row['shipping_flag']['shipping_status__status_colour']
@@ -172,7 +172,7 @@ $(function()
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
                     let printed_icon = '<button type="button" class="btn btn-sm disabled ' + printed_colour + '"><i class="fas fa-print  "></i></button>'
                     let shipping_icon = '<button type="button" class="btn btn-sm disabled ' + shipping_colour + '"><i class="fas fa-shipping-fast "></i></button>'
-                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/orders/' + data + '"><i class="fas fa-edit "></i></a>'
+                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/orders/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
                     return btn_grp + shipping_icon + printed_icon + edit_icon + '</div>'
                 }
             },
@@ -265,7 +265,7 @@ $(function()
                 render: function (data, type, row) {
 
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
-                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/quotes/' + data + '"><i class="fas fa-edit "></i></a>'
+                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/quotes/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
                     return btn_grp +  edit_icon + '</div>'
                 }
             },

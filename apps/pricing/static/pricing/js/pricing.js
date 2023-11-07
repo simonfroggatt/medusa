@@ -30,8 +30,8 @@ $(function(){
                 sortable: false,
                 className: 'text-end',
                 render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' +data+ '/edit"><i class="fas fa-edit fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + data + '"><i class="fas fa-trash fa-sm"></i></a>';
+                let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' +data+ '/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + data + '"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                 let add_icon = '<a class="btn btn-success btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fas fa-globe fa-sm"></i></a>';
                 return delete_icon + "  " + edit_icon + " " +add_icon
                 }
@@ -77,8 +77,8 @@ $(function(){
                 render: function ( data, type, row ) {
                     let store_id = row['store']['store_id'];
                     let size_material_id = row['size_material_comb']['id'];
-                let edit_icon = '<a class="btn btn-primary btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/edit"><i class="fas fa-edit fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/delete"><i class="fas fa-trash fa-sm"></i></a>'
+                let edit_icon = '<a class="btn btn-primary btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                let delete_icon = '<a class="btn btn-danger btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/delete"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
                 return delete_icon + "  " + edit_icon;
                 }
             }

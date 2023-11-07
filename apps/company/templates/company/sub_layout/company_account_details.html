@@ -8,10 +8,10 @@
                      <div class="col-3">
                          <div class="float-end">
                              <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
-                                <button type="button" class="btn btn-primary btn-sm js-company-dlg"
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
                                         data-url="{% url 'company_details_edit' company_obj.company_id %}"
                                         data-dlgsize="modal-lg"
-                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
                         </div>
                          </div>
                      </div>

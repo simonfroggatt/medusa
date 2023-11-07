@@ -28,7 +28,7 @@
                             <div class="col-6">{{ form.price_modifier|as_crispy_field }}<p class="help-block" id="price_mod_helper">Here's some help text</p></div>
                             <div class="col-6">
                                 <img src="asdasd">
-                                <a class="btn btn-primary btn-lg js-order-product-edit" href="class" role="button" ><i class="fas fa-edit"></i> Change Product</a>
+                                <a class="btn {{ BUTTON_EDIT }} btn-lg js-order-product-edit" href="class" role="button" ><i class="{{ ICON_EDIT }}"></i> Change Product</a>
                             </div>
                             <div class="col-6">{{ form.show_at_checkout|as_crispy_field }}</div>
 
@@ -36,10 +36,10 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-danger " onclick="location.href='{% url 'alloptionsvalues' %}'">
+                            <button type="button" class="btn {{ BUTTON_CANCEL }} " onclick="location.href='{% url 'alloptionsvalues' %}'">
                             Cancel
                             </button>
-                            <button type="submit" id="add" class="btn btn-primary pull-right">Add</button>
+                            <button type="submit" id="add" class="btn {{ BUTTON_ADD }} pull-right">Add</button>
                         </div>
                     </div>
                 </div>

@@ -18,10 +18,10 @@ $(document).ready(function() {
     var manual_data = {}
 
     if ($.fn.dataTable.isDataTable('#product_variant_active_table')) {
-        var product_symbol_table = $('#product_variant_active_table').DataTable();
+        var product_variant_active_table = $('#product_variant_active_table').DataTable();
     } else {
 
-        var product_symbol_table = $('#product_variant_active_table').DataTable({
+        var product_variant_active_table = $('#product_variant_active_table').DataTable({
             "dom": "<'row'<'col-6'fl><'col-6'p>>" +
                 "<'row'<'col-12'tr>>",
             "processing": true,

@@ -28,10 +28,10 @@
                 <div class="col-md-3">{{ form.status|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-danger "
+                        <button type="button" class="btn {{ BUTTON_CANCEL }} "
                                 onclick="location.href='{{ view.get_success_url }}'">Cancel
                         </button>
-                        <button type="submit" id="update" class="btn btn-primary pull-right">Update</button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
                     </div>
                 </div>
             </div>

@@ -12,8 +12,8 @@
             <input type="hidden" id="size_id" name="size_id" value="{{ pk }}">
                 <h3>Are you sure what to delete this size?</h3>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
-                        <button type="submit" id="update" class="btn btn-primary pull-right">Delete</button>
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_DELETE }} pull-right">Delete</button>
                     </div>
         </form>
     </div>

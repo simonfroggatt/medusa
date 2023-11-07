@@ -23,10 +23,10 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-danger "
+                        <button type="button" class="btn {{ BUTTON_CANCEL }} "
                                 onclick="location.href='{{ view.get_success_url }}'">Cancel
                         </button>
-                        <button type="submit" id="update" class="btn btn-primary pull-right">Create</button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_ADD }} pull-right">Create</button>
                     </div>
                 </div>
             </div>

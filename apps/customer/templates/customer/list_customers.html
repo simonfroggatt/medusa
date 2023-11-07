@@ -84,7 +84,7 @@
                 data: null,
                 sortable: false,
                 render: function ( data, type, row ) {
-                let edit_icon = '<a href="details/' + row['customer_id'] + '"><i class="fas fa-edit table-button"></i></a>'
+                let edit_icon = '<a href="details/' + row['customer_id'] + '"><i class="{{ ICON_EDIT }} table-button"></i></a>'
                 return edit_icon;
                 }
             },

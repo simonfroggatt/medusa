@@ -1,0 +1,48 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> Add additional images to <strong> this product </strong></h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <h5>Available images for {{ store.name }}</h5>
+        <form method="post" action="{% url 'product_additional_images_store-update' product_id store.store_id %}"
+              id="frm-store_product_additional_images-update">
+            {% csrf_token %}
+            <input type="hidden" id="store_product_id" name="store_product_id"
+                   value="{{ store_product_id }}">
+            <input type="hidden" id="store_id" name="store_id"
+                   value="{{ store.store_id }}">
+            <div class="row row-cols-6 row-cols-md-4 g-2">
+                {% for product_image in images_obj %}
+                    <div class="col">
+                        <div class="card h-100">
+                            <img src="{{ MEDIA_URL }}{{ product_image.image }}" class="card-img-top"
+                                 alt="{{ product_image.alt_text }}">
+                            <div class="card-body">
+
+                            </div>
+                            <div class="card-footer">
+                                <label for="check_{{ product_image.product_image_id }}">Add to list</label>
+                                <input type="checkbox" class="form-check-inline"
+                                       id="check_{{ product_image.product_image_id }}" name="check_images" value="{{ product_image.product_image_id }}">
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_ADD }} pull-right">Add</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+

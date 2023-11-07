@@ -26,8 +26,8 @@
                 <div class="col-3">{{ form.gtin|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>
-                        <button type="submit" id="btn_product_core_var_add" class="btn btn-primary pull-right disabled">Add</button>
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="btn_product_core_var_add" class="btn {{ BUTTON_ADD }} pull-right disabled">Add</button>
                     </div>
                 </div>
             </div>

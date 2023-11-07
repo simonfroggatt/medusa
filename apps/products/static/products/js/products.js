@@ -51,7 +51,7 @@ $(function () {
                      sortable: false,
                      className: 'text-md-end text-start',
                      render: function (data, type, row) {
-                         let edit_icon = '<a class="btn btn-primary btn-sm" href="' + data + '/storeedit"><i class="fas fa-edit fa-sm"></i></a>';
+                         let edit_icon = '<a class="btn btn-primary btn-sm" href="' + data + '/storeedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
                          return edit_icon;
 
                      }
@@ -120,8 +120,8 @@ $(function () {
                        sortable: false,
                        className: 'text-md-end text-start',
                        render: function (data, type, row) {
-                           let edit_icon = '<a class="btn btn-primary btn-sm js-product-dlg" role="button" data-url="' + data + '/categoryedit"><i class="fas fa-edit fa-sm"></i></a>';
-                           let delete_icon = '<a  class="btn btn-danger btn-sm js-product-dlg" role="button" data-url="' + data + '/categorydeletedlg"><i class="fas fa-trash fa-sm"></i></a>';
+                           let edit_icon = '<a class="btn btn-primary btn-sm js-product-dlg" role="button" data-url="' + data + '/categoryedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                           let delete_icon = '<a  class="btn btn-danger btn-sm js-product-dlg" role="button" data-url="' + data + '/categorydeletedlg"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                            return edit_icon + " " + delete_icon;
 
                        }
@@ -171,8 +171,8 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn btn-primary btn-xs js-product-edit" href="variant/'+data+'" role="button" ><i class="fas fa-edit table-button"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-xs js-product-edit" data-url="variant/delete/'+data+'" role="button" ><i class="fas fa-trash table-button"></i></a>';
+                        let edit_icon = '<a class="btn btn-primary btn-xs js-product-edit" href="variant/'+data+'" role="button" ><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let delete_icon = '<a class="btn btn-danger btn-xs js-product-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return edit_icon + " " + delete_icon
                     }
                 },
@@ -232,9 +232,9 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="corevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="fas fa-edit table-button"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="fas fa-trash table-button"></i></a>';
-                        return edit_icon + " " + delete_icon
+                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="corevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
+                        return delete_icon + " " + edit_icon
                     }
                 },
             ]
@@ -427,8 +427,8 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="sitevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="fas fa-edit table-button"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="fas fa-trash table-button"></i></a>';
+                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="sitevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return edit_icon;//+ " " + delete_icon
                     }
                 },
@@ -479,8 +479,8 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                         let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="related/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="fas fa-edit table-button"></i></a>';
-                           let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="related/'+data+'/delete" role="button" data-dlgsize="modal-sm" ><i class="fas fa-trash table-button"></i></a>';
+                         let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="related/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                           let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="related/'+data+'/delete" role="button" data-dlgsize="modal-sm" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return edit_icon+ " " + delete_icon
                     }
                 }
@@ -917,6 +917,7 @@ $(function () {
     $(document).on("click", ".js-variant-edit", loadForm);
     $(document).on("click", "#js-product_variant_core-add", loadForm);
     $(document).on("click", "#js-product_variant_site-add", loadForm);
+
     $(document).on("submit", "#from-core_variant_option_add", SaveVariantOptionAdd);
     $(document).on("submit", "#dlg-product_variant_core_option-delete", SaveVariantOptionAdd);
     $(document).on("submit", "#form-core_variant_edit", EditProductVariantCore);
@@ -929,6 +930,8 @@ $(function () {
          let newval = $(this).val()
          get_group_option_text(newval)
     });
+
+
 
     $("#form-core_variant_add").on("submit" , function (e) {
         e.preventDefault()
@@ -946,16 +949,94 @@ $(function () {
     })
 
 
+    /**                                                          START - product additioanl images                                                  */
+
+    $(document).on("change", "#js-image-store_id", function(){
+         let store_id = $(this).val()
+         let product_id = sessionStorage.getItem("product_id");
+         let data_url = product_id + '/additional_images/' + store_id +'/add';
+         $('#js-product_addtional_images_add').attr('data-url', data_url);
+         loadProductImages(product_id, store_id);
+    });
+
     $('#js-variant-store_id').on('change', function() {
         let newval = $(this).val()
         let ajax_url = "/products/api/storevariants/" + js_product_id + "/"+newval+"?format=datatables";
         product_variants_site_table.ajax.url(ajax_url).load();
     });
 
+    //delete button on product additional image by store
+    $(document).on("click", ".store_product_additional_images-dlg", loadForm);
 
-    /*$('#site-variants-tab').on("click", function(){
-        get_product_stores(1)
-    })*/
+    $(document).on('submit', '#frm-store_product_additional_images-delete', function() {
+
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.is_saved) {
+                    $("#modal-base").modal("hide");
+                    $('#js-image-store_id').trigger('change');
+                }
+            }
+        });
+        return false;
+
+    });
+
+    $(document).on('submit', '#frm-store_product_additional_images-edit', function() {
+
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $("#modal-base").modal("hide");
+                    $('#js-image-store_id').trigger('change');
+                }
+                else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    });
+
+    $(document).on('submit', '#frm-store_product_additional_images-update', function() {
+
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.is_saved) {
+                    $("#modal-base").modal("hide");
+                    $('#js-image-store_id').trigger('change');
+                }
+                else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    });
+
+
+    $(document).on("click", "#js-product_addtional_images_add", loadForm);
+
+
+        /**                                                         END - product additioanl images                                                  */
+
+
+
 
 
     /***
@@ -1008,8 +1089,21 @@ $(function () {
     }
 
     /* we have closed the dialogue box for the variants - so update the variant table */
+    function loadProductImages(product_id, store_id){
 
+       let ajax_url = '/products/'+product_id+'/additional_images/' + store_id
 
+           $.ajax({
+               url: ajax_url,  // <-- AND HERE
+               type: 'get',
+
+               success: function (data) {
+                   // $("#modal-base .modal-title").html("Edit Address");
+                   $("#js-product_images").html(data);
+               }
+           });
+           return false;
+    }
 
 })
 

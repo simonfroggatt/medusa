@@ -14,9 +14,9 @@
                             <div class="float-end pe-2">
 
                                 {% if customer_address.billing.pk %}
-                                    <a class="btn btn-primary btn-xs js-address-edit"
+                                    <a class="btn {{ BUTTON_EDIT }} btn-xs js-address-edit"
                                        data-url="{% url 'customeraddressedit' customer_obj.customer_id customer_address.billing.pk %}"
-                                       role="button"><i class="fas fa-edit fa-pull-right"></i></a>
+                                       role="button"><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                                 {% endif %}
                             </div>
                         </div>
@@ -43,9 +43,9 @@
                             <div class="float-end pe-2">
 
                                 {% if customer_address.shipping.pk %}
-                                    <a class="btn btn-primary btn-xs js-address-edit"
+                                    <a class="btn {{ BUTTON_EDIT }} btn-xs js-address-edit"
                                        data-url="{% url 'customeraddressedit' customer_obj.customer_id customer_address.shipping.pk %}"
-                                       role="button"><i class="fas fa-edit fa-pull-right"></i></a>
+                                       role="button"><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                                 {% endif %}
                             </div>
                         </div>

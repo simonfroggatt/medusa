@@ -8,7 +8,7 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
 
-                <a class="btn btn-primary" id="js-quote-product-edit" role="button" data-url="{% url 'quoteproductadd' quote_obj.quote_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
+                <a class="btn {{ BUTTON_ADD }}" id="js-quote-product-edit" role="button" data-url="{% url 'quoteproductadd' quote_obj.quote_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
 
                 <div class="btn-group">
 
@@ -59,7 +59,7 @@
 
 
                  <div class="dropdown dropstart">
-                    <button class="btn btn-warning " type="button" id="dropdownQuoteOptions"
+                    <button class="btn {{ BUTTON_EXTRA }} " type="button" id="dropdownQuoteOptions"
                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fas fa-cog"></i>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownQuoteOptions">

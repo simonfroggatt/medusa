@@ -57,9 +57,9 @@
                 </div>
 
                 <a class="btn btn-success js-order-ship-it" role="button" data-url="{% url 'ordershipit' order_obj.order_id %}" data-dlgsize="modal-lg"><i class="fas fa-shipping-fast"></i> Ship</a>
-                <a class="btn btn-primary js-order-product-edit" role="button" data-url="{% url 'orderproductadd' order_obj.order_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
+                <a class="btn {{ BUTTON_ADD }} js-order-product-edit" role="button" data-url="{% url 'orderproductadd' order_obj.order_id %}" data-dlgsize="modal-xl"><i class="fas fa-box-open"></i> Add Product</a>
                 <div class="dropdown dropstart">
-                    <button class="btn btn-warning " type="button" id="dropdownOrderOptions"
+                    <button class="btn {{ BUTTON_EXTRA }} " type="button" id="dropdownOrderOptions"
                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fas fa-cog"></i>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">

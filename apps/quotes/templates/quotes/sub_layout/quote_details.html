@@ -9,10 +9,10 @@
                      <div class="col-3">
                          <div class="float-end">
                              <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
-                                <button type="button" class="btn btn-primary btn-sm js-quote-details-edit"
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-quote-details-edit"
                                         data-url="{% url 'quotedetailsedit' quote_obj.quote_id %}"
                                         data-dlgsize="modal-lg" id="js-quote-edit"
-                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
                         </div>
                          </div>
                      </div>

@@ -84,7 +84,7 @@
                 sortable: false,
                 className: 'text-md-end text-start',
                 render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm" href="' + data + '/edit"><i class="fas fa-edit fa-sm"></i></a>';
+                let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm" href="' + data + '/edit"><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
                  return  edit_icon;
 
                 }

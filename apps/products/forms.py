@@ -1,6 +1,6 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
-    OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants
+    OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions
 
@@ -173,3 +173,17 @@ class SiteProductVariantForm(forms.ModelForm):
         }
 
 
+class AdditionalProductStoreImages(forms.ModelForm):
+    class Meta:
+        model = OcStoreProductImages
+        fields = '__all__'
+
+        widgets = {
+            'store_product_id': forms.HiddenInput,
+            'image_id': forms.HiddenInput,
+        }
+
+        labels = {
+            'order_id': 'Image order position',
+            'alt_text': 'Image ALT-TEXT for this website',
+        }

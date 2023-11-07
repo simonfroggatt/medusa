@@ -17,7 +17,7 @@
                         <div class="container-fluid justify-content-end pe-0">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
 
-                                <a class="btn btn-primary btn-xs" id="js-product_variant_site-add" role="button"
+                                <a class="btn {{ BUTTON_UPDATE }} btn-xs" id="js-product_variant_site-add" role="button"
                                    data-url="{% url 'product_variant_site-add-dlg' product_obj.product_id %}" data-dlgsize="modal-xl" data-onclose="site_variant"><i class="fas fa-plus table-button" data-productid="{{ product_obj.product_id }}"></i> Edit Site Variants</a>
 
                             </div>
@@ -48,7 +48,7 @@
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
 
                                 <div class="dropdown dropstart">
-                                    <button class="btn btn-warning btn-xs disabled" type="button" id="dropdownSiteVariantOptions"
+                                    <button class="btn {{ BUTTON_EXTRA }} btn-xs disabled" type="button" id="dropdownSiteVariantOptions"
                                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i
                                             class="fas fa-cog"></i>
                                     </button>

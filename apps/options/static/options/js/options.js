@@ -219,8 +219,8 @@ $(function () {
                         sortable: false,
                         className: 'text-md-end text-start',
                         render: function (data, type, row) {
-                            let edit_icon = '<a class="btn btn-primary btn-sm" id="js-group_value-edit" data-url="value/edit/' + data + '" role="button" ><i class="fas fa-edit fa-sm"></i></a>';
-                            let delete_icon = '<a class="btn btn-danger btn-sm" id="js-group_value-edit" data-url="value/delete/' + data + '" role="button" ><i class="fas fa-trash fa-sm"></i></a>';
+                            let edit_icon = '<a class="btn btn-primary btn-sm" id="js-group_value-edit" data-url="value/edit/' + data + '" role="button" ><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                            let delete_icon = '<a class="btn btn-danger btn-sm" id="js-group_value-edit" data-url="value/delete/' + data + '" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                             return edit_icon + " " + delete_icon
                         }
                     },

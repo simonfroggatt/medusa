@@ -1,0 +1,48 @@
+{% load static %}
+<div class="ibox">
+    <div class="ibox-content">
+        <div class="row">
+            <div class="col-12 col-md-6">
+                <div class="row">
+                    <div class="col-6">
+                        <select class="form-select pb-2" aria-label="Store" id="js-image-store_id"
+                                name="image_store_id">
+                            <option value=0>Base Product Additional Images</option>
+                            {% for store_data in store_obj.all %}
+                                <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <div class="container-fluid justify-content-start pe-0">
+                            <button type="button" class="btn {{ BUTTON_ADD }}"
+                                    data-url=""
+                                    data-dlgsize="modal-lg" data-onclose="site_variant"
+                                    id="js-product_addtional_images_add">
+                                <i class="fas fa-plus table-button" data-productid="{{ product_obj.product_id }}"></i>
+                                Add Images</a>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-4 p-2" id="js-product_images">
+
+        </div>
+    </div>
+</div>
+{% block javascript %}
+<script>
+    window.addEventListener('load', function() {
+        $('#js-image-store_id').trigger('change')
+    })
+
+</script>
+{% endblock %}
+
+
+
+

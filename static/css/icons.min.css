@@ -21484,6 +21484,8 @@
  * Font Awesome Free 5.13.0 by @fontawesome - https://fontawesome.com
  * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
  */
+
+/*
 .fa,
 .fab,
 .fad,
@@ -25983,6 +25985,8 @@
 .fa-zhihu:before {
   content: "\f63f";
 }
+
+
 .sr-only {
   border: 0;
   clip: rect(0, 0, 0, 0);
@@ -26051,6 +26055,8 @@
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
 }
+
+*/
 @font-face {
   font-family: dripicons-v2;
   src: url(../fonts/dripicons-v2.eot);

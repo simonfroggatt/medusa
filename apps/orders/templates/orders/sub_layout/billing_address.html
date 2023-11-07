@@ -5,7 +5,7 @@
                     </div>
                     <div class="col-6">
                     {% if order_obj.customer %}
-                    <button class="btn btn-warning col-12 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress" aria-expanded="false" aria-controls="collapseBillingAddress">
+                    <button class="btn {{ BUTTON_EXTRA }} col-12 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress" aria-expanded="false" aria-controls="collapseBillingAddress">
                             Address book
                         </button>
                         <div class="collapse" id="collapseBillingAddress">
@@ -30,9 +30,9 @@
 
                     <div class="col-3">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
-                                <button type="button" class="btn btn-primary btn-sm js-order-address-edit"
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-address-edit"
                                         data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
-                                ><i class="fas fa-edit fa-pull-right"></i></button>
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
                                  {% if order_obj.customer %}
                                    <!-- <button type="button" class="btn btn-primary btn-sm js-order-address-edit"
                                             data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"

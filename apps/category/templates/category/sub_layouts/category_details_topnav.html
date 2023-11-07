@@ -10,9 +10,9 @@
 
 
                 <a class="btn btn-success js-order-ship-it" href="{% url 'categorystoreparentadd' category_obj.category_id %}" ><i class="fa-solid fa-folder-tree"></i> Add Store Structure</a>
-                <a class="btn btn-primary js-category-edit" role="button" data-url="{% url 'categorystoreadd_dlg' category_obj.category_id %}" data-dlgsize="modal-sm"><i class="fa-solid fa-align-left"></i> Add Store Text</a>
+                <a class="btn {{ BUTTON_ADD }} js-category-edit" role="button" data-url="{% url 'categorystoreadd_dlg' category_obj.category_id %}" data-dlgsize="modal-sm"><i class="fa-solid fa-align-left"></i> Add Store Text</a>
                 <div class="dropdown dropstart">
-                    <button class="btn btn-warning " type="button" id="dropdownOrderOptions"
+                    <button class="btn {{ BUTTON_EXTRA }} " type="button" id="dropdownOrderOptions"
                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fas fa-cog"></i>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">

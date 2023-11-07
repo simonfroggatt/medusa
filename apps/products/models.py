@@ -320,10 +320,11 @@ class OcProductRelated(models.Model):
 
 class OcProductImage(models.Model):
     product_image_id = models.AutoField(primary_key=True)
-    product_id = models.IntegerField()
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='productimage')
     image = models.CharField(max_length=1024, blank=True, null=True)
     sort_order = models.IntegerField()
-    main = models.IntegerField(blank=True, null=True)
+    main = models.BooleanField()
+    alt_text = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -331,9 +332,10 @@ class OcProductImage(models.Model):
 
 
 class OcStoreProductImages(models.Model):
-    store_product = models.ForeignKey(OcProductToStore, models.DO_NOTHING, blank=True, null=True)
-    image = models.ForeignKey(OcProductImage, models.DO_NOTHING, blank=True, null=True)
+    store_product = models.ForeignKey(OcProductToStore, models.DO_NOTHING, blank=True, null=True, related_name='storeproduct')
+    image = models.ForeignKey(OcProductImage, models.DO_NOTHING, blank=True, null=True, related_name='productimage')
     order_id = models.IntegerField(blank=True, null=True)
+    alt_text = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False

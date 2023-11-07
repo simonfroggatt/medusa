@@ -11,7 +11,7 @@
     <dt class="col-3">Title:</dt>
     <dd class="col-9">{{ new_product_obj.productdescbase.name}}</dd>
 </dl>
-    <a class="btn btn-primary btn-sm" id="js-value-product" data-url="{% url 'choose_option_value_variant'  %}" data-dlgsize="modal-lg" role="button" ><i class="fas fa-edit"></i> Change Variant</a>
+    <a class="btn {{ BUTTON_EDIT }} btn-sm" id="js-value-product" data-url="{% url 'choose_option_value_variant'  %}" data-dlgsize="modal-lg" role="button" ><i class="{{ ICON_EDIT }}"></i> Change Variant</a>
 
 </div>
 <div class="col-6">

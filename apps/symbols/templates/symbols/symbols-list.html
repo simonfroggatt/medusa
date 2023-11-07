@@ -103,8 +103,8 @@
                 sortable: false,
                 className: 'text-md-end text-start',
                 render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' + row['id'] + '"><i class="fas fa-edit fa-sm"></i></a>';
-                let delete_icon = '<a  class="btn btn-danger btn-sm js-symbol-delete" role="button" data-url="' + row['id'] + '/deletedlg"><i class="fas fa-trash fa-sm"></i></a>';
+                let edit_icon = '<a class="btn {{ BUTTON_EDIT }}btn-sm" role="button" href="' + row['id'] + '"><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
+                let delete_icon = '<a  class="btn {{ BUTTON_DELETE }} btn-sm js-symbol-delete" role="button" data-url="' + row['id'] + '/deletedlg"><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
 
                 return delete_icon + "  " + edit_icon;
                 //    return  data_button

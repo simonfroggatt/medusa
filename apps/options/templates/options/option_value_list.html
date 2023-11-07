@@ -89,7 +89,7 @@
                 data: "id",
                 sortable: false,
                 render: function ( data, type, row ) {
-                 let edit_icon = '<a class="btn btn-primary btn-sm js-order-product-edit" href="values/'+data+'" role="button" ><i class="fas fa-edit fa-sm"></i></a>';
+                 let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm js-order-product-edit" href="values/'+data+'" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
                 return edit_icon;
                 }
             },

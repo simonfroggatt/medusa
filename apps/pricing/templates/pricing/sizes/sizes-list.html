@@ -81,8 +81,8 @@
                 className: 'text-end',
                 render: function ( data, type, row ) {
 
-                let edit_icon = '<a class="btn btn-primary btn-sm js-pricing-edit" role="button" href="' + row['size_id'] + '/edit/"><i class="fas fa-edit fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm js-pricing-edit" role="button" data-url="' + row['size_id'] + '/delete/"><i class="fas fa-trash fa-sm"></i></a>';
+                let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm js-pricing-edit" role="button" href="' + row['size_id'] + '/edit/"><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
+                let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-sm js-pricing-edit" role="button" data-url="' + row['size_id'] + '/delete/"><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
                 return delete_icon + "  " + edit_icon;
 
 
