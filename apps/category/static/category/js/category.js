@@ -104,7 +104,7 @@
             {data: "homepage",
                 render: function (data, type, row) {
                     if (data == 1) {
-                        return '<i class="fas fa-check flag-green"></i>'
+                        return '<i class="fa-solid fa-check flag-green"></i>'
                     } else {
                         return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
                     }
@@ -114,7 +114,7 @@
             {data: "top",
             render: function (data, type, row) {
                     if (data == 1) {
-                        return '<i class="fas fa-check flag-green"></i>'
+                        return '<i class="fa-solid fa-check flag-green"></i>'
                     } else {
                         return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
                     }

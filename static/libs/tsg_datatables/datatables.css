@@ -1211,24 +1211,4 @@ table.dataTable.table-sm tbody td.select-checkbox::before {
   margin-top: -9px;
 }
 
-table.dataTable .failed-order td {
-  background-color: #f8c8c8;
-}
 
-table.dataTable .pending-order td {
-  background-color: #FFC473;
-}
-
-table.dataTable .live-order td {
-  background-color: #c2f8a9;
-}
-
-table.dataTable .order-total {
-  font-weight: bold;
-  font-size: 120%;
-}
-
-table.dataTable .order-total td {
-  border-top: 1px solid black;
-  border-collapse: collapse;
-}

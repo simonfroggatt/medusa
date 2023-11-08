@@ -20,8 +20,7 @@
                     <div class="col-lg-12">
                         <div class="ibox">
                             <div class="ibox-content">
-                                <table id="customers_table" class="table table-hover table-sm"
-                                       style="width:100%">
+                                <table id="customers_table" class="table table-hover table-striped align-middle table-sm" >
                                     <thead>
                                     <tr>
                                         <th width="50px">Store</th>
@@ -73,7 +72,7 @@
                 sortable: false,
                 render: function ( data, type, row ) {
                     let image_src = '{% static "images/stores/" %}' + data.thumb;
-                    return '<img height="15px" src="' + image_src + '">'
+                    return '<img height="20px" src="' + image_src + '">'
                  }
             },
             {data: "company"},
@@ -84,7 +83,7 @@
                 data: null,
                 sortable: false,
                 render: function ( data, type, row ) {
-                let edit_icon = '<a href="details/' + row['customer_id'] + '"><i class="{{ ICON_EDIT }} table-button"></i></a>'
+                let edit_icon = '<a type="button" class="btn btn-xs btn-outline-primary" href="details/' + row['customer_id'] + '" role="button"><i class="{{ ICON_EDIT }} table-button"></i></a>'
                 return edit_icon;
                 }
             },

@@ -38,7 +38,7 @@ def company_details(request, company_id):
 
     template_name = 'company/company_layout.html'
 
-    context['pageview'] = 'All companies'
+    context['pageview'] = 'Companies'
     context['pageview_url'] = reverse_lazy('allcompanies')
     context['heading'] = company_obj.company_name
 

@@ -1,7 +1,7 @@
 <div class="card-header order_details">
             <div class="row">
                     <div class="col-3">
-                        <i class="fas fa-shipping-fast"></i> Shipping
+                        <i class="fa-solid fa-shipping-fast"></i> Shipping
                     </div>
                     <div class="col-6">
                     {% if order_obj.customer %}
@@ -35,7 +35,7 @@
                                <button type="button" class="btn {{ BUTTON_ADD }} btn-sm js-order-address-edit"
                                         data-url="{% url 'ordershippingaddresssearch' order_obj.order_id %}"
                                         data-dlgsize="modal-lg"
-                                ><i class="fas fa-search fa-pull-right ms-0"></i></button>
+                                ><i class="fa-solid fa-search fa-pull-right ms-0"></i></button>
                         {% endif %}
                                 <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-address-edit"
                                         data-url="{% url 'ordershippingaddressedit' order_obj.order_id %}"

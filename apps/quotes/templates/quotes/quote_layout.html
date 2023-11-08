@@ -1,7 +1,7 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% block extra_css %}
-    <link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+   <!-- old datatables css -->
 {% endblock extra_css %}
 
 {% block content %}
@@ -36,22 +36,22 @@
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="products-tab" data-bs-toggle="tab" href="#tab-products"
                                    role="tab">
-                                    <i class="fas fa-list"></i> Products</a>
+                                    <i class="fa-solid fa-list"></i> Products</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#tab-history"
                                    role="tab">
-                                    <i class="fas fa-history"></i> History</a>
+                                    <i class="fa-solid fa-history"></i> History</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="art-tab" data-bs-toggle="tab" href="#tab-art" role="tab"><i
-                                        class="far fa-image"></i> Artwork</a>
+                                        class="fa-regular fa-image"></i> Artwork</a>
                             </li>
 
                             <li>
                                 <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents"
                                    role="tab"><i
-                                        class="fas fa-folder-open"></i> Documents</a>
+                                        class="fa-solid fa-folder-open"></i> Documents</a>
                             </li>
                         </ul>
                         <div class="tab-content">

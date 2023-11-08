@@ -1,12 +1,12 @@
-<a class="btn {{ BUTTON_ADD }} btn-sm js-address-create mb-2" data-url="{% url 'customeraddresscreate' customer_obj.customer_id %}" role="button">Add New Address <i class="fas fa-plus fa-sm"></i></a>
+<a class="btn {{ BUTTON_ADD }} btn-sm js-address-create mb-2" data-url="{% url 'customeraddresscreate' customer_obj.customer_id %}" role="button">Add New Address <i class="fa-solid fa-plus fa-sm"></i></a>
 
 <div class="row row-cols-1 row-cols-md-2  row-cols-xl-3 row-cols-xxl-4 g-4">
     {% for address in address_book %}
     <div class="col">
         <div class="card h-100 mb-0">
             <div class="card-header d-grid gap-1 d-flex justify-content-end">
-                <a class="btn btn-primary btn-xs {{ address.default_billing|yesno:'btn-success,btn-secondary,btn-secondary' }}" href="{{ url  }}" role="button"><i class="fas fa-pound-sign fa-sm"></i></a>
-                <a class="btn btn-primary btn-xs {{ address.default_shipping|yesno:'btn-success,btn-secondary,btn-secondary' }}" href="#" role="button"><i class="fas fa-shipping-fast fa-sm"></i></a>
+                <a class="btn btn-primary btn-xs {{ address.default_billing|yesno:'btn-success,btn-secondary,btn-secondary' }}" href="{{ url  }}" role="button"><i class="fa-solid fa-pound-sign fa-sm"></i></a>
+                <a class="btn btn-primary btn-xs {{ address.default_shipping|yesno:'btn-success,btn-secondary,btn-secondary' }}" href="#" role="button"><i class="fa-solid fa-shipping-fast fa-sm"></i></a>
                 <a class="btn {{ BUTTON_EDIT }} btn-xs js-address-edit" data-url="{% url 'customeraddressedit' customer_obj.customer_id address.pk %}" role="button"><i class="{{ ICON_EDIT }} fa-sm"></i></a>
                 <a class="btn {{ BUTTON_DELETE }} btn-xs js-address-delete" data-url="{% url 'customeraddressdelete' customer_obj.customer_id address.pk %}" role="button"><i class="{{ ICON_DELETE }} fa-sm"></i></a>
             </div>

@@ -22,7 +22,7 @@ $(function () {
              "search": {
                  "regex": true
              },
-             select: 'single',
+
              columns: [
                  {
                      data: "store.thumb",
@@ -84,7 +84,6 @@ $(function () {
                "search": {
                    "regex": true
                },
-               select: 'single',
                columns: [
                    {
                        data: "category_store.store.thumb",
@@ -446,7 +445,6 @@ $(function () {
          "<'row'<'col-sm-12'tr>>" +
          "<'row'<'col-sm-6'><'col-sm-6'>>",
             "processing": true,
-            "select": 'single',
             "search": true,
             "info": false,
             "rowId": 'id',
@@ -501,7 +499,6 @@ $(function () {
             "autoWidth": false,
             "responsive": false,
             "serverSide": false,
-            "select": 'single',
             "scroller": true,
             scrollY: 400,
             "rowId": 'product_id',
@@ -553,7 +550,6 @@ $(function () {
             "autoWidth": false,
             "responsive": false,
             "serverSide": false,
-            "select": 'single',
             "scroller": true,
             scrollY: 400,
             "rowId": 'id',

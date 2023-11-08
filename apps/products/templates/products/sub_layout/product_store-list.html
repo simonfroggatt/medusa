@@ -1,7 +1,7 @@
 {% load static %}
 <div class="row pe-2">
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn-sm btn-success js-product-dlg" data-url="{% url 'productstoreadd_dlg' product_obj.product_id %}" data-dlgsize="modal-sm">Add</button>
+                <button type="button" class="btn btn-sm btn-success js-product-dlg" data-url="{% url 'productstoreadd_dlg' product_obj.product_id %}" data-dlgsize="modal-sm">Add</button>
             </div>
 </div>
 <div class="row">
@@ -9,7 +9,7 @@
         <div class="ibox">
             <div class="ibox-content">
 
-                <table id="product_sites_table" class="table table-hover table-sm"  style="width:100%" >
+                <table id="product_sites_table" class="table table-hover table-striped align-middle table-sm"  style="width:100%" >
                     <thead>
                     <tr>
                         <th width="col-1">Store</th>

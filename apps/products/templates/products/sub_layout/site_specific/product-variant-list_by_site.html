@@ -18,14 +18,14 @@
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
 
                                 <a class="btn {{ BUTTON_UPDATE }} btn-xs" id="js-product_variant_site-add" role="button"
-                                   data-url="{% url 'product_variant_site-add-dlg' product_obj.product_id %}" data-dlgsize="modal-xl" data-onclose="site_variant"><i class="fas fa-plus table-button" data-productid="{{ product_obj.product_id }}"></i> Edit Site Variants</a>
+                                   data-url="{% url 'product_variant_site-add-dlg' product_obj.product_id %}" data-dlgsize="modal-xl" data-onclose="site_variant"><i class="fa-solid fa-plus table-button" data-productid="{{ product_obj.product_id }}"></i> Edit Site Variants</a>
 
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <table id="product_variants_site_table" class="table table-hover table-sm table-striped"
+                    <table id="product_variants_site_table" class="table table-hover table-striped align-middle table-sm"
                            style="width:100%">
                         <thead>
                         <tr>
@@ -50,7 +50,7 @@
                                 <div class="dropdown dropstart">
                                     <button class="btn {{ BUTTON_EXTRA }} btn-xs disabled" type="button" id="dropdownSiteVariantOptions"
                                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i
-                                            class="fas fa-cog"></i>
+                                            class="fa-solid fa-cog"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-left"
                                         aria-labelledby="dropdownSiteVariantOptions">
@@ -67,13 +67,13 @@
                                 <a class="btn btn-success btn-xs js-variant-option-edit disabled"
                                    id="js-product-site-variant_option-add" role="button"
                                    data-url="{% url 'site_variant_option-add' 0 %}" data-dlgsize="modal-lg"><i
-                                        class="fas fa-plus table-button"></i> Add Options</a>
+                                        class="fa-solid fa-plus table-button"></i> Add Options</a>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <table id="site_variants_options" class="table table-hover table-sm table-striped"
+                    <table id="site_variants_options" class="table table-hover table-striped align-middle table-sm"
                            style="width:100%">
                         <thead>
                         <tr>

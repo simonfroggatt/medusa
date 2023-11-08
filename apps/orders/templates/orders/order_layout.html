@@ -1,19 +1,19 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% block extra_css %}
-    <link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+   <!-- old datatables css -->
 {% endblock extra_css %}
 
 {% block content %}
     <div class="wrapper wrapper-content layout-details">
-        <div class="row top_bar ">
+        <div class="row top_bar align-middle">
             <div class="col-3 col-lg-2">
                 <h2>Order - <a id="js-order-number"
                         href="javascript: copy_orderno_to_clipboard({{ order_obj.order_id }})">{{ order_obj.order_id }}</a>
                     <img src="{% static "" %}images/stores/{{ order_obj.store.thumb }}" class="img-responsive"
                          alt="{{ order_obj.store.name }}"></h2>
             </div>
-            <div class="col-3 col-lg-4">
+            <div class="col-3 col-lg-4 align-middle">
                 {% include 'orders/sub_layout/order_flags.html' %}
             </div>
             <div class="col-6 col-lg-6">
@@ -33,22 +33,22 @@
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="products-tab" data-bs-toggle="tab" href="#tab-products"
                                    role="tab">
-                                    <i class="fas fa-list"></i> Products</a>
+                                    <i class="fa-solid fa-list"></i> Products</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#tab-history"
                                    role="tab">
-                                    <i class="fas fa-history"></i> History</a>
+                                    <i class="fa-solid fa-history"></i> History</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="art-tab" data-bs-toggle="tab" href="#tab-art" role="tab"><i
-                                        class="far fa-image"></i> Artwork</a>
+                                        class="fa-regular fa-image"></i> Artwork</a>
                             </li>
 
                             <li>
                                 <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents"
                                    role="tab"><i
-                                        class="fas fa-folder-open"></i> Documents</a>
+                                        class="fa-solid fa-folder-open"></i> Documents</a>
                             </li>
                         </ul>
                         <div class="tab-content">

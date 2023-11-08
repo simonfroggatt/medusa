@@ -32,7 +32,7 @@ $(function(){
                 render: function ( data, type, row ) {
                 let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' +data+ '/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
                 let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + data + '"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
-                let add_icon = '<a class="btn btn-success btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fas fa-globe fa-sm"></i></a>';
+                let add_icon = '<a class="btn btn-success btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fa-solid fa-globe fa-sm"></i></a>';
                 return delete_icon + "  " + edit_icon + " " +add_icon
                 }
             }
@@ -196,7 +196,7 @@ $(".switchApplyBulk").change(function () {
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
         })[0];
-        var tbl = $('<table class="table table-bordered table-sm"></table>').attr({id: "bulk_pricing_tbl"});
+        var tbl = $('<table class="table table-hover table-striped align-middle table-sm"></table>').attr({id: "bulk_pricing_tbl"});
         var header = $('<thead></thead>').appendTo(tbl);
         var headerrow = $('<tr></tr>').appendTo(header);
         var body = $('<tbody></tbody>').appendTo(tbl);

@@ -1,7 +1,7 @@
 {% extends 'partials/base_dlg_test.html' %}
 {% load static %}
 {% block extra_css %}
-    <link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+   <!-- old datatables css -->
 {% endblock extra_css %}
 
 {% block content %}
@@ -15,25 +15,25 @@
                                 <a class="nav-link active" id="products-stock-tab" data-bs-toggle="tab"
                                    href="#tab-stock-product"
                                    role="tab">
-                                    <i class="fas fa-list"></i> Stock Items</a>
+                                    <i class="fa-solid fa-list"></i> Stock Items</a>
                             </li>
                             {% if customer_id > 0 %}
                                 <li>
                                     <a class="nav-link" id="previous-product-tab" data-bs-toggle="tab"
                                        href="#tab-previous-product"
                                        role="tab">
-                                        <i class="fas fa-history"></i> Previous Items</a>
+                                        <i class="fa-solid fa-history"></i> Previous Items</a>
                                 </li>
                             {% endif %}
                             <li>
                                 <a class="nav-link" id="bespoke-product-tab" data-bs-toggle="tab"
                                    href="#tab-bespoke-product" role="tab"><i
-                                        class="far fa-image"></i> Bespoke ss</a>
+                                        class="fa-regular fa-image"></i> Bespoke ss</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="manual-product-tab" data-bs-toggle="tab"
                                    href="#tab-manual-product" role="tab"><i
-                                        class="far fa-image"></i> Manual</a>
+                                        class="fa-regular fa-image"></i> Manual</a>
                             </li>
                         </ul>
                         <div class="tab-content">
@@ -155,7 +155,7 @@
             var bulk_array = $.grep(bulk_table_data, function (e) {
                 return e.id == bulk_group_id;
             })[0];
-            var tbl = $('<table class="table table-bordered table-sm"></table>').attr({id: "bulk_pricing_tbl"});
+            var tbl = $('<table class="table table-hover table-striped align-middle table-sm"></table>').attr({id: "bulk_pricing_tbl"});
             var header = $('<thead></thead>').appendTo(tbl);
             var headerrow = $('<tr></tr>').appendTo(header);
             var body = $('<tbody></tbody>').appendTo(tbl);

@@ -211,7 +211,8 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT' : "%d/%m/%Y %H:%M:%S",
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
-    'PAGE_SIZE': 2000,
+
+    'PAGE_SIZE': 10,
 }
 
 

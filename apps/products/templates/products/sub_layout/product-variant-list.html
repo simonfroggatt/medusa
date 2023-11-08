@@ -9,14 +9,14 @@
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
 
                                 <a class="btn {{ BUTTON_ADD }} btn-xs" id="js-product_variant_core-add" role="button"
-                                   data-url="{% url 'product_core_variant-add' product_obj.product_id %}" data-dlgsize="modal-xl"><i class="fas fa-plus table-button"></i> New Variant</a>
+                                   data-url="{% url 'product_core_variant-add' product_obj.product_id %}" data-dlgsize="modal-xl"><i class="fa-solid fa-plus table-button"></i> New Variant</a>
 
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <table id="product_core_variants_table" class="table table-hover table-sm table-striped"
+                    <table id="product_core_variants_table" class="table table-hover table-striped align-middle table-sm"
                            style="width:100%">
                         <thead>
                         <tr>
@@ -41,7 +41,7 @@
                                 <div class="dropdown dropstart">
                                     <button class="btn {{ BUTTON_EXTRA }} btn-xs disabled" type="button" id="dropdownVariantOptions"
                                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i
-                                            class="fas fa-cog"></i>
+                                            class="fa-solid fa-cog"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-left"
                                         aria-labelledby="dropdownVariantOptions">
@@ -58,17 +58,17 @@
                                 <a class="btn btn-success btn-xs js-variant-option-edit disabled"
                                    id="js-variant_core_option-add" role="button"
                                    data-url="{% url 'product_variant_core_option-add' 0 %}" data-dlgsize="modal-lg"><i
-                                        class="fas fa-plus table-button"></i> Add Options</a>
+                                        class="fa-solid fa-plus table-button"></i> Add Options</a>
                                 <a class="btn btn-success btn-xs js-variant-option-edit disabled" id="js-variant_core_group_option-add"
                                    role="button"
-                                   data-url="{% url 'product_variant_core_group_option-add' 0 %}" data-dlgsize="modal-lg"><i class="fas fa-plus table-button"></i> Add Group</a>
+                                   data-url="{% url 'product_variant_core_group_option-add' 0 %}" data-dlgsize="modal-lg"><i class="fa-solid fa-plus table-button"></i> Add Group</a>
 
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <table id="core_variants_options" class="table table-hover table-sm table-striped"
+                    <table id="core_variants_options" class="table table-hover table-striped align-middle table-sm"
                            style="width:100%">
                         <thead>
                         <tr>

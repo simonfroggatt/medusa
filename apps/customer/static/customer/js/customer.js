@@ -159,19 +159,19 @@ $(function()
                     if (row['shipping_flag'] != null) {
                         shipping_colour = 'btn-' + row['shipping_flag']['shipping_status__status_colour']
                     }
-                    // let shipping_icon = '<i class="fas fa-shipping-fast ' + shipping_colour + ' "></i>'
+                    // let shipping_icon = '<i class="fa-solid fa-shipping-fast ' + shipping_colour + ' "></i>'
 
                     let printed_colour = 'btn-grey'
                     if (row['printed'] == 1) {
                         printed_colour = 'btn-green'
                     }
-                    // let printed_icon = '<i class="fas fa-print ' + printed_colour + ' "></i>'
+                    // let printed_icon = '<i class="fa-solid fa-print ' + printed_colour + ' "></i>'
 
 
                     //return printed_icon + " " + shipping_icon + /* " " + delete_icon + "  " +*/ edit_icon;
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
-                    let printed_icon = '<button type="button" class="btn btn-sm disabled ' + printed_colour + '"><i class="fas fa-print  "></i></button>'
-                    let shipping_icon = '<button type="button" class="btn btn-sm disabled ' + shipping_colour + '"><i class="fas fa-shipping-fast "></i></button>'
+                    let printed_icon = '<button type="button" class="btn btn-sm disabled ' + printed_colour + '"><i class="fa-solid fa-print  "></i></button>'
+                    let shipping_icon = '<button type="button" class="btn btn-sm disabled ' + shipping_colour + '"><i class="fa-solid fa-shipping-fast "></i></button>'
                     let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/orders/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
                     return btn_grp + shipping_icon + printed_icon + edit_icon + '</div>'
                 }

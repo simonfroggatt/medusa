@@ -7,11 +7,11 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <a class="btn btn-success js-order-customer-create" role="button" data-url="{% url 'api_createorder'  customer_obj.pk  %}" data-dlgsize="modal-sm"><i class="fas fa-shopping-cart"></i> New Order</a>
-                <a class="btn {{ BUTTON_ADD }} js-quote-customer-create" role="button" data-url="{% url 'api_createquote'  customer_obj.pk  %}" data-dlgsize="modal-sm"><i class="fas fa-file-invoice"></i> New Quote</a>
+                <a class="btn btn-success js-order-customer-create" role="button" data-url="{% url 'api_createorder'  customer_obj.pk  %}" data-dlgsize="modal-sm"><i class="fa-solid fa-shopping-cart"></i> New Order</a>
+                <a class="btn {{ BUTTON_ADD }} js-quote-customer-create" role="button" data-url="{% url 'api_createquote'  customer_obj.pk  %}" data-dlgsize="modal-sm"><i class="fa-solid fa-file-invoice"></i> New Quote</a>
                 <div class="dropdown dropstart">
                     <button class="btn {{ BUTTON_EXTRA }} " type="button" id="dropdownCustomerOptions"
-                            data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-cog"></i>
+                            data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-cog"></i>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownCustomerOptions">
                         <li><a class="dropdown-item js-customer-edit" role="button"

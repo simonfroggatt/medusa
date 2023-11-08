@@ -4,7 +4,7 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 
-<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.css' %} "/>
+   <!-- old datatables css -->
 <div class="container">
     <div class="row" id="order-add-product-tabs">
         <div class="col">
@@ -15,25 +15,25 @@
                             <a class="nav-link active" id="products-stock-tab" data-bs-toggle="tab"
                                href="#tab-stock-product"
                                role="tab">
-                                <i class="fas fa-list"></i> Stock Items</a>
+                                <i class="fa-solid fa-list"></i> Stock Items</a>
                         </li>
                         {% if customer_id > 0 %}
                             <li>
                                 <a class="nav-link" id="previous-product-tab" data-bs-toggle="tab"
                                    href="#tab-previous-product"
                                    role="tab">
-                                    <i class="fas fa-history"></i> Previous Items</a>
+                                    <i class="fa-solid fa-history"></i> Previous Items</a>
                             </li>
                         {% endif %}
                         <li>
                             <a class="nav-link" id="bespoke-product-tab" data-bs-toggle="tab"
                                href="#tab-bespoke-product" role="tab"><i
-                                    class="far fa-image"></i> Bespoke</a>
+                                    class="fa-regular fa-image"></i> Bespoke</a>
                         </li>
                         <li>
                             <a class="nav-link" id="manual-product-tab" data-bs-toggle="tab"
                                href="#tab-manual-product" role="tab"><i
-                                    class="fas fa-fist-raised"></i> Manual</a>
+                                    class="fa-solid fa-fist-raised"></i> Manual</a>
                         </li>
                     </ul>
                     <div class="tab-content">
@@ -151,7 +151,7 @@
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
         })[0];
-        var tbl = $('<table class="table table-bordered table-sm"></table>').attr({id: "bulk_pricing_tbl"});
+        var tbl = $('<table class="table table-hover table-striped align-middle table-sm"></table>').attr({id: "bulk_pricing_tbl"});
         var header = $('<thead></thead>').appendTo(tbl);
         var headerrow = $('<tr></tr>').appendTo(header);
         var body = $('<tbody></tbody>').appendTo(tbl);
