@@ -1,7 +1,6 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% block extra_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
 {% endblock extra_css %}
 
 {% block content %}
@@ -83,7 +82,7 @@
                 data: null,
                 sortable: false,
                 render: function ( data, type, row ) {
-                let edit_icon = '<a type="button" class="btn btn-xs btn-outline-primary" href="details/' + row['customer_id'] + '" role="button"><i class="{{ ICON_EDIT }} table-button"></i></a>'
+                let edit_icon = '<a type="button" class="btn btn-sm {{ BUTTON_EDIT }}" href="details/' + row['customer_id'] + '" role="button"><i class="{{ ICON_EDIT }} table-button"></i></a>'
                 return edit_icon;
                 }
             },

@@ -38,3 +38,11 @@ class CustomerForm(forms.ModelForm):
     class Meta:
         model = OcCustomer
         fields = '__all__'
+
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 4}),
+        }
+
+        labels = {
+            'notes': 'Comments and Notes',
+        }

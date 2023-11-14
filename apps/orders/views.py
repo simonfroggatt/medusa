@@ -155,7 +155,7 @@ def order_details(request, order_id):
 
     context = {"order_obj": order_obj}
     if order_obj.customer_id > 0:
-        context["addressItem"] = order_obj.customer.ocaddress_set.all().order_by('postcode')
+        context["addressItem"] = order_obj.customer.address_customer.all().order_by('postcode')
     else:
         context["addressItem"] = []
 

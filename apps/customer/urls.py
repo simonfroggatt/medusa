@@ -19,11 +19,17 @@ urlpatterns = [
     path('details/<int:customer_id>/address/save', views.customer_address_save, name='customeraddresscreatesave'),
     path('details/<int:customer_id>/address/edit/<int:address_id>', views.customers_address_edit, name='customeraddressedit'),
     path('details/<int:customer_id>/address/delete/<int:address_id>', views.customer_address_delete, name='customeraddressdelete'),
+    path('details/<int:customer_id>/address/setbilling/<int:address_id>', views.customer_address_set_billing, name='customeraddresssetbilling'),
+    path('details/<int:customer_id>/address/setshipping/<int:address_id>', views.customer_address_set_shipping, name='customeraddresssetshipping'),
+
     path('<int:customer_id>/addressbook', views.customer_address_book, name='customer_addressbook'),
+    path('<int:customer_id>/contactcard', views.customer_contact_card, name='customer_contactcard'),
     path('api/customer/<int:customer_id>/order_create', views.order_customer_create, name='api_createorder'),
     path('api/customer/<int:customer_id>/quote_create', create_quote_customer, name='api_createquote'),
     path('details/<int:customer_id>/password/edit', views.customers_edit_password, name='customereditpassword'),
     path('create', views.contact_create, name='create_customer'),
+
+    path('api/customer/<int:customer_id>/update_notes', views.customer_update_notes, name='api_customer_update_notes'),
 
   #  path('address/<int:pk>', views.customer_address_view),
    # path('address/edit/<int:address_id>', views.customer_address_view),

@@ -4,35 +4,18 @@
         <div class="card-header customer_details">
                  <div class="row">
                      <div class="col-9 ">
-                         Main Contact <img height="20px" src="
-                    {% static '/images/stores/' %}{{ customer_obj.store.thumb }}">
+                         Main Contact
                      </div>
                      <div class="col-3">
-                       <div class="float-end pe-2">
-                            <a class="btn {{ BUTTON_EDIT }} btn-xs js-contact-edit" data-url="{% url 'customerdetailsedit' customer_obj.pk %}"
+                       <div class="float-end pe-0">
+                            <a class="btn {{ BUTTON_EDIT }} btn-sm js-contact-edit" data-url="{% url 'customerdetailsedit' customer_obj.pk %}"
                                role="button"><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                         </div>
                      </div>
                  </div>
         </div>
-        <div class="card-body ">
-
-            <dl class="row text-nowrap">
-                {% if customer_obj.parent_company %}
-                  <dt class="col-3">Works at</dt>
-                  <dd class="col-9"><a href="{% url 'company_details' customer_obj.parent_company.company_id %}">{{ customer_obj.parent_company.company_name }}</a></dd>
-                {% endif %}
-                <dt class="col-3">Name</dt>
-                <dd class="col-9">{{ customer_obj.fullname }}</dd>
-                <dt class="col-3">Email</dt>
-                <dd class="col-9"><a href="mailto:{{ customer_obj.email }}">{{ customer_obj.email }}</a></dd>
-                <dt class="col-3">Phone</dt>
-                <dd class="col-9">{{ customer_obj.telephone }}</dd>
-                <dt class="col-3">Mobile</dt>
-                <dd class="col-9">{{ customer_obj.mobile }}</dd>
-                <dt class="col-3">Account Type</dt>
-                <dd class="col-9">{{ customer_obj.account_type }}</dd>
-            </dl>
+        <div class="card-body" id="customer_details_card">
+            {% include 'customer/sub_layouts/customer_details_sub.html'  %}
         </div>
     </div>
 </div>

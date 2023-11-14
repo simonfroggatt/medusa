@@ -8,9 +8,9 @@
 <div class="modal-body">
     <div class="container">
         <form method="post" action="{% url 'customeraddressedit' customer_id address_id %}" class="js-address-submit"
-              class="js-address-edit-form">
+              name="js-address-edit-form" id="form_address_edit">
             {% csrf_token %}
-
+            <input type="hidden" id="add_address" name="add_address" value="0">
             <div class="row">
                 <div class="col-md-6">{{ form.fullname|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
@@ -26,6 +26,7 @@
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="add" class="btn {{ BUTTON_ADD }} pull-right">Add As New</button>
                         <button type="submit" id="update" class="btn {{ BUTTON_EDIT }} pull-right">Update</button>
                     </div>
                 </div>
@@ -34,6 +35,12 @@
         </form>
     </div>
 </div>
+
+<script>
+    $('#form_address_edit #add').click(function() {
+            $('#form_address_edit #add_address').val(1)
+        })
+</script>
 
 
 

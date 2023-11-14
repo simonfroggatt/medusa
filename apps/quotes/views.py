@@ -48,7 +48,7 @@ def quote_details(request, quote_id):
 
     context = {"quote_obj": quote_obj}
     if quote_obj.customer_id:
-        context["addressItem"] = quote_obj.customer.ocaddress_set.all().order_by('postcode')
+        context["addressItem"] = quote_obj.customer.address_customer.all().order_by('postcode')
     else:
         context["addressItem"] = []
 

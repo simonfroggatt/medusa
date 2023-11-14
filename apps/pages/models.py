@@ -9,6 +9,7 @@ class OcTsgBlogs(models.Model):
     title = models.CharField(max_length=255)
     sub_title = models.CharField(max_length=1024)
     blog_text = models.TextField()
+    image = models.CharField(max_length=255, blank=True, null=True)
     status = models.BooleanField(blank=True, null=True)
     date_added = models.DateTimeField(auto_now=True)
     language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
@@ -29,8 +30,8 @@ class OcTsgBlogs(models.Model):
 
 class OcInformationDescription(models.Model):
     information_id = models.AutoField(primary_key=True)
-    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
-    store = models.ForeignKey(OcStore, models.DO_NOTHING)
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING, blank=True, null=True)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
     title = models.CharField(max_length=64)
     description = models.TextField()
     meta_title = models.CharField(max_length=255)

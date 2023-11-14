@@ -11,10 +11,10 @@
 
                         </div>
                         <div class="col-3">
-                            <div class="float-end pe-2">
+                            <div class="float-end pe-0">
 
                                 {% if customer_address.billing.pk %}
-                                    <a class="btn {{ BUTTON_EDIT }} btn-xs js-address-edit"
+                                    <a class="btn {{ BUTTON_EDIT }} btn-sm js-address-edit"
                                        data-url="{% url 'customeraddressedit' customer_obj.customer_id customer_address.billing.pk %}"
                                        role="button"><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                                 {% endif %}
@@ -40,10 +40,10 @@
 
                         </div>
                         <div class="col-3">
-                            <div class="float-end pe-2">
+                            <div class="float-end pe-0">
 
                                 {% if customer_address.shipping.pk %}
-                                    <a class="btn {{ BUTTON_EDIT }} btn-xs js-address-edit"
+                                    <a class="btn {{ BUTTON_EDIT }} js-address-edit"
                                        data-url="{% url 'customeraddressedit' customer_obj.customer_id customer_address.shipping.pk %}"
                                        role="button"><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                                 {% endif %}

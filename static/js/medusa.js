@@ -131,9 +131,6 @@ var loadForm = function () {
 
 function SaveDialogFormRedirect() {
         var form = $(this);
-        let url = form.attr("action");
-        let data = form.serialize();
-        let after = form.attr("after")
         $.ajax({
             url: form.attr("action"),
             data: form.serialize(),
@@ -144,9 +141,6 @@ function SaveDialogFormRedirect() {
                     $("#modal-base").modal("hide");  // <-- Close the modal
                     if (Boolean(data.redirect_url)) {
                         window.location.href = data.redirect_url
-                    }
-                    if (after) {
-                        eval(after + "()")
                     }
                 } else {
                     $("#modal-base .modal-content").html(data.html_form);

@@ -1,0 +1,23 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="row">
+    <div class="col">
+        <div class="ibox">
+            <div class="ibox-content">
+                <form action="{% url 'api_customer_update_notes' customer_obj.customer_id %}" method="POST" id="form_customer_notes">
+                    <input type="hidden" name="customer_id" value="{{ customer_obj.customer_id }}">
+                    {% csrf_token %}
+                    {{ form.notes|as_crispy_field }}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" id="update" class="btn {{ BUTTON_ADD }} pull-right">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

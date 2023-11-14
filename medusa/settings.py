@@ -29,6 +29,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -91,7 +93,6 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-
                 'medusa.icon_list.icons_processor',
                 'medusa.icon_list.button_colours',
                 'medusa.icon_list.js_icons',

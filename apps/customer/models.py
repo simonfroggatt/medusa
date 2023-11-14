@@ -26,7 +26,7 @@ class OcTsgCustomerStatus(models.Model):
 
 class OcCustomer(models.Model):
     customer_id = models.AutoField(primary_key=True)
-    customer_group_id = models.IntegerField()
+    customer_group_id = models.IntegerField(blank=True, null=True)
     store = models.ForeignKey(OcStore, on_delete=models.DO_NOTHING)
     language_id = models.IntegerField()
     company = models.CharField(max_length=255, blank=True, null=True)
@@ -44,7 +44,7 @@ class OcCustomer(models.Model):
     newsletter = models.IntegerField(blank=True, null=True)
     address_id = models.IntegerField(blank=True, null=True)
     custom_field = models.TextField(blank=True, null=True)
-    ip = models.CharField(max_length=40)
+    ip = models.CharField(max_length=40, blank=True, null=True)
     status = models.IntegerField()
     safe = models.IntegerField(blank=True, null=True)
     token = models.TextField(blank=True, null=True)
@@ -54,7 +54,8 @@ class OcCustomer(models.Model):
     parent_company = models.ForeignKey(OcTsgCompany, models.DO_NOTHING, db_column='company_id', blank=True, null=True, related_name='company_customer')  # Field renamed because of name conflict.
     account_type = models.ForeignKey(OcTsgAccountType, models.DO_NOTHING, db_column='account_type', blank=True,
                                      null=True)
-
+    notes = models.CharField(max_length=2048, blank=True, null=True)
+    archived = models.BooleanField(default=0)
 
     class Meta:
         managed = False
@@ -62,10 +63,9 @@ class OcCustomer(models.Model):
         ordering = ['-date_added']
 
 
-
 class OcAddress(models.Model):
     address_id = models.AutoField(primary_key=True)
-    customer = models.ForeignKey(OcCustomer, models.DO_NOTHING, db_column='customer_id')
+    customer = models.ForeignKey('OcCustomer', models.DO_NOTHING, blank=True, null=True, related_name='address_customer')
     company = models.CharField(max_length=40, blank=True, null=True)
     branch = models.CharField(max_length=255, blank=True, null=True)
     fullname = models.CharField(max_length=255, blank=True, null=True)

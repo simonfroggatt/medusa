@@ -50,7 +50,7 @@ class OcTsgCompany(models.Model):
     company_type = models.ForeignKey(OcTsgCompanyType, models.DO_NOTHING, db_column='company_type', blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
     country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING)
-
+    notes = models.CharField(max_length=2048, blank=True, null=True)
 
     class Meta:
         managed = False

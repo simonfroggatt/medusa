@@ -22,6 +22,8 @@
                           value="{{ form.ip.value }}">
             <input type="hidden" id="id_{{ form.safe.name}}" name="{{ form.safe.name}}"
                            value="{{ form.safe.value }}">
+            <input type="hidden" id="id_customer" name="customer_id"
+                           value="{{ customer_id }}">
 
             <div class="row">
                 <div class="col-md-6">{{ form.fullname|as_crispy_field }}</div>

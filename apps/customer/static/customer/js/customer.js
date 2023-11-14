@@ -3,6 +3,7 @@ $(function()
 {
 
   var saveForm = function () {
+
     var form = $(this);
     $.ajax({
       url: form.attr("action"),
@@ -12,6 +13,7 @@ $(function()
       success: function (data) {
         if (data.form_is_valid) {
           updateAddressBook()
+            updateContactCard()
           $("#modal-base").modal("hide");  // <-- Close the modal
         } else {
           $("#modal-base .modal-content").html(data.html_form);
@@ -57,6 +59,20 @@ $(function()
     return false;
   }
 
+  var updateContactCard = function() {
+    $.ajax({
+      url: '/customer/'+customer_id+'/contactcard',
+      type: 'get',
+      dataType: 'json',
+      success: function (data) {
+          $('#customer_details_card').html(data.html_contact_card)
+
+         reinstateFunction();
+      }
+    });
+    return false;
+  }
+
 
   var reinstateFunction = function(){
     $(".js-address-edit").click(loadForm);
@@ -72,7 +88,10 @@ $(function()
 
    $("#modal-base").on("submit", ".js-address-submit", saveForm);
    $("#modal-base").on("submit", ".js-customer-details-submit", saveForm);
+
+
   $(document).on("submit", "#form-customer-password", SavePasswordForm);
+
 
 
   let previous_order_table = $('#previous_order_table').DataTable( {
@@ -273,6 +292,27 @@ $(function()
     } );
 
 
+  var SaveNotes = function() {
+        var form = $(this);
+        let url = form.attr("action");
+        let data = form.serialize();
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.is_saved) {
+                   alert('saved')
+                } else {
+
+                }
+            }
+        });
+        return false;
+  }
+
+     $(document).on("submit", "#form_customer_notes", SaveNotes);
 
 
 

@@ -135,13 +135,13 @@ class OcTsgCourierOptions(models.Model):
 
 class OcOrder(models.Model):
     order_id = models.AutoField(primary_key=True)
-    invoice_no = models.IntegerField()
-    invoice_prefix = models.CharField(max_length=26)
-    store = models.ForeignKey(OcStore, models.DO_NOTHING)
+    invoice_no = models.IntegerField(blank=True, null=True)
+    invoice_prefix = models.CharField(max_length=26, blank=True, null=True)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
     store_name = models.CharField(max_length=64)
-    store_url = models.CharField(max_length=255)
+    store_url = models.CharField(max_length=255, blank=True, null=True)
     customer = models.ForeignKey(OcCustomer, models.DO_NOTHING, db_column='customer_id', blank=True, null=True, related_name='customer_orders')
-    customer_group_id = models.IntegerField()
+    customer_group_id = models.IntegerField(blank=True, null=True)
     fullname = models.CharField(max_length=255, blank=True, null=True)
     firstname = models.CharField(max_length=32, blank=True, null=True)
     lastname = models.CharField(max_length=32, blank=True, null=True)
@@ -193,13 +193,13 @@ class OcOrder(models.Model):
     commission = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
     marketing_id = models.IntegerField(blank=True, null=True)
     tracking = models.CharField(max_length=64, blank=True, null=True)
-    language_id = models.IntegerField()
-    currency_id = models.IntegerField()
-    currency_code = models.CharField(max_length=3)
+    language_id = models.IntegerField(blank=True, null=True)
+    currency_id = models.IntegerField(blank=True, null=True)
+    currency_code = models.CharField(max_length=3, blank=True, null=True)
     currency_value = models.DecimalField(max_digits=15, decimal_places=8)
-    ip = models.CharField(max_length=40)
-    forwarded_ip = models.CharField(max_length=40)
-    user_agent = models.CharField(max_length=255)
+    ip = models.CharField(max_length=40, blank=True, null=True)
+    forwarded_ip = models.CharField(max_length=40, blank=True, null=True)
+    user_agent = models.CharField(max_length=255, blank=True, null=True)
     accept_language = models.CharField(max_length=255, blank=True, null=True)
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -210,9 +210,9 @@ class OcOrder(models.Model):
     payment_status = models.ForeignKey(OcTsgPaymentStatus, models.DO_NOTHING, blank=True, null=True)
     xero_id = models.CharField(max_length=256, blank=True, null=True)
     customer_order_ref = models.CharField(max_length=255, blank=True, null=True)
-    tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate')
-    printed = models.BooleanField()  #note - must be BooleanField
-    plain_label = models.BooleanField()
+    tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate', blank=True, null=True)
+    printed = models.BooleanField(default=0)  #note - must be BooleanField
+    plain_label = models.BooleanField(default=0)
 
     @property
     def is_order(self):
@@ -251,7 +251,6 @@ class OcTsgShippingStatus(models.Model):
         return self.status_title
 
 
-
 class OcTsgOrderShipment(models.Model):
     order_shipment_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True, related_name='ordershipping')
@@ -283,8 +282,8 @@ class OcTsgFlags(models.Model):
 
 class OcOrderFlags(models.Model):
     order = models.ForeignKey(OcOrder,  models.DO_NOTHING, related_name='orderflags')
-    flag = models.ForeignKey(OcTsgFlags, models.DO_NOTHING, related_name='flagdetails')
-    date_added = models.DateTimeField(blank=True, null=True)
+    flag = models.ForeignKey(OcTsgFlags, models.DO_NOTHING, blank=True, null=True, related_name='flagdetails')
+    date_added = models.DateTimeField(blank=True, null=True, auto_now_add=True)
 
     class Meta:
         managed = False
@@ -300,8 +299,10 @@ class OcOrderProduct(models.Model):
     model = models.CharField(max_length=64)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=2)
+    discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
     total = models.DecimalField(max_digits=15, decimal_places=2)
     tax = models.DecimalField(max_digits=15, decimal_places=2)
+    tax_rate_desc = models.CharField(max_length=10, blank=True, null=True)
     reward = models.IntegerField()
     size_name = models.CharField(max_length=256, blank=True, null=True)
     orientation_name = models.CharField(max_length=255, blank=True, null=True)
@@ -384,6 +385,18 @@ class OcTsgPaymentHistory(models.Model):
         db_table = 'oc_tsg_payment_history'
 
 
+class OcTsgOrderProductStatusHistory(models.Model):
+    history_id = models.AutoField(primary_key=True)
+    order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, blank=True, null=True)
+    status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True)
+    data_added = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    user_id = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_product_status_history'
+
+
 def calc_order_totals(order_id):
     qs_order = OcOrder.objects.filter(pk=order_id).first()
     order_tax_rate = Decimal(qs_order.tax_rate.rate / 100)
@@ -443,8 +456,4 @@ def recalc_order_product_tax(order_id):
         product.save()
 
     calc_order_totals(order_id)
-
-
-
-
 

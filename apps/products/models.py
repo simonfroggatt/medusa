@@ -37,7 +37,7 @@ class OcProduct(models.Model):
 
 class OcProductDescriptionBase(models.Model):
     product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productdescbase')
-    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING, blank=True, null=True)
     name = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     description = models.TextField()

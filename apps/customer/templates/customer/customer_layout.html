@@ -5,10 +5,12 @@
 {% endblock extra_css %}
 
 {% block content %}
+
     <div class="wrapper wrapper-content layout-details">
          <div class="row top_bar">
             <div class="col-6">
-                <h2>{{ category_obj.fullname }}</h2>
+                <h2><img height="20px" src="
+                    {% static '/images/stores/' %}{{ customer_obj.store.thumb }}">{{ customer_obj.fullname }}</h2>
             </div>
             <div class="col-6" id="top_nav_bar">
                 {% include 'customer/customer_layout_navbar.html' %}
@@ -45,6 +47,9 @@
                         <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents" role="tab"><i
                                 class="fa-solid fa-folder-open"></i> Documents</a>
                     </li>
+                            <li>
+                        <a class="nav-link" id="notes-tab" data-bs-toggle="tab" href="#tab-notes" role="tab"><i class="fa-regular fa-comment"></i> Comments</a>
+                    </li>
                 </ul>
                         <div class="tab-content">
                     <div role="tabpanel" id="tab-orders" class="tab-pane fade show active">
@@ -70,6 +75,11 @@
                     <div role="tabpanel" id="tab-documents" class="tab-pane fade">
                         <div class="panel-body">
                             documents in here
+                        </div>
+                    </div>
+                            <div role="tabpanel" id="tab-notes" class="tab-pane fade">
+                        <div class="panel-body">
+                            {% include 'customer/sub_layouts/customer_comments.html' %}
                         </div>
                     </div>
                 </div>

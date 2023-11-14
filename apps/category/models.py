@@ -52,7 +52,7 @@ class OcCategory(models.Model):
 
 class OcCategoryDescriptionBase(models.Model):
     category = models.OneToOneField(OcCategory, models.DO_NOTHING, primary_key=True, related_name='categorybasedesc')
-    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING, blank=True, null=True)
     name = models.CharField(max_length=255)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()

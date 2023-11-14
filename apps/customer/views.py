@@ -13,6 +13,7 @@ from django.urls import reverse_lazy
 import json
 import hashlib
 from django.utils.crypto import get_random_string
+from django.contrib import messages
 
 
 def customers_list(request):
@@ -45,16 +46,20 @@ def customers_details(request, customer_id):
     template_name = 'customer/customer_layout.html'
 
     customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    form = CustomerForm(instance=customer_obj)
 
     content = {"customer_obj": customer_obj}
 
     addresses = get_default_address(customer_obj)
 
-    address_book = customer_obj.ocaddress_set.all().order_by('postcode')
+    address_book = customer_obj.address_customer.all().order_by('postcode')
     content['customer_address'] = addresses
     content['address_book'] = address_book
+    content['form'] = form
     content['heading'] = customer_obj.fullname
     content['pageview'] = "Customers"
+
+
 
     return render(request, template_name, content)
 
@@ -65,6 +70,8 @@ def customers_details_edit(request, customer_id):
     if request.method == 'POST':
         form = CustomerForm(request.POST)
         if form.is_valid():
+            forminstance = form.instance
+            forminstance.customer_id = request.POST.get('customer_id')
             form.save()
             data['form_is_valid'] = True
         else:
@@ -90,6 +97,20 @@ def customer_address_book(request, customer_id, view_type):
                'viewtype': view_type}
 
     return render(request, template_name, content)
+
+
+def customer_contact_card(request, customer_id):
+    data = dict()
+    template_name = 'customer/sub_layouts/customer_details_sub.html'
+    customer_obj = get_object_or_404(OcCustomer,pk=customer_id)
+
+    context = {'customer_obj': customer_obj}
+    data['html_contact_card'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
 
 
 def customer_address_save(request, customer_id):
@@ -127,17 +148,23 @@ def customer_address_create(request, customer_id):
 
 def customers_address_edit(request, customer_id, address_id):
     data = dict()
-    address = get_object_or_404(OcAddress, pk=address_id)
+
     if request.method == 'POST':
-        form = AddressForm(request.POST, instance=address)
+        form = AddressForm(request.POST)
         if form.is_valid():
+            form_instance = form.instance
+            form_instance.customer_id = customer_id
+            add_address = int(request.POST.get('add_address'))
+            if add_address == 0:
+                form_instance.address_id = address_id
+            form_instance.save()
             data['form_is_valid'] = True
-            address.save()
-            customer_update_detault_address(address)
+            customer_update_detault_address(form_instance)
         else:
             data['form_is_valid'] = False
 
     else:
+        address = get_object_or_404(OcAddress, pk=address_id)
         form = AddressForm(instance=address)
         form.fields['customer'] = customer_id
 
@@ -188,7 +215,7 @@ def customer_update_detault_address(address_obj):
 def customer_address_book(request, customer_id):
     data = dict()
     customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
-    address_book = customer_obj.ocaddress_set.all().order_by('postcode');
+    address_book = customer_obj.address_customer.all().order_by('postcode');
 
     context = {"customer_obj": customer_obj,
                "address_book": address_book}
@@ -209,23 +236,23 @@ def customer_address_book(request, customer_id):
 
 
 def get_default_address(customer_obj):
-    address_cnt = customer_obj.ocaddress_set.count()
+    address_cnt = customer_obj.address_customer.count()
     addresses = {}
     if address_cnt == 1:
-        addresses['billing'] = customer_obj.ocaddress_set.first()
-        addresses['shipping'] = customer_obj.ocaddress_set.first()
+        addresses['billing'] = customer_obj.address_customer.first()
+        addresses['shipping'] = customer_obj.address_customer.first()
     elif address_cnt > 1:
-        def_billing = customer_obj.ocaddress_set.filter(default_billing=1).order_by('address_id').first()
+        def_billing = customer_obj.address_customer.filter(default_billing=1).order_by('address_id').first()
         if def_billing is None:
-            addresses['billing'] = customer_obj.ocaddress_set.first()
+            addresses['billing'] = customer_obj.address_customer.first()
             addresses['billing_auto'] = True
         else:
             addresses['billing'] = def_billing
             addresses['billing_auto'] = False
 
-        def_shipping = customer_obj.ocaddress_set.filter(default_shipping=1).order_by('address_id').first()
+        def_shipping = customer_obj.address_customer.filter(default_shipping=1).order_by('address_id').first()
         if def_shipping is None:
-            addresses['shipping'] = customer_obj.ocaddress_set.first()
+            addresses['shipping'] = customer_obj.address_customer.first()
             addresses['shipping_auto'] = True
         else:
             addresses['shipping'] = def_shipping
@@ -357,41 +384,62 @@ def contact_create(request):
         'account_type': 1,
         'safe': 1,
         'customer_group': 1,
-        'store': 1
+        'store': 1,
+        'country': 826,
     }
 
     if request.method == 'POST':
         form = CustomerForm(request.POST)
+        form_address = AddressForm(request.POST)
         if form.is_valid():
             form.save()
             form_instance = form.instance
             data['form_is_valid'] = True
             customer_id = form_instance.customer_id
-            form_address = AddressForm(request.POST)
             form_address_instance = form_address.instance
             form_address_instance.customer_id = customer_id
             form_address_instance.fullname = form_instance.fullname
             form_address_instance.company = form_instance.company
             form_address_instance.default_shipping = 1
             form_address_instance.default_billing = 1
-
-            if form_address.is_valid():
-                form_address.save()
-                data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
-            else:
-                data['form_is_valid'] = False
-
-
+            form_address_instance.save()
+            data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
         else:
             data['form_is_valid'] = False
+    else:
+        form = CustomerForm(initial=initial_data)
+        form_address = AddressForm(initial=initial_data)
 
-    form = CustomerForm(initial=initial_data)
+    context = {'form': form, 'form_address': form_address, 'initials': initial_data}
 
-    form_address = AddressForm()
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
 
-    content = {'form': form, 'form_address': form_address, 'initials': initial_data, 'data': data}
-
-    html_form = render_to_string(template_name, content, request=request)
-    return JsonResponse({'html_form': html_form})
+    return JsonResponse(data)
 
 
+def customer_update_notes(request, customer_id):
+
+    data = dict()
+    if request.method == 'POST':
+        post_customer_id = request.POST.get('customer_id');
+        post_note = request.POST.get('notes');
+        customer_obj = get_object_or_404(OcCustomer, pk=post_customer_id)
+        customer_obj.notes = post_note
+        customer_obj.save()
+        data['is_saved'] = True
+        messages.info(request, 'Three credits remain in your account.')
+
+    return JsonResponse(data)
+
+
+def customer_address_set_billing(request, customer_id, address_id):
+    data = dict()
+    return JsonResponse(data)
+
+
+def customer_address_set_shipping(request, customer_id, address_id):
+    data = dict()
+    return JsonResponse(data)
