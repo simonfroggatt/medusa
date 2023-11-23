@@ -10,14 +10,18 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
 
 
-class Symbols(viewsets.ModelViewSet):
+class Symbols(generics.ListAPIView):
     queryset = OcTsgSymbols.objects.all()
     serializer_class = SymbolShortSerializer
+
+    def post(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 def all_symbols(request):
     template_name = 'symbols/symbols-list.html';
     context = {'pageview': 'Symbols'}
+
     return render(request, template_name, context)
 
 

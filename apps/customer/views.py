@@ -24,20 +24,20 @@ def customers_list(request):
 
 
 class customer_list_asJSON_s(viewsets.ModelViewSet):
-    queryset = OcCustomer.objects.all()
+    queryset = OcCustomer.objects.filter(archived=0)
     serializer_class = CustomerListSerializer
 
     def retrieve(self, request, pk=None):
-        customer_list = OcCustomer.objects.filter(parent_company_id=pk)
+        customer_list = OcCustomer.objects.filter(parent_company_id=pk).filter(archived=0)
         serializer = self.get_serializer(customer_list, many=True)
         return Response(serializer.data)
 
 class customer_list_bycompany(viewsets.ModelViewSet):
-    queryset = OcCustomer.objects.all()
+    queryset = OcCustomer.objects.filter(archived=0)
     serializer_class = CustomerListSerializer
 
     def retrieve(self, request, pk=None):
-        customer_list = OcCustomer.objects.filter(parent_company_id=pk)
+        customer_list = OcCustomer.objects.filter(parent_company_id=pk).filter(archived=0)
         serializer = self.get_serializer(customer_list, many=True)
         return Response(serializer.data)
 
@@ -266,24 +266,29 @@ def order_customer_create(request, customer_id):
     if request.method == 'POST':
         #ignore the incoming customerid
         post_customer_id = request.POST.get('customer_id')
+
+
         new_order_obj = OcOrder()
         customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
 
         new_order_obj.customer_id = customer_id
-        new_order_obj.payment_method = ''
+        new_order_obj.store_id = customer_obj.store_id
+        new_order_obj.customer_group_id = customer_obj.customer_group_id
+        new_order_obj.invoice_prefix = customer_obj.store.prefix
+        new_order_obj.currency_id = customer_obj.store.currency_id
+        new_order_obj.currency_code = customer_obj.store.currency.code
+        new_order_obj.currency_value = customer_obj.store.currency.value
+        new_order_obj.language_id = customer_obj.language_id
+
+        new_order_obj.payment_method_name = ''
         new_order_obj.order_status_id = 1
         new_order_obj.payment_status_id = 1
         new_order_obj.order_type_id = 1
-        new_order_obj.payment_method_rel_id = 8
         new_order_obj.invoice_no = 0
-        new_order_obj.invoice_prefix = 'SSAN'
-        new_order_obj.store_id = customer_obj.store_id
-        new_order_obj.customer_group_id = customer_obj.customer_group_id
-        new_order_obj.total = 0.00
-        new_order_obj.language_id = 1
-        new_order_obj.currency_id = 1
-        new_order_obj.currency_value = 1
+        new_order_obj.total = 0
         new_order_obj.tax_rate_id = 86
+        new_order_obj.payment_method_id = 8
+        # TODO - this needs to be from the website country
 
         address_book = get_default_address(customer_obj)
 
@@ -295,7 +300,7 @@ def order_customer_create(request, customer_id):
         new_order_obj.payment_city = address_book['billing'].city
         new_order_obj.payment_area = address_book['billing'].area
         new_order_obj.payment_postcode = address_book['billing'].postcode
-        new_order_obj.payment_country_id = address_book['billing'].country_id
+        new_order_obj.payment_country_name_id = address_book['billing'].country_id
         new_order_obj.payment_country = address_book['billing'].country
 
 
@@ -307,15 +312,17 @@ def order_customer_create(request, customer_id):
         new_order_obj.shipping_city = address_book['shipping'].city
         new_order_obj.shipping_area = address_book['shipping'].area
         new_order_obj.shipping_postcode = address_book['shipping'].postcode
-        new_order_obj.shipping_country_id = address_book['shipping'].country_id
+        new_order_obj.shipping_country_name_id = address_book['shipping'].country_id
         new_order_obj.shipping_country = address_book['shipping'].country
 
         new_order_obj.save()
 
-        new_order_obj.ocordertotal_set.create(code='sub_total', sort_order=1, title='Sub-Total', value=0)
-        new_order_obj.ocordertotal_set.create(code='shipping', sort_order=3, title='Shipping', value=0)
-        new_order_obj.ocordertotal_set.create(code='tax', sort_order=5, title='tax', value=0)
-        new_order_obj.ocordertotal_set.create(code='total', sort_order=9, title='Total', value=0)
+        new_order_obj.order_totals.create(code='sub_total', sort_order=1, title='Sub-Total', value=0)
+        new_order_obj.order_totals.create(code='discount', sort_order=2, title='Discount', value=0)
+
+        new_order_obj.order_totals.create(code='shipping', sort_order=3, title='Shipping', value=0)
+        new_order_obj.order_totals.create(code='tax', sort_order=5, title=new_order_obj.tax_rate.name, value=0)
+        new_order_obj.order_totals.create(code='total', sort_order=9, title='Total', value=0)
 
         data['form_is_valid'] = True
         data['order_id'] = new_order_obj.order_id
@@ -344,8 +351,12 @@ def customers_edit_password(request, customer_id):
         else:
             send_email = False
 
+            #SHA1(CONCAT( salt, SHA1(CONCAT(salt, SHA1('test1234')))))
+
         salt_clear = get_random_string(length=9)
+        #salt_clear = 'EVxQ3XENy'
         salt = salt_clear.encode('utf-8')
+        #9bc34549d565d9505b287de0cd20ac77be1d3f2c
         p1 =  hashlib.sha1(newpassword.encode('utf-8')).hexdigest()
         p1_2 = salt + p1.encode('utf-8')
         p2 = hashlib.sha1(p1_2).hexdigest()
@@ -359,6 +370,8 @@ def customers_edit_password(request, customer_id):
         data['password'] = newpassword
         data['email'] = customer_obj_edit.email
         data['contact'] = customer_obj_edit.fullname
+
+        #bd2a1e59280c0e829d55c2e28dbcb5cdf9bac30b
 
 
 
@@ -393,16 +406,38 @@ def contact_create(request):
         form_address = AddressForm(request.POST)
         if form.is_valid():
             form.save()
-            form_instance = form.instance
+            customer_instance = form.instance
+            customer_id = customer_instance.customer_id
+            customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+            if form_address.is_valid():
+                clean_address = form_address.cleaned_data
+                new_address = customer_obj.address_customer.create()
+                new_address.fullname = clean_address['company']
+                new_address.fullname = clean_address['fullname']
+                new_address.address_1 = clean_address['address_1']
+                new_address.telephone = clean_address['telephone']
+                new_address.label = clean_address['label']
+                new_address.email = clean_address['email']
+                new_address.city = clean_address['city']
+                new_address.area = clean_address['area']
+                new_address.postcode = clean_address['postcode']
+                new_address.country = clean_address['country']
+                new_address.default_billing = clean_address['default_billing']
+                new_address.default_shipping = clean_address['default_shipping']
+                new_address.save()
             data['form_is_valid'] = True
-            customer_id = form_instance.customer_id
-            form_address_instance = form_address.instance
-            form_address_instance.customer_id = customer_id
-            form_address_instance.fullname = form_instance.fullname
-            form_address_instance.company = form_instance.company
-            form_address_instance.default_shipping = 1
-            form_address_instance.default_billing = 1
-            form_address_instance.save()
+
+            # form_instance = form.instance
+            # data['form_is_valid'] = True
+            # customer_id = form_instance.customer_id
+            #
+            # form_address_instance = form_address.instance
+            # form_address_instance.customer = customer_obj
+            # form_address_instance.fullname = form_instance.fullname
+            # form_address_instance.company = form_instance.company
+            # form_address_instance.default_shipping = 1
+            # form_address_instance.default_billing = 1
+            # form_address_instance.save()
             data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
         else:
             data['form_is_valid'] = False
@@ -443,3 +478,54 @@ def customer_address_set_billing(request, customer_id, address_id):
 def customer_address_set_shipping(request, customer_id, address_id):
     data = dict()
     return JsonResponse(data)
+
+
+def customer_delete(request, customer_id):
+    #need to check if that are anyorders....if so, we can't delete the customer, just archieve it.
+    data = dict()
+    customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    if request.method == 'POST':
+        if customer_obj.customer_orders.exists():
+    #then archive it
+            customer_obj.archived = True
+            customer_obj.save()
+        else:
+            customer_obj.delete()
+
+
+
+        success_url = reverse_lazy('allcustomers')
+        return HttpResponseRedirect(success_url)
+    else:
+        template_name = 'customer/dialogs/customer_delete.html'
+        context = {'customer_id': customer_id}
+
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+        return JsonResponse(data)
+
+
+def customer_assign_company(request, customer_id):
+    # need to check if that are anyorders....if so, we can't delete the customer, just archieve it.
+    data = dict()
+    customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    if request.method == 'POST':
+        parent_company_id = request.POST.get('parent_company_id')
+        customer_obj.parent_company_id = parent_company_id
+        customer_obj.save()
+        data['form_is_valid'] = True
+    else:
+        template_name = 'customer/dialogs/assign_company.html'
+        context = {'customer_id': customer_id, 'store_id': customer_obj.store_id}
+
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)
+
+

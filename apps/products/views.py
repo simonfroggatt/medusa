@@ -9,7 +9,7 @@ from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
     ProductSiteVariantOptionsSerializer, ProductCoreVariantOptionsSerializer, RelatedBaseDescriptionSerializer, \
-    RelatedSerializer  # , BaseProductListSerializer, ProductTestSerializer, ,
+    RelatedSerializer, ProductStoreListSerializer  # , BaseProductListSerializer, ProductTestSerializer, ,
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
@@ -152,15 +152,26 @@ class base_product_list_asJSON(viewsets.ModelViewSet):
     serializer_class = ProductListSerializer
 
 
+
+
 class ProductsListView(generics.ListAPIView):
-    queryset = OcProduct.objects.all().order_by('product_id')
-    # queryset = OcProduct.objects.all()
     serializer_class = ProductListSerializer
+    model = serializer_class.Meta.model
 
-    # pagination_class = dt_pagination.DatatablesLimitOffsetPagination
 
-    def post(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def get_queryset(self, store_id=0):
+        if self.kwargs['store_id']:
+            store_id = self.kwargs['store_id']
+        else:
+            store_id = 0
+
+        if store_id > 0:
+            queryset = self.model.objects.filter(storeproduct__store_id=store_id)
+        else:
+            queryset = self.model.objects.all().order_by('product_id')
+
+        return queryset.order_by('product_id')
+
 
 
 def product_details(request, product_id):
@@ -1184,3 +1195,20 @@ def test(request, pk, store_id):
     return render(request, template_name, context)
 
 # def get_site_variants(product_id, store_id):
+
+class Product_by_Store(generics.ListAPIView):
+    serializer_class = ProductStoreListSerializer
+    model = serializer_class.Meta.model
+
+    def get_queryset(self, store_id=0):
+        if self.kwargs['store_id']:
+            store_id = self.kwargs['store_id']
+        else:
+            store_id = 0
+
+        if store_id > 0:
+            queryset = self.model.objects.filter(store_id=store_id)
+        else:
+            queryset = self.model.objects.all().order_by('product_id')
+
+        return queryset.order_by('product_id')

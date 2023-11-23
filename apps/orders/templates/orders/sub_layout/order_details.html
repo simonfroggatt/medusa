@@ -22,7 +22,7 @@
                      {% if order_obj.customer %}
                          <dt class="col-3">Customer</dt>
                          {% if order_obj.customer.company %}
-                              <dd class="col-9">{{ order_obj.customer.company }}</dd>
+                              <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id %}">{{ order_obj.customer.company }}</a></dd>
                          {% else %}
                              <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.fullname }}</a>
                              {% if order_obj.customer.parent_company %}
@@ -37,10 +37,12 @@
                      <dd class="col-9">{{ order_obj.customer_order_ref|default:"&nbsp;" }}</dd>
                      <dt class="col-3">Date:</dt>
                      <dd class="col-9">{{ order_obj.date_added }}</dd>
+                    <dt class="col-3">Source:</dt>
+                     <dd class="col-9">{{ order_obj.order_type.order_type_name }}</dd>
                      <dt class="col-3">Status:</dt>
                      <dd class="col-9">{{ order_obj.order_status.name }}</dd>
                      <dt class="col-3">Payment:</dt>
-                     <dd class="col-9">{{order_obj.payment_status.name }} - {{order_obj.payment_method_rel.payment_method_name }}</dd>
+                     <dd class="col-9">{{order_obj.payment_method.payment_method_name }} - {{order_obj.payment_status.name }}</dd>
                      <dt class="col-3">Shipment:
                          {% if shippingObj %}
                         <a class="btn btn-sm" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">

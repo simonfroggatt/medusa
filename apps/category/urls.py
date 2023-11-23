@@ -1,7 +1,7 @@
 from django.urls import path
 from apps.category import views
 from rest_framework import routers
-from django.conf.urls import url, include
+from django.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -15,7 +15,7 @@ router.register(r'storecats', views.StoreCategories)
 
 
 urlpatterns = [
-    url('^api/', include(router.urls)),
+    path('api/', include(router.urls)),
     path('', views.all_cats, name='allcategories'),
     path('<int:pk>', views.category_details, name='categorydetails'),
     path('create', views.category_create, name='categorycreate'),

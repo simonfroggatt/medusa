@@ -26,8 +26,8 @@ $(function () {
             "rowId": 'product_id',
                     "ajax": {
                         "processing": true,
-                        "url": "/products/api/post-list/products/?format=datatables",
-                        "type": "POST",
+                        "url": "/products/api/post-list/products/0/?format=datatables",
+                        "type": "GET",
                         "beforeSend": function (xhr) {
                             xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
                         }
@@ -98,8 +98,8 @@ $(function () {
             "rowId": 'product_id',
                     "ajax": {
                         "processing": true,
-                        "url": "/products/api/post-list/products/?format=datatables",
-                        "type": "POST",
+                        "url": "/products/api/post-list/products/0/?format=datatables",
+                        "type": "GET",
                         "beforeSend": function (xhr) {
                             xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
                         }

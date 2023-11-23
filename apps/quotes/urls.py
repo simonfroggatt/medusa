@@ -1,7 +1,7 @@
 from django.urls import path
 from apps.quotes import views
 from rest_framework import routers
-from django.conf.urls import url, include
+from django.urls import include
 
 router = routers.SimpleRouter()
 router.register(r'quotes', views.Quotes_asJSON)
@@ -9,7 +9,7 @@ router.register(r'quote-products', views.Quote_Products_asJSON)
 router.register(r'customer', views.Quotes_Customer)
 
 urlpatterns = [
-    url('^api/', include(router.urls)),
+    path('api/', include(router.urls)),
     path('api/quote/delete', views.quote_delete, name='api_quotedelete'),
     path('<int:quote_id>/edit', views.quote_details_edit, name='quotedetailsedit'),
     path('<int:quote_id>', views.quote_details, name='quote_details'),

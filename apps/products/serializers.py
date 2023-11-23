@@ -65,10 +65,16 @@ class ProductVariantCoreSerializer(serializers.ModelSerializer):
         fields = ['supplier_code']
 
 
+class ProductToStoreInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcProductToStore
+        fields = ['product_id', 'name', 'title', 'bulk_group', 'image', 'store_id', 'id']
+        depth = 1
+
+
 class ProductListSerializer(serializers.ModelSerializer):
     productdescbase = ProductDescriptionBase(read_only=True)
     corevariants = ProductVariantCoreSerializer(many=True, read_only=True)
-  #  corevariants = serializers.SerializerMethodField(read_only=True)
 
     def get_corevariants(self, products):
         return ', '.join(
@@ -82,6 +88,37 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = OcProduct
         #fields = ['product_id', 'model', 'image_url', 'status', 'productdescbase', 'corevariants']
         fields = ['product_id', 'model', 'image_url', 'status', 'productdescbase', 'corevariants']
+        depth = 2
+
+
+class ProductStoreProductSerializer(serializers.ModelSerializer):
+    productdescbase = ProductDescriptionBase(read_only=True)
+
+    class Meta:
+        model = OcProduct
+        fields = ['model', 'productdescbase']
+
+
+class ProductStoreListSerializer(serializers.ModelSerializer):
+    product = ProductStoreProductSerializer(read_only=True)
+   # productdescbase = ProductDescriptionBase(read_only=True)
+   # corevariants = ProductVariantCoreSerializer(many=True, read_only=True)
+    corevariants = serializers.SerializerMethodField()
+
+
+    def get_corevariants(self, product):
+        qs = OcTsgProductVariantCore.objects.filter(storeproductvariants__store_id=product.store_id, product_id=product.product_id)
+        serializer = ProductVariantCoreSerializer(instance=qs, many=True)
+        return serializer.data
+
+
+    def get_image_url(self, product):
+        return f"{settings.MEDIA_URL}{product.image}"
+
+    class Meta:
+        model = OcProductToStore
+        #fields = ['product_id', 'image_url', 'name', 'title', 'bulk_group', 'productdescbase', 'corevariants', 'storeproduct']
+        fields = ['id', 'product_id', 'image_url', 'name', 'title', 'description', 'bulk_group', 'product', 'corevariants']
         depth = 2
 
 

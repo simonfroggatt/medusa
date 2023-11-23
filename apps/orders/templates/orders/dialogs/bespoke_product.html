@@ -111,6 +111,8 @@
                        value="{{ form.total.value|floatformat:2 }}">
                 <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
                        value="{{ form.tax.value|floatformat:2 }}">
+                <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
+                       value="{{ form.exclude_discount.value }}">
 
                 <div class="row">
                     <div class="col-3">
@@ -136,15 +138,23 @@
                                name="{{ form.material_name.name }}" value="{{ form.material_name.value }}">
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-8">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk"
-                                   checked>
-                            <label class="form-check-label" for="previous-switchShowBulk">Apply bulk discount</label>
-                        </div>
+                <div class="row pt-2">
 
-                        <div class="collapse show" id="collapseBulkDiscount">
+                    <div class="col-8">
+                        <div class="row">
+                            <div class="form-check form-switch col-6 ">
+                                <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk" role="switch"
+                                       checked>
+                                <label class="form-check-label" for="stock-switchShowBulk">Apply bulk discount</label>
+                            </div>
+                            <div class="form-check-warning form-switch col-6">
+                                <input class="form-check-input" type="checkbox" id="switch_exclude_discount_bespoke"
+                                       name="switch_exclude_discount_bespoke" role="switch">
+                                <label class="form-check-label" for="switch_exclude_discount_bespoke">Exclude from discount</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="collapse show" id="collapseBulkDiscount">
                             <div class="row">
                                 <div class="row mb-2">
                                     <label for="single_unit_price" class="col-3 col-form-label">Single Unit
@@ -169,7 +179,10 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
+
+
                     <div class="col-4">
                         <div class="row">
                             <div class="row d-flex justify-content-md-end mb-2">
@@ -196,8 +209,7 @@
                         </div>
                         <div class="row">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button type="button" id="js-copy-to-manaul-bespoke" class="btn btn-primary ">Use with <i
-                                        class="fa-solid fa-fist-raised"></i></button>
+                                <button type="button" id="js-copy-to-manaul-bespoke" class="btn btn-primary ">Use with <i class="fa-regular fa-hand"></i></button>
                                 <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
                                 <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
                             </div>
@@ -381,6 +393,12 @@
             }
 
             $('#js-copy-to-manaul-bespoke').click(copy_to_manua_bespoke)
+
+            $('#switch_exclude_discount_bespoke').change(function () {
+                let excluded =  $(this).is(":checked");
+                let exclude_id_str = {{ form.exclude_discount.name }}
+                $(exclude_id_str).val(excluded);
+            });
         })
     </script>
 

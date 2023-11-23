@@ -61,25 +61,39 @@
                        value="{{ form.total.value|floatformat:2 }}">
                 <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
                        value="{{ form.tax.value|floatformat:2 }}">
-
+                <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
+                       value="{{ form.exclude_discount.value }}">
+                <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}"
+                       value="{{ form.bulk_used.value }}">
+                <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
+                       value="1">
 
                 <div class="row">
                     <div class="col-8">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk"
-                                   checked>
-                            <label class="form-check-label" for="stock-switchShowBulk">Apply bulk discount</label>
+                        <div class="row">
+                            <div class="form-check form-switch col-6 ">
+                                <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk" role="switch"
+                                       checked>
+                                <label class="form-check-label" for="stock-switchShowBulk">Apply bulk discount</label>
+                            </div>
+                            <div class="form-check-warning form-switch col-6">
+                                <input class="form-check-input" type="checkbox" id="switch_exclude_discount"
+                                       name="switch_exclude_discount" role="switch">
+                                <label class="form-check-label" for="switch_exclude_discount">Exclude from discount</label>
+                            </div>
                         </div>
-                        <div class="collapse show" id="collapseBulkDiscount">
-                            <div class="row">
-                                <div class="col-12" id="bulkTableDiv">
-                                    <select class="form-select bulk_group_select" id="stock-bulk_group_select">
-                                        {% for bulk_group in bulk_info %}
-                                            <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="row">
-                                        <div class="col-xs-12" id="bulk_pricing_div">
+                        <div class="row">
+                            <div class="collapse show" id="collapseBulkDiscount">
+                                <div class="row">
+                                    <div class="col-12" id="bulkTableDiv">
+                                        <select class="form-select bulk_group_select" id="stock-bulk_group_select">
+                                            {% for bulk_group in bulk_info %}
+                                                <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="row">
+                                            <div class="col-xs-12" id="bulk_pricing_div">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -115,8 +129,7 @@
                 </div>
             <div class="row">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button type="button" id="js-copy-to-manaul-stock" class="btn btn-primary ">Use with <i
-                                        class="fa-solid fa-fist-raised"></i></button>
+                                <button type="button" id="js-copy-to-manaul-stock" class="btn btn-primary ">Use with <i class="fa-regular fa-hand"></i></button>
                                 <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
                                 <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
                             </div>
@@ -150,12 +163,14 @@
                     "serverSide": true,
                     "select": true,
                     "scroller": true,
-                    scrollY: 300,
+                    scrollY: 200,
                     "rowId": 'product_id',
                     "ajax": {
                         "processing": true,
-                        "url": "/products/api/post-list/products/?format=datatables",
-                        "type": "POST",
+                       // "url": "/products/api/post-list/products/{{ store_id }}/?format=datatables",
+                        "url": "/products/api/store/{{ store_id }}/products?format=datatables",
+
+                        "type": "GET",
                         "beforeSend": function (xhr) {
                             xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
                         }
@@ -176,18 +191,48 @@
                                 return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
                             }
                         },
-                        {data: "model"},
+                        {data: "product.model"},
                         {
-                            data: "productdescbase.name",
-                            defaultContent: ""
+                            data: "name",
+                            render: function (data, type, row, meta) {
+                                let rtn_str = "";
+                                if(data == null)
+                                {
+                                    rtn_str = row['product']['productdescbase']['name'];
+                                }
+                                else{
+                                    rtn_str = data
+                                }
+                                return rtn_str;
+                            }
                         },
                         {
-                            data: "productdescbase.title",
-                            defaultContent: ""
+                            data: "title",
+                            render: function (data, type, row, meta) {
+                                let rtn_str = "";
+                                if(data == null)
+                                {
+                                    rtn_str = row['product']['productdescbase']['title'];
+                                }
+                                else{
+                                    rtn_str = data
+                                }
+                                return rtn_str;
+                            }
                         },
                         {
-                            data: "productdescbase.description",
-                            defaultContent: "",
+                            data: "description",
+                            render: function (data, type, row, meta) {
+                                let rtn_str = "";
+                                if(data == null)
+                                {
+                                    rtn_str = row['product']['productdescbase']['description'];
+                                }
+                                else{
+                                    rtn_str = data
+                                }
+                                return rtn_str;
+                            },
                             "visible": false
                         },
                         {
@@ -215,7 +260,7 @@
             let core_vars_tbl = $('#core_variants_table').DataTable({
                 "processing": true,
                 "pageLength": 100,
-                "paging": true,
+                "paging": false,
                 "info": false,
                 "autoWidth": false,
                 "searching": false,
@@ -227,7 +272,7 @@
                 "rowId": 'prod_variant_core_id',
                 "ajax": {
                     "processing": true,
-                    "url": "/products/api/storevariants/" + 1 + "/1?format=datatables",
+                    "url": "/products/api/storevariants/" + 1 + "/{{ store_id }}?format=datatables",
                 },
                 columns: [
                     {data: "variant_code"},
@@ -252,7 +297,7 @@
             })
 
             function set_variant_url(product_id) {
-                let ajax_url = "/products/api/storevariants/" + product_id + "/1?format=datatables"
+                let ajax_url = "/products/api/storevariants/" + product_id + "/{{ store_id }}?format=datatables"
                 core_vars_tbl.ajax.url(ajax_url).load();
             }
 
@@ -276,8 +321,14 @@
             function set_product_details(data_row) {
 
                 $('#form-stock #{{ form.product_id.name }}').val(data_row['product_id'])
-                $('#form-stock #{{ form.name.name }}').val(data_row['productdescbase']['name'])
-                 manual_data['name'] = data_row['productdescbase']['name']
+                let name = "";
+                if(data_row['name'] == null)
+                     name = data_row['product']['productdescbase']['name'];
+                else
+                    name = data_row['name'];
+                $('#form-stock #{{ form.name.name }}').val(name)
+
+                 manual_data['name'] = name
             }
 
             function set_product_variant_details(data_row) {
@@ -307,7 +358,6 @@
             }
 
             function copy_to_manual(){
-                console.log(manual_data)
                 $('#form-quick_manual #manualWidth').val(manual_data['width'])
                 $('#form-quick_manual #manualCalcWidth').val(manual_data['calcwidth'])
                 $('#form-quick_manual #manualHeight').val(manual_data['height'])
@@ -327,7 +377,17 @@
             }
 
             $('#js-copy-to-manaul-stock').click(copy_to_manual)
+
+            $('#switch_exclude_discount').change(function () {
+                let excluded =  $(this).is(":checked");
+                let exclude_id_str = {{ form.exclude_discount.name }}
+                $(exclude_id_str).val(excluded);
+            });
+
+
         });
+
+
 
 
     </script>

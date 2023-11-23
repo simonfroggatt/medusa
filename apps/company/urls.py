@@ -1,15 +1,16 @@
 from django.urls import path
 from apps.orders import views
 from rest_framework import routers
-from django.conf.urls import url, include
+from django.urls import include
 from apps.company import views
 
 router = routers.SimpleRouter()
 router.register(r'companylist', views.company_list_asJSON)
+router.register(r'companylistbystore', views.company_list_bystore)
 
 
 urlpatterns = [
-    url('^api/', include(router.urls)),
+    path('api/', include(router.urls)),
     path('create', views.company_create, name='create_company'),
     path('<int:company_id>/createcontact', views.company_create_contact, name='create_company_contact'),
     path('savecontact', views.company_contact_save, name='save_company_contact'),

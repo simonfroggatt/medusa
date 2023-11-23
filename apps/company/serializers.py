@@ -6,8 +6,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcTsgCompany
-        fields = ['company_id', 'company_name', 'fullname', 'email', 'telephone', 'account_type', 'payment_terms',
-                  'payment_days', 'store', 'discount', 'credit_limit', 'company_customer']
+        fields = '__all__'
         depth = 1
 
 

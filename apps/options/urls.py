@@ -1,7 +1,7 @@
 from django.urls import path
 from apps.options import views
 from rest_framework import routers
-from django.conf.urls import url, include
+from django.urls import include
 
 router = routers.SimpleRouter()
 router.register(r'values', views.OptionValues)
@@ -14,7 +14,7 @@ router.register(r'class', views.OptionClass)
 
 urlpatterns = [
     path('', views.option_list, name='alloptions'),
-    url('^api/', include(router.urls)),
+    path('api/', include(router.urls)),
     path('class', views.option_class_list, name='alloptionsclass'),
     path('class/create', views.option_class_create, name='class-create'),
     path('value/create', views.option_value_create, name='value-create'),

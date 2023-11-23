@@ -17,12 +17,12 @@
                         <li><a class="dropdown-item js-customer-edit" role="button"
                                data-url="{% url 'customereditpassword'  customer_obj.pk  %}" data-dlgsize="modal-sm">Set Password</a>
                            </li>
-                        <li><a class="dropdown-item" role="button" id="js-customer-set-company"
-                               data-url="{% url 'customereditpassword'  customer_obj.pk  %}" data-dlgsize="modal-sm">Assign Company</a>
+                        <li><a class="dropdown-item js-customer-edit"  role="button" id="js-customer-set-company"
+                               data-url="{% url 'customerassigncompany'  customer_obj.pk  %}" data-dlgsize="modal-lg">Assign Company</a>
                            </li>
                         <li class="list-group-item-danger">
                             <a class="dropdown-item js-customer-edit" role="button"
-                               data-url="" data-dlgsize="modal-sm">Delete</a>
+                               data-url="{% url 'api_customer_delete' customer_obj.pk %}" data-dlgsize="modal-sm">Delete</a>
                            </li>
                     </ul>
                 </div>
@@ -30,7 +30,5 @@
         </div>
     </div>
 </nav>
-
-
 
 

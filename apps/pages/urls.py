@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework import routers
-from django.conf.urls import url, include
+from django.urls import include
 from apps.pages import views
 
 router = routers.SimpleRouter()
@@ -8,7 +8,7 @@ router.register(r'blogs', views.Blogs)
 router.register(r'info', views.Information)
 
 urlpatterns = [
-    url('^api/', include(router.urls)),
+    path('api/', include(router.urls)),
    # path('blogs/<int:blog_id>/edit', views.blog_edit, name='blogedit'),
     path('blogs/<int:pk>/edit', views.BlogUpdate.as_view(), name='blogupdate'),
     path('blogs/new', views.blog_create, name='blogcreate'),

@@ -162,7 +162,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
-                    os.path.join(BASE_DIR, 'apps/templating/static/templating'),
+                    #os.path.join(BASE_DIR, 'apps/templating/static/templating'),
                     os.path.join(BASE_DIR, 'apps/authentication/static/authentication'),
                     os.path.join(BASE_DIR, 'apps/orders/static/orders'),
                     os.path.join(BASE_DIR, 'apps/customer/static/customer'),
@@ -213,7 +213,7 @@ REST_FRAMEWORK = {
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
 
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 1000,
 }
 
 

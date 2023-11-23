@@ -22,6 +22,7 @@ class OcProduct(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     mib_logo = models.BooleanField()
     supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True, related_name='productsupplier')
+    bulk_group = models.ForeignKey('OcTsgBulkdiscountGroups', models.DO_NOTHING, blank=True, null=True, related_name='product_bulkgroup')
 
     @property
     def image_url(self):
@@ -74,6 +75,15 @@ class OcProductToStore(models.Model):
     meta_keywords = models.CharField(max_length=255, blank=True, null=True)
     sign_reads = models.TextField(blank=True, null=True)
     tag = models.CharField(max_length=512, blank=True, null=True)
+    bulk_group = models.ForeignKey('OcTsgBulkdiscountGroups', models.DO_NOTHING, blank=True, null=True, related_name='store_product_bulkgroup')
+
+    @property
+    def image_url(self):
+        if self.image:
+            return f"{settings.MEDIA_URL}{self.image}"
+        else:
+            return self.product.image_url
+
 
     class Meta:
         managed = False

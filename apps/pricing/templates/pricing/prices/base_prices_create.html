@@ -1,0 +1,203 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+    <div class="row">
+    <div class="col-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Sizes</h5>
+                        <table id="create_price_size_table" class="table table-hover table-striped align-middle table-sm"
+                       style="width:100%">
+                            <thead>
+                            <tr>
+                                <th width="col-8">Size Name</th>
+                                <th class="col-2">Width</th>
+                                <th class="col-2">Height</th>
+                                <th class="col-2">Orientation</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Materials</h5>
+                        <table id="create_price_material_table" class="table table-hover table-striped align-middle table-sm"
+                       style="width:100%">
+                            <thead>
+                            <tr>
+                                <th width="col-12">Material Name</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <form method="post">
+                {{ form.media }}
+            {% csrf_token %}
+                        <input type="hidden" name="size_id" id="size_id" value="0">
+                        <input type="hidden" name="material_id" id="material_id" value="0">
+                <div class="row">
+                    <div class="col-md-8">
+                        <label for="new_price" class="form-label">New Price</label>
+                        <input type="number" step="0.01" min="0.00" class="col-form-label" id="new_price" name="new_price" value="0.00" onchange="update_add_Button()">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn {{ BUTTON_CANCEL }} " onclick="location.href='{% url 'allprices' %}'">Cancel</button>
+                            <button type="submit" id="btn_create_price" class="btn {{ BUTTON_UPDATE }} pull-right" disabled>Create</button>
+
+                        </div>
+                    </div>
+                </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+<script>
+ $(document).ready(function() {
+
+     if ($.fn.dataTable.isDataTable('#create_price_size_table')) {
+        var create_price_size_table = $('#create_price_size_table').DataTable();
+    } else {
+         var create_price_size_table = $('#create_price_size_table').DataTable({
+             "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+             "processing": true,
+             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+             "pageLength": 25,
+             "autoWidth": true,
+             "responsive": true,
+             "select": 'single',
+             "ajax": {
+                 "processing": true,
+                 "url": "/pricing/api/sizes/?format=datatables"
+             },
+             "deferRender": true,
+             "search": {
+                 "regex": true
+             },
+             "rowId": 'size_id',
+
+             columns: [
+
+                 {data: "size_name"},
+                 {data: "size_width"},
+                 {data: "size_height"},
+                 {data: "orientation.orientation_name"},
+             ]
+         });
+     }
+
+     if ($.fn.dataTable.isDataTable('#create_price_material_table')) {
+        var create_price_material_table = $('#create_price_material_table').DataTable();
+    } else {
+         var create_price_material_table = $('#create_price_material_table').DataTable({
+             "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+             "processing": true,
+             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+             "pageLength": 25,
+             "autoWidth": true,
+             "responsive": true,
+             "select": 'single',
+             "ajax": {
+                 "processing": true,
+                 "url": "/pricing/api/materials/?format=datatables"
+             },
+             "deferRender": true,
+             "search": {
+                 "regex": true
+             },
+             "rowId": 'material_id',
+
+
+             columns: [
+
+                 {data: "material_name"},
+
+             ]
+         });
+     }
+
+
+      create_price_size_table.on('select', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = dt.row(indexes).id();
+            let new_url = "/pricing/materials/exclude_size/" + data + "?format=datatables"
+            create_price_material_table.ajax.url(new_url).load()
+            $('#size_id').val(data);
+            update_add_Button();
+            // do something with the ID of the selected items
+        }
+    });
+
+     create_price_size_table.on('deselect', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            $('#size_id').val(0);
+            update_add_Button();
+        }
+    });
+
+     create_price_material_table.on('select', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = dt.row(indexes).id();
+            $('#material_id').val(data);
+            update_add_Button();
+            // do something with the ID of the selected items
+        }
+    });
+
+     create_price_material_table.on('deselect', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            $('#material_id').val(0);
+            update_add_Button();
+        }
+    });
+
+
+
+
+
+} );
+
+ function update_add_Button() {
+         size_id =  $('#size_id').val();
+         material_id =  $('#material_id').val();
+         price = $('#new_price').val();
+
+         if( (size_id == 0 ) || (material_id == 0 ) || (price == 0 ) ){
+            $('#btn_create_price').prop('disabled',true)
+         }
+         else {
+              $('#btn_create_price').prop('disabled',false)
+         }
+     }
+
+</script>
+
+
+
+
+
+
+{% endblock javascript %}
+
+
+
+
+
+

@@ -2,19 +2,19 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title">Delete</h4>
+    <h4 class="modal-title">Delete Material</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
     <div class="container">
-        <form method="post" >
+        <form method="post" action="{% url 'delete_material' 0 %}" id="form-prices-material-delete">
             {% csrf_token %}
-
+            <input type="hidden" id="material_id" name="material_id" value="{{ pk }}">
+                <h3>Are you sure what to delete this material?</h3>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
-                        <button type="submit" id="update" class="btn {{ BUTTON_DELETE }} pull-right">Delete</button>
+                        <button type="submit" id="delete" class="btn {{ BUTTON_DELETE }} pull-right">Delete</button>
                     </div>
-
         </form>
     </div>
 </div>

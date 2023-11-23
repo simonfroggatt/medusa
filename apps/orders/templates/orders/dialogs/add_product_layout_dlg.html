@@ -32,8 +32,7 @@
                         </li>
                         <li>
                             <a class="nav-link" id="manual-product-tab" data-bs-toggle="tab"
-                               href="#tab-manual-product" role="tab"><i
-                                    class="fa-solid fa-fist-raised"></i> Manual</a>
+                               href="#tab-manual-product" role="tab"><i class="fa-regular fa-hand"></i> Manual</a>
                         </li>
                     </ul>
                     <div class="tab-content">
@@ -69,14 +68,18 @@
 
 <script>
 
-    bulk_table_data = {{ bulk_info|safe }}
-        tax_rate = parseFloat({{ tax_rate }} / 100 ).toFixed(2);
+    bulk_table_data = {{ bulk_info|safe }};
+    tax_rate = parseFloat({{ tax_rate }} / 100 ).toFixed(2);
 
 
     $(".switchApplyBulk").change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         let product_price = form_id + " #{{ form.price.name }}";
-        $(product_price).prop('readonly', $(this).is(":checked"))
+        let bl_bulk = $(this).is(":checked")
+        $(product_price).prop('readonly', bl_bulk )
+        let hidden_bulk = form_id + " #{{ form.bulk_used.name }}";
+        $(hidden_bulk).val(bl_bulk);
+
     })
 
 
@@ -140,6 +143,8 @@
 
     $('.bulk_group_select').change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
+        let hidden_group = form_id + " #{{ form.bulk_discount.name }}";
+        $(hidden_group).val(this.value)
         drawBulkTable(this.value, form_id)
         SetPrice(true, form_id)
     })

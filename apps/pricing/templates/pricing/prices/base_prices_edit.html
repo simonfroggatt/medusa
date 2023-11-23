@@ -27,25 +27,17 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" class="btn {{ BUTTON_CANCEL }} " onclick="location.href='{{ view.get_success_url }}'">Cancel</button>
                         <button type="submit" id="update" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
-
                     </div>
                 </div>
             </div>
-
+</div>
+            </div>
         </form>
+
 {% endblock content %}
 
 {% block javascript %}
 
-
-<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
-
-<script>
-  var t1 = tinymce.init({
-      selector: 'textarea#editor',
-  })
-
-</script>
 
 
 

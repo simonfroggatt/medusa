@@ -19,6 +19,7 @@
                     <div class="col-12">{{ form.meta_description|as_crispy_field }}</div>
                     <div class="col-12">{{ form.meta_keywords|as_crispy_field }}</div>
                     <div class="col-12">{{ form.tag|as_crispy_field }}</div>
+                    <div class="col-12">{{ form.bulk_group|as_crispy_field }}</div>
                     <div class="col-12">{{ form.status|as_crispy_field }}</div>
                     <div class="col-12">{{ form.include_google_merchant|as_crispy_field }}</div>
                 </div>
@@ -39,8 +40,6 @@
                 </div>
             </div>
         </div>
-
-
     </form>
 {% endblock content %}
 

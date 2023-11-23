@@ -10,8 +10,10 @@ class SymbolShortSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcTsgSymbols
-        fields = ['id', 'refenceno', 'referent', 'function', 'category', 'standard', 'symbol_image_url']
+        fields = [field.name for field in model._meta.fields]
+        fields.extend(['symbol_image_url'])
         depth = 2
+
 
 class SymbolSerializer(serializers.ModelSerializer):
 

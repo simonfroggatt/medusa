@@ -17,12 +17,8 @@
             {% csrf_token %}
 
 
- <div class="modal-header">
-    <h5 class="modal-title">Create Size</h5>
-     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-  </div>
 
-  <div class="modal-body">
+
 
   <div class="row">
                 <div class="col-md-5">{{ form.size_width|as_crispy_field }}</div>
@@ -39,6 +35,34 @@
                     </div>
                 </div>
             </div>
+  </div>
 
         </form>
 {% endblock content %}
+
+{% block javascript %}
+
+
+
+<script>
+    $('#id_size_width').on('change', function() {
+       setName()
+
+    });
+     $('#id_size_height').on('change', function() {
+       setName()
+
+    });
+
+    function setName(){
+        size_units = $('#id_size_width').val()
+        height_name = $('#id_size_height').val()
+        units = $('#id_size_units').val()
+        let new_name = size_units + units + " x " + height_name + units
+        $('#id_size_name').val(new_name)
+    }
+
+</script>
+
+
+{% endblock javascript %}

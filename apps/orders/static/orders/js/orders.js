@@ -26,7 +26,7 @@ $(function () {
                 "sortable": false,
                 "defaultContent": 'no-image.png',
                 render: function (data, type, row) {
-                    if (data === undefined) {
+                    if (data === undefined || data === null) {
                         return '<img height="30px" class="rounded mx-auto d-block" src="http://safetysigns/image/no-image.png">'
                     } else {
                         let image_src = 'http://safetysigns/image/' + data;
@@ -55,11 +55,20 @@ $(function () {
             {
                 "data": "status.name",
                 "defaultContent": 'open',
-                responsivePriority: 5
+                className: 'text-md-end',
+                responsivePriority: 5,
+                render: function (data, type, row) {
+                    let order_product_id = row['order_product_id']
+                    let history_icon = '<a class="btn btn-outline-secondary btn-xs js-order-product-edit" role="button" data-url="' + current_order_id + '/product/' + order_product_id + '/history" data-dlgsize="modal-lg"><i class="fa-regular fa-clock-rotate-left fa-sm"></i></a>';
+                    let history_link = '<a class="js-order-product-edit info-link" data-url="' + current_order_id + '/product/' + order_product_id + '/history" data-dlgsize="modal-lg">'+data+'</a>';
+
+                    return history_link
+                }
             },
             {
                 "data": "quantity",
-                responsivePriority: 3
+                responsivePriority: 3,
+                className: 'text-md-end'
             },
             {
                 "data": "price",
@@ -198,6 +207,7 @@ $(function () {
             beforeSend: function () {
                 $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
                 $("#modal-base #modal-outer").addClass(dlg_size)
+                $("#modal-base .modal-content").html('<html><body></body></html>');
                 $("#modal-base").modal("show");
             },
 
@@ -484,6 +494,7 @@ $(function () {
     }
 
     $(".switchApplyBulk").change(function () {
+        alert('bulk js')
         let form_id = '#' + $(this).parents("form").attr('id')
         let product_price = form_id + " #price";
         $(product_price).prop('readonly', $(this).is(":checked"))

@@ -1,50 +1,51 @@
 $(function () {
 
     function LoadCompanyContacts() {
-
-        if ( ! $.fn.DataTable.isDataTable( '#company_customers_table' ) ) {
-            $('#company_customers_table').dataTable({
-                "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row'<'col-sm-6'i><'col-sm-6'p>>",
-                "processing": true,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                "pageLength": 25,
-                "autoWidth": false,
-                "responsive": true,
-                "ajax": {
-                    "processing": true,
-                    "url": "/customer/api/customerslist/company/" + current_company_id + "?format=datatables"
-                },
-                "deferRender": true,
-                "order": [[1, "asc"]],
-                "search": {
-                    "regex": true
-                },
-                columns: [
-                    {data: 'fullname'},
-                    {data: "email"},
-                    {data: "telephone"},
-                    {
-                        data: "customer_id",
-                        sortable: false,
-                        className: 'text-md-end text-start',
-                        render: function (data, type, row) {
-
-                            let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/customer/details/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                            let delete_icon = '<a class="btn btn-danger btn-sm" role="button" data-url="' + data + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
-                            return edit_icon;
-
-                        }
-                    }
-
-                ]
-            });
-        }
-        else {
-            $('#company_customers_table').ajax.reload();
-        }
+        let company_customers_table = $('#company_customers_table').DataTable();
+        company_customers_table.ajax.reload();
     }
+
+     if ($.fn.dataTable.isDataTable('#core_variants_table')) {
+        var company_customers_table = $('#company_customers_table').DataTable();
+    } else {
+         var company_customers_table = $('#company_customers_table').dataTable({
+             "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+             "processing": true,
+             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+             "pageLength": 25,
+             "autoWidth": false,
+             "responsive": true,
+             "ajax": {
+                 "processing": true,
+                 "url": "/customer/api/customerslist/company/" + current_company_id + "?format=datatables"
+             },
+             "deferRender": true,
+             "order": [[1, "asc"]],
+             "search": {
+                 "regex": true
+             },
+             columns: [
+                 {data: 'fullname'},
+                 {data: "email"},
+                 {data: "telephone"},
+                 {
+                     data: "customer_id",
+                     sortable: false,
+                     className: 'text-md-end text-start',
+                     render: function (data, type, row) {
+
+                         let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/customer/details/' + data + '"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
+                         let delete_icon = '<a class="btn btn-danger btn-sm" role="button" data-url="' + data + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
+                         return delete_icon + " " + edit_icon;
+
+                     }
+                 }
+
+             ]
+         });
+     }
 
     let company_order_table = $('#company_previous_order_table').DataTable( {
         "dom": "<'row'<'col-6'f><'col-6'lT>>" +
@@ -175,6 +176,28 @@ $(function () {
 
     $(document).on('click', '.js-company-contact-create', loadForm);
     $(document).on("submit", "#js-company-contact-edit-form", SaveDialogFormRedirect);
+
+    $(document).on("submit", "#js-company-contact-create-form", function() {
+        let form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                    let company_customers_table = $('#company_customers_table').DataTable();
+                    company_customers_table.ajax.reload();
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+        }
+    )
+
 
     $(document).on("click", "#contacts-tab", LoadCompanyContacts);
 

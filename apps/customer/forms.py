@@ -7,7 +7,7 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = OcAddress
         fields = [
-            'customer',
+
             'company',
             'branch',
             'fullname',
@@ -27,11 +27,13 @@ class AddressForm(forms.ModelForm):
             'email': forms.EmailInput,
             'address_1': forms.Textarea(attrs={'rows': 4}),
             'default_billing': forms.CheckboxInput,
-            'default_shipping': forms.CheckboxInput()
+            'default_shipping': forms.CheckboxInput(),
+
         }
 
         labels = {
-            'address_1': 'address'
+            'address_1': 'address',
+            'label': 'Address Nickname'
         }
 
 class CustomerForm(forms.ModelForm):

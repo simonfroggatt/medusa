@@ -14,7 +14,8 @@ def button_colours(request):
         'BUTTON_OK': 'btn-success',
         'BUTTON_CANCEL': 'btn-secondary',
         'BUTTON_UPDATE': 'btn-success',
-        'BUTTON_EXTRA': 'btn-warning'
+        'BUTTON_EXTRA': 'btn-warning',
+        'BUTTON_INFO': 'btn-secondary',
     }
 
 def js_icons(request):

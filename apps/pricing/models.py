@@ -36,6 +36,7 @@ class OcTsgProductSizes(models.Model):
     size_code = models.CharField(max_length=5, blank=True, null=True)
     symbol_default_location = models.IntegerField(blank=True, null=True)
     orientation = models.ForeignKey(OcTsgOrientation, models.DO_NOTHING, related_name='sizeorientation')
+    archived = models.BooleanField(default=False)
 
     class Meta:
         managed = False
@@ -60,6 +61,7 @@ class OcTsgProductMaterial(models.Model):
     colour_desc_full = models.CharField(max_length=255, blank=True, null=True)
     code = models.CharField(max_length=255, blank=True, null=True)
     image = models.CharField(max_length=255, blank=True, null=True)
+    archived = models.BooleanField(default=False)
 
     class Meta:
         managed = False
@@ -77,8 +79,8 @@ class OcTsgProductMaterial(models.Model):
 
 
 class OcTsgSizeMaterialComb(models.Model):
-    product_size = models.ForeignKey(OcTsgProductSizes, models.DO_NOTHING)
-    product_material = models.ForeignKey(OcTsgProductMaterial, models.DO_NOTHING)
+    product_size = models.ForeignKey(OcTsgProductSizes, models.DO_NOTHING, related_name='combo_size')
+    product_material = models.ForeignKey(OcTsgProductMaterial, models.DO_NOTHING, related_name='combo_material')
     price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
 

@@ -1,3 +1,4 @@
+<div class="container">
 <form method="post" id="form-quick_manual"
       action="{{ form_post_url }}"
         {% if price_for|upper == "I" %} class="js-product-add"
@@ -50,7 +51,7 @@
             </datalist>
         </div>
     </div>
-<div class="row">
+    <div class="row">
         {% if price_for|upper == "I" or price_for|upper == "Q" %}
             <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="True">
             <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
@@ -59,9 +60,11 @@
             <input type="hidden" class="form-control" id="{{ form.size_name.name }}"
                    name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
             <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
-                       value="{{ form.total.value|floatformat:2 }}">
+                   value="{{ form.total.value|floatformat:2 }}">
             <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
-                       value="{{ form.tax.value|floatformat:2 }}">
+                   value="{{ form.tax.value|floatformat:2 }}">
+            <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
+                       value="{{ form.exclude_discount.value }}">
 
             <div class="col-4">
                 <label for="{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
@@ -73,8 +76,9 @@
                 <input type="text" class="form-control" id="{{ form.name.name }}"
                        name="{{ form.name.name }}" value="{{ form.name.value }}">
             </div>
-            </div>
+
         {% endif %}
+     </div>
     {% csrf_token %}
     <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
     <input type="hidden" id="text_to_copy" name="text_to_copy" value="">
@@ -94,27 +98,37 @@
 <hr>
     <div class="row">
         <div class="col-8">
-            <div class="form-check form-switch">
-                <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk"
-                       checked>
-                <label class="form-check-label" for="stock-switchShowBulk">Apply bulk discount</label>
+            <div class="row">
+                <div class="form-check form-switch col-6 ">
+                    <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk" role="switch"
+                           checked>
+                    <label class="form-check-label" for="stock-switchShowBulk">Apply bulk discount</label>
+                </div>
+                <div class="form-check-warning form-switch col-6">
+                    <input class="form-check-input" type="checkbox" id="switch_exclude_discount_manual"
+                           name="switch_exclude_discount_manual" role="switch">
+                    <label class="form-check-label" for="switch_exclude_discount_manual">Exclude from discount</label>
+                </div>
             </div>
-            <div class="collapse show" id="collapseBulkDiscount">
-                <div class="row">
-                    <div class="col-12" id="bulkTableDiv">
-                        <select class="form-select bulk_group_select" id="stock-bulk_group_select">
-                            {% for bulk_group in bulk_info %}
-                                <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="row">
-                            <div class="col-xs-12" id="bulk_pricing_div">
+            <div class="row">
+                <div class="collapse show" id="collapseBulkDiscount">
+                    <div class="row">
+                        <div class="col-12" id="bulkTableDiv">
+                            <select class="form-select bulk_group_select" id="stock-bulk_group_select">
+                                {% for bulk_group in bulk_info %}
+                                    <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="row">
+                                <div class="col-xs-12" id="bulk_pricing_div">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-4">
             <div class="row">
                 <div class="row d-flex justify-content-md-end mb-2">
@@ -160,6 +174,7 @@
     </div>
 
 </form>
+</div>
 
 <script>
 
@@ -264,6 +279,12 @@
             }
             reCalc()
         });
+
+        $('#switch_exclude_discount_manual').change(function () {
+                let excluded =  $(this).is(":checked");
+                let exclude_id_str = {{ form.exclude_discount.name }}
+                $(exclude_id_str).val(excluded);
+            });
 
 
     });

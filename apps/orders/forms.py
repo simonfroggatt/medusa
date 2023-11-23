@@ -19,6 +19,9 @@ class ProductEditForm(forms.ModelForm):
             'material_name',
             'orientation_name',
             'is_bespoke',
+            'exclude_discount',
+            'bulk_discount',
+            'bulk_used'
         ]
 
         labels = {
@@ -29,6 +32,7 @@ class ProductEditForm(forms.ModelForm):
 
         widgets = {
             'is_bespoke': forms.CheckboxInput(),
+            'exclude_discount': forms.CheckboxInput(),
          }
 
 
@@ -52,6 +56,9 @@ class ProductAddForm(forms.ModelForm):
             'product_variant',
             'order',
             'status',
+            'exclude_discount',
+            'bulk_discount',
+            'bulk_used'
         ]
 
         labels = {
@@ -62,6 +69,8 @@ class ProductAddForm(forms.ModelForm):
 
         widgets = {
             'is_bespoke': forms.CheckboxInput(),
+            'exclude_discount': forms.CheckboxInput(),
+
          }
 
 
@@ -147,14 +156,14 @@ class OrderDetailsEditForm(forms.ModelForm):
                   'payment_status',
                   'order_type',
                   'customer_order_ref',
-                  'payment_method_rel',
+                  'payment_method',
                   'comment',
                   'printed',
                   'store'
                   ]
 
         labels = {
-            'payment_method_rel': 'Payment Method',
+            'payment_method': 'Payment Method',
         }
 
 

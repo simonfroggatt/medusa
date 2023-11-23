@@ -30,6 +30,15 @@ class company_list_asJSON(viewsets.ModelViewSet):
         serializer = self.get_serializer(company_list, many=True)
         return Response(serializer.data)
 
+class company_list_bystore(viewsets.ModelViewSet):
+    queryset = OcTsgCompany.objects.all()
+    serializer_class = CompanyListSerializer
+
+    def retrieve(self, request, pk):
+        company_list = OcTsgCompany.objects.filter(store_id=pk)
+        serializer = self.get_serializer(company_list, many=True)
+        return Response(serializer.data)
+
 
 def company_details(request, company_id):
     company_obj = get_object_or_404(OcTsgCompany.objects.select_related(), pk=company_id)
@@ -58,7 +67,8 @@ def company_create(request):
         'company_type': 2,
         'payment_terms': 1,
         'store': 1,
-        'status': 1
+        'status': 1,
+        'country': 826,
     }
     form = CompanyEditForm(initial=iniitial_data)
 
@@ -75,9 +85,43 @@ def company_create_save(request):
         form = CompanyEditForm(request.POST)
         if form.is_valid():
             form.save()
+            clean_company = form.cleaned_data
             form_instance = form.instance
-            data['form_is_valid'] = True
             company_id = form_instance.company_id
+            if request.POST.get('chk_create_contact'): #create a contact too
+                new_contact = OcCustomer()
+                new_contact.company = clean_company['company_name']
+                new_contact.fullname = clean_company['fullname']
+                new_contact.telephone = clean_company['telephone']
+                new_contact.email = clean_company['email']
+                new_contact.account_type = clean_company['account_type']
+                new_contact.store = clean_company['store']
+                new_contact.customer_group_id = 1
+                new_contact.language_id = 1
+                new_contact.ip = '0.0.0.0'
+                new_contact.status = 1
+                new_contact.safe = 1
+                new_contact.parent_company_id = company_id
+                new_contact.save()
+
+                new_customer_id = new_contact.customer_id
+                new_address = new_contact.address_customer.create()
+                new_address.fullname = clean_company['company_name']
+                new_address.fullname = clean_company['fullname']
+                new_address.address_1 = clean_company['address']
+                new_address.telephone = clean_company['telephone']
+                new_address.email = clean_company['email']
+                new_address.city = clean_company['city']
+                new_address.area = clean_company['area']
+                new_address.postcode = clean_company['postcode']
+                new_address.country = clean_company['country']
+                new_address.default_billing = 1
+                new_address.default_shipping = 1
+                new_address.save()
+
+
+            data['form_is_valid'] = True
+
         else:
             data['form_is_valid'] = False
 
@@ -144,11 +188,12 @@ def company_create_contact(request, company_id):
         'company' : company_obj.company_name,
         'store': company_obj.store_id,
         'language_id': 1,
-        'status': 1,
         'ip': '0.0.0.0',
         'status': 1,
         'safe': 1,
-        'customer_group': 1
+        'customer_group': 1,
+        'account_type': company_obj.account_type,
+        'email': company_obj.email[company_obj.email.index('@')  : ]
     }
 
     company_address = {
@@ -174,29 +219,34 @@ def company_contact_save(request):
     data = dict()
     if request.method == 'POST':
         form = CustomerForm(request.POST)
+        form_address = AddressForm(request.POST)
         if form.is_valid():
             form.save()
-            form_instance = form.instance
-            data['form_is_valid'] = True
-            customer_id = form_instance.customer_id
-            form_address = AddressForm(request.POST)
-            form_address_instance = form_address.instance
-            form_address_instance.customer_id = customer_id
-            form_address_instance.fullname = form.fullname
-            form_address_instance.company = form.company
+            customer_instance = form.instance
+            customer_id = customer_instance.customer_id
+            customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
             if form_address.is_valid():
-                form_address.save()
+                clean_address = form_address.cleaned_data
+                new_address = customer_obj.address_customer.create()
+                new_address.fullname = clean_address['company']
+                new_address.fullname = clean_address['fullname']
+                new_address.address_1 = clean_address['address_1']
+                new_address.telephone = clean_address['telephone']
+                new_address.label = clean_address['label']
+                new_address.email = clean_address['email']
+                new_address.city = clean_address['city']
+                new_address.area = clean_address['area']
+                new_address.postcode = clean_address['postcode']
+                new_address.country = clean_address['country']
+                new_address.default_billing = clean_address['default_billing']
+                new_address.default_shipping = clean_address['default_shipping']
+                new_address.save()
+                data['form_is_valid'] = True
             else:
                 data['form_is_valid'] = False
-
         else:
             data['form_is_valid'] = False
 
-    context = {'form': form}
-    data['html_form'] = render_to_string('company/dialogs/create_company_contact.html',
-                                         context,
-                                         request=request
-                                         )
 
     data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
 

@@ -12,7 +12,7 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = OcProduct
 
-        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class']
+        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class', 'bulk_group']
 
         labels = {
             'mib_logo': 'Made in Britain',

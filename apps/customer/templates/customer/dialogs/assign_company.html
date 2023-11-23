@@ -1,0 +1,106 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Assign company</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <h3>Choose a company to assign this contact to</h3>
+        <div class="row">
+            <div class="col-12">
+                <table id="customer_company_table" class="table table-hover table-striped align-middle table-sm table-sm" >
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Store</th>
+                                        <th>Company</th>
+                                        <th>Main Contact</th>
+                                        <th>Email</th>
+                                        <th>Telephone</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+            </div>
+        </div>
+        <div class="row pt-2" >
+            <div class="col-12">
+                <form method="post" action="{% url 'customerassigncompany' customer_id %}" name="form-customer-company-assign" id="form-customer-company-assign">
+                    {% csrf_token %}
+                    <input type="hidden" id="parent_company_id" name="parent_company_id" value="0">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                                <button type="submit" id="update" class="btn {{ BUTTON_EDIT }} pull-right">Assign</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    if ($.fn.dataTable.isDataTable('#customer_company_table')) {
+        var customer_company_table = $('#customer_company_table').DataTable();
+    } else {
+         var customer_company_table = $('#customer_company_table').DataTable({
+             "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+             "processing": true,
+             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+             "pageLength": 25,
+             "autoWidth": false,
+             "responsive": true,
+             "ajax": {
+                 "processing": true,
+                 "url": "/company/api/companylistbystore/{{ store_id }}/?format=datatables"
+             },
+             "deferRender": true,
+             "order": [[6, "desc"]],
+             "search": {
+                 "regex": true
+             },
+             "select" : 'single',
+             "rowId" : 'company_id',
+             columns: [
+                 {
+                     data: "store",
+                     sortable: false,
+                     render: function (data, type, row) {
+                         let image_src = '{% static "images/stores/" %}' + data.thumb;
+                         return '<img height="15px" src="' + image_src + '">'
+                     }
+                 },
+                 {data: "company_name"},
+                 {data: "fullname"},
+                 {data: "email"},
+                 {data: "telephone"},
+                 {
+                     data: 'payment_days',
+                     visible: false
+                 },
+                 {
+                     data: 'postcode',
+                     visible: false
+                 }
+
+
+             ]
+         });
+     }
+
+    customer_company_table.on('select', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = dt.row(indexes).id();
+            $('#parent_company_id').val(data)
+        }
+    });
+
+
+
+</script>

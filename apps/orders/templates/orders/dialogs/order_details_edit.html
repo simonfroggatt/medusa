@@ -13,12 +13,12 @@
                       id="js-order-details-edit-submit">
                     {% csrf_token %}
                     <div class="row">
-                        <div class="col-md-12">{{ form.customer_order_ref|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.order_status|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.payment_status|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.order_type|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.payment_method_rel|as_crispy_field }}</div>
-                <div class="col-md-12">{{ form.store|as_crispy_field }}</div>
+                        <div class="col-md-12">{{ form.store|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.customer_order_ref|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.order_status|as_crispy_field }}</div>
+                         <div class="col-md-6">{{ form.order_type|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.payment_method|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.payment_status|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.comment|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="col-md-12">{{ form.printed|as_crispy_field }}</div>
@@ -37,7 +37,7 @@
 
 <script>
     //some some cool stuff with payment types etc.
-    $('#id_{{ form.payment_method_rel.name }}').change(function() {
+    $('#id_{{ form.payment_method.name }}').change(function() {
         changedto = $(this).val()
         if(changedto == 7) { // PO
             $('#id_{{ form.payment_status.name }}').val(3)  //waioting

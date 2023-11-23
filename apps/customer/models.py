@@ -54,8 +54,9 @@ class OcCustomer(models.Model):
     parent_company = models.ForeignKey(OcTsgCompany, models.DO_NOTHING, db_column='company_id', blank=True, null=True, related_name='company_customer')  # Field renamed because of name conflict.
     account_type = models.ForeignKey(OcTsgAccountType, models.DO_NOTHING, db_column='account_type', blank=True,
                                      null=True)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     notes = models.CharField(max_length=2048, blank=True, null=True)
-    archived = models.BooleanField(default=0)
+    archived = models.BooleanField(default=False)
 
     class Meta:
         managed = False
@@ -85,9 +86,15 @@ class OcAddress(models.Model):
     default_shipping = models.BooleanField(blank=True, null=True, default=0)
     default_billing = models.BooleanField(blank=True, null=True, default=0)
 
+    @property
+    def full_address(self):
+        return f"{self.address_1}, {self.city}, {self.postcode}"
+
     class Meta:
         managed = False
         db_table = 'oc_address'
+
+
 
 
 

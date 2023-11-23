@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, OcTsgOrderProductStatus, \
-    OcTsgOrderShipment
+    OcTsgOrderShipment, OcTsgOrderProductStatusHistory
 from django.conf import settings
 from apps.orders import services as serv
 from apps.products.models import OcTsgProductVariants, OcTsgProductVariantCore
@@ -109,3 +109,11 @@ class OrderTotalsSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcOrderTotal
         fields = ['code', 'title', 'value']
+
+
+class OrderProductStatusHistorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcTsgOrderProductStatusHistory
+        fields = '__all__'
+        depth = 2

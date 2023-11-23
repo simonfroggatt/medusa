@@ -221,6 +221,8 @@ $(function()
          },
     } );
 
+
+
   let previous_quote_table = $('#previous_quote_table').DataTable( {
         "dom": "<'row'<'col-6'f><'col-6'lT>>" +
          "<'row'<'col-12'tr>>" +
@@ -312,7 +314,10 @@ $(function()
         return false;
   }
 
+
+
      $(document).on("submit", "#form_customer_notes", SaveNotes);
+     $(document).on("submit", "#form-customer-company-assign", saveForm);
 
 
 

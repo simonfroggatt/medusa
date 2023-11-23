@@ -1,7 +1,7 @@
 from django.urls import path
 from apps.orders import views
 from rest_framework import routers
-from django.conf.urls import url, include
+from django.urls import include
 
 router = routers.SimpleRouter()
 router.register(r'orders', views.Orders_asJSON)
@@ -14,12 +14,13 @@ router.register(r'flags', views.Order_Flags_asJSON)
 router.register(r'ordertotal', views.OrderTotalsViewSet)
 router.register(r'order-list-company', views.Orders_Company)
 router.register(r'shippingsearch', views.OrderShippingAddressList)
+router.register(r'order-product-history', views.OrderProductHistory)
 
 
 
 urlpatterns = [
-    url('^api/', include(router.urls)),
-    url('^api/orders-list', views.OrderListView.as_view(), name='orders_post_list'),
+    path('api/', include(router.urls)),
+    path('api/orders-list', views.OrderListView.as_view(), name='orders_post_list'),
 
     path('api/orders/delete', views.order_delete, name='api_ordersdelete'),
     path('api/orders/duplicate', views.order_duplicate, name='api_ordersduplicate'),
@@ -52,6 +53,12 @@ urlpatterns = [
          name='orderbillingfrombook'),
     path('<int:order_id>/address/shipping/frombook', views.update_order_shipping_from_address_book,
          name='ordershippingfrombook'),
+
+    path('<int:order_id>/product/<int:order_product_id>/history/', views.product_order_history_dlg,
+         name='orderproducthistory_dlg'),
+
+
+
     path('api/<int:order_id>/updateshipping/', views.order_shipping_change, name='ordershippingchange'),
     path('api/<int:order_id>/shipit/', views.order_ship_it, name='ordershipit'),
     path('api/<int:order_id>/shippingaddressbook', views.get_order_shipping_addresses, name='orders_shipping_address'),

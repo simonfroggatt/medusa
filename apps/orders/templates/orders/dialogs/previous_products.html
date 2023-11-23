@@ -108,8 +108,8 @@
                         </div>
                         <div class="row">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <!-- <button type="button" id="js-copy-to-manaul-stock" class="btn btn-primary ">Use with <i
-                                         class="fa-solid fa-fist-raised"></i></button> -->
+                                <!-- <button type="button" id="js-copy-to-manaul-previous" class="btn btn-primary ">Use with
+                                    <i class="fa-regular fa-hand"></i></button> -->
                                 <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
                                 <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
                             </div>
@@ -228,6 +228,8 @@
              $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
              $('#form-previous #single_unit_price').val(data_row['price'])
 
+            console.log(data_row)
+
             /*let core_variant = data_row['prod_var_core'];
             console.log(data_row);
                 manual_data['width'] = core_variant['size_material']['product_size']['size_width']
@@ -238,6 +240,7 @@
                 manual_data['code'] = data_row['model']
                 manual_data['price'] = data_row['price']
 */
+
         }
 
          $(".switchAddPreviousNumber").change(function(){
@@ -252,7 +255,7 @@
                  }
          })
 
-        function copy_to_manual(){
+        function copy_to_manual_previous(){
                 console.log(manual_data)
                 $('#form-quick_manual #manualWidth').val(manual_data['width'])
                 $('#form-quick_manual #manualCalcWidth').val(manual_data['calcwidth'])
@@ -272,7 +275,7 @@
 
             }
 
-            $('#js-copy-to-manaul-stock').click(copy_to_manual)
+            //$('#js-copy-to-manaul-stock').click(copy_to_manual_previous)
 
     })
     </script>

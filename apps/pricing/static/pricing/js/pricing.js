@@ -12,9 +12,11 @@ $(function(){
         "responsive": false,
         "ajax": {
                  "processing": true,
-                 "url": "/pricing/api/prices/?format=datatables"
+                 "url": "/pricing/api/prices/?format=datatables",
+
              },
         "deferRender": false,
+
          "search": {
             "regex": true
         },
@@ -35,7 +37,9 @@ $(function(){
                 let add_icon = '<a class="btn btn-success btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fa-solid fa-globe fa-sm"></i></a>';
                 return delete_icon + "  " + edit_icon + " " +add_icon
                 }
-            }
+            },
+            {data: "product_size.size_width", "visible": false, searchable: true},
+             {data: "product_size.size_height", "visible": false, searchable: true},
 
         ]
     } );
@@ -112,10 +116,54 @@ $(function(){
         return false;
     }
 
+    function deletePriceSize()
+    {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    let sizes_table = $('#sizes_table').DataTable();
+                    sizes_table.ajax.reload();
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
+    function deletePriceMaterial()
+    {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    let materials_table = $('#materials_table').DataTable();
+                    materials_table.ajax.reload();
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
     $(document).on('click', '.js-pricing-edit', loadForm);
     $(document).on('submit', '#form-store_price-edit', saveStoreComboPriceSave);
     $(document).on('submit', '#form-store_price-create', saveStoreComboPriceSave);
     $(document).on('submit', '#form-store_price-delete', saveStoreComboPriceSave);
+    $(document).on('submit', '#form-prices-size-delete', deletePriceSize);
+    $(document).on('submit', '#form-prices-material-delete', deletePriceMaterial);
 
 
 });
@@ -123,6 +171,7 @@ $(function(){
 
 
 $(".switchApplyBulk").change(function () {
+        alert('bulk pricing')
         let form_id = '#' + $(this).parents("form").attr('id')
         let product_price = form_id + " #price";
         $(product_price).prop('readonly', $(this).is(":checked"))

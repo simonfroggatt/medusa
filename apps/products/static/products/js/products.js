@@ -914,7 +914,7 @@ $(function () {
     $(document).on("click", "#js-product_variant_core-add", loadForm);
     $(document).on("click", "#js-product_variant_site-add", loadForm);
 
-    $(document).on("submit", "#from-core_variant_option_add", SaveVariantOptionAdd);
+    $(document).on("submit", "#form-core_variant_option_add", SaveVariantOptionAdd);
     $(document).on("submit", "#dlg-product_variant_core_option-delete", SaveVariantOptionAdd);
     $(document).on("submit", "#form-core_variant_edit", EditProductVariantCore);
     $(document).on("submit", "#from-core_variant_group_option_add", SaveVariantGroupAdd);

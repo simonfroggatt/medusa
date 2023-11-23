@@ -3,7 +3,7 @@ from apps.sites.models import OcStore
 from django.utils import timezone
 import datetime as dt
 from apps.customer.models import OcCustomer
-from apps.products.models import OcTsgProductVariants
+from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate
 from decimal import Decimal, ROUND_HALF_UP
@@ -166,7 +166,7 @@ class OcOrder(models.Model):
     payment_zone_id = models.IntegerField(blank=True, null=True)
     payment_address_format = models.TextField(blank=True, null=True)
     payment_custom_field = models.TextField(blank=True, null=True)
-    payment_method = models.CharField(max_length=128)
+    payment_method_name = models.CharField(max_length=128)
     payment_code = models.CharField(max_length=128)
     shipping_fullname = models.CharField(max_length=255, blank=True, null=True)
     shipping_firstname = models.CharField(max_length=32, blank=True, null=True)
@@ -205,14 +205,14 @@ class OcOrder(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     date_due = models.DateField(blank=True, null=True)
     order_status = models.ForeignKey(OcOrderStatus, models.DO_NOTHING, blank=True, null=True)
-    payment_method_rel = models.ForeignKey(OcTsgPaymentMethod,  models.DO_NOTHING, db_column='payment_method_id', blank=True, null=True)  # Field renamed because of name conflict.
+    payment_method = models.ForeignKey('OcTsgPaymentMethod', models.DO_NOTHING, blank=True, null=True)
     order_type = models.ForeignKey('OcTsgOrderType', models.DO_NOTHING)
     payment_status = models.ForeignKey(OcTsgPaymentStatus, models.DO_NOTHING, blank=True, null=True)
     xero_id = models.CharField(max_length=256, blank=True, null=True)
     customer_order_ref = models.CharField(max_length=255, blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate', blank=True, null=True)
-    printed = models.BooleanField(default=0)  #note - must be BooleanField
-    plain_label = models.BooleanField(default=0)
+    printed = models.BooleanField(default=False)  #note - must be BooleanField
+    plain_label = models.BooleanField(default=False)
 
     @property
     def is_order(self):
@@ -310,6 +310,9 @@ class OcOrderProduct(models.Model):
     product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, related_name='order_product_variant')
     is_bespoke = models.BooleanField(blank=True, null=True, default=0)
     status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True, related_name='productstatus')
+    exclude_discount = models.BooleanField(default=False)  # note - must be BooleanField
+    bulk_discount = models.ForeignKey(OcTsgBulkdiscountGroups, models.DO_NOTHING, blank=True, null=True, related_name='order_product_bulkgrp')
+    bulk_used = models.BooleanField(default=True)
 
     class Meta:
         managed = False
@@ -320,9 +323,19 @@ class OcOrderProduct(models.Model):
     #    super(OcOrderProduct, self).save(*args, **kwargs)
      #   calc_order_totals(self.order.order_id)
 
+    def __init__(self, *args, **kwargs):
+        super(OcOrderProduct, self).__init__(*args, **kwargs)
+        self.old_status_id = self.status_id
+
     def delete(self, using=None, keep_parents=False):
         super(OcOrderProduct, self).delete(using, keep_parents)
         calc_order_totals(self.order.order_id)
+
+    def save(self, *args, **kwargs):
+        super(OcOrderProduct, self).save(*args, **kwargs)
+        add_order_product_history(self.order_product_id, self.old_status_id, self.status_id)
+        return self
+
 
 
 class OcOrderTotal(models.Model):
@@ -387,9 +400,10 @@ class OcTsgPaymentHistory(models.Model):
 
 class OcTsgOrderProductStatusHistory(models.Model):
     history_id = models.AutoField(primary_key=True)
-    order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, blank=True, null=True)
-    status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True)
-    data_added = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    order_product = models.ForeignKey('OcOrderProduct', models.DO_NOTHING, blank=True, null=True)
+    old_status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True, related_name='old_product_status')
+    status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True, related_name='current_product_status')
+    date_added = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     user_id = models.IntegerField(blank=True, null=True)
 
     class Meta:
@@ -397,22 +411,27 @@ class OcTsgOrderProductStatusHistory(models.Model):
         db_table = 'oc_tsg_order_product_status_history'
 
 
-def calc_order_totals(order_id):
+def calc_order_totals(order_id, bl_recal_discount=True):
+    if bl_recal_discount:
+        calc_update_product_subtotal(order_id)
+
     qs_order = OcOrder.objects.filter(pk=order_id).first()
     order_tax_rate = Decimal(qs_order.tax_rate.rate / 100)
     order_tax_title = qs_order.tax_rate.name
     qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
     sub_total_lines = Decimal(0.0)
-    for product in qs_products.iterator():
-        sub_total_lines += Decimal(product.price) * Decimal(product.quantity)
-
 
     qs_totals = OcOrderTotal.objects.filter(order_id=order_id)
     qs_shipping = qs_totals.filter(code='shipping')
+
     qs_discount = qs_totals.filter(code='discount')
     qs_total = qs_totals.get(code='total')
     qs_sub = qs_totals.get(code='sub_total')
     qs_tax = qs_totals.get(code='tax')
+
+    for product in qs_products.iterator():
+        sub_total_value = Decimal(product.price) * Decimal(product.quantity)
+        sub_total_lines += sub_total_value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
 
     if qs_shipping.exists():
         sub_total = sub_total_lines + Decimal(qs_shipping.first().value)
@@ -441,9 +460,31 @@ def calc_order_totals(order_id):
 
 def calc_update_product_subtotal(order_id):
     qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
-    sub_total_lines = Decimal(0.0)
+    qs_order = OcOrder.objects.filter(pk=order_id).first()
+    sub_total_lines_discount = Decimal(0.0)
+
+    if qs_order.customer.parent_company:
+        decimal_calc = Decimal(qs_order.customer.parent_company.discount / 100)
+        customer_discount = decimal_calc.quantize(Decimal('0.00'))
+    else:
+        customer_discount = Decimal(0.00)
+
     for product in qs_products.iterator():
-        sub_total_lines += Decimal(product.price) * Decimal(product.quantity)
+        if not product.exclude_discount:
+            discount_amount = Decimal(product.price) * Decimal(product.quantity) * Decimal(customer_discount)
+            sub_total_lines_discount += discount_amount.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+
+    qs_totals = OcOrderTotal.objects.filter(order_id=order_id)
+
+    if qs_totals.filter(code='discount').exists:
+        qs_discount = qs_totals.get(code='discount')
+        qs_discount.value = sub_total_lines_discount
+        qs_discount.save()
+
+
+
+
+
 
 def recalc_order_product_tax(order_id):
     qs_order = OcOrder.objects.filter(pk=order_id).first()
@@ -456,4 +497,13 @@ def recalc_order_product_tax(order_id):
         product.save()
 
     calc_order_totals(order_id)
+
+
+def add_order_product_history(order_product_id, old_id, new_id):
+    if old_id != new_id:
+        new_history_obj = OcTsgOrderProductStatusHistory()
+        new_history_obj.order_product_id= order_product_id
+        new_history_obj.old_status_id = old_id
+        new_history_obj.status_id = new_id
+        new_history_obj.save()
 

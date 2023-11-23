@@ -1,7 +1,12 @@
 <dl class="row text-nowrap">
                 {% if customer_obj.parent_company %}
-                  <dt class="col-3">Works at</dt>
-                  <dd class="col-9"><a href="{% url 'company_details' customer_obj.parent_company.company_id %}">{{ customer_obj.parent_company.company_name }}</a></dd>
+                      <dt class="col-3">Works at</dt>
+                      <dd class="col-9"><a href="{% url 'company_details' customer_obj.parent_company.company_id %}">{{ customer_obj.parent_company.company_name }}</a></dd>
+                {% else %}
+                    {% if customer_obj.company %}
+                    <dt class="col-3">Company</dt>
+                    <dd class="col-9">{{ customer_obj.company }}</dd>
+                    {% endif %}
                 {% endif %}
                 <dt class="col-3">Name</dt>
                 <dd class="col-9">{{ customer_obj.fullname }}</dd>
@@ -9,8 +14,8 @@
                 <dd class="col-9"><a href="mailto:{{ customer_obj.email }}">{{ customer_obj.email }}</a></dd>
                 <dt class="col-3">Phone</dt>
                 <dd class="col-9">{{ customer_obj.telephone }}</dd>
-                <dt class="col-3">Mobile</dt>
-                <dd class="col-9">{{ customer_obj.mobile }}</dd>
-                <dt class="col-3">Account Type</dt>
-                <dd class="col-9">{{ customer_obj.account_type }}</dd>
+                {% if customer_obj.account_type %}
+                    <dt class="col-3">Account Type</dt>
+                    <dd class="col-9">{{ customer_obj.account_type }}</dd>
+                {% endif %}
             </dl>

@@ -1,0 +1,24 @@
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Product Status History</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <ul class="row text-nowrap">
+                    {% for history in product_history_obj %}
+                        <li>{{ history.date_added }} - {{ history.old_status.name }} -> {{ history.status.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Close</button>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>

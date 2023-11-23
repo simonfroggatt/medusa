@@ -4,9 +4,10 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
-    calc_order_totals, OcTsgCourier, OcTsgOrderShipment, recalc_order_product_tax
+    calc_order_totals, OcTsgCourier, OcTsgOrderShipment, recalc_order_product_tax, OcTsgOrderProductStatusHistory
 from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcTsgProductMaterial
-from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, OrderPreviousProductListSerializer, OrderFlagsListSerializer
+from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
+    OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
 from pyreportjasper import PyReportJasper
 from django.conf import settings
 import os
@@ -148,6 +149,14 @@ class OrderTotalsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class OrderProductHistory(viewsets.ModelViewSet):
+    queryset = OcTsgOrderProductStatusHistory.objects.all().order_by('-date_added')
+    serializer_class = OrderProductStatusHistorySerializer
+
+    def retrieve(self, request, pk=None):
+        history_obj = OcTsgOrderProductStatusHistory.objects.filter(order_product_id=pk)
+        serializer = self.get_serializer(history_obj, many=True)
+        return Response(serializer.data)
 
 
 def order_details(request, order_id):
@@ -253,38 +262,40 @@ def order_add_product(request, order_id):
             data['form_is_valid'] = False
 
     form = ProductAddForm()
-    order_data = OcOrder.objects.filter(order_id=order_id).values('tax_rate__rate', 'customer_id').first()
+    order_obj = get_object_or_404(OcOrder, order_id=order_id)
+
+#find out if this orders customer is a company with a discount
+    if order_obj.customer.parent_company:
+        customer_discount = order_obj.customer.parent_company.discount
+    else:
+        customer_discount = 0
+
+    customer_discount = 0
+
     context = {
         "order_id": order_id,
-        "tax_rate": order_data['tax_rate__rate'],
-        "customer_id": order_data['customer_id'],
+        "tax_rate": order_obj.tax_rate.rate,
+        "customer_id": order_obj.customer_id,
+        "store_id": order_obj.store_id,
         "form_post_url": reverse_lazy('orderproductadd', kwargs={'order_id': order_id}),
         "price_for": "I",  #
-        "form" : form}
+        'customer_discount': customer_discount,
+        "form": form}
 
     template_name = 'orders/dialogs/add_product_layout_dlg.html'
-    #template_name = 'orders/dialogs/add_product_layout.html'
-    context['pageview'] = 'All orders'
-    context['heading'] = 'order details'
 
     qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
-    default_bulk = 1
 
     bulk_details = prod_services.create_bulk_arrays(qs_bulk)
     context['bulk_info'] = bulk_details
 
     context['material_obj'] = OcTsgProductMaterial.objects.all()
 
-    # return render(request, template_name, context)
     data['html_form'] = render_to_string(template_name,
                                          context,
                                          request=request
                                          )
     return JsonResponse(data)
-
-
-    #this will render to dlg when finished
-    #return render(request, template_name, context)
 
 
 def order_details_edit(request, order_id):
@@ -325,7 +336,7 @@ def order_shipping_change(request, order_id):
         if form.is_valid():
             data['form_is_valid'] = True
             order_totals_obj.save()
-            calc_order_totals(order_id)
+            calc_order_totals(order_id, False)
         else:
             data['form_is_valid'] = False
 
@@ -706,7 +717,7 @@ def discount_change_dlg(request, order_id):
         if order_discount_qs:
             order_discount_qs.first().value = discount_value
             order_discount_qs.first().save()
-            calc_order_totals(order_id)
+            calc_order_totals(order_id, False)
             data['form_is_valid'] = True
         else:
             order_total_discount_obj = OcOrderTotal()
@@ -717,7 +728,7 @@ def discount_change_dlg(request, order_id):
             order_total_discount_obj.sort_order = 2
             order_total_discount_obj.save()
             data['form_is_valid'] = True
-            calc_order_totals(order_id)
+            calc_order_totals(order_id, False)
 
 
 
@@ -799,11 +810,11 @@ def order_duplicate(request):
         #order_totals = order_obj.order_totals.all()
         order_obj.order_id = None
         order_obj.save()
-        order_obj.payment_method = ''
+        order_obj.payment_method_name = ''
         order_obj.order_status_id = 1
         order_obj.payment_status_id = 1
         order_obj.order_type_id = 1
-        order_obj.payment_method_rel_id = 8
+        order_obj.payment_method_id = 8
         order_obj.customer_order_ref = ''
         order_obj.save()
         new_order_id = order_obj.order_id
@@ -827,19 +838,18 @@ def order_duplicate(request):
     return JsonResponse(data)
 
 
-# from django.db import models
-#
-# class Book(models.Model)
-#
-# class Chapter(models.Model)
-#     book = models.ForeignKey(Book, related_name='chapters')
-#
-# class Page(models.Model)
-#     chapter = models.ForeignKey(Chapter, related_name='pages')
-#
-# WHITELIST = ['books', 'chapters', 'pages']
-# original_record = models.Book.objects.get(pk=1)
-# duplicate_record = duplicate_model_with_descendants(original_record, WHITELIST)
+def product_order_history_dlg(request, order_id, order_product_id):
+        data = dict()
+        product_history_obj = OcTsgOrderProductStatusHistory.objects.filter(order_product_id=order_product_id).order_by('-date_added')
+        context = {'product_history_obj': product_history_obj}
+        template_name = 'orders/dialogs/product_status_history.html'
+
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+        return JsonResponse(data)
+
 
 def duplicate_model_with_descendants(obj, whitelist, _new_parent_pk=None):
     kwargs = {}

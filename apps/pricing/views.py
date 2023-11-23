@@ -70,6 +70,7 @@ class Sizes(viewsets.ModelViewSet):
     serializer_class = SizesSerializer
 
 
+
 class Materials(viewsets.ModelViewSet):
     queryset = OcTsgProductMaterial.objects.all()
     serializer_class = MaterialsSerializer
@@ -85,9 +86,12 @@ class SizeMaterials(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class BasePrices(viewsets.ModelViewSet):
+class BasePrices(generics.ListAPIView):
     queryset = OcTsgSizeMaterialComb.objects.all()
     serializer_class = BasePricesSerializer
+
+    def post(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 class StorePrices(viewsets.ModelViewSet):
@@ -210,7 +214,32 @@ class PriceComboUpdate(UpdateView):
     model = OcTsgSizeMaterialComb
     form_class = SizeMaterialCombo
     template_name = 'pricing/prices/base_prices_edit.html'
-    success_url = reverse_lazy('allbaseprices')
+    success_url = reverse_lazy('allprices')
+
+
+def create_price(request):
+    data = dict()
+    template_name = 'pricing/prices/base_prices_create.html'
+    context = {'pageview': 'New Price'}
+
+    if request.method == 'POST':
+        size_id = request.POST.get('size_id')
+        material_id = request.POST.get('material_id')
+        new_price = request.POST.get('new_price')
+        size_material_comb_obj = OcTsgSizeMaterialComb()
+        size_material_comb_obj.product_size_id = size_id
+        size_material_comb_obj.product_material_id = material_id
+        size_material_comb_obj.price = new_price
+        size_material_comb_obj.bl_live = 1
+        size_material_comb_obj.save()
+        return_url = reverse_lazy('allprices')
+        return HttpResponseRedirect(return_url)
+
+
+
+
+    return render(request, template_name, context)
+
 
 
 def test_base_price(request, pk, store_id):
@@ -348,6 +377,30 @@ def store_price_combo_delete(request, pk):
     return JsonResponse(data)
 
 
+def material_delete(request, pk):
+    data = dict()
+    context = {}
+
+    if request.method == 'POST':
+        material_id = request.POST.get('material_id')
+        obj_material = get_object_or_404(OcTsgProductMaterial, pk=material_id)
+        if obj_material.combo_material.exists():
+            obj_material.archived = True
+            obj_material.save()
+        else:
+            res = obj_material.delete()
+        data['form_is_valid'] = True
+
+    else:
+        context['pk'] = pk
+        template_name = 'pricing/materials/materials-delete.html'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
+
 def sizes_delete(request, pk):
     data = dict()
     context = {}
@@ -355,7 +408,11 @@ def sizes_delete(request, pk):
     if request.method == 'POST':
         size_id = request.POST.get('size_id')
         obj_size = get_object_or_404(OcTsgProductSizes, pk=size_id)
-        obj_size.delete()
+        if obj_size.combo_size.exists():
+            obj_size.archived = True
+            obj_size.save()
+        else:
+            obj_size.delete()
         data['form_is_valid'] = True
 
     else:
@@ -395,3 +452,21 @@ def material_create(request):
         template_name = 'pricing/materials/materials-create.html'
 
     return render(request, template_name, context)
+
+
+class materials_excl_sizes(generics.ListAPIView):
+    queryset = OcTsgProductMaterial.objects.all()
+    serializer_class = MaterialsSerializer
+
+    def list(self, request, *args, **kwargs):
+        size_id = kwargs['size_id']
+
+        product_material_qs = OcTsgSizeMaterialComb.objects.filter(product_size__size_id=size_id).values_list('product_material__material_id')
+
+        product_material_list = list(chain(*product_material_qs))
+        core_material_qs = OcTsgProductMaterial.objects.exclude(material_id__in=product_material_list)
+
+        serializer = self.get_serializer(core_material_qs, many=True)
+        return Response(serializer.data)
+
+

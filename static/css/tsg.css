@@ -556,6 +556,20 @@ table.dataTable .order-total td {
   border-collapse: collapse;
 }
 
+table.dataTable td a.info-link {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  cursor: help;
+}
+
+
+
 #product_table .product-thumb {
             height: 30px;
         }

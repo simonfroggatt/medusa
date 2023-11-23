@@ -1,0 +1,24 @@
+<div class="modal-header">
+    <h4 class="modal-title">Delete Customer</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'api_customer_delete' customer_id %}" class="">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-12">
+                    <p>Are you sure you want to delete this customer?</p>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" class="btn {{ BUTTON_DELETE }} pull-right">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

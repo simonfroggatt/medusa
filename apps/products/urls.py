@@ -1,7 +1,7 @@
 from django.urls import path
 from apps.products import views
 from rest_framework import routers
-from django.conf.urls import url, include
+from django.urls import include
 
 router = routers.SimpleRouter()
 router.register(r'productslist', views.base_product_list_asJSON)
@@ -12,15 +12,14 @@ router.register(r'productsymbols', views.ProductSymbols)
 router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
 router.register(r'product_core_variant_options', views.ProductCoreVariantOption)
 router.register(r'product_site_variant_options', views.ProductSiteVariantOption)
-
-
-
+#router.register(r'store/products', views.Product_by_Store)
 
 
 urlpatterns = [
-    url('^api/', include(router.urls)),
-    url('^api/post-list/products', views.ProductsListView.as_view(), name='products_post_list'),
+    path('api/', include(router.urls)),
+    path('api/post-list/products/<int:store_id>/', views.ProductsListView.as_view(), name='products_post_list'),
 
+    path('api/store/<int:store_id>/products', views.Product_by_Store.as_view(), name='product_list_by_store'),
 
     #products
     path('api/productsite/<int:product_id>/<int:store_id>', views.ProductSite.as_view({'get': 'list'}), name='products_site_list'),
