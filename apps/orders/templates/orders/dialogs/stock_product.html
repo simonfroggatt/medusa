@@ -7,7 +7,7 @@
                 <thead>
                 <tr>
                     <th width="75px">Image</th>
-                    <th class="col-2">Code</th>
+
                     <th class="col-4">Name</th>
                     <th class="col-auto">Title</th>
                 </tr>
@@ -15,6 +15,8 @@
             </table>
 
         </div>
+    </div>
+    <div class="row"
     </div>
     <div class="row mb-3">
         <div class="col">
@@ -55,7 +57,6 @@
                 <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
 
                 <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="False">
-                <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
 
                 <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
                        value="{{ form.total.value|floatformat:2 }}">
@@ -67,6 +68,8 @@
                        value="{{ form.bulk_used.value }}">
                 <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
                        value="1">
+                <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}"
+                       value="0.00">
 
                 <div class="row">
                     <div class="col-8">
@@ -88,7 +91,7 @@
                                     <div class="col-12" id="bulkTableDiv">
                                         <select class="form-select bulk_group_select" id="stock-bulk_group_select">
                                             {% for bulk_group in bulk_info %}
-                                                <option value="{{ bulk_group.id }}">{{ bulk_group.name }}</option>
+                                                <option value="{{ bulk_group.id }}" {% if bulk_group.id == bulk_discount %} selected {% endif %}>{{ bulk_group.name }}</option>
                                             {% endfor %}
                                         </select>
                                         <div class="row">
@@ -191,9 +194,10 @@
                                 return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
                             }
                         },
-                        {data: "product.model"},
+
                         {
                             data: "name",
+
                             render: function (data, type, row, meta) {
                                 let rtn_str = "";
                                 if(data == null)
@@ -237,12 +241,35 @@
                         },
                         {
                             data: "product_id",
-                            "visible": false
+                            "visible": false,
+                            "searchable": false
                         },
                         {
-                            data: "corevariants",
-                            name: "corevariants.supplier_code",
-                            "visible": false
+                            data: "product.corevariants",
+                            name: "product.corevariants.supplier_code",
+                            "visible": false,
+                            "searchable": true
+                        },
+                        {
+                            data: "bulk_group.bulk_group_id",
+                            name: "bulk_discount_group",
+                            visible: false,
+                            searchable: "false",
+                        },
+                        {
+                            data: "product.productdescbase.name",
+                            visible: false,
+                            searchable: true
+                        },
+                        {
+                            data: "product.productdescbase.title",
+                            visible: false,
+                            searchable: true
+                        },
+                        {
+                            data: "product.productdescbase.description",
+                            visible: false,
+                            searchable: true
                         }
                     ]
                 });
@@ -252,6 +279,7 @@
                     let product_id = product_table.row(indexes).id()
                     set_variant_url(product_id)
                     set_product_details(product_table.row(indexes).data())
+                    set_bulk_group(product_table.row(indexes).data())
 
                 }
             });
@@ -327,8 +355,13 @@
                 else
                     name = data_row['name'];
                 $('#form-stock #{{ form.name.name }}').val(name)
-
                  manual_data['name'] = name
+            }
+
+            function set_bulk_group(data_row){
+                let bulk_group_id = data_row['bulk_group']['bulk_group_id'];
+                $('#form-stock #stock-bulk_group_select').val(bulk_group_id);
+
             }
 
             function set_product_variant_details(data_row) {
@@ -339,12 +372,16 @@
                 $('#form-stock #{{ form.orientation_name.name }}').val(core_variant['size_material']['product_size']['orientation']['orientation_name'])
                 $('#form-stock #{{ form.product_variant.name }}').val(core_variant['prod_variant_core_id'])
                 $('#form-stock #{{ form.model.name }}').val(data_row['variant_code'])
+
                 if (data_row['variant_overide_price'] > 0) {
                     $('#form-stock #{{ form.price.name }}').val(data_row['variant_overide_price'])
+                    //set the single price for future edits if bulk group is used
+                    $('#form-stock #{{ form.single_unit_price.name }}').val(data_row['variant_overide_price'])
                 } else {
                     $('#form-stock #{{ form.price.name }}').val(core_variant['size_material']['price'])
+                     //set the single price for future edits if bulk group is used
+                    $('#form-stock #{{ form.single_unit_price.name }}').val(core_variant['size_material']['price'])
                 }
-                $('#form-stock #single_unit_price').val($('#{{ form.price.name }}').val())
 
                 manual_data['width'] = core_variant['size_material']['product_size']['size_width']
                 manual_data['calcwidth'] = core_variant['size_material']['product_size']['size_width']
@@ -363,7 +400,7 @@
                 $('#form-quick_manual #manualHeight').val(manual_data['height'])
                 $('#form-quick_manual #manualCalcHeight').val(manual_data['calcheight'])
                 $('#form-quick_manual #manualPrice').val(manual_data['price'])
-                $('#form-quick_manual #single_unit_price').val(manual_data['price'])
+                $('#form-quick_manual #{{ form.single_unit_price.name }}').val(manual_data['price'])
                 $('#form-quick_manual #price').val(manual_data['price'])
                 $('#form-quick_manual #quantity').val(1)
                 $('#form-quick_manual #manualMaterial').val(manual_data['material'])

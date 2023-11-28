@@ -179,6 +179,7 @@ $(".switchApplyBulk").change(function () {
 
 
     $(".calc_line_totals").change(function (element) {
+        alert('pricing')
         let form_id = '#' + $(this).parents("form").attr('id')
         let tax_price = 0.00;
         let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");

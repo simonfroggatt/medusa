@@ -17,7 +17,7 @@
              <form method="post" id="form-size_material"
              {% block form_vars %}{% endblock form_vars %}>
                 {% csrf_token %}
-             <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+             <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
              <input type="hidden" id="text_to_copy" name="text_to_copy"  value="">
              <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
              <input  id="string_to_copy_size" name="string_to_copy_size" class="hidden_copy" value="">
@@ -131,7 +131,7 @@
 
         function set_product_base_price_size(data_row){
                 let product_info = data_row['size_material_comb'];
-               $('#form-size_material #single_unit_price').val(product_info['price'])
+               $('#form-size_material #{{ form.single_unit_price.name }}').val(product_info['price'])
 
             }
 

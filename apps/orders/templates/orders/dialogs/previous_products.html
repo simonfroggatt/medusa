@@ -39,7 +39,7 @@
                 <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
                 <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
                 <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}">
-                <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+                <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
 
                 <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
                        value="{{ form.total.value|floatformat:2 }}">
@@ -226,7 +226,7 @@
             $('#form-previous #{{ form.price.name }}').val(data_row['price'])
             $('#form-previous #line_total_cal').html(data_row['total']);
              $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
-             $('#form-previous #single_unit_price').val(data_row['price'])
+             $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['price'])
 
             console.log(data_row)
 
@@ -262,7 +262,7 @@
                 $('#form-quick_manual #manualHeight').val(manual_data['height'])
                 $('#form-quick_manual #manualCalcHeight').val(manual_data['calcheight'])
                 $('#form-quick_manual #manualPrice').val(manual_data['price'])
-                $('#form-quick_manual #single_unit_price').val(manual_data['price'])
+                $('#form-quick_manual #{{ form.single_unit_price.name }}').val(manual_data['price'])
                 $('#form-quick_manual #price').val(manual_data['price'])
                 $('#form-quick_manual #quantity').val(1)
                 $('#form-quick_manual #manualMaterial').val(manual_data['material'])

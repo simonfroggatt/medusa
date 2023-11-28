@@ -492,7 +492,7 @@ $(function () {
         });
         return false;
     }
-
+/*
     $(".switchApplyBulk").change(function () {
         alert('bulk js')
         let form_id = '#' + $(this).parents("form").attr('id')
@@ -502,6 +502,7 @@ $(function () {
 
 
     $(".calc_line_totals").change(function (element) {
+        alert('here')
         let form_id = '#' + $(this).parents("form").attr('id')
         let tax_price = 0.00;
         let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
@@ -516,11 +517,12 @@ $(function () {
             $(form_id + ' #line_total_cal').html(line_total);
             $(form_id + ' #line_total_cal').trigger('change');
             $(form_id + ' #total').val(line_total);
-            $(form_id + ' #tax').val(tax_price)
+            $(form_id + ' #tax').val(tax_price);
+            $(form_id + ' #single_price').val(price);
         }
 
     });
-
+*/
 
     function calc_totals(price, qty) {
         return (price * qty).toFixed(2);
@@ -533,19 +535,23 @@ $(function () {
         let tax_price = 0.00;
         let base_price = $(form_id + ' #single_unit_price').val();
         let discount_price = 0.00;
-        qty = parseInt($(qty_field).val())
-        bulk_group_id = $(form_id + ' .bulk_group_select').val();
+        let qty = parseInt($(qty_field).val())
+        let bulk_group_id = $(form_id + ' .bulk_group_select').val();
 
         drawBulkTable(bulk_group_id, form_id);
+        $(form_id + ' #single_unit_price').val(base_price)
+
 
         if (getbulk) {
-            discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
+            let discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
             discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
             line_price = parseFloat(qty * discount_price).toFixed(2);
             $(product_price).val(discount_price);
+            alert(base_price);
 
         } else {
             line_price = (qty * $('#single_unit_price').val()).toFixed(2);
+            alert(base_price);
         }
 
         tax_price = parseFloat(line_price * tax_rate).toFixed(2);

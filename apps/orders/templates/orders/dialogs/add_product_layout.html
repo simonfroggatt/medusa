@@ -119,7 +119,7 @@
             let product_price = form_id + " #{{ form.price.name }}";
             let line_price = 0.00;
             let tax_price = 0.00;
-            let base_price = $(form_id + ' #single_unit_price').val();
+            let base_price = $(form_id + ' #{{ form.single_unit_price.name }}').val();
             let discount_price = 0.00;
             qty = parseInt($(qty_field).val())
             bulk_group_id = $(form_id + ' .bulk_group_select').val();
@@ -133,7 +133,7 @@
                 $(product_price).val(discount_price);
 
             } else {
-                line_price = (qty * $('#single_unit_price').val()).toFixed(2);
+                line_price = (qty * $('#{{ form.single_unit_price.name }}').val()).toFixed(2);
             }
 
             tax_price = parseFloat(line_price * tax_rate).toFixed(2);
@@ -152,7 +152,7 @@
 
         function drawBulkTable(bulk_group_id, form_id) {
 
-            let base_price = $(form_id + ' #single_unit_price').val()
+            let base_price = $(form_id + ' #{{ form.single_unit_price.name }}').val()
             var bulk_array = $.grep(bulk_table_data, function (e) {
                 return e.id == bulk_group_id;
             })[0];

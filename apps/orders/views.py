@@ -418,14 +418,13 @@ def order_product_edit(request, order_id, order_product_id):
     template_name = 'orders/dialogs/order_product_edit.html'
     store_id = order_product.order.store_id
 
-    if order_product.product_id > 0:
-        qs_product_bulk = OcTsgProductToBulkDiscounts.objects.get(product__product_id=order_product.product_id, store_id=store_id)
-        default_bulk = qs_product_bulk.bulk_discount_group.bulk_group_id
-        qs_bulk = OcTsgBulkdiscountGroups.objects.filter(bulk_group_id=qs_product_bulk.bulk_discount_group.bulk_group_id)
+    if order_product.bulk_discount_id:
+        default_bulk = order_product.bulk_discount_id
+
     else:
-        qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
         default_bulk = 1
 
+    qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
     bulk_details = prod_services.create_bulk_arrays(qs_bulk)
     order_data = OcOrder.objects.filter(order_id=order_id).values('tax_rate__rate').first()
 

@@ -142,6 +142,7 @@ class OcOrder(models.Model):
     store_url = models.CharField(max_length=255, blank=True, null=True)
     customer = models.ForeignKey(OcCustomer, models.DO_NOTHING, db_column='customer_id', blank=True, null=True, related_name='customer_orders')
     customer_group_id = models.IntegerField(blank=True, null=True)
+    company = models.CharField(max_length=255, blank=True, null=True)
     fullname = models.CharField(max_length=255, blank=True, null=True)
     firstname = models.CharField(max_length=32, blank=True, null=True)
     lastname = models.CharField(max_length=32, blank=True, null=True)
@@ -313,6 +314,7 @@ class OcOrderProduct(models.Model):
     exclude_discount = models.BooleanField(default=False)  # note - must be BooleanField
     bulk_discount = models.ForeignKey(OcTsgBulkdiscountGroups, models.DO_NOTHING, blank=True, null=True, related_name='order_product_bulkgrp')
     bulk_used = models.BooleanField(default=True)
+    single_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
 
     class Meta:
         managed = False

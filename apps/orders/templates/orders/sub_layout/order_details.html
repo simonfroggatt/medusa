@@ -20,15 +20,20 @@
              <div class="card-body">
                  <dl class="row text-nowrap" id="order_{{ order_obj.order_id }}">
                      {% if order_obj.customer %}
-                         <dt class="col-3">Customer</dt>
+                         <dt class="col-3">Company</dt>
                          {% if order_obj.customer.company %}
-                              <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id %}">{{ order_obj.customer.company }}</a></dd>
-                         {% else %}
-                             <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.fullname }}</a>
+                              <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id %}">{{ order_obj.customer.company }}</a>
                              {% if order_obj.customer.parent_company %}
                                  - ( works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a> )
-                             {% endif %}</dd>
+                             {% endif %}
+                              </dd>
                          {% endif %}
+                             <dt class="col-3">Contact</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.fullname }}</a></dd>
+                     {% else %}
+                         {% if order_obj.company %}
+                              <dt class="col-3">Company</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer_id %}">{{ order_obj.company }}</a></dd>
+                         {% endif %}
+                          <dt class="col-3">Contact</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer_id %}">{{ order_obj.fullname }}</a></dd>
                      {% endif %}
 
                      <dt class="col-3">Order No:</dt>

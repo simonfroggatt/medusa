@@ -80,7 +80,7 @@
         {% endif %}
      </div>
     {% csrf_token %}
-    <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+    <input type="hidden" id="{{ form.single_price.name }}" name="{{ form.single_price.name }}" value="0">
     <input type="hidden" id="text_to_copy" name="text_to_copy" value="">
     <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
     <input id="string_to_copy_manual" name="string_to_copy_manual" class="hidden_copy" value="">
@@ -194,7 +194,7 @@
         }
 
         let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
-        $('#form-quick_manual #single_unit_price').val(parseFloat(newprice).toFixed(2));
+        $('#form-quick_manual #{{ form.single_price.name }}').val(parseFloat(newprice).toFixed(2));
         $('#form-quick_manual #price').val(parseFloat(newprice).toFixed(2));
 
 

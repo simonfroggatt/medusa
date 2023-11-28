@@ -2,7 +2,6 @@ from django import forms
 from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder, OcOrderTotal, OcTsgOrderShipment
 from medusa.models import OcTsgShippingMethod
 
-
 class ProductEditForm(forms.ModelForm):
 
     class Meta:
@@ -21,7 +20,8 @@ class ProductEditForm(forms.ModelForm):
             'is_bespoke',
             'exclude_discount',
             'bulk_discount',
-            'bulk_used'
+            'bulk_used',
+            'single_unit_price'
         ]
 
         labels = {
@@ -58,7 +58,8 @@ class ProductAddForm(forms.ModelForm):
             'status',
             'exclude_discount',
             'bulk_discount',
-            'bulk_used'
+            'bulk_used',
+            'single_unit_price'
         ]
 
         labels = {
@@ -147,6 +148,12 @@ class OrderShippingForm(forms.ModelForm):
 
 
 class OrderDetailsEditForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(OrderDetailsEditForm, self).__init__(*args, **kwargs)
+        self.fields['order_status'].empty_label = None
+        self.fields['payment_status'].empty_label = None
+        self.fields['payment_method'].empty_label = None
+        self.fields['order_type'].empty_label = None
 
     class Meta:
         model = OcOrder

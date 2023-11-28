@@ -56,7 +56,7 @@
 
              {% block form_vars %}{% endblock form_vars %}
                 {% csrf_token %}
-             <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+             <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
              <input type="hidden" id="text_to_copy" name="text_to_copy"  value="">
              <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
              <input type="hidden" id="material_name" name="material_name" value="">
@@ -189,7 +189,7 @@
                 let m2_custom =  ( (str_width/1000) * (str_height/1000)) ;
                 let m2_stock_price = data_row['price'] / ( (stock_width/1000) * (stock_height/1000));
                 let customer_price = parseFloat(m2_stock_price * m2_custom).toFixed(2);
-                $('#form-quick_size_calc #single_unit_price').val(customer_price)
+                $('#form-quick_size_calc #{{ form.single_unit_price.name }}').val(customer_price)
 
             }
 
@@ -206,7 +206,7 @@
 
             function set_product_base_price_size(data_row){
                 let product_info = data_row['size_material_comb'];
-               $('#form-quick_size_calc #single_unit_price').val(product_info['price'])
+               $('#form-quick_size_calc #{{ form.single_unit_price.name }}').val(product_info['price'])
 
             }
 

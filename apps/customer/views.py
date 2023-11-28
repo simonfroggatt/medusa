@@ -279,6 +279,16 @@ def order_customer_create(request, customer_id):
         new_order_obj.currency_code = customer_obj.store.currency.code
         new_order_obj.currency_value = customer_obj.store.currency.value
         new_order_obj.language_id = customer_obj.language_id
+        new_order_obj.fullname = customer_obj.fullname
+        new_order_obj.email = customer_obj.email
+        new_order_obj.telephone = customer_obj.telephone
+        if customer_obj.parent_company:
+            if customer_obj.company:
+                new_order_obj.company = customer_obj.company
+            else:
+                new_order_obj.company = customer_obj.parent_company.company_name
+        else:
+            new_order_obj.company = customer_obj.company
 
         new_order_obj.payment_method_name = ''
         new_order_obj.order_status_id = 1

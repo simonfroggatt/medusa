@@ -40,7 +40,7 @@
                 {% block form_hidden_block %}
 
                 {% endblock form_hidden_block %}
-             <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+             <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
              <input type="hidden" id="text_to_copy" name="text_to_copy"  value="">
              <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
              <input id="string_to_copy" name="string_to_copy" class="hidden_copy"  value="">
@@ -318,9 +318,9 @@
                 let core_variant = data_row['prod_var_core'];
 
                 if (data_row['variant_overide_price'] > 0) {
-                    $('#form-stock #single_unit_price').val(data_row['variant_overide_price'])
+                    $('#form-stock #{{ form.single_unit_price.name }}').val(data_row['variant_overide_price'])
                 } else {
-                    $('#form-stock #single_unit_price').val(core_variant['size_material']['price'])
+                    $('#form-stock #{{ form.single_unit_price.name }}').val(core_variant['size_material']['price'])
                 }
             }
 
