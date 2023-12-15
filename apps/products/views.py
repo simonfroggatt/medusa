@@ -9,13 +9,13 @@ from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
     ProductSiteVariantOptionsSerializer, ProductCoreVariantOptionsSerializer, RelatedBaseDescriptionSerializer, \
-    RelatedSerializer, ProductStoreListSerializer  # , BaseProductListSerializer, ProductTestSerializer, ,
+    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer  # , BaseProductListSerializer, ProductTestSerializer, ,
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups, \
-    OcTsgProductVariantOptions  # , \
+    OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues # , \
 # OcTsgOptionClass, OcTsgOptionValues
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -537,6 +537,37 @@ def product_variant_core_add_group_option(request, core_variant_id):
     return JsonResponse(data)
 
 
+def product_variant_core_add_class_option(request, core_variant_id):
+    data = dict()
+    context = {'core_variant_id': core_variant_id}
+    template_name = 'products/dialogs/variant_option_class_add.html/'
+
+    if request.method == 'POST':
+        variant_core_id = request.POST.get('core_variant_id')
+        class_id = request.POST.get('class_option_select_id')
+        class_values = OcTsgOptionClassValues.objects.filter(option_class_id=class_id)
+        if class_values:
+            for values in class_values:
+                new_variant_option = OcTsgProductVariantCoreOptions()
+                new_variant_option.product_variant_id = variant_core_id
+                new_variant_option.option_class_id = values.option_class_id
+                new_variant_option.option_value_id = values.option_value_id
+                new_variant_option.order_by = values.order
+                new_variant_option.save()
+        data['form_is_valid'] = True
+    else:
+        data['form_is_valid'] = False
+
+    option_class_obj = OcTsgOptionClass.objects.all()
+    context['object_classes'] = option_class_obj
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+
 def product_core_variant_add(request, pk):
     data = dict()
     context = {'product_id': pk}
@@ -601,6 +632,20 @@ def group_class_list_html(request, group_id):
     group_class_value_obj = OcTsgOptionClassGroupValues.objects.filter(group_id=group_id)
     context = {'group_class_value_obj': group_class_value_obj}
     template_name = 'products/sub_layout/group_class_values_list.html'
+    data['html_text'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def class_value_list_html(request, class_id):
+    data = dict()
+
+    class_value_obj = OcTsgOptionClassValues.objects.filter(option_class_id=class_id)
+    context = {'class_value_obj': class_value_obj}
+    template_name = 'products/sub_layout/class_values_list.html'
     data['html_text'] = render_to_string(template_name,
                                          context,
                                          request=request
@@ -908,6 +953,23 @@ def site_variant_options_edit(request, pk):
                                          )
     return JsonResponse(data)
 
+def site_variant_options_delete(request, pk):
+    data = dict()
+    context = {'product_variant_option_id': pk}
+    template_name = 'products/dialogs/site_variant_option_delete.html/'
+    data['form_is_valid'] = False
+    if request.method == 'POST':
+        product_variant_id_posted = request.POST.get('product_variant_option_id')
+        product_variant_obj = get_object_or_404(OcTsgProductVariantOptions, id=product_variant_id_posted)
+        product_variant_obj.delete()
+        data['form_is_valid'] = True
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
 
 def site_variant_edit(request, pk):
     data = dict()
@@ -979,6 +1041,20 @@ def related_item_edit(request, pk):
                                          request=request
                                          )
     return JsonResponse(data)
+
+class related_item_by_store(generics.ListAPIView):
+    serializer_class = RelatedByStoreProductSerializer
+    model = serializer_class.Meta.model
+
+    def get_queryset(self):
+        if self.kwargs['pk']:
+            product_id = self.kwargs['pk']
+        else:
+            product_id = 0
+
+        queryset = self.model.objects.filter(product_id=product_id).order_by('product_id')
+        return queryset.order_by('product_id')
+
 
 def product_additional_images_load(request, product_id, store_id):
     data = dict()
@@ -1212,3 +1288,15 @@ class Product_by_Store(generics.ListAPIView):
             queryset = self.model.objects.all().order_by('product_id')
 
         return queryset.order_by('product_id')
+
+
+
+#product options for adding to order
+class ProductSiteVariantOptionClasses(viewsets.ModelViewSet):
+    queryset = OcTsgProductVariantOptions.objects.all()
+    serializer_class = ProductSiteVariantOptionsSerializer
+
+    def retrieve(self, request, pk=None):
+        option_group_object = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk, isdeleted=False)
+        serializer = self.get_serializer(option_group_object, many=True)
+        return Response(serializer.data)

@@ -5,7 +5,7 @@ $(function () {
         company_customers_table.ajax.reload();
     }
 
-     if ($.fn.dataTable.isDataTable('#core_variants_table')) {
+     if ($.fn.dataTable.isDataTable('#company_customers_table')) {
         var company_customers_table = $('#company_customers_table').DataTable();
     } else {
          var company_customers_table = $('#company_customers_table').dataTable({

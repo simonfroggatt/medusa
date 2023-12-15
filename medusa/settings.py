@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'apps.sites',
     'apps.cart',
     'apps.templating',
+    'apps.bulk',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -176,6 +177,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/quotes/static/quotes'),
                     os.path.join(BASE_DIR, 'apps/category/static/category'),
                     os.path.join(BASE_DIR, 'apps/options/static/options'),
+                    os.path.join(BASE_DIR, 'apps/bulk/static/bulk'),
 
                     ]
 

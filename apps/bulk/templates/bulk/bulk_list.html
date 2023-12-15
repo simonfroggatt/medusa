@@ -1,0 +1,91 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="bulk_list_table" class="table table-hover table-striped align-middle table-sm"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th class="col-10">Name</th>
+                                        <th width="25px">Status</th>
+                                        <th class="text-end col-1">&nbsp</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script>
+       $(document).ready(function() {
+
+
+    if ( $.fn.dataTable.isDataTable( '#bulk_list_table' ) ) {
+        let bulk_list_table = $('#bulk_list_table').DataTable();
+    }
+    else {
+        let bulk_list_table = $('#bulk_list_table').DataTable({
+            "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 25,
+            "autoWidth": false,
+            "responsive": true,
+            "ajax": {
+                "processing": true,
+                "url": "/bulk/api/bulkgroups/?format=datatables"
+            },
+            "deferRender": false,
+            "search": {
+                "regex": true
+            },
+            "rowId" : 'bulk_group_id',
+            "order": [[1, "asc"]],
+            columns: [
+                {data: "group_name"},
+                {
+                    data: "is_active",
+                    searchable: "false",
+                    render: function (data) {
+                        if (data == 1) {
+                            return '<span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>'
+                        } else {
+                            return '<span class="badge rounded-pill badge-soft-danger font-size-14">OFF-LINE</span>'
+                        }
+                    }
+                },
+                {
+                    data: "bulk_group_id",
+                    sortable: false,
+                    className: 'text-md-end text-start',
+                    render: function (data, type, row) {
+                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm " href="/bulk/' + data + '/edit" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
+                        let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-sm js-options-edit" data-url="/bulk/' + data + '/delete" role="button" ><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
+                        return edit_icon + " " + delete_icon
+                    }
+                },
+            ]
+        });
+    };
+
+
+} );
+    </script>
+
+
+{% endblock javascript %}
+

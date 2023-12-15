@@ -2,26 +2,26 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title"> Add Option Group</h4>
+    <h4 class="modal-title"> Add Option Class defaults</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
      <div class="container">
-        <form method="post" action="{% url 'product_variant_core_group_option-add' core_variant_id %}" id="form-core_variant_group_option_add">
+        <form method="post" action="{% url 'product_variant_core_class_option-add' core_variant_id %}" id="form-core_variant_class_option_add">
             {% csrf_token %}
              <input type="hidden" id="core_variant_id" name="core_variant_id" value="{{ core_variant_id }}">
 
             <div class="row">
-            <label for="group_option_select" class="label">Select the group</label>
-            <select class="form-select" id="js-group_option_select" name="group_option_select_id" data-url="{% url 'group_class_values' 0 %}">
-                {% for class_group in object_groups %}
-                {{ class_group.name }}
-                        <option value="{{ class_group.id }}">{{ class_group.name }}</option>
+            <label for="group_option_select" class="label">Select the class you wish to add</label>
+            <select class="form-select" id="js-class_option_select" name="class_option_select_id" data-url="{% url 'class_values' 0 %}">
+                {% for class_name in object_classes %}
+                {{ class_name.label }}
+                        <option value="{{ class_name.id }}">{{ class_name.label }} - {{ class_name.name }}</option>
                 {% endfor %}
             </select>
             </div>
-            <div class="row pt-2" id="group_option_values">
-                Nothing in here
+            <div class="row pt-2" id="class_option_values">
+                Select a class
             </div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">

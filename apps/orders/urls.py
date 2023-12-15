@@ -58,10 +58,13 @@ urlpatterns = [
          name='orderproducthistory_dlg'),
 
 
-
     path('api/<int:order_id>/updateshipping/', views.order_shipping_change, name='ordershippingchange'),
     path('api/<int:order_id>/shipit/', views.order_ship_it, name='ordershipit'),
     path('api/<int:order_id>/shippingaddressbook', views.get_order_shipping_addresses, name='orders_shipping_address'),
+
+    #variant options
+    path('<int:store_id>/product_variant/<int:product_variant_id>/ajax_load_options/', views.ajax_product_variant_options, name='product_variant_ajax_options'),
+
     path('<int:order_id>/test/', views.order_test),
     path('', views.order_list, name='allorders'),
     ]

@@ -55,10 +55,15 @@
                                         </li>
                                     </ul>
                                 </div>
+                                <a class="btn btn-success btn-xs js-variant-option-edit disabled" id="js-variant_core_class_option-add"
+                                   role="button"
+                                   data-url="{% url 'product_variant_core_class_option-add' 0 %}" data-dlgsize="modal-lg"><i class="fa-solid fa-plus table-button"></i> Add Class</a>
+
                                 <a class="btn btn-success btn-xs js-variant-option-edit disabled"
                                    id="js-variant_core_option-add" role="button"
                                    data-url="{% url 'product_variant_core_option-add' 0 %}" data-dlgsize="modal-lg"><i
                                         class="fa-solid fa-plus table-button"></i> Add Options</a>
+
                                 <a class="btn btn-success btn-xs js-variant-option-edit disabled" id="js-variant_core_group_option-add"
                                    role="button"
                                    data-url="{% url 'product_variant_core_group_option-add' 0 %}" data-dlgsize="modal-lg"><i class="fa-solid fa-plus table-button"></i> Add Group</a>

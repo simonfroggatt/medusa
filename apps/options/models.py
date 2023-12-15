@@ -29,40 +29,6 @@ class OcTsgOptionClassBase(models.Model):
         managed = False
         db_table = 'oc_tsg_option_class_base'
 
-
-class OcTsgOptionValuesBase(models.Model):
-    option_value_id = models.AutoField(primary_key=True)
-    option_type = models.ForeignKey(OcTsgOptionTypes, models.DO_NOTHING)
-    title = models.CharField(max_length=50, blank=True, null=True)
-    dropdown_title = models.CharField(max_length=255, blank=True, null=True)
-    descr = models.CharField(max_length=100, blank=True, null=True)
-    internal_name = models.CharField(max_length=100, blank=True, null=True)
-    product_id = models.IntegerField(blank=True, null=True)
-    price_modifier = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    image = models.CharField(max_length=255, blank=True, null=True)
-    show_at_checkout = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_option_values_base'
-
-
-class OcTsgVariantOptionsBase(models.Model):
-    product_variant = models.OneToOneField(OcTsgProductVariantCore, models.DO_NOTHING, primary_key=True)
-    option_class = models.ForeignKey(OcTsgOptionClassBase, models.DO_NOTHING)
-    option_class_value = models.ForeignKey(OcTsgOptionValuesBase, models.DO_NOTHING, db_column='option_class_value')
-    order_by = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_variant_options_base'
-        unique_together = (('product_variant', 'option_class', 'option_class_value'),)
-
-
-
-
-
-
 ####  -  NEW below here  -  ###########
 
 class OcTsgOptionClass(models.Model):
@@ -154,11 +120,24 @@ class OcTsgProductVariantOptions(models.Model):
         self.save()
 
 
-class TsgOcOptionClassValues(models.Model):
-    option_class = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, blank=True, null=True)
-    option_value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
-    order_id = models.IntegerField(blank=True, null=True)
+class OcTsgOptionClassValues(models.Model):
+    option_class = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, blank=True, null=True, related_name='values_option_class')
+    option_value = models.ForeignKey('OcTsgOptionValues', models.DO_NOTHING, blank=True, null=True, related_name='value_option_value')
+    order = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'tsg_oc_option_class_values'
+        db_table = 'oc_tsg_option_class_values'
+
+
+class OcTsgOptionValueDynamics(models.Model):
+    option_value = models.ForeignKey('OcTsgOptionValues', models.DO_NOTHING, blank=True, null=True, related_name='parent_option_value')
+    dep_option_value = models.ForeignKey('OcTsgOptionValues', models.DO_NOTHING, related_name='dynamic_option_value', blank=True, null=True)
+    label = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_option_value_dynamics'
+
+
+

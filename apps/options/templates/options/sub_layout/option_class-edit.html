@@ -11,11 +11,12 @@
 {% endblock extra_css %}
 
 {% block content %}
-    <form method="post">
+    <div class="">
+    <div class="row">
+        <div class="col">
+            <form method="post">
         {{ form.media }}
         {% csrf_token %}
-
-
             <div class="form-group">
                 <div class="row">
                             <div class="col-12">{{ form.label|as_crispy_field }}</div>
@@ -35,12 +36,205 @@
                     </div>
                 </div>
             </div>
-
     </form>
+        </div>
+    </div>
+        <h3>Predefined Class values</h3>
+    <div class="row">
+        <div class="col-12 col-md-6 ">
+            <h5>Available Values</h5>
+            <table id="class_values_available_table" class="table table-hover table-striped align-middle table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th class="col-7">Title</th>
+                        <th class="col-4">Type</th>
+                        <th class="text-end col-auto">&nbsp;</th>
+                    </tr>
+                    </thead>
+            </table>
+        </div>
+        <div class="col-12 col-md-6">
+            <h5>Active Values</h5>
+            <table id="class_values_active_table" class="table table-hover table-striped align-middle table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th class="text-start">&nbsp;</th>
+                        <th class="col-7">Title</th>
+                        <th class="col-4">Type</th>
+                        <th class="col-1">Order</th>
+                    </tr>
+                    </thead>
+            </table>
+        </div>
+    </div>
+    </div>
+
 {% endblock content %}
 
 {% block javascript %}
+    <script>
+    $(document).ready(function() {
 
+
+    if ($.fn.dataTable.isDataTable('#class_values_active_table')) {
+        var class_values_active_table = $('#class_values_active_table').DataTable();
+    } else {
+
+        var class_values_active_table = $('#class_values_active_table').DataTable({
+            "dom": "<'row'<'col-6'><'col-6'>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "select": false,
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'id',
+            "ajax": {
+                "processing": true,
+                "url": "/options/api/class/values/{{ class_id }}?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": false,
+
+            "search": {
+                "regex": true
+            },
+            "order": [[ 3, "asc" ]],
+            columns: [
+                {data: "id",
+                        render: function ( data, type, row ) {
+
+                            let dataurl = "/options/api/class/values/valueremove/"+data;
+                            return '<a class="btn btn-outline-danger btn-sm js-class_option-addremove" data-url='+dataurl+' role="button"><i class="fa-solid fa-trash"></i></a>';
+
+                        },
+                    sortable: false,
+                    class: "text-start",
+                    },
+                {data: "option_value.title"},
+                {data: "option_value.option_type.name"},
+                {data: "order",
+                        render: function ( data, type, row ) {
+
+                            let dataurl = "/options/api/class/values/valueorder/"+row['id'];
+                            return '<a class="btn btn-outline-secondary btn-sm js-class_option-changeorder" data-url='+dataurl+' role="button">'+data+'</a>';
+
+                        },
+                    sortable: false,
+                    class: "text-start",
+                    },
+
+            ]
+        });
+    }
+
+    if ($.fn.dataTable.isDataTable('#class_values_available_table')) {
+        var class_values_available_table = $('#class_values_available_table').DataTable();
+    } else {
+
+        var class_values_available_table = $('#class_values_available_table').DataTable({
+            "dom": "<'row'<'col-6'><'col-6'>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "select": false,
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'id',
+            "ajax": {
+                "processing": true,
+                "url": "/options/api/class/values/{{ class_id }}/exclude?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": false,
+
+            "search": {
+                "regex": true
+            },
+            "order": [[ 0, "asc" ]],
+            columns: [
+
+                {data: "title"},
+                {data: "option_type.name"},
+                {data: "id",
+                        render: function ( data, type, row ) {
+
+                            let dataurl = "/options/api/class/values/"+{{ class_id }} +"/valueadd/"+data;
+                            return '<a class="btn btn-outline-success btn-sm js-class_option-addremove" data-url='+dataurl+' role="button"><i class="fa-solid fa-plus"></i></a>';
+
+                        },
+                    sortable: false,
+                    class: "text-end",
+                    },
+
+            ]
+        });
+    }
+
+    function addRemoveOptionValue(){
+        let middle_ware = '{{ csrf_token }}';
+        var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'POST',
+            data: {csrfmiddlewaretoken: middle_ware},
+            success: function (data) {
+                if (data.is_saved) {
+                    updateClassValueTables()
+                }
+            }
+        });
+        return false;
+    }
+
+    function saveValueOrder(){
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $("#modal-base").modal("hide")
+                    updateClassValueTables();
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            },
+        })
+        return false;
+    }
+
+    $('#class_values_available_table').on('click', '.js-class_option-addremove', addRemoveOptionValue);
+    $('#class_values_active_table').on('click', '.js-class_option-addremove', addRemoveOptionValue);
+    $('#class_values_active_table').on('click', '.js-class_option-changeorder', loadForm);
+    $(document).on('submit', '#form-class_option_value_order-submit', saveValueOrder);
+
+
+
+    function updateClassValueTables(){
+        let dtAvailable = $('#class_values_available_table').DataTable();
+        dtAvailable.ajax.reload();
+
+        let dtActive = $('#class_values_active_table').DataTable();
+        dtActive.ajax.reload()
+    }
+
+
+ })
+
+    </script>
 
 {% endblock javascript %}
 

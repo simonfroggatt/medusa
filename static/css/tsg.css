@@ -570,9 +570,10 @@ table.dataTable td a.info-link {
 
 
 
-#product_table .product-thumb {
+table.dataTable .product-thumb {
             height: 30px;
         }
+
 
 .dataTables_wrapper .dataTables_filter {
     float:left !important;

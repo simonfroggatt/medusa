@@ -296,6 +296,9 @@ $(function () {
             },
             columns: [
                 {
+                    data: "id"
+                },
+                {
                     data: "product_var_core_option.option_class.label"
 
                 }
@@ -596,9 +599,15 @@ $(function () {
             core_variants_options.ajax.url(variant_url).load()
             $('#js-variant_core_option-add').removeClass('disabled');
             $('#js-variant_core_group_option-add').removeClass('disabled');
+            $('#js-variant_core_class_option-add').removeClass('disabled');
+
             let btn_add_url = 'variant/'+data+'/option/add';
             $('#js-variant_core_option-add').attr('data-url', btn_add_url)
+
             $('#js-variant_core_group_option-add').attr('data-url', 'variant/'+data+'/group_option/add')
+
+
+            $('#js-variant_core_class_option-add').attr('data-url', 'variant/'+data+'/class_option/add')
             // do something with the ID of the selected items
         }
     });
@@ -621,6 +630,7 @@ $(function () {
         if (type === 'row') {
             $('#js-variant_core_option-add').addClass('disabled')
             $('#js-variant_core_group_option-add').addClass('disabled');
+            $('#js-variant_core_class_option-add').addClass('disabled');
             $('#dropdownVariantOptions').addClass('disabled')
         }
     });
@@ -817,6 +827,23 @@ $(function () {
         return false;
     }
 
+    function get_class_option_text(group_class_id){
+        $.ajax({
+            url: "/products/class_values/" + group_class_id,
+            type: "GET",
+            dataType: 'json',
+            success: function (data) {
+                if (data.html_text) {
+                    $('#class_option_values').html(data.html_text)
+                }
+                else {
+                   $('#class_option_values').html("No values")
+                }
+            }
+        });
+        return false;
+    }
+
     function AddProductVariantSite(form){
         $.ajax({
             url: form.attr("action"),
@@ -917,7 +944,8 @@ $(function () {
     $(document).on("submit", "#form-core_variant_option_add", SaveVariantOptionAdd);
     $(document).on("submit", "#dlg-product_variant_core_option-delete", SaveVariantOptionAdd);
     $(document).on("submit", "#form-core_variant_edit", EditProductVariantCore);
-    $(document).on("submit", "#from-core_variant_group_option_add", SaveVariantGroupAdd);
+    $(document).on("submit", "#form-core_variant_group_option_add", SaveVariantGroupAdd);
+    $(document).on("submit", "#form-core_variant_class_option_add", SaveVariantGroupAdd);
     $(document).on("submit", "#from-site_variant_option_edit", SaveSiteOption);
     $(document).on("submit", "#form-core_variant_option_edit", SaveVariantOptionAdd);
     $(document).on("submit", "#form-site_variant_edit", AddProductVariantSite);
@@ -925,6 +953,10 @@ $(function () {
     $(document).on("change", "#js-group_option_select", function(){
          let newval = $(this).val()
          get_group_option_text(newval)
+    });
+    $(document).on("change", "#js-class_option_select", function(){
+         let newval = $(this).val()
+         get_class_option_text(newval)
     });
 
 

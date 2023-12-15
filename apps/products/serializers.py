@@ -243,3 +243,11 @@ class ProductStoreListSerializer(serializers.ModelSerializer):
         fields = ['id', 'product_id', 'image_url', 'name', 'title', 'description', 'bulk_group', 'corevariants', 'product']
         depth = 2
 
+
+class RelatedByStoreProductSerializer(serializers.ModelSerializer):
+    related = ProductStoreListSerializer(read_only=True)
+
+    class Meta:
+        model = OcProductRelated
+        fields = ['related']
+        depth = 1

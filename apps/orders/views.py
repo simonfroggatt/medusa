@@ -5,7 +5,10 @@ from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
     calc_order_totals, OcTsgCourier, OcTsgOrderShipment, recalc_order_product_tax, OcTsgOrderProductStatusHistory
-from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcTsgProductMaterial
+from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcTsgProductMaterial, OcProduct, \
+    OcTsgProductVariantCore, OcTsgProductVariants
+from apps.options.models import OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, OcTsgOptionValueDynamics
+from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
 from pyreportjasper import PyReportJasper
@@ -23,10 +26,12 @@ from django.urls import reverse_lazy
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.db.models import Sum
+import operator
 
 from apps.customer.serializers import AddressSerializer
 
 from collections import OrderedDict
+from itertools import chain
 
 class Orders2(viewsets.ViewSet):
     """
@@ -880,3 +885,255 @@ def duplicate_model_with_descendants(obj, whitelist, _new_parent_pk=None):
         for child in children_to_clone[ky]:
             child_collection.add(duplicate_model_with_descendants(child, whitelist=whitelist, _new_parent_pk=new_instance_pk))
     return new_instance
+
+
+
+def get_option_value_modifiers(option_value_id, follow = True):
+    option_value = get_object_or_404(OcTsgOptionValues, pk=option_value_id)
+    data = dict()
+    data['id'] = option_value_id
+    data['type_id'] = option_value.option_type_id
+    data['product_id'] = option_value.product_id
+    data['price_modifier'] = option_value.price_modifier
+    data['drop_down'] = option_value.dropdown_title
+    data['hidden'] = False
+    data['dynamic_select'] = []
+
+#see if this is part or dynamic option
+    if follow:
+        dynamic_option_value = OcTsgOptionValueDynamics.objects.filter(option_value_id=option_value_id)
+        if dynamic_option_value:
+            data['hidden'] = True
+            data_dyn = dict()
+            for dynamic_values in dynamic_option_value:
+                dynamic_option_obj = get_object_or_404(OcTsgOptionValues, pk=dynamic_values.dep_option_value_id)
+                data_dyn['id'] = dynamic_option_obj.id
+                data_dyn['label'] = dynamic_option_obj.title
+                data_dyn['order'] = 0
+                data_dyn['default'] = "Not required"
+                data_dyn['values'] = get_option_value_modifiers(dynamic_option_obj.id, False)
+                data['dynamic_select'].append(data_dyn)
+
+    if option_value.option_type_id == 4:
+#this calueis made up of another product e.g. clips
+        product_obj = get_object_or_404(OcProduct, product_id=option_value.product_id)
+        product_variant_obj = product_obj.corevariants.all()
+        product_data = []
+        for variant in product_variant_obj:
+            variant_data = dict()
+            variant_data['id'] = variant.prod_variant_core_id
+            variant_data['drop_down'] = variant.size_material.product_size.size_name
+            variant_data['price'] = variant.size_material.price
+            product_data.append(variant_data)
+        data['product_list'] = product_data
+
+
+    if option_value.option_type_id == 6:
+        product_variant_obj =  get_object_or_404(OcTsgProductVariantCore, product_variant_core_id=option_value.product_id)
+        product_data = dict()
+        product_data['id'] = product_variant_obj.prod_variant_core_id
+        product_data['name'] = product_variant_obj.product.productdescbase.name
+        product_data['price'] = product_variant_obj.size_material.price
+
+    return data
+
+
+####### - New option is in
+def ajax_product_variant_options(request, store_id, product_variant_id):
+    #given a variant_id and a store, get
+    select_data = []
+    #get the option class
+
+    select_data = create_product_variant_select_objects(store_id,product_variant_id)
+    data = dict()
+
+
+    template_name = 'orders/dialogs/product_variant_options.html'
+    context = {'product_variant_id': product_variant_id}
+    #context['variant_options_obj'] = variant_options_obj
+    context['select_data'] = select_data
+    data['html_content'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return render(request, template_name, context)
+
+
+def create_product_variant_select_objects(store_id, product_variant_id, follow=True):
+    #given a store and a product variant create a list of select objects.
+    select_list_data = []
+
+    #get the UNIQUE classes for thie variant - depth 1
+    option_class_unique = OcTsgProductVariantOptions.objects.filter(product_variant_id=product_variant_id).filter(isdeleted=0).values_list(
+        'product_var_core_option__option_class__id', 'product_var_core_option__option_class__label',
+        'product_var_core_option__option_class__order_by',
+        'product_var_core_option__option_class__default_dropdown_title').distinct().order_by(
+        'product_var_core_option__option_class__order_by')
+
+    for class_data in option_class_unique:
+        select_data = create_class_select_object(store_id, class_data[0], product_variant_id)
+        select_list_data.append(select_data)
+#so if any of these values have dynamic classes.
+        dynamic_child_class = create_dynamic_child_options(store_id, select_data['values'], product_variant_id)
+        if len(dynamic_child_class)>0:
+            select_list_data.extend(dynamic_child_class)
+#or are they a product and that variant has options?
+        if follow:
+            new_selects_added = []
+            new_selects_added.append(select_data) #the original class
+            new_selects_added.extend(dynamic_child_class) #the new child class
+            select_info = []
+            for select_check_data in new_selects_added:
+                for value_option in select_check_data['values']:
+                    if value_option['option_type'] == 4:
+                        product_variant_id = value_option['id']
+                        # get this variants options
+                        option_select_list = create_product_variant_select_objects(store_id, product_variant_id, False)
+                        if len(option_select_list) > 0:
+                            dynamic_arr = []
+                            for option_list in option_select_list:
+                                dynamic_tup = dict()
+                                dynamic_tup['pk'] = option_list['id']
+                                dynamic_tup['child_value_id'] = option_list['id']
+                                value_option['dynamic_id'].append(dynamic_tup)
+                                option_list['is_dynamic'] = True
+                            select_list_data.extend(option_select_list)
+
+
+    return select_list_data
+
+
+def create_class_select_object(store_id, class_id, product_variant_id):
+#create the label, order and default option for thie class -
+#e.g. Laminate, "No thanks",
+    select_info = dict()
+    class_obj = get_object_or_404(OcTsgOptionClass, pk=class_id)
+    select_info['id'] = class_id
+    select_info['label'] = class_obj.label
+    select_info['order'] = class_obj.order_by
+    select_info['default'] = class_obj.default_dropdown_title
+    select_info['is_dynamic'] = False
+#now get the class values that are valid for this product_variant of this site
+    class_option_values = create_class_option_values(store_id, class_id, product_variant_id)
+    select_info['values'] = class_option_values
+#we now have a complete <select><optionm> object
+
+    return select_info
+
+
+def create_class_option_values(store_id, option_class_id, product_variant_id):
+    #give a class id - get the drop down values for this class.
+    #we need the product_variant_id as each variant has diffenent option values
+    variant_option_obj = OcTsgProductVariantOptions.objects.filter(
+        product_var_core_option__option_class_id=option_class_id).filter(
+        product_variant_id=product_variant_id).filter(isdeleted=0).order_by('order_by')
+
+    #we now have a lis of option values for this class for a given variant - the variant is site specific
+
+    select_values = []
+    for variant_value in variant_option_obj:  # step over the variant options in this class
+        value_obj = variant_value.product_var_core_option.option_value  # get the option value object
+
+        if value_obj.option_type_id == 4 or value_obj.option_type_id == 6:  # this list needs to be made up of products
+            class_data = create_option_values_from_product(store_id, value_obj)
+            select_values.extend(class_data)
+        else: #e.g. lamiate / drill holes
+            select_data = create_option_values_from_list(value_obj)
+            dynamic_option_value = OcTsgOptionValueDynamics.objects.filter(option_value_id=value_obj.id)
+            if dynamic_option_value:
+                for dynamic_values in dynamic_option_value:
+                    dynamic_tup = dict()
+                    dynamic_tup['pk'] = dynamic_values.pk
+                    dynamic_tup['child_value_id'] = dynamic_values.dep_option_value_id
+                    select_data['dynamic_id'].append(dynamic_tup)
+            select_values.append(select_data)
+
+    #return the array of values (used as drop downs)
+    return select_values
+
+def create_option_values_from_list(value_obj):
+#standard list options
+    select_data = dict()
+    select_data['option_type'] = value_obj.option_type_id
+    select_data['id'] = value_obj.id
+    select_data['drop_down'] = value_obj.title
+    select_data['price_modifier'] = float(value_obj.price_modifier)
+    select_data['dynamic_id'] = []
+    select_data['option_type'] = value_obj.option_type_id
+    return select_data
+
+
+def create_option_values_from_product(store_id, parent_class):
+    #get the product variants to create the list from the product_id and the store
+    product_variant_obj = OcTsgProductVariants.objects.select_related('prod_var_core__size_material').filter(
+        prod_var_core__product_id=parent_class.product_id).filter(
+        store_id=store_id)
+
+    product_data = []
+    for variant in product_variant_obj:
+        variant_data = dict()
+        variant_data['id'] = variant.prod_var_core.prod_variant_core_id
+        variant_data['drop_down'] = variant.prod_var_core.size_material.product_size.size_name
+        variant_data['price_modifier'] = parent_class.price_modifier
+        variant_data['option_type'] = parent_class.option_type_id
+        variant_data['dynamic_id'] = []
+#get the size for the drop down
+        store_size_material_price = OcTsgSizeMaterialCombPrices.objects.filter(
+            size_material_comb_id=variant.prod_var_core.size_material_id).filter(store_id=store_id).first()
+
+        price = store_size_material_price.price
+        alt_price = variant.variant_overide_price
+        if alt_price:
+            variant_data['price'] = alt_price
+        else:
+            variant_data['price'] = price
+
+        product_data.append(variant_data)
+
+    product_data.sort(key=operator.itemgetter('price')) #sort the drop down by price
+    return product_data
+
+
+def create_dynamic_child_options(store_id, class_option_values, product_variant_id):
+#now check if any of the last values added have children options
+    select_list_data = []
+    order = 1
+    for select_values in class_option_values:
+        if len(select_values['dynamic_id']) > 0:
+            for dynamic_option_value_id in select_values['dynamic_id']:
+                dynamic_class_info = create_new_select_from_dyn_value(store_id, dynamic_option_value_id['pk'], order)
+                order += 1
+                select_list_data.append(dynamic_class_info)
+
+    return select_list_data
+
+
+def create_new_select_from_dyn_value(store_id, dynamic_option_pk, order):
+    dynamic_option_obj = get_object_or_404(OcTsgOptionValueDynamics, pk=dynamic_option_pk)
+    value_obj = get_object_or_404(OcTsgOptionValues, pk=dynamic_option_obj.dep_option_value_id)
+    select_info = dict()
+    select_info['id'] = value_obj.pk
+    select_info['label'] = dynamic_option_obj.label
+    select_info['order'] = order
+    select_info['default'] = 'No thanks'
+    select_info['is_dynamic'] = True
+    if value_obj.option_type_id == 4:#then a list of products
+        class_option_values = create_option_values_from_product(store_id, value_obj)
+        select_info['values'] = class_option_values
+    else:
+        tmp = [];
+    return select_info
+
+
+def create_dynamic_options_from_product_variant(store_id, class_option_values):
+    select_info = []
+    for value_option in class_option_values:
+        product_variant_id = value_option['id']
+#get this variants options
+        option_select_list = create_product_variant_select_objects(store_id, product_variant_id, False)
+        if len(option_select_list) > 0:
+            for option_list in option_select_list:
+                option_list['is_dynamic'] = True
+            select_info.extend(option_select_list)
+    return select_info

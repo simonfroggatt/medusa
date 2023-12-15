@@ -12,6 +12,7 @@ router.register(r'productsymbols', views.ProductSymbols)
 router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
 router.register(r'product_core_variant_options', views.ProductCoreVariantOption)
 router.register(r'product_site_variant_options', views.ProductSiteVariantOption)
+router.register(r'product_site_variant_options_classes', views.ProductSiteVariantOptionClasses)
 #router.register(r'store/products', views.Product_by_Store)
 
 
@@ -38,15 +39,22 @@ urlpatterns = [
     path('variant/<int:pk>/option/edit', views.product_variant_core_edit_option,  name='product_variant_core_option-edit'),
     path('variant/<int:pk>/option/delete', views.product_variant_core_delete_option, name='product_variant_core_option-delete'),
     path('variant/<int:core_variant_id>/group_option/add', views.product_variant_core_add_group_option,name='product_variant_core_group_option-add'),
+    path('variant/<int:core_variant_id>/class_option/add', views.product_variant_core_add_class_option,name='product_variant_core_class_option-add'),
     path('<int:pk>/variant/add_dlg', views.product_variant_site_add_dlg, name='product_variant_site-add-dlg'),
     path('<int:pk>/corevariant/add', views.product_core_variant_add, name='product_core_variant-add'),
+
+    #product variant options for adding product to order
+
     # called when adding a new core variant to a product from a given site
     path('sitevariant/add/<int:core_variant_id>/<int:store_id>', views.product_variant_site_add, name='product_variant_site-add'),
     path('sitevariant/delete/<int:product_variant_id>', views.product_variant_site_delete, name='product_variant_site-delete'),
     path('sitevariant/<int:pk>/option/edit', views.site_variant_edit_option, name='site_variant_core_option-edit'),
     path('sitevariant/<int:pk>/edit', views.site_variant_edit, name='site_variant-edit'),
     path('sitevariant/<int:pk>/option/add', views.site_variant_options_edit, name='site_variant_option-add'),
+    path('sitevariant/<int:pk>/option/delete', views.site_variant_options_delete, name='site_variant_option-delete'),
     path('group_class/<int:group_id>', views.group_class_list_html, name='group_class_values'),
+    path('class_values/<int:class_id>', views.class_value_list_html, name='class_values'),
+
 
 
     #symbols
@@ -57,6 +65,7 @@ urlpatterns = [
     path('related/<int:pk>/add', views.related_item_add, name='related_product-add'),
     path('related/<int:pk>/edit', views.related_item_edit, name='related_product-edit'),
     path('related/<int:pk>/delete', views.related_item_delete, name='related_product-delete'),
+    path('related/<int:pk>/store', views.related_item_by_store.as_view(), name='related_product-bystore'),
 
 
 ## - additional product images

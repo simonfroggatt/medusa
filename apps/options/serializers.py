@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import OcTsgOptionValues, OcTsgOptionClassGroups, OcTsgOptionTypes, OcTsgOptionClass, OcTsgOptionClassGroupValues
+from .models import OcTsgOptionValues, OcTsgOptionClassGroups, OcTsgOptionTypes, OcTsgOptionClass, \
+    OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues
 
 
 class OptionValuesSerializer(serializers.ModelSerializer):
@@ -41,5 +42,13 @@ class OptionGroupValueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcTsgOptionClassGroupValues
+        fields = '__all__'
+        depth = 2
+
+
+class OptionClassPredefinedValuesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcTsgOptionClassValues
         fields = '__all__'
         depth = 2

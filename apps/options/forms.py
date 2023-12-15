@@ -1,6 +1,6 @@
 from django import forms
 from apps.options.models import OcTsgOptionClass, OcTsgOptionValues, OcTsgOptionTypes, OcTsgOptionClassGroups, \
-    OcTsgOptionClassGroupValues
+    OcTsgOptionClassGroupValues, OcTsgOptionClassValues
 from apps.products.models import OcProduct
 
 class ClassEditForm(forms.ModelForm):
@@ -67,6 +67,20 @@ class GroupValueEditForm(forms.ModelForm):
         widgets = {
             'group': forms.HiddenInput
         }
+
+
+class ClassValuesOrderForm(forms.ModelForm):
+
+    class Meta:
+        model = OcTsgOptionClassValues
+
+        fields = '__all__'
+        widgets = {
+            'id': forms.HiddenInput,
+            'option_class': forms.HiddenInput,
+            'option_value': forms.HiddenInput,
+        }
+
 
 
 

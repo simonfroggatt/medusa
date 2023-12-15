@@ -2,16 +2,18 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from apps.options.models import OcTsgOptionTypes, OcTsgOptionClassGroups, OcTsgOptionClass, OcTsgOptionValues, \
-    OcTsgOptionClassGroupValues
-from apps.options.forms import ClassEditForm, ValueEditForm, TypesEditForm, GroupEditForm, GroupValueEditForm
+    OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues
+from apps.options.forms import ClassEditForm, ValueEditForm, TypesEditForm, GroupEditForm, GroupValueEditForm, \
+    ClassValuesOrderForm
 from apps.products.models import OcProduct, OcTsgProductVariantCore
 from .serializers import OptionValuesSerializer, OptionGroupSerializer, OptionTypeSerializer, OptionClassSerializer, \
-    OptionGroupValueSerializer
+    OptionGroupValueSerializer, OptionClassPredefinedValuesSerializer
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 import json
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
+from itertools import chain
 
 
 
@@ -58,6 +60,17 @@ class OptionGroups(viewsets.ModelViewSet):
 
 class OptionGroupsValues(viewsets.ModelViewSet):
     queryset = OcTsgOptionClassGroupValues.objects.all()
+    serializer_class = OptionGroupValueSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        group_id = kwargs['pk']
+        group_value_obj = OcTsgOptionClassGroupValues.objects.filter(group_id=group_id)
+        serializer = self.get_serializer(group_value_obj, many=True)
+        return Response(serializer.data)
+
+
+class OptionClassValues(viewsets.ModelViewSet):
+    queryset = OcTsgOptionValues.objects.all()
     serializer_class = OptionGroupValueSerializer
 
     def retrieve(self, request, *args, **kwargs):
@@ -154,6 +167,7 @@ class OptionClassEdit(UpdateView):
         context = super().get_context_data(**kwargs)
         context['heading'] = "Edit"
         context['pageview'] = "Class"
+        context['class_id'] = self.kwargs['pk']
         return context
 
 
@@ -168,15 +182,13 @@ class OptionValueEdit(UpdateView):
         context['heading'] = "Edit"
         context['pageview'] = "Values"
         context['value_id'] = self.kwargs['pk']
+
         option_types_json = list(OcTsgOptionTypes.objects.all().values())
-        for value_list in option_types_json:
-            for key, value in value_list.items():
-                if value == False:
-                    value_list[key] = 'false'
-                if value == True:
-                    value_list[key] = 'true'
+
+
         context['option_types'] = option_types_json
         value_obj = self.object
+        context['product_extra'] = False
         if value_obj.option_type.extra_product:
             product_obj = OcProduct.objects.filter(product_id=value_obj.product_id).first()
             context['product_obj'] = product_obj
@@ -432,4 +444,94 @@ def group_value_delete_dlg(request, pk):
                                          context,
                                          request=request
                                          )
+    return JsonResponse(data)
+
+
+#pre-defined class values
+class PredefinedClassValues(viewsets.ModelViewSet):
+    queryset = OcTsgOptionClassValues.objects.all()
+    serializer_class = OptionClassPredefinedValuesSerializer
+
+    def list(self, request, *args, **kwargs):
+        class_id = kwargs['class_id']
+        class_list_obj = OcTsgOptionClassValues.objects.filter(option_class_id=class_id)
+
+        serializer = self.get_serializer(class_list_obj, many=True)
+        return Response(serializer.data)
+
+
+class PredefinedClassValuesExcluded(viewsets.ModelViewSet):
+    queryset = OcTsgOptionValues.objects.all()
+    serializer_class = OptionValuesSerializer
+
+    def list(self, request, *args, **kwargs):
+        class_id = kwargs['class_id']
+
+        class_value_list_obj = OcTsgOptionClassValues.objects.filter(option_class_id=class_id).values_list('option_value_id')
+
+        class_value_list = list(chain(*class_value_list_obj))
+
+        value_qs = OcTsgOptionValues.objects.exclude(pk__in=class_value_list)
+
+        serializer = self.get_serializer(value_qs, many=True)
+        return Response(serializer.data)
+
+
+def predefinedClassValuesAdd(request, class_id, option_value_id):
+    data = dict()
+
+    if request.method == 'POST':
+        current_class_count = OcTsgOptionClassValues.objects.filter(option_class_id=class_id).count()
+        new_class_value_obj = OcTsgOptionClassValues()
+        new_class_value_obj.option_class_id = class_id
+        new_class_value_obj.option_value_id = option_value_id
+        new_class_value_obj.order = current_class_count + 1
+        new_class_value_obj.save()
+        data['is_saved'] = True
+    else:
+        data['is_saved'] = False
+
+    return JsonResponse(data)
+
+
+def predefinedClassValuesRemove(request, class_option_value_id):
+    data = dict()
+
+    if request.method == 'POST':
+        class_option_value_obj = get_object_or_404(OcTsgOptionClassValues, pk=class_option_value_id)
+        class_option_value_obj.delete()
+        data['is_saved'] = True
+    else:
+        data['is_saved'] = False
+
+    return JsonResponse(data)
+
+
+def predefinedClassValuesOrder(request, class_option_value_id):
+    context = {}
+    data = dict()
+
+    if request.method == 'POST':
+        form_obj = ClassValuesOrderForm(request.POST)
+        if form_obj.is_valid():
+            class_option_value_obj = get_object_or_404(OcTsgOptionClassValues, pk=class_option_value_id)
+            form_instance = form_obj.instance
+            class_option_value_obj.order = form_instance.order
+            class_option_value_obj.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        class_option_value_obj = get_object_or_404(OcTsgOptionClassValues, pk=class_option_value_id)
+        form_obj = ClassValuesOrderForm(instance=class_option_value_obj)
+
+    context['form'] = form_obj
+    context['class_option_value_id'] = class_option_value_id
+    template_name = 'options/dialogs/class_option_values_changeorder.html'
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
     return JsonResponse(data)

@@ -228,6 +228,8 @@ $(function () {
                 });
             };
 
+
+
     value_product_table_for_variant.on('select', function (e, dt, type, indexes) {
                 if (type === 'row') {
                     let product_id = value_product_table_for_variant.row(indexes).id()
