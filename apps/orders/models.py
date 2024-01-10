@@ -4,6 +4,7 @@ from django.utils import timezone
 import datetime as dt
 from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
+from apps.shipping.models import OcTsgCourier
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate
 from decimal import Decimal, ROUND_HALF_UP
@@ -12,6 +13,14 @@ class OcOrderQuerySet(models.QuerySet):
     def successful(self):
         valid_status = [2]
         return self.filter(payment_status_id__in=valid_status)
+
+    def live(self):
+        valid_status = [2, 3, 8]
+        return self.exclude(order_status_id=99).filter(payment_status_id__in=valid_status)
+
+    def failed(self):
+        valid_status = [2, 3, 8]
+        return self.exclude(payment_status_id__in=valid_status).exclude(order_status_id=99)
 
     def days_since(self):
        #ß today_data = '2019-06-17'
@@ -27,6 +36,12 @@ class OcOrderManager(models.Manager):
 
     def successful(self):
         return self.get_queryset().successful()
+
+    def live(self):
+        return self.get_queryset().live()
+
+    def failed(self):
+        return self.get_queryset().failed()
 
     def days_since(self):
         return 3
@@ -100,37 +115,6 @@ class OcTsgOrderProductStatus(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class OcTsgCourier(models.Model):
-    courier_id = models.AutoField(primary_key=True)
-    courier_title = models.CharField(max_length=255, blank=True, null=True)
-    courier_logo = models.CharField(max_length=255, blank=True, null=True)
-    courier_api_url = models.CharField(max_length=1024, blank=True, null=True)
-    courier_username = models.CharField(max_length=255, blank=True, null=True)
-    courier_key = models.CharField(max_length=255, blank=True, null=True)
-    courier_tracking_url = models.CharField(max_length=512, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_courier'
-
-    def __str__(self):
-        return self.courier_title
-
-
-class OcTsgCourierOptions(models.Model):
-    courier_opion_id = models.AutoField(primary_key=True)
-    courier_option_title = models.CharField(max_length=255, blank=True, null=True)
-    courier_option_description = models.CharField(max_length=255, blank=True, null=True)
-    courier = models.ForeignKey(OcTsgCourier, models.DO_NOTHING, related_name='courierdetails')
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_courier_options'
-
-    def __str__(self):
-        return self.courier_option_title
 
 
 class OcOrder(models.Model):

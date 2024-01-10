@@ -8,12 +8,12 @@
     <div class="wrapper wrapper-content layout-details">
         <div class="row top_bar align-middle">
             <div class="col-3 col-lg-2">
-                <h2>Order - <a id="js-order-number"
+                <h2>{{ order_obj.store.prefix }}-<a id="js-order-number"
                         href="javascript: copy_orderno_to_clipboard({{ order_obj.order_id }})">{{ order_obj.order_id }}</a>
                     <img src="{% static "" %}images/stores/{{ order_obj.store.thumb }}" class="img-responsive"
                          alt="{{ order_obj.store.name }}"></h2>
             </div>
-            <div class="col-3 col-lg-4 align-middle">
+            <div class="col-3 col-lg-4 align-middle" id="div_order_flags">
                 {% include 'orders/sub_layout/order_flags.html' %}
             </div>
             <div class="col-6 col-lg-6">

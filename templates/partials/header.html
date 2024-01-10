@@ -72,36 +72,30 @@
                     </div>
                 </div>
 
-
-                <div class="dropdown d-none d-lg-inline-block ms-1">
+                <div class="d-grid gap-1 d-md-flex justify-content-md-end">
                     <button type="button" class="btn header-item" id="topmenu_contact">
-                        <a href="{% url 'allcustomers' %}">
-                        <i class="fa-solid fa-user-friends"></i></a>
+                                        <a href="{% url 'allcustomers' %}">
+                                        <i class="fa-solid fa-user-friends"></i></a>
                     </button>
-                </div>
-
-                <div class="dropdown d-none d-lg-inline-block ms-1">
+                    <button type="button" class="btn header-item" id="topmenu_liveorder">
+                        <a href="{% url 'allorders' %}">
+                        <i class="fa-solid fa-chart-line-up"></i></a>
+                    </button>
                     <button type="button" class="btn header-item" id="topmenu_order">
                         <i class="fa-solid fa-shopping-cart"></i>
                     </button>
-                </div>
-                <div class="dropdown d-none d-lg-inline-block ms-1">
                     <button type="button" class="btn header-item" id="topmenu_quickquote"
                                     data-url="{% url 'quotequick' %}"
                                         data-dlgsize="modal-lg">
                         <i class="fa-solid fa-file-invoice"></i>
                     </button>
-                </div>
-                <div class="dropdown d-none d-lg-inline-block ms-1">
                     <button type="button" class="btn header-item" id="topmenu_quickcalc">
                         <i class="fa-solid fa-calculator"></i>
                     </button>
-                </div>
-
-                <div class="dropdown d-none d-lg-inline-block ms-1">
                     <button type="button" class="btn header-item noti-icon waves-effect" data-toggle="fullscreen">
                         <i class="mdi mdi-fullscreen"></i>
                     </button>
+
                 </div>
 
 

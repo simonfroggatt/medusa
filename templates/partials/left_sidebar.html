@@ -19,13 +19,25 @@
                 
                             <li>
                                 <a href="javascript: void(0);" class="has-arrow waves-effect">
-                                    <i class="fa-solid fa-chart-line"></i>
-                                    <span>Sales</span>
+                                    <i class="fa-regular fa-chart-line-up"></i>
+                                    <span>Orders</span>
 
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
-                                    <li><a href="{% url 'allorders' %}" >Orders</a></li>
+                                    <li><a href="{% url 'liveorders' %}" >Live Orders</a></li>
+                                    <li><a href="{% url 'allorders' %}">All Orders</a></li>
+                                    <li><a href="{% url 'failedorders' %}">Failed Orders</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class="fa-regular fa-chart-user"></i>
+                                    <span>Leads</span>
+
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
                                     <li><a href="{% url 'allquotes' %}">Quotes</a></li>
+                                    <li><a href="{% url 'allquotes' %}">Cart</a></li>
                                 </ul>
                             </li>
                             <li>
@@ -117,6 +129,16 @@
                                 </a>
                             </li>
 
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class="fa-solid fa-truck-fast"></i>
+                                    <span>Shipping</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="{% url 'allmethods' %}" >Methods</a></li>
+                                    <li><a href="{% url 'allcouriers' %}" >Couriers</a></li>
+                                </ul>
+                            </li>
 
                         </ul>
                     </div>

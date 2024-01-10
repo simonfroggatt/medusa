@@ -20,7 +20,7 @@ from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, Product
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
-from medusa.models import OcTsgShippingMethod
+from apps.shipping.models import OcTsgShippingMethod
 from django.core import serializers
 from django.urls import reverse_lazy
 from decimal import Decimal, ROUND_HALF_UP
@@ -60,16 +60,46 @@ def order_test(request, order_id):
 def order_list(request):
     template_name = 'orders/orders_list.html'
     context = {'pageview': 'All Orders'}
+    context['order_status'] = 'ALL'
     return render(request, template_name, context)
+
+
+def live_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'pageview': 'Live Orders'}
+    context['order_status'] = 'LIVE'
+    return render(request, template_name, context)
+
+
+def failed_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'pageview': 'Failed Orders'}
+    context['order_status'] = 'FAILED'
+    return render(request, template_name, context)
+
 
 class Orders_asJSON(viewsets.ModelViewSet):
     queryset = OcOrder.objects.all()
     serializer_class = OrderListSerializer
+    model = serializer_class.Meta.model
 
     def retrieve(self, request, pk=None):
+        status = str(self.request.query_params.get('status', 'ALL'))
         order_products = OcOrder.objects.filter(store_id=pk)
         serializer = self.get_serializer(order_products, many=True)
         return Response(serializer.data)
+
+    def get_queryset(self):
+        valid_status = [2, 3]
+        status = self.request.GET.get('status', 'ALL')
+        if status == 'LIVE':
+            queryset = self.model.objects.live()
+        elif status == 'FAILED':
+            queryset = self.model.objects.failed()
+        else:
+            queryset = self.model.objects.all()
+        return queryset
+
 
 
 class Orders_Company(viewsets.ModelViewSet):
@@ -234,6 +264,26 @@ def get_order_addresses(request, order_id):
 
     return JsonResponse(data)
 
+
+def get_order_flags(request, order_id):
+    data = dict()
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+
+    context = {"order_obj": order_obj}
+    context["orderFlags"] = order_obj.orderflags.all()
+    product_flags = OcOrderProduct.objects.select_related('status').filter(order=order_id, status__is_flag=1).order_by(
+        'status__order_by').values('status__icon_path', 'status__name').distinct()
+
+    context["orderFlags"] = order_obj.orderflags.all()
+    context["productFlags"] = product_flags
+    data['html_order_flags'] = render_to_string('orders/sub_layout/order_flags.html',
+                                            context,
+                                            request=request
+                                            )
+    return JsonResponse(data)
+
+
+
 def get_order_details(request, order_id):
     data = dict()
     order_obj = get_object_or_404(OcOrder, pk=order_id)
@@ -381,6 +431,22 @@ def order_ship_it(request, order_id):
             form_instance.shipping_status_id = 1
             form_instance.save()
             data['form_is_valid'] = True
+            order_details_obj.order_status_id = 99
+            order_details_obj.save()
+
+            """Now check to see if we set the product status to shipped and if we send the invoice or not"""
+            bl_mark_shipped = int(request.POST.get('checkSetShipped', 0))
+            if bl_mark_shipped == 1:
+                for order_product in order_details_obj.order_products.all():
+                    if order_product.status_id != 9: #shipped direct
+                        order_product.status_id = 8    #set as shipped
+                        order_product.save()
+
+            bl_send_invoice_email = request.POST.get('checkSendInvoice', 0)
+            invoice_emails = request.POST.get('sendInvoiceEmail', 0)
+            bl_send_tracking_email = request.POST.get('checkSendTracking', 0)
+            tracking_emails = request.POST.get('sendTrackingEmail', 0)
+
         else:
             data['form_is_valid'] = False
 
@@ -948,10 +1014,29 @@ def ajax_product_variant_options(request, store_id, product_variant_id):
     data = dict()
 
 
+    #get the variant details
+    product_variant_obj = get_object_or_404(OcTsgProductVariants, pk=product_variant_id);
+
+    variant_info = dict()
+
+    core_size_material_id = product_variant_obj.prod_var_core.size_material_id
+
+    store_size_material_price = OcTsgSizeMaterialCombPrices.objects.select_related('size_material_comb__product_size').filter(
+        size_material_comb_id=core_size_material_id).filter(store_id=store_id).first()
+
+
+    variant_info['size_width'] = store_size_material_price.size_material_comb.product_size.size_height
+    variant_info['size_height'] = store_size_material_price.size_material_comb.product_size.size_width
+    if product_variant_obj.variant_overide_price > 0:
+        variant_info['base_price'] = product_variant_obj.variant_overide_price
+    else:
+        variant_info['base_price'] = store_size_material_price.price
+
     template_name = 'orders/dialogs/product_variant_options.html'
     context = {'product_variant_id': product_variant_id}
-    #context['variant_options_obj'] = variant_options_obj
+    context['variant_info'] = variant_info
     context['select_data'] = select_data
+    context['base_price'] = 1.00
     data['html_content'] = render_to_string(template_name,
                                          context,
                                          request=request

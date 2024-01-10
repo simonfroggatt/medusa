@@ -13,7 +13,7 @@
 {% block content %}
      <div class="wrapper wrapper-content layout-details">
 
-        <form method="post" action="">
+        <form method="post" action="" id="frmBulkPricingEdit">
             {{ form.media }}
             {% csrf_token %}
                 <div class="form-group">
@@ -37,6 +37,19 @@
                                 </table>
                                     </div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="row d-flex align-items-end">
+                        <div class="col-2">
+                            <label for="minBreak" class="form-label">Min Break</label>
+                            <input type="number" min="0" class="form-control" id="minBreak" name="minBreak" value="0">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="discountValue" class="form-label">Discount</label>
+                            <input type="number" min="0" max="100" class="form-control" id="discountValue" name="discountValue" value="0">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn {{ BUTTON_UPDATE }}" id="btnAddBreak">Add Break</button>
                         </div>
                     </div>
                     <div class="row">
@@ -91,16 +104,59 @@
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
                         let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm " href="/bulk/' + data + '/edit" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
-                        let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-sm js-options-edit" data-url="/bulk/' + data + '/delete" role="button" ><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
-                        return edit_icon + " " + delete_icon
+                        let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-sm js-bulkbreak-delete" data-url="/bulk/'+data+'/break/delete" role="button" ><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
+                        return  delete_icon
                     }
                 },
             ]
         });
     };
 
+    $('#btnAddBreak').click(function (){AddBreak()});
 
+    $(document).on('click', '.js-bulkbreak-delete', loadForm);
+    $(document).on('submit', '#form-bulk-break-delete', deleteBreak);
+
+    function AddBreak(){
+        var form = $('#frmBulkPricingEdit');
+        let url = "/bulk/{{ bulk_group_obj.bulk_group_id }}/break/add"
+        $.ajax({
+            url: url,
+            data: form.serialize(),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    let dtAvailable = $('#bulk_group_breaks_table').DataTable();
+                    dtAvailable.ajax.reload();
+                }
+            }
+        });
+        return false;
+    };
+
+    function deleteBreak()
+    {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                     let dtAvailable = $('#bulk_group_breaks_table').DataTable();
+                    dtAvailable.ajax.reload();
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
 } );
+
     </script>
 
 

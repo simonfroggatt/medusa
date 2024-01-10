@@ -237,6 +237,7 @@ $(function () {
                     updateProductTable()
                     updateTotalsTable()
                     updateOrderTotalText(form)
+                    updateOrderFlags()
                 } else {
                     $("#modal-base .modal-content").html(data.html_form);
                 }
@@ -417,6 +418,8 @@ $(function () {
             success: function (data) {
                 if (data.form_is_valid) {
                     updateOrderDetails()
+                    updateProductTable()
+                    updateOrderFlags()
                     $("#modal-base").modal("hide");  // <-- Close the modal
                 } else {
                     $("#modal-base .modal-content").html(data.html_form);
@@ -457,6 +460,19 @@ $(function () {
             }
         });
         return false;
+    }
+
+    let updateOrderFlags = function () {
+         $.ajax({
+            url: '/orders/' + current_order_id + '/flags',
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+                $('#div_order_flags').html(data.html_order_flags)
+            }
+        });
+        return false;
+
     }
 
     let saveOrderEditForm = function () {

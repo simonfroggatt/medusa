@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from apps.products.models import OcTsgBulkdiscountGroups, OcTsgBulkdiscountGroupBreaks
 from .seriailizers import BulkdiscountGroupsSerialiser, BulkdiscountGroupBreaksSerialiser
 from .forms import BulkGroupEditForm
+from django.template.loader import render_to_string
 
 class BulkGroups(viewsets.ModelViewSet):
     queryset = OcTsgBulkdiscountGroups.objects.all()
@@ -42,6 +43,7 @@ def bulk_group_edit(request, pk):
     return render(request, template_name, context)
 
 
+
 class bulk_group_breaks_list(generics.ListAPIView):
     serializer_class = BulkdiscountGroupBreaksSerialiser
     model = serializer_class.Meta.model
@@ -55,3 +57,33 @@ class bulk_group_breaks_list(generics.ListAPIView):
         queryset = self.model.objects.filter(bulk_discount_group__bulk_group_id=bulk_group_id).order_by('discount_percent')
         return queryset
 
+
+def bulk_group_add(request, pk):
+    data = dict()
+    if request.method == 'POST':
+        bulk_group_obj = get_object_or_404(OcTsgBulkdiscountGroups, pk=pk)
+        min_value = request.POST.get('minBreak')
+        discount_value = request.POST.get('discountValue')
+        new_break = bulk_group_obj.discountgroup.create(qty_range_min=min_value, discount_percent=discount_value)
+        new_break.save()
+        data['form_is_valid'] = True
+
+    return JsonResponse(data)
+
+
+def bulk_group_delete(request, pk):
+        data = dict()
+        context = {}
+        if request.method == 'POST':
+            break_id = request.POST.get('bulk_pricing_break_id')
+            obj_break = get_object_or_404(OcTsgBulkdiscountGroupBreaks, pk=break_id)
+            obj_break.delete()
+            data['form_is_valid'] = True
+        else:
+            context['pk'] = pk
+            template_name = 'bulk/dialogs/bulk_break_delete.html'
+            data['html_form'] = render_to_string(template_name,
+                                                 context,
+                                                 request=request
+                                                 )
+        return JsonResponse(data)

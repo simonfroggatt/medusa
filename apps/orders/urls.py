@@ -39,6 +39,8 @@ urlpatterns = [
          name='orderproductdelete'),
     path('<int:order_id>/addresses', views.get_order_addresses,
          name='orderaddresses'),
+    path('<int:order_id>/flags', views.get_order_flags,
+         name='orderflags'),
     path('<int:order_id>/taxchange', views.tax_change_dlg, name='ordertaxchange'),
     path('<int:order_id>/discountchange', views.discount_change_dlg, name='orderdiscountchange'),
     path('<int:order_id>/details', views.get_order_details,
@@ -66,5 +68,7 @@ urlpatterns = [
     path('<int:store_id>/product_variant/<int:product_variant_id>/ajax_load_options/', views.ajax_product_variant_options, name='product_variant_ajax_options'),
 
     path('<int:order_id>/test/', views.order_test),
-    path('', views.order_list, name='allorders'),
+    path('live', views.live_order_list, name='liveorders'),
+    path('all', views.order_list, name='allorders'),
+    path('failed', views.failed_order_list, name='failedorders'),
     ]

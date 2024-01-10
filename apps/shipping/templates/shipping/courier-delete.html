@@ -1,0 +1,24 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Delete Courier</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'courier_delete_confirm' 0 %}" id="form-courier-delete">
+            {% csrf_token %}
+            <input type="hidden" id="courier_id" name="courier_id" value="{{ pk }}">
+                <h3>Are you sure what to delete this courier?</h3>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="delete" class="btn {{ BUTTON_DELETE }} pull-right">Delete</button>
+                    </div>
+        </form>
+    </div>
+</div>
+
+
+
+

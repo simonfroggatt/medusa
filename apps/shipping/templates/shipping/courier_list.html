@@ -1,0 +1,132 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="wrapper wrapper-content layout-details">
+        <div class="row top_bar">
+            <div class="col-12">
+                {% include 'shipping/top_nav_courier.html' %}
+            </div>
+        </div>
+
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="courier_list_table" class="table table-hover table-striped align-middle table-sm"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th class="col-2">Logo</th>
+                                        <th class="col-9">Name</th>
+                                        <th class="text-end col-1">&nbsp</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script>
+       $(document).ready(function() {
+
+
+    if ( $.fn.dataTable.isDataTable( '#courier_list_table' ) ) {
+        let courier_list_table = $('#courier_list_table').DataTable();
+    }
+    else {
+        let courier_list_table = $('#courier_list_table').DataTable({
+            "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 25,
+            "autoWidth": false,
+            "responsive": true,
+            "ajax": {
+                "processing": true,
+                "url": "/shipping/api/couriers/?format=datatables"
+            },
+            "deferRender": false,
+            "search": {
+                "regex": true
+            },
+            "rowId" : 'bulk_group_id',
+            "order": [[1, "asc"]],
+            columns: [
+                {
+
+                    "data": "courier_logo",
+                    "className": "center",
+                    "searchable": false,
+                    "sortable": false,
+                    "defaultContent": 'no-image.png',
+                    render: function (data, type, row) {
+                        if (data === undefined || data === null) {
+                            return '<img height="30px" class="rounded mx-auto d-block" src="http://safetysigns/image/no-image.png">'
+                        } else {
+
+                            let image_src = '{% static "" %}images/'+data;
+                            return '<img height="30px" class="rounded mx-auto d-block" src="' + image_src + '">';
+                        }
+
+                    }
+                },
+
+                {data: "courier_title"},
+
+                {
+                    data: "courier_id",
+                    sortable: false,
+                    className: 'text-md-end text-start',
+                    render: function (data, type, row) {
+                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm " href="couriers/update/'+ data+'" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
+                        let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-sm js-courier-delete" data-url="couriers/delete_confirm/'+ data+'" role="button" ><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
+                        return edit_icon + " " + delete_icon
+                    }
+                },
+            ]
+        });
+    };
+
+     $(document).on('click', '.js-courier-delete', loadForm);
+     $(document).on('submit', '#form-courier-delete', deleteCourier);
+
+     function deleteCourier()
+    {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    let dttable = $('#courier_list_table').DataTable();
+                    dttable.ajax.reload();
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
+
+
+} );
+    </script>
+
+
+{% endblock javascript %}

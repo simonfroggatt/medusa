@@ -1,8 +1,12 @@
 from django import forms
 from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder, OcOrderTotal, OcTsgOrderShipment
-from medusa.models import OcTsgShippingMethod
+from apps.shipping.models import OcTsgShippingMethod
 
 class ProductEditForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(ProductEditForm, self).__init__(*args, **kwargs)
+        self.fields['status'].empty_label = None
 
     class Meta:
         model = OcOrderProduct

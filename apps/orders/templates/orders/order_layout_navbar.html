@@ -18,7 +18,7 @@
                     </button>
 
                     <div class="dropdown-menu px-2" aria-labelledby="dropdownMenuPrint">
-                        <form  id="form-order-print" action="{% url 'order_paperwork_pdf' order_obj.order_id %}" target="_blank" method="post">
+                        <form  id="form-order-print" action="/paperwork/order/{{ order_obj.store.prefix }}-{{ order_obj.order_id }}" target="_blank" method="post">
                         {% csrf_token %}
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox"  id="print_picklist" name="print_picklist" value=1 checked>

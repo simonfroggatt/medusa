@@ -18,6 +18,7 @@
                                         <th >Day</th>
                                         <th >Company</th>
                                         <th >Contact</th>
+                                        <th >£ Method</th>
                                         <th >£ Status</th>
                                         <th >Status</th>
                                         <th>Flags</th>
@@ -58,7 +59,7 @@
         "rowId" : 'order_id',
         "ajax": {
                  "processing": true,
-                "url": "/orders/api/orders?format=datatables",
+                "url": "/orders/api/orders?format=datatables&status={{ order_status }}",
             },
         "deferRender": false,
         "order": [[ 1, "desc" ]],
@@ -72,15 +73,20 @@
                 sortable: false,
                 searchable: false,
                 name: "store.name",
+                class: "align-middle",
                 render: function ( data, type, row ) {
                     let image_src = '{% static "images/stores/" %}' + data.thumb;
-                    return '<img height="15px" src="' + image_src + '">'
+                    let store_logo = '<img height="15px" src="' + image_src + '">';
+                    //return '<img height="15px" src="' + image_src + '">'
+                    let order_type_icon = row['order_type']['order_type_icon']
+                    return store_logo + ' ' + order_type_icon;
                  }
             },
             {
                 data: "order_id",
                  render: function ( data, type, row ) {
                     let url = '/orders/' + data;
+                    let website_prefix = row['store']['prefix']+'-';
                     return '<a href="' + url + '">'+ data + '</a>';
                  }
             },
@@ -128,6 +134,9 @@
                     }else
                         return ""
                 },
+            },
+            {
+                data: "payment_method.payment_method_name",
             },
             {
                 data: "payment_status.name",
@@ -216,6 +225,7 @@
            {data: "days_since_order", "visible": false, searchable: false },
            {data: "product_flags", "visible": false, searchable: false },
            {data: "highlight_code", "visible": false, searchable: false },
+            {data: "order_type", "visible": false, searchable: false },
         ],
         "createdRow": function( row, data, dataIndex ) {
            /* if ( data.order_status.order_status_id != 15 ) {
@@ -232,7 +242,6 @@
                     $(row).addClass('failed-order');
                 }
             }
-
          },
     } );
     }

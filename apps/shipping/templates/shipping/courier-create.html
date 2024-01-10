@@ -1,0 +1,163 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <form method="post">
+                {{ form.media }}
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">{{ form.courier_logo|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.courier_title|as_crispy_field }}</div>
+                    <div class="col-md-12">{{ form.courier_tracking_url|as_crispy_field }}</div>
+                    <hr>
+                    <div class="col-md-4">{{ form.courier_api_url|as_crispy_field }}</div>
+                    <div class="col-md-4">{{ form.courier_username|as_crispy_field }}</div>
+                    <div class="col-md-4">{{ form.courier_key|as_crispy_field }}</div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn {{ BUTTON_CANCEL }} "
+                                        onclick="location.href='{% url 'allcouriers' %}'">Cancel
+                                </button>
+                                <button type="submit" id="update"
+                                        class="btn {{ BUTTON_ADD }} pull-right">{{ submit_text }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <div class="row pt-2">
+        <div class="col-12">
+            <h4>Courier package options</h4>
+        </div>
+        <div class="col-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <table id="courier_options_table" class="table table-hover table-striped align-middle table-sm"
+                           style="width:100%">
+                        <thead>
+                        <tr>
+                            <th class="col-3">Title</th>
+                            <th class="col-6">Description</th>
+                            <th class="text-end col-1">&nbsp</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" id="add-option" data-url="{% url 'courier_option_add' courier_id %}"
+                        class="btn {{ BUTTON_ADD }} pull-right">Add Option
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block javascript %}
+
+
+
+<script>
+    $(document).ready(function() {
+
+
+    if ( $.fn.dataTable.isDataTable( '#courier_options_table' ) ) {
+        let courier_options_table = $('#courier_options_table').DataTable();
+    }
+    else {
+        let courier_options_table = $('#courier_options_table').DataTable({
+            "dom": "<'row'<'col-sm-6'><'col-sm-6'>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-6'><'col-sm-6'>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 25,
+            "autoWidth": false,
+            "responsive": true,
+            "ajax": {
+                "processing": true,
+                "url": "/shipping/api/couriers/options/{{ courier_id }}?format=datatables"
+            },
+            "deferRender": false,
+            "search": {
+                "regex": true
+            },
+            "rowId" : 'bulk_group_id',
+            "order": [[0, "asc"]],
+            columns: [
+
+                {data: "courier_option_title"},
+                {data: "courier_option_description"},
+
+                {
+                    data: "courier_opion_id",
+                    sortable: false,
+                    className: 'text-md-end text-start',
+                    render: function (data, type, row) {
+                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm js-courier_option-btn" data-url="option/'+ data+'/update" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
+                        let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-sm js-courier_option-btn" data-url="option/'+ data+'/delete" role="button" ><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
+                        return edit_icon + " " + delete_icon
+                    }
+                },
+            ]
+        });
+    };
+
+
+
+    $(document).on('click', '#add-option', loadForm);
+    $(document).on('click', '.js-courier_option-btn', loadForm);
+
+    $(document).on('submit', '#form-courier_option-edit', courierOptionEdit);
+
+    function courierOptionEdit()
+    {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    let dttable = $('#courier_options_table').DataTable();
+                    dttable.ajax.reload();
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
+
+ });
+
+
+
+
+
+
+</script>
+
+
+{% endblock javascript %}

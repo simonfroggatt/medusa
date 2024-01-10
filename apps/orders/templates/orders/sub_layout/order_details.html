@@ -27,6 +27,13 @@
                                  - ( works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a> )
                              {% endif %}
                               </dd>
+                         {% else %}
+                             {% if order_obj.customer.parent_company %}
+                                <dd class="col-9">works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a>
+                             {% else %}
+                                 <dd class="col-9"></dd>
+                             {% endif %}
+
                          {% endif %}
                              <dt class="col-3">Contact</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.fullname }}</a></dd>
                      {% else %}

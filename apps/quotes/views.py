@@ -15,7 +15,7 @@ from .services import create_quote_prices_text
 from django.core.mail import send_mail
 from apps.customer.models import OcCustomer
 from apps.customer.views import get_default_address
-from medusa.models import OcTsgShippingMethod
+from apps.shipping.models import OcTsgShippingMethod
 from apps.templating.services import get_template_data
 
 
