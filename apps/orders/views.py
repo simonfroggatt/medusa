@@ -4,9 +4,9 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
-    calc_order_totals, OcTsgCourier, OcTsgOrderShipment, recalc_order_product_tax, OcTsgOrderProductStatusHistory
+     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory #,calc_order_totals, recalc_order_product_tax
 from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcTsgProductMaterial, OcProduct, \
-    OcTsgProductVariantCore, OcTsgProductVariants
+     OcTsgProductVariantCore, OcTsgProductVariants
 from apps.options.models import OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, OcTsgOptionValueDynamics
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
@@ -16,7 +16,8 @@ from django.conf import settings
 import os
 from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, ProductAddForm, \
     OrderDetailsEditForm, OrderShippingChoiceEditForm, OrderShipItForm, OrderTaxChangeForm, \
-    OrderDiscountForm
+    OrderDiscountForm, OrderDocumentForm
+
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
@@ -244,7 +245,10 @@ def order_details(request, order_id):
     context['order_lines'] = order_lines
     context['order_product_count'] = product_count['quantity__sum']
 
-
+    #add in the simple document form for uploads
+    docform_initials = {'order': order_obj}
+    docform = OrderDocumentForm(initial=docform_initials)
+    context['docform'] = docform
     return render(request, template_name, context)
 
 
@@ -311,7 +315,7 @@ def order_add_product(request, order_id):
             order_product = form.save(commit=False)
             order_product.reward = 0
             order_product.save()
-            calc_order_totals(order_id)
+            calculate_order_total(order_id)
             data['form_is_valid'] = True
         else:
             data['form_is_valid'] = False
@@ -391,7 +395,7 @@ def order_shipping_change(request, order_id):
         if form.is_valid():
             data['form_is_valid'] = True
             order_totals_obj.save()
-            calc_order_totals(order_id, False)
+            calculate_order_total(order_id, False, False)
         else:
             data['form_is_valid'] = False
 
@@ -477,7 +481,7 @@ def order_product_edit(request, order_id, order_product_id):
         if form.is_valid():
             data['form_is_valid'] = True
             order_product.save()
-            calc_order_totals(order_id)
+            calculate_order_total(order_id)
             # - call come othere function like reloading the tablecustomer_update_detault_address(address)
         else:
             data['form_is_valid'] = False
@@ -523,6 +527,7 @@ def order_product_delete(request, order_id, order_product_id):
         if request.method == 'POST':
             data['form_is_valid'] = True
             order_product.delete()
+            calculate_order_total(order_id)
 
         template_name = 'orders/dialogs/delete_product.html'
         context = {'order_product_id': order_product_id,
@@ -787,7 +792,7 @@ def discount_change_dlg(request, order_id):
         if order_discount_qs:
             order_discount_qs.first().value = discount_value
             order_discount_qs.first().save()
-            calc_order_totals(order_id, False)
+            calculate_order_total(order_id, False)
             data['form_is_valid'] = True
         else:
             order_total_discount_obj = OcOrderTotal()
@@ -798,7 +803,7 @@ def discount_change_dlg(request, order_id):
             order_total_discount_obj.sort_order = 2
             order_total_discount_obj.save()
             data['form_is_valid'] = True
-            calc_order_totals(order_id, False)
+            calculate_order_total(order_id, False)
 
 
 
@@ -1032,7 +1037,8 @@ def ajax_product_variant_options(request, store_id, product_variant_id):
     else:
         variant_info['base_price'] = store_size_material_price.price
 
-    template_name = 'orders/dialogs/product_variant_options.html'
+    #template_name = 'orders/dialogs/product_variant_options.html'
+    template_name = 'orders/dialogs/product_variant_options_ajax.html'
     context = {'product_variant_id': product_variant_id}
     context['variant_info'] = variant_info
     context['select_data'] = select_data
@@ -1042,7 +1048,8 @@ def ajax_product_variant_options(request, store_id, product_variant_id):
                                          request=request
                                          )
 
-    return render(request, template_name, context)
+    return JsonResponse(data)
+    #return render(request, template_name, context)
 
 
 def create_product_variant_select_objects(store_id, product_variant_id, follow=True):
@@ -1072,9 +1079,9 @@ def create_product_variant_select_objects(store_id, product_variant_id, follow=T
             for select_check_data in new_selects_added:
                 for value_option in select_check_data['values']:
                     if value_option['option_type'] == 4:
-                        product_variant_id = value_option['id']
+                        follow_product_variant_id = value_option['id']
                         # get this variants options
-                        option_select_list = create_product_variant_select_objects(store_id, product_variant_id, False)
+                        option_select_list = create_product_variant_select_objects(store_id, follow_product_variant_id, False)
                         if len(option_select_list) > 0:
                             dynamic_arr = []
                             for option_list in option_select_list:
@@ -1222,3 +1229,182 @@ def create_dynamic_options_from_product_variant(store_id, class_option_values):
                 option_list['is_dynamic'] = True
             select_info.extend(option_select_list)
     return select_info
+
+
+def calculate_order_total(order_id, bl_discount=True, bl_recalc_shipping=True):
+    calc_order_totals(order_id, bl_discount, bl_recalc_shipping)
+
+
+def calc_order_totals(order_id, bl_recal_discount=True, bl_recalc_shipping=True):
+    if bl_recal_discount:
+        calc_update_product_subtotal(order_id)
+
+    qs_order = OcOrder.objects.filter(pk=order_id).first()
+    order_tax_rate = Decimal(qs_order.tax_rate.rate / 100)
+    order_tax_title = qs_order.tax_rate.name
+    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
+    sub_total_lines = Decimal(0.0)
+
+    qs_totals = OcOrderTotal.objects.filter(order_id=order_id)
+    qs_shipping = qs_totals.filter(code='shipping')
+
+    qs_discount = qs_totals.filter(code='discount')
+    qs_total = qs_totals.get(code='total')
+    qs_sub = qs_totals.get(code='sub_total')
+    qs_tax = qs_totals.get(code='tax')
+
+    for product in qs_products.iterator():
+        sub_total_value = Decimal(product.price) * Decimal(product.quantity)
+        sub_total_lines += sub_total_value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+
+    sub_total = sub_total_lines
+
+    if qs_discount.exists():
+        sub_total -= Decimal(qs_discount.first().value)
+
+    #not we need to work out what the shipping is
+    if bl_recalc_shipping:
+        shipping_cost = get_shipping_cost(order_id, sub_total)
+
+    if qs_shipping.exists():
+        sub_total += Decimal(qs_shipping.first().value)
+
+    tax_rate_calc = 1 + order_tax_rate
+    order_total_float = sub_total * tax_rate_calc
+    order_total = Decimal(order_total_float.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+    tax_total = order_total - sub_total
+
+    qs_total.value = float(order_total)
+    qs_total.save()
+    qs_sub.value = float(sub_total_lines)
+    qs_sub.save()
+    qs_tax.value = float(tax_total)
+    qs_tax.title = order_tax_title
+    qs_tax.save()
+
+    #now update the order
+    qs_order = OcOrder.objects.get(order_id=order_id)
+    qs_order.total = order_total
+    qs_order.save()
+
+
+def get_shipping_cost(order_id, subtotal):
+    shipping_cost = 0.00
+    product_ship_price = 0.00
+    shipping_size_price = 0.00
+    shipping_subtotal_price = 0.00
+    product_max_width = 0.00
+    product_max_height = 0.00
+    product_size_check = 0.00
+    shipping_label = ''
+    #first check if there is pricing override or size
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
+
+    for product in qs_products.iterator():
+        if product.product_variant:
+            #check for a fixed cost
+            if product.product_variant.prod_var_core.shipping_cost > product_ship_price:
+                product_ship_price = product.product_variant.prod_var_core.shipping_cost
+            #check the sizes whilst we are at it
+            if product.width > product_max_width:
+                product_max_width = product.width
+            if product.height > product_max_height:
+                product_max_height = product.height
+
+    #first check
+    if product_ship_price > shipping_cost:
+        shipping_label = 'Product Cost'
+        shipping_cost = product_ship_price
+
+    product_size_check = max(product_max_width, product_max_height)
+    #now check to see which shipping method we need to use
+    #method type 1 - price, 2 - length, 3 - weight
+    store_id = order_obj.store_id
+    #type 1 - subtotal
+    shipping_method_subtotal_obj = OcTsgShippingMethod.objects.filter(store_id=store_id).filter(status=1).filter(method_type_id=1).filter(lower_range__lte=subtotal, upper_range__gte=subtotal).first()
+    if shipping_method_subtotal_obj:
+        shipping_subtotal_price = shipping_method_subtotal_obj.price
+        if shipping_subtotal_price > shipping_cost:
+            shipping_cost = shipping_subtotal_price
+            shipping_label = shipping_method_subtotal_obj.title
+
+    #type 2 -
+    shipping_method_size_obj = OcTsgShippingMethod.objects.filter(store_id=store_id).filter(status=1).filter(
+        method_type_id=2).filter(lower_range__lte=product_size_check, upper_range__gte=product_size_check).first()
+    if shipping_method_size_obj:
+        shipping_size_price = shipping_method_size_obj.price
+        if shipping_size_price > shipping_cost:
+            shipping_cost = shipping_size_price
+            shipping_label = shipping_method_size_obj.title
+
+
+    #shipping_cost = max(shipping_subtotal_price, product_ship_price, shipping_size_price)
+    order_totals_obj = OcOrderTotal.objects.filter(order_id=order_id).filter(code='shipping').first()
+    if order_totals_obj:
+        if order_totals_obj.value < shipping_cost:
+            order_totals_obj.value = shipping_cost
+            order_totals_obj.title = shipping_label
+            order_totals_obj.save()
+    else:
+        order_totals_obj = OcOrderTotal()
+        order_totals_obj.order_id = order_id
+        order_totals_obj.code = 'shipping'
+        order_totals_obj.value = shipping_cost
+        order_totals_obj.title = shipping_label
+        order_totals_obj.save()
+
+    #now update the shipping cost in the totals table
+
+
+def calc_update_product_subtotal(order_id):
+    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
+    qs_order = OcOrder.objects.filter(pk=order_id).first()
+    sub_total_lines_discount = Decimal(0.0)
+
+    if qs_order.customer.parent_company:
+        decimal_calc = Decimal(qs_order.customer.parent_company.discount / 100)
+        customer_discount = decimal_calc.quantize(Decimal('0.00'))
+    else:
+        customer_discount = Decimal(0.00)
+
+    for product in qs_products.iterator():
+        if not product.exclude_discount:
+            discount_amount = Decimal(product.price) * Decimal(product.quantity) * Decimal(customer_discount)
+            sub_total_lines_discount += discount_amount.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+
+    qs_totals = OcOrderTotal.objects.filter(order_id=order_id)
+
+    if qs_totals.filter(code='discount').exists:
+        qs_discount = qs_totals.get(code='discount')
+        qs_discount.value = sub_total_lines_discount
+        qs_discount.save()
+
+
+
+def recalc_order_product_tax(order_id):
+    qs_order = OcOrder.objects.filter(pk=order_id).first()
+    tax_rate_val = Decimal(qs_order.tax_rate.rate / 100)
+    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
+    tax_value = 0.000
+    for product in qs_products:
+        tax_value = product.total * tax_rate_val
+        product.tax = Decimal(tax_value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        product.save()
+
+    calc_order_totals(order_id)
+
+
+def order_document_upload(request):
+    data = dict()
+    if request.method == 'POST':
+        form = OrderDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            data['upload'] = True
+        else:
+            data['upload'] = False
+    else:
+        data['upload'] = False
+
+    return JsonResponse(data)

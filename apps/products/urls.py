@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 from apps.products import views
 from rest_framework import routers
@@ -42,6 +44,7 @@ urlpatterns = [
     path('variant/<int:core_variant_id>/class_option/add', views.product_variant_core_add_class_option,name='product_variant_core_class_option-add'),
     path('<int:pk>/variant/add_dlg', views.product_variant_site_add_dlg, name='product_variant_site-add-dlg'),
     path('<int:pk>/corevariant/add', views.product_core_variant_add, name='product_core_variant-add'),
+    path('corevariant/<int:pk>/delete', views.product_core_variant_delete, name='product_core_variant-delete'),
 
     #product variant options for adding product to order
 
@@ -76,6 +79,9 @@ urlpatterns = [
     path('<int:product_id>/additional_images/<int:pk>/delete', views.store_product_additional_images_delete, name='store_product_additional_images-delete'),
     path('<int:product_id>/additional_images/<int:pk>/edit', views.store_product_addional_image_store_edit, name='store_product_additional_images-edit'),
 
+    #base images
+    path('additional_images_base/<int:pk>/delete', views.product_additional_images_delete, name='product_additional_images-delete'),
+    path('additional_images_base/<int:pk>/edit', views.product_addional_image_edit, name='product_additional_images-edit'),
 
     #category and general
     path('<int:pk>/categoryedit', views.product_category_edit, name='productcatgoryedit'),
@@ -85,4 +91,4 @@ urlpatterns = [
     #base
     path('', views.product_list, name='allproducts'),
 
-    ]
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

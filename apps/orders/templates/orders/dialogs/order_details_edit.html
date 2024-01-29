@@ -13,10 +13,10 @@
                       id="js-order-details-edit-submit">
                     {% csrf_token %}
                     <div class="row">
-                        <div class="col-md-12">{{ form.store|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.store|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.customer_order_ref|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.order_type|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.order_status|as_crispy_field }}</div>
-                         <div class="col-md-6">{{ form.order_type|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.payment_method|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.payment_status|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.comment|as_crispy_field }}</div>

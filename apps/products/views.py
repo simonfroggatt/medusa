@@ -24,7 +24,7 @@ from django.template.loader import render_to_string
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
     VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm, \
-    SiteProductVariantForm, AdditionalProductStoreImages
+    SiteProductVariantForm, AdditionalProductStoreImages, AddionalProductImageForm, AddionalProductImageEditForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
@@ -274,7 +274,7 @@ def product_edit_base(request, product_id):
     product_base_desc_obj = get_object_or_404(OcProductDescriptionBase, product_id=product_id)
 
     if request.method == 'POST':
-        form_product = ProductForm(request.POST, instance=product_obj)
+        form_product = ProductForm(request.POST, request.FILES, instance=product_obj)
         form_product_base_desc = ProductDescriptionBaseForm(request.POST, instance=product_base_desc_obj)
         if form_product.is_valid():
             form_product.save()
@@ -571,9 +571,10 @@ def product_variant_core_add_class_option(request, core_variant_id):
 def product_core_variant_add(request, pk):
     data = dict()
     context = {'product_id': pk}
+    product_obj = get_object_or_404(OcProduct, pk=pk)
 
     if request.method == 'POST':
-        form_obj = VariantCoreForm(request.POST)
+        form_obj = VariantCoreForm(request.POST, request.FILES)
         if form_obj.is_valid():
             form_obj.save()
             data['form_is_valid'] = True
@@ -581,7 +582,7 @@ def product_core_variant_add(request, pk):
             data['form_is_valid'] = False
     else:
         variant_core_obj = OcTsgProductVariantCore()
-        variant_core_initials = {'product': pk, 'size_material_id': 1, 'supplier': 1, 'supplier_code': 'code',
+        variant_core_initials = {'product': product_obj, 'size_material_id': 1, 'supplier': 1, 'supplier_code': 'code',
                                  'supplier_price': 0.00, 'exclude_fpnp': False, 'gtin': '', 'shipping_cost': 0.00,
                                  'bl_live': True}
         form_obj = VariantCoreForm(instance=variant_core_obj, initial=variant_core_initials)
@@ -600,21 +601,28 @@ def product_core_variant_add(request, pk):
 def product_core_variant_edit(request, pk):
     data = dict()
     context = {'prod_variant_core_id': pk}
+    variant_core_obj = get_object_or_404(OcTsgProductVariantCore, prod_variant_core_id=pk)
     if request.method == 'POST':
-        form_obj = VariantCoreEditForm(request.POST)
+        form_obj = VariantCoreEditForm(request.POST, request.FILES, instance=variant_core_obj)
         if form_obj.is_valid():
-            form_instance = form_obj.instance
-            form_instance.prod_variant_core_id = request.POST.get('prod_variant_core_id')
-            form_instance.save()
+            #form_instance = form_obj.instance
+            #form_instance.prod_variant_core_id = request.POST.get('prod_variant_core_id')
+            #form_instance.save()
+            form_obj.save()
             data['form_is_valid'] = True
         else:
             data['form_is_valid'] = False
     else:
-        variant_core_obj = get_object_or_404(OcTsgProductVariantCore, prod_variant_core_id=pk)
         context[
             'size_material'] = f"{variant_core_obj.size_material.product_size.size_name} - {variant_core_obj.size_material.product_material.material_name}"
         form_obj = VariantCoreEditForm(instance=variant_core_obj)
+        #get the product_img
+        if variant_core_obj.variant_image:
+            base_image = variant_core_obj.variant_image
+        else:
+            base_image = variant_core_obj.product.image
         data['form_is_valid'] = False
+        context['current_image'] = base_image
 
     context['form'] = form_obj
     template_name = 'products/dialogs/product_core_variant_edit.html'
@@ -625,6 +633,24 @@ def product_core_variant_edit(request, pk):
 
     return JsonResponse(data)
 
+
+def product_core_variant_delete(request, pk):
+    data = dict()
+    context = {'prod_variant_core_id': pk}
+    variant_core_obj = get_object_or_404(OcTsgProductVariantCore, prod_variant_core_id=pk)
+    if request.method == 'POST':
+        variant_core_obj.delete()
+        data['form_is_valid'] = True
+    else:
+        context[
+            'size_material'] = f"{variant_core_obj.size_material.product_size.size_name} - {variant_core_obj.size_material.product_material.material_name}"
+        template_name = 'products/dialogs/product_core_variant_delete.html'
+        data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
 
 def group_class_list_html(request, group_id):
     data = dict()
@@ -975,22 +1001,23 @@ def site_variant_edit(request, pk):
     data = dict()
     context = {'product_variant_id': pk}
     template_name = 'products/dialogs/product_site_variant_edit.html/'
+    product_variant_obj = get_object_or_404(OcTsgProductVariants, prod_variant_id=pk)
 
     if request.method == 'POST':
-        product_variant_id_posted = request.POST.get('product_variant_id')
-        posted_form = SiteProductVariantForm(request.POST)
-        product_variant_obj = get_object_or_404(OcTsgProductVariants, prod_variant_id=product_variant_id_posted)
-        product_variant_obj.variant_code = request.POST.get('variant_code')
-        product_variant_obj.variant_overide_price = request.POST.get('variant_overide_price')
-        product_variant_obj.save()
-        data['form_is_valid'] = True
+        posted_form = SiteProductVariantForm(request.POST, request.FILES, instance=product_variant_obj)
+        if posted_form.is_valid():
+            posted_form.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
     else:
-        product_variant_obj = get_object_or_404(OcTsgProductVariants, prod_variant_id=pk)
+
         data['form_is_valid'] = False
 
     context['product_variant_obj'] = product_variant_obj
     form_obj = SiteProductVariantForm(instance=product_variant_obj)
     context['form'] = form_obj
+    context['current_image'] = product_variant_obj.alt_image_url
 
     data['html_form'] = render_to_string(template_name,
                                          context,
@@ -1079,18 +1106,31 @@ def product_additional_images_load(request, product_id, store_id):
 
 def product_additional_images_add(request, product_id, store_id):
     data = dict()
+    product_obj = get_object_or_404(OcProduct, pk=product_id)
 
-
-    if store_id > 0:
-        data['html_form'] = product_additional_images_store_add(request, product_id, store_id)
+    if request.method == 'POST':
+        form = AddionalProductImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            data['upload'] = True
+        else:
+            data['upload'] = False
     else:
-        template = 'products/dialogs/product_additional_images-add.html'
-        #store_product_additional_obj = OcStoreProductImages.objects.filter(pk=pk)
-        context = {'product_id': product_id}
-        data['html_form'] = render_to_string(template,
-                                             context,
-                                             request=request
-                                             )
+        data['upload'] = False
+        if store_id > 0:
+            data['html_form'] = product_additional_images_store_add(request, product_id, store_id)
+        else:
+            current_images = OcProductImage.objects.filter(product_id=product_id).order_by('-sort_order').first()
+            form_initials = {'product': product_obj, 'sort_order': current_images.sort_order + 1}
+            form = AddionalProductImageForm(initial=form_initials)
+            template = 'products/dialogs/product_additional_images-add.html'
+            #store_product_additional_obj = OcStoreProductImages.objects.filter(pk=pk)
+            context = {'product_id': product_id}
+            context['form'] =  form
+            data['html_form'] = render_to_string(template,
+                                                 context,
+                                                 request=request
+                                                 )
     return JsonResponse(data)
 
 
@@ -1132,6 +1172,53 @@ def product_additional_images_store_add(request, product_id, store_id):
                    'product_id': product_id}
         return render_to_string(template, context, request=request)
 
+
+
+def product_additional_images_delete(request, pk):
+    data = dict()
+    template = 'products/dialogs/product_base_additional_images-delete.html'
+
+    if request.method == 'POST':
+        product_additional_obj = get_object_or_404(OcProductImage, pk=pk)
+        product_additional_obj.delete()
+        data['is_saved'] = True
+    else:
+        context = {'pk': pk}
+        data['html_form'] = render_to_string(template,
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
+
+def product_addional_image_edit(request, pk):
+    data = dict()
+    context = {'pk': pk}
+    template_name = 'products/dialogs/product_additional_images-edit.html/'
+
+    if request.method == 'POST':
+        form_obj = AddionalProductImageEditForm(request.POST)
+        if form_obj.is_valid():
+            form_instance = form_obj.instance
+            image_id = request.POST.get('product_image_id')
+            images_obj = get_object_or_404(OcProductImage, pk=image_id)
+            images_obj.alt_text = form_instance.alt_text
+            images_obj.sort_order = form_instance.sort_order
+            images_obj.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        store_images_obj = get_object_or_404(OcProductImage, pk=pk)
+        form_obj = AddionalProductImageEditForm(instance=store_images_obj)
+        data['form_is_valid'] = False
+
+    context['form'] = form_obj
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
 
 
 def store_product_additional_images_delete_dlg(request, product_id, pk):
@@ -1300,3 +1387,18 @@ class ProductSiteVariantOptionClasses(viewsets.ModelViewSet):
         option_group_object = OcTsgProductVariantOptions.objects.filter(product_variant_id=pk, isdeleted=False)
         serializer = self.get_serializer(option_group_object, many=True)
         return Response(serializer.data)
+
+
+def product_additioanl_image_upload(request):
+    data = dict()
+    if request.method == 'POST':
+        form = AddionalProductImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            data['upload'] = True
+        else:
+            data['upload'] = False
+    else:
+        data['upload'] = False
+
+    return JsonResponse(data)

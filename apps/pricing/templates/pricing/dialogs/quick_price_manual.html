@@ -41,8 +41,8 @@
         </div>
         <div class="col-4">
             <label for="manualMaterial" class="form-label">Material</label>
-            <input class="form-control" list="datalistMaterials" id="manualMaterial"
-                   placeholder="Type to search..." onchange="reCalc()">
+            <input class="form-control" list="datalistMaterials" id="material_name" name="material_name"
+                   placeholder="Type to search..." >
             <datalist id="datalistMaterials">
                 {% for materials in material_obj %}
                     <option value="{{ materials.material_name }}"
@@ -59,12 +59,20 @@
                    value=null>
             <input type="hidden" class="form-control" id="{{ form.size_name.name }}"
                    name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
+            <input type="hidden" class="form-control" id="{{ form.width.name }}"
+                   name="{{ form.width.name }}" value="{{ form.width.value }}">
+            <input type="hidden" class="form-control" id="{{ form.height.name }}"
+                   name="{{ form.height.name }}" value="{{ form.height.value }}">
             <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
                    value="{{ form.total.value|floatformat:2 }}">
             <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
                    value="{{ form.tax.value|floatformat:2 }}">
             <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
                        value="{{ form.exclude_discount.value }}">
+            <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}"
+                       value="{{ form.bulk_used.value }}">
+            <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
+                       value="1">
 
             <div class="col-4">
                 <label for="{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
@@ -80,8 +88,9 @@
         {% endif %}
      </div>
     {% csrf_token %}
-    <input type="hidden" id="{{ form.single_price.name }}" name="{{ form.single_price.name }}" value="0">
+    <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
     <input type="hidden" id="text_to_copy" name="text_to_copy" value="">
+    <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
     <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
     <input id="string_to_copy_manual" name="string_to_copy_manual" class="hidden_copy" value="">
 
@@ -176,117 +185,3 @@
 </form>
 </div>
 
-<script>
-
-    function reCalc() {
-        let width = $('#manualWidth').val() ? $('#manualWidth').val() : 0;
-        let height = $('#manualHeight').val() ? $('#manualHeight').val() : 0;
-        let price = $('#manualPrice').val() ? $('#manualPrice').val() : 0;
-
-        let calc_width = $('#manualCalcWidth').val()
-        let calc_height = $('#manualCalcHeight').val()
-
-
-        let m2 = (width / 1000) * (height / 1000)
-        let cpstperm2 = 0
-        if (m2 > 0) {
-            cpstperm2 = price / m2
-        }
-
-        let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
-        $('#form-quick_manual #{{ form.single_price.name }}').val(parseFloat(newprice).toFixed(2));
-        $('#form-quick_manual #price').val(parseFloat(newprice).toFixed(2));
-
-
-        let size_name = calc_width + 'mm x ' + calc_height + 'mm ' + $('#form-quick_manual #manualMaterial').val()
-        $('#form-quick_manual #text_to_copy').val(size_name);
-
-        if($('#form-quick_manual #size_name').length) {
-            $('#form-quick_manual #size_name').val(calc_width + 'mm x ' + calc_height + 'mm ')
-        }
-
-        if($('#form-quick_manual #product_variant').length) {
-            $('#form-quick_manual #product_variant').val(null)
-        }
-
-        if($('#form-quick_manual #material_name').length) {
-            $('#form-quick_manual #material_name').val($('#form-quick_manual #manualMaterial').val())
-        }
-
-        if (newprice > 0) {
-            SetPrice(true, '#form-quick_manual')
-        }
-    }
-
-    $(document).ready(function () {
-
-
-        function set_copy_price(form_id) {
-            let price_string = "";
-            let price_str = $(form_id + ' #price').val();
-            let qty_str = $(form_id + ' #quantity').val();
-
-            price_string = " @ £" + price_str + " each for " + qty_str + " off";
-            $(form_id + ' #price_to_copy').val(price_string);
-
-        }
-
-        function set_copy_material() {
-            let width = $('#manualCalcWidth').val() ? $('#manualCalcWidth').val() : 0;
-            let height = $('#manualCalcHeight').val() ? $('#manualCalcHeight').val() : 0;
-            $('#form-quick_manual #text_to_copy').val(width + 'mm x ' + height + 'mm ' + $('#form-quick_manual #manualMaterial').val());
-        }
-
-        $('#form-quick_manual #line_total_cal').change(function () {
-            set_copy_price('#form-quick_manual');
-            set_copy_material();
-            let final_copy_str = $('#form-quick_manual #text_to_copy').val() + $('#form-quick_manual #price_to_copy').val()
-            $('#string_to_copy_manual').val(final_copy_str);
-        });
-
-        $(document).on('focusin', '#manualCalcHeight', function () {
-            $(this).data('val', $(this).val() ? $(this).val() : 0);
-        });
-
-        $(document).on('change', '#manualCalcHeight', function () {
-            var prev = $(this).data('val')
-            var current = $(this).val();
-
-            var keep_aspect = $('#switchScale').is(':checked');
-            if (keep_aspect) {
-                let oldwidth = $('#manualCalcWidth').val()
-                let aspect = oldwidth / prev;
-                let newwidth = Math.round(aspect * current)
-                $('#manualCalcWidth').val(newwidth)
-            }
-            reCalc()
-        });
-
-        $(document).on('focusin', '#manualCalcWidth', function () {
-            $(this).data('val', $(this).val() ? $(this).val() : 0);
-        });
-
-        $(document).on('change', '#manualCalcWidth', function () {
-            var prev = $(this).data('val')
-            var current = $(this).val();
-
-            var keep_aspect = $('#switchScale').is(':checked');
-            if (keep_aspect) {
-                let oldwidth = $('#manualCalcHeight').val()
-                let aspect = oldwidth / prev;
-                let newwidth = Math.round(aspect * current)
-                $('#manualCalcHeight').val(newwidth)
-            }
-            reCalc()
-        });
-
-        $('#switch_exclude_discount_manual').change(function () {
-                let excluded =  $(this).is(":checked");
-                let exclude_id_str = {{ form.exclude_discount.name }}
-                $(exclude_id_str).val(excluded);
-            });
-
-
-    });
-
-</script>

@@ -60,7 +60,7 @@ class OcTsgProductMaterial(models.Model):
     colour_desc = models.CharField(max_length=255, blank=True, null=True)
     colour_desc_full = models.CharField(max_length=255, blank=True, null=True)
     code = models.CharField(max_length=255, blank=True, null=True)
-    image = models.CharField(max_length=255, blank=True, null=True)
+    image = models.ImageField(upload_to='stores/materials/', blank=True, null=True)
     archived = models.BooleanField(default=False)
 
     class Meta:

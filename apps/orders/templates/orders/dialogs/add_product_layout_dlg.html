@@ -100,7 +100,7 @@
             $(form_id + ' #line_total_cal').html(line_total);
             $(form_id + ' #{{ form.total.name }}').val(line_total);
             $(form_id + ' #{{ form.tax.name }}').val(tax_price)
-            $(form_id + ' #{{ form.single_price.name }}').val(price)
+            $(form_id + ' #{{ form.single_unit_price.name }}').val(price)
         }
 
     });
@@ -208,15 +208,7 @@
         return (discount / 100).toFixed(2)
     }
 
-    function setDiscountCellColour(cell_index, form_id) {
 
-        var allCells = $(form_id + " .bulkcell");
-        allCells.removeClass("table-success");
-
-        var cellToColour = $(form_id + ' [data-variant-cellid="' + cell_index + '"]');
-        cellToColour.addClass("table-success");
-
-    }
 
 </script>
 

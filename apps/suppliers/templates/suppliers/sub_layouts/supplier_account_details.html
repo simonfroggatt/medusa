@@ -1,0 +1,30 @@
+{% load static %}
+<div class="card h-100 mb-0">
+             <div class="card-header company_account_details">
+                 <div class="row">
+                     <div class="col-9 ">
+                         Account Details
+                     </div>
+                     <div class="col-3">
+                         <div class="float-end">
+                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-0">
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
+                                        data-url=""
+                                        data-dlgsize="modal-xl"
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+                        </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <div class="card-body">
+                 <dl class="row text-nowrap" id="supplier_account_{{ supplier_obj.id }}">
+                     <dt class="col-3">Lead-Time</dt>
+                     <dd class="col-9">{{ supplier_obj.lead_time }} days</dd>
+                     <dt class="col-3">Account Type</dt>
+                     <dd class="col-9">{{ supplier_obj.account_type.account_type_name }}</dd>
+                     <dt class="col-3">Payment Terms:</dt>
+                     <dd class="col-9">{{ supplier_obj.payment_days }} - {{ supplier_obj.payment_terms.term_title }}</dd>
+                 </dl>
+             </div>
+         </div>

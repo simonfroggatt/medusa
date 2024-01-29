@@ -12,7 +12,7 @@ class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     model = models.CharField(max_length=64)
     location = models.CharField(max_length=128)
-    image = models.CharField(max_length=255, blank=True, null=True)
+    image = models.ImageField(upload_to='stores/products/')
     manufacturer_id = models.IntegerField()
     tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING)
     sort_order = models.IntegerField()
@@ -144,10 +144,12 @@ class OcTsgProductVariantCore(models.Model):
     supplier_code = models.CharField(max_length=255, blank=True, null=True)
     supplier_price = models.DecimalField(max_digits=5, decimal_places=2)
     exclude_fpnp = models.BooleanField()
-    variant_image = models.CharField(max_length=244, blank=True, null=True)
+    variant_image = models.ImageField(upload_to='stores/products/', null=True, blank=True)
     gtin = models.CharField(max_length=255, blank=True, null=True)
     shipping_cost = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
+    lead_time_override = models.IntegerField(default=0)
+
 
     class Meta:
         managed = False
@@ -169,7 +171,7 @@ class OcTsgProductVariants(models.Model):
     prod_var_core = models.ForeignKey(OcTsgProductVariantCore, models.DO_NOTHING, related_name='storeproductvariants')
     variant_code = models.CharField(max_length=255, blank=True, null=True)
     variant_overide_price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    alt_image = models.CharField(max_length=255, blank=True, null=True)
+    alt_image = models.ImageField(upload_to='stores/products/', null=True, blank=True)
     store = models.ForeignKey(OcStore, models.DO_NOTHING)
     digital_artwork = models.IntegerField(blank=True, null=True)
     digital_artwork_price = models.FloatField(blank=True, null=True)
@@ -180,6 +182,13 @@ class OcTsgProductVariants(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_variants'
+
+    @property
+    def alt_image_url(self):
+        if self.alt_image:
+            return f"{settings.MEDIA_URL}{self.alt_image}"
+        else:
+            return self.prod_var_core.variant_image_url
 
 
 
@@ -331,7 +340,7 @@ class OcProductRelated(models.Model):
 class OcProductImage(models.Model):
     product_image_id = models.AutoField(primary_key=True)
     product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='productimage')
-    image = models.CharField(max_length=1024, blank=True, null=True)
+    image = models.ImageField(upload_to='stores/images/additional/',)
     sort_order = models.IntegerField()
     main = models.BooleanField()
     alt_text = models.CharField(max_length=255, blank=True, null=True)

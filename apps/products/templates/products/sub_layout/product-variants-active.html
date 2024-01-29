@@ -57,13 +57,13 @@ $(document).ready(function() {
                     },
 
                 {data: "variant_code"},
-                {data: "prod_var_core.product.image", defaultContent: "no-image.png",
+                {data: "alt_image_url", defaultContent: "no-image.png",
                     render: function ( data, type, row ) {
                     if(data == null ){
                         img_path = {% get_media_prefix %} + "no-image.png"
                     }
                     else{
-                        img_path = {% get_media_prefix %} + data
+                        img_path =  data
                     }
 
                      return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';

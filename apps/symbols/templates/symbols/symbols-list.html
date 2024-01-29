@@ -71,12 +71,12 @@
         columns :[
 
             {
-                data: "symbol_image_url",
+                data: "svg_path",
                 name: "thumbnail",
                 searchable: "false",
                 sortable: "false",
                 render: function (data, type, row, meta ) {
-                    return '<img class="rounded mx-auto d-block product-thumb" src="'+data+'">';
+                    return '<img class="rounded mx-auto d-block product-thumb" src="' + data+'">';
                 }
             },
             {data: "refenceno"},

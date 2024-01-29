@@ -1,0 +1,50 @@
+{% load static %}
+<div class="card h-100 mb-0">
+             <div class="card-header company_main_contact">
+                 <div class="row">
+                     <div class="col-9 ">
+                          Main Contact
+                     </div>
+                     <div class="col-3">
+                         <div class="float-end">
+                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-0">
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
+                                        data-url=""
+                                        data-dlgsize="modal-xl"
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+                        </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <div class="card-body">
+                 <div class="row">
+                     <div class="col-6">
+                        <dl class="row text-nowrap" id="supplier_{{ supplier_obj.id }}">
+                             <dt class="col-3">Company:</dt>
+                             <dd class="col-9">{{ supplier_obj.company }}</dd>
+                             <dt class="col-3">Main Contact:</dt>
+                             <dd class="col-9">{{ supplier_obj.main_contact }}</dd>
+                             <dt class="col-3">Telephone:</dt>
+                             <dd class="col-9">{{ supplier_obj.main_telephone }}</dd>
+                             <dt class="col-3">Email:</dt>
+                            <dd class="col-9"><a href="mailto:{{supplier_obj.order_email}}" id="supplier_email">{{ supplier_obj.order_email }}   </a>
+                            </dd>
+                             <dt class="col-3">Website:</dt>
+                             <dd class="col-9"><a href="http://{{supplier_obj.website}}" target="_blank">{{supplier_obj.website|default:"&nbsp;" }}</a> </dd>
+                        </dl>
+                     </div>
+                     <div class="col-6">
+                         <dt>Address</dt>
+                         <address >
+                                {{ supplier_obj.address|linebreaksbr  }}<br>
+                                {{ supplier_obj.area }}<br>
+                                {{ supplier_obj.city }}<br>
+                                <strong>{{ supplier_obj.postcode }}</strong><br>
+                                {{ supplier_obj.country }}
+                        </address>
+                     </div>
+                 </div>
+
+             </div>
+         </div>

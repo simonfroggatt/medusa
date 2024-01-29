@@ -7,8 +7,10 @@
                     </div>
                     <div class="card-footer">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button class="btn {{ BUTTON_EDIT }} btn-sm me-md-2" type="button" data-storeimageid="{{ product_image.pk }}">Edit</button>
-                            <button class="btn {{ BUTTON_DELETE }} btn-sm" type="button" >Delete</button>
+                            <button class="btn {{ BUTTON_EDIT }} btn-sm me-md-2 product_additional_images-dlg" type="button" data-storeimageid="{{ product_image.pk }}"
+                            data-url="{% url 'product_additional_images-edit' product_image.product_image_id  %}">Edit</button>
+                            <button class="btn {{ BUTTON_DELETE }} btn-sm product_additional_images-dlg" type="button"
+                            data-url="{% url 'product_additional_images-delete' product_image.product_image_id  %}">Delete</button>
                         </div>
                     </div>
                 </div>

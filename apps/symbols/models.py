@@ -44,14 +44,14 @@ class OcTsgSymbolStandards(models.Model):
 
 
 class OcTsgSymbols(models.Model):
-    image_path = models.CharField(max_length=255, blank=True, null=True)
+    image_path = models.ImageField(upload_to='symbols/thumbs/', blank=True, null=True)
     refenceno = models.CharField(max_length=48, blank=True, null=True)
     referent = models.CharField(max_length=255, blank=True, null=True)
     function = models.CharField(max_length=1024, blank=True, null=True)
     content = models.CharField(max_length=1024, blank=True, null=True)
     hazard = models.CharField(max_length=1024, blank=True, null=True)
     humanbehav = models.CharField(max_length=1024, blank=True, null=True)
-    svg_path = models.CharField(max_length=255, blank=True, null=True)
+    svg_path = models.ImageField(upload_to='symbols/svg/', width_field='image_width', height_field='image_height')
     category = models.ForeignKey(OcTsgCategoryTypes, models.DO_NOTHING, db_column='category', blank=True, null=True, related_name='symbolcats')
     standard = models.ForeignKey(OcTsgSymbolStandards, models.DO_NOTHING, blank=True, null=True, related_name='symbolstandards')
     image_width = models.IntegerField(blank=True, null=True)

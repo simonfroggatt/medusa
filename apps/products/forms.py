@@ -1,26 +1,40 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
-    OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages
+    OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions
 
 from tinymce.widgets import TinyMCE
+from django_svg_image_form_field import SvgAndImageFormField
 
 
 class ProductForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ProductForm, self).__init__(*args, **kwargs)
+        self.fields['tax_class'].empty_label = None
+        self.fields['supplier'].empty_label = None
+        self.fields['bulk_group'].empty_label = None
 
     class Meta:
         model = OcProduct
 
-        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class', 'bulk_group']
+        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class', 'bulk_group', 'image']
 
         labels = {
             'mib_logo': 'Made in Britain',
             'status': 'Product is visable',
         }
 
+        field_classes = {
+            'image': SvgAndImageFormField,
+        }
+
 
 class ProductDescriptionBaseForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ProductDescriptionBaseForm, self).__init__(*args, **kwargs)
+        self.fields['language'].empty_label = None
+
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 10}))
     long_description = forms.CharField(widget=TinyMCE(attrs={'rows': 20}))
     sign_reads = forms.CharField(widget=TinyMCE(attrs={'rows': 10}))
@@ -41,6 +55,8 @@ class ProductDescriptionBaseForm(forms.ModelForm):
 
 
 class SiteProductDetailsForm(forms.ModelForm):
+
+
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
     long_description = forms.CharField(widget=TinyMCE(attrs={'rows': 20}), required=False)
     sign_reads = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
@@ -123,6 +139,10 @@ class VariantCoreForm(forms.ModelForm):
         }
 
 class VariantCoreEditForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(VariantCoreEditForm, self).__init__(*args, **kwargs)
+        self.fields['supplier'].empty_label = None
+
     class Meta:
         model = OcTsgProductVariantCore
         fields = '__all__'
@@ -187,3 +207,14 @@ class AdditionalProductStoreImages(forms.ModelForm):
             'order_id': 'Image order position',
             'alt_text': 'Image ALT-TEXT for this website',
         }
+
+class AddionalProductImageForm(forms.ModelForm):
+    class Meta:
+        model = OcProductImage
+        fields = '__all__'
+
+
+class AddionalProductImageEditForm(forms.ModelForm):
+    class Meta:
+        model = OcProductImage
+        fields = ['product_image_id', 'sort_order', 'alt_text']

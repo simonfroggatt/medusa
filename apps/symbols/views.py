@@ -90,8 +90,20 @@ class SymbolsUpdateView(UpdateView):
 
 class SymbolCreateView(CreateView):
     form_class = SymbolsForm
+    model = OcTsgSymbols
     success_url = reverse_lazy('allsymbols')
     template_name = 'symbols/sub_layout/symbols-create.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['heading'] = 'New Symbol'
+        context['pageview_url'] = reverse_lazy('allsymbols')
+        context['pageview'] = "Symbols"
+        return context
+
+    def form_invalid(self, form):
+        print("form is invalid")
+        return HttpResponse("form is invalid.. this is just an HttpResponse object")
 
 
 class Symboldelete(DeleteView):
@@ -111,3 +123,7 @@ def symbol_delete_dlg(request, symbol_id):
                                          request=request
                                          )
     return JsonResponse(data)
+
+
+
+

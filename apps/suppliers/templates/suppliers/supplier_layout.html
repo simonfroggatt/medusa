@@ -1,0 +1,86 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+   <!-- old datatables css -->
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="wrapper wrapper-content layout-details">
+        <div class="row top_bar">
+            <div class="col-6 col-lg-4">
+                <h2>{{ supplier_obj.company }}</h2>
+            </div>
+            <div class="col-2 col-lg-4">
+
+            </div>
+            <div class="col-4 col-lg-4">
+                {% include 'suppliers/sub_layouts/supplier_details_top_navbar.html' %}
+            </div>
+        </div>
+        <div class="row pb-2">
+            <div class="col-12 col-sm-6 pe-0" id="card_supplier_main_contact">
+                 {% include 'suppliers/sub_layouts/supplier_main_contact.html' %}
+            </div>
+            <div class="col-12 col-sm-6 ">
+                 {% include 'suppliers/sub_layouts/supplier_account_details.html' %}
+            </div>
+        </div>
+        <div class="row" id="supplier-details-tabs">
+            <div class="col">
+                <div class="ibox">
+                    <div class="ibox-content tsg_navs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="products-tab" data-bs-toggle="tab" href="#tab-products"
+                                   role="tab">
+                                    <i class="fa-regular fa-box-open"></i> Products</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="materials-tab" data-bs-toggle="tab" href="#tab-materials"
+                                   role="tab">
+                                    <i class="fa-regular fa-flask"></i></i> Materials</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents"
+                                   role="tab"><i
+                                        class="fa-solid fa-folder-open"></i> Documents</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" id="tab-products" class="tab-pane fade show active">
+                                <div class="panel-body">
+                                    products in here
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-materials" class="tab-pane fade">
+                            <div class="panel-body">
+                                materials in here
+                            </div>
+                        </div>
+                            <div role="tabpanel" id="tab-art" class="tab-pane fade">
+                            <div class="panel-body">
+                                artwork in here
+                            </div>
+                        </div>
+                            <div role="tabpanel" id="tab-documents" class="tab-pane fade">
+                            <div class="panel-body">
+                                documents in here
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+{% endblock javascript %}
+
+
+

@@ -1,0 +1,38 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> Edit BASE Product Additional Image Details</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'product_additional_images-edit' pk %}" enctype="multipart/form-data"
+                      id="frm-store_product_additional_images-edit">
+                    <input type="hidden" id="product_image_id" name="product_image_id"
+                           value="{{ pk }}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col">
+                            {{ form.alt_text|as_crispy_field }}
+                            {{ form.sort_order|as_crispy_field }}
+                        </div>
+                    </div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="delete" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascript %}
+
+{% endblock javascript %}
+

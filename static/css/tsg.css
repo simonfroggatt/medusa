@@ -625,4 +625,9 @@ div.dataTables_wrapper div.dataTables_filter input {
     text-decoration: none;
   }
 
+.img-thumbnail.tsg-thumbnail {
+    max-height: 150px;
+    max-width: 400px;
+  }
+
 

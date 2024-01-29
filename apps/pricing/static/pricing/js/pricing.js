@@ -166,6 +166,75 @@ $(function(){
     $(document).on('submit', '#form-prices-material-delete', deletePriceMaterial);
 
 
+    /* - manual calc stuff */
+
+    function set_copy_price(form_id) {
+            let price_string = "";
+            let price_str = $(form_id + ' #price').val();
+            let qty_str = $(form_id + ' #quantity').val();
+
+            price_string = " @ £" + price_str + " each for " + qty_str + " off";
+            $(form_id + ' #price_to_copy').val(price_string);
+
+        }
+
+        function set_copy_material() {
+            let width = $('#manualCalcWidth').val() ? $('#manualCalcWidth').val() : 0;
+            let height = $('#manualCalcHeight').val() ? $('#manualCalcHeight').val() : 0;
+            $('#form-quick_manual #text_to_copy').val(width + 'mm x ' + height + 'mm ' + $('#form-quick_manual #manualMaterial').val());
+        }
+
+        $('#form-quick_manual #line_total_cal').change(function () {
+            set_copy_price('#form-quick_manual');
+            set_copy_material();
+            let final_copy_str = $('#form-quick_manual #text_to_copy').val() + $('#form-quick_manual #price_to_copy').val()
+            $('#string_to_copy_manual').val(final_copy_str);
+        });
+
+        $(document).on('focusin', '#manualCalcHeight', function () {
+            $(this).data('val', $(this).val() ? $(this).val() : 0);
+        });
+
+        $(document).on('change', '#manualCalcHeight', function () {
+            var prev = $(this).data('val')
+            var current = $(this).val();
+
+            var keep_aspect = $('#switchScale').is(':checked');
+            if (keep_aspect) {
+                let oldwidth = $('#manualCalcWidth').val()
+                let aspect = oldwidth / prev;
+                let newwidth = Math.round(aspect * current)
+                $('#manualCalcWidth').val(newwidth)
+            }
+            reCalc()
+        });
+
+        $(document).on('focusin', '#manualCalcWidth', function () {
+            $(this).data('val', $(this).val() ? $(this).val() : 0);
+        });
+
+        $(document).on('change', '#manualCalcWidth', function () {
+            var prev = $(this).data('val')
+            var current = $(this).val();
+
+            var keep_aspect = $('#switchScale').is(':checked');
+            if (keep_aspect) {
+                let oldwidth = $('#manualCalcHeight').val()
+                let aspect = oldwidth / prev;
+                let newwidth = Math.round(aspect * current)
+                $('#manualCalcHeight').val(newwidth)
+            }
+            reCalc()
+        });
+
+        $('#switch_exclude_discount_manual').change(function () {
+                let excluded =  $(this).is(":checked");
+                let exclude_id_str = '#exclude_discount';
+                $(exclude_id_str).val(excluded);
+            });
+
+
+
 });
 
 
@@ -175,6 +244,9 @@ $(".switchApplyBulk").change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         let product_price = form_id + " #price";
         $(product_price).prop('readonly', $(this).is(":checked"))
+        let bl_bulk = $(this).is(":checked")
+        let hidden_bulk = form_id + " #bulk_used";
+        $(hidden_bulk).val(bl_bulk);
     })
 
 
@@ -236,6 +308,9 @@ $(".switchApplyBulk").change(function () {
 
     $('.bulk_group_select').change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
+        let hidden_group = form_id + " #bulk_discount";
+        $(hidden_group).val(this.value)
+
         drawBulkTable(this.value, form_id)
         SetPrice(true, form_id)
     })
@@ -302,3 +377,53 @@ $(".switchApplyBulk").change(function () {
         cellToColour.addClass("table-success");
 
     }
+
+
+    function reCalc() {
+        let width = $('#manualWidth').val() ? $('#manualWidth').val() : 0;
+        let height = $('#manualHeight').val() ? $('#manualHeight').val() : 0;
+        let price = $('#manualPrice').val() ? $('#manualPrice').val() : 0;
+
+        let calc_width = $('#manualCalcWidth').val()
+        let calc_height = $('#manualCalcHeight').val()
+
+
+        let m2 = (width / 1000) * (height / 1000)
+        let cpstperm2 = 0
+        if (m2 > 0) {
+            cpstperm2 = price / m2
+        }
+
+        let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
+        $('#form-quick_manual #single_unit_price').val(parseFloat(newprice).toFixed(2));
+        $('#form-quick_manual #price').val(parseFloat(newprice).toFixed(2));
+
+
+        let size_name = calc_width + 'mm x ' + calc_height + 'mm ' + $('#form-quick_manual #manualMaterial').val()
+        $('#form-quick_manual #text_to_copy').val(size_name);
+
+        if($('#form-quick_manual #size_name').length) {
+            $('#form-quick_manual #size_name').val(calc_width + 'mm x ' + calc_height + 'mm ')
+        }
+
+        if($('#form-quick_manual #width').length) {
+            $('#form-quick_manual #width').val(calc_width)
+        }
+
+        if($('#form-quick_manual #height').length) {
+            $('#form-quick_manual #height').val(calc_height)
+        }
+
+        if($('#form-quick_manual #product_variant').length) {
+            $('#form-quick_manual #product_variant').val(null)
+        }
+
+        if($('#form-quick_manual #material_name').length) {
+            $('#form-quick_manual #material_name').val($('#form-quick_manual #manualMaterial').val())
+        }
+
+        if (newprice > 0) {
+            SetPrice(true, '#form-quick_manual')
+        }
+    }
+

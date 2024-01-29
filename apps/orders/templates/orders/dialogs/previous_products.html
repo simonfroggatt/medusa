@@ -36,10 +36,13 @@
                 <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
                 <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
                 <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
+                <input type="hidden" id="{{ form.width.name }}" name="{{ form.width.name }}">
+                <input type="hidden" id="{{ form.height.name }}" name="{{ form.height.name }}">
                 <input type="hidden" id="{{ form.material_name.name }}" name="{{ form.material_name.name }}">
                 <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
                 <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}">
                 <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
+                <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}" value="{{ form.bulk_used.value }}">
 
                 <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
                        value="{{ form.total.value|floatformat:2 }}">
@@ -189,6 +192,18 @@
                     {
                         data: "product_id",
                         "visible": false
+                    },
+                    {
+                        data: "width",
+                        "visible": false
+                    },
+                    {
+                        data: "height",
+                        "visible": false
+                    },
+                    {
+                        data: "bulk_used",
+                        "visible": false
                     }
                 ]
             });
@@ -200,7 +215,7 @@
                 set_product_details(data_row)
                 if(data_row['quantity'] > 1)
                 {
-                    $('#form-previous #switchApplyBulk').prop('checked',false)
+                    //$('#form-previous #switchApplyBulk').prop('checked',false)
                     let product_price =  "#form-previous #{{ form.price.name }}";
                     $(product_price).prop('readonly', false)
                     //SetPrice(false, '#form-previous')
@@ -217,9 +232,13 @@
               $('#form-previous #{{ form.product_id.name }}').val(data_row['product_id'])
             $('#form-previous #{{ form.name.name }}').val(data_row['name'])
              $('#form-previous #{{ form.size_name.name }}').val(data_row['size_name'])
+             $('#form-previous #{{ form.width.name }}').val(data_row['width']);
+            $('#form-previous #{{ form.height.name }}').val(data_row['height'])
             $('#form-previous #{{ form.material_name.name }}').val(data_row['material_name'])
             $('#form-previous #{{ form.orientation_name.name }}').val(data_row['orientation_name'])
-            $('#form-previous #{{ form.product_variant.name }}').val(data_row['product_variant']['prod_variant_id'])
+            if(data_row['product_variant']) {
+                $('#form-previous #{{ form.product_variant.name }}').val(data_row['product_variant']['prod_variant_id'])
+            }
             $('#form-previous #{{ form.model.name }}').val(data_row['model'])
             $('#form-previous #{{ form.is_bespoke.name }}').val(data_row['is_bespoke'])
             $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
@@ -227,6 +246,7 @@
             $('#form-previous #line_total_cal').html(data_row['total']);
              $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
              $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['price'])
+            $('#form-previous #switchApplyBulk').prop('checked', data_row['bulk_used']);
 
             console.log(data_row)
 

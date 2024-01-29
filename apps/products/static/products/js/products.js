@@ -206,6 +206,7 @@ $(function () {
                 {
                     data: "size_material.product_material.material_name"
                 },
+
                 {
                     data: "size_material.price"
                 },
@@ -232,7 +233,7 @@ $(function () {
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
                         let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="corevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
+                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="corevariant/'+data+'/delete" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return delete_icon + " " + edit_icon
                     }
                 },
@@ -315,51 +316,6 @@ $(function () {
         });
     }
 
-    if ($.fn.dataTable.isDataTable('#variant_core_sizes_table')) {
-        var variant_core_sizes_table = $('#variant_core_sizes_table').DataTable();
-    } else {
-        var variant_core_sizes_table = $('#variant_core_sizes_table').DataTable({
-            "dom": "<'row'<'col-sm-6'f><'col-sm-6'T>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-6'><'col-sm-6'>>",
-            "processing": true,
-            "select": true,
-            "search": true,
-            "info": false,
-            "rowId": 'size_id',
-            "ajax": {
-                "processing": true,
-                "url": "/pricing/api/sizes?format=datatables",
-            },
-            columns: [
-                {   data: "size_name", defaultContent: "" },
-                {   data: "size_width", defaultContent: ""},
-                {   data: "size_height", defaultContent: ""},
-                {   data: "orientation.orientation_name", defaultContent: ""},
-            ]
-        });
-    }
-
-    if ($.fn.dataTable.isDataTable('#variant_core_materials_table')) {
-        var variant_core_materials_table = $('#variant_core_materials_table').DataTable();
-    } else {
-        var variant_core_materials_table = $('#variant_core_materials_table').DataTable({
-            "dom": "<'row'<'col-sm-6'f><'col-sm-6'T>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-6'><'col-sm-6'>>",
-            "processing": true,
-            "select": 'single',
-            "search": true,
-            "info": false,
-            "rowId": 'id',
-            "autoWidth": true,
-            "order": [[1, 'asc']],
-            columns: [
-                {   data: "product_material.material_name", defaultContent: "" },
-                {   data: "price", defaultContent: 0.00 },
-            ]
-        });
-    }
 
     if ($.fn.dataTable.isDataTable('#product_variants_site_table')) {
         var product_variants_site_table = $('#product_variants_site_table').DataTable();
@@ -399,30 +355,18 @@ $(function () {
                             return '<span class="text-danger">'+data+'</span>'
                         }
                         else {
-                            return  row['prod_var_core']['size_material']['price'];
+                            if(row['store_size_material_price'] > 0)
+                                return '<span class="text-warning">'+row['store_size_material_price']+'</span>';
+                            else
+                                return  row['prod_var_core']['size_material']['price'];
                         }
                     }
                 },
                 {
-                    data: "alt_image", defaultContent: "no-image.png",
+                    data: "alt_image_url", defaultContent: "no-image.png",
                     render: function (data, type, row, meta) {
-                        if (data == null)
-                        {
-                            let base_image = row['prod_var_core']['variant_image']
-                            if(base_image == null)
-                            {
-                                var base_image_url = row['prod_var_core']['product']['image']
-                            }
-                            else {
-                                var base_image_url = base_image
-                            }
-                            return '<img height="30px" class="rounded mx-auto d-block" src="'+media_url + base_image_url + '">';
-                        }
-                        else{
-                            return '<img height="30px" class="rounded mx-auto d-block" src="'+media_url + data + '">';
-                        }
-
-                    }
+                        return '<img height="30px" class="rounded mx-auto d-block" src="' + data + '">';
+                    },
                 },
                 {
                     data: "prod_variant_id",
@@ -516,17 +460,18 @@ $(function () {
                 "regex": true
             },
             columns: [
-                {data: "symbol.image_path", defaultContent: "no-image.png",
+                {data: "symbol.svg_path", defaultContent: "no-image.png",
                     render: function ( data, type, row ) {
                     if(data == null ){
                         img_path = media_url + "no-image.png"
                     }
                     else{
-                        img_path = media_url + data
+                        img_path =  data
                     }
                      return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';
                     },
                 },
+                {data: "symbol.refenceno"},
                 {data: "symbol.referent"},
                 {
                     data: "symbol.id",
@@ -573,18 +518,19 @@ $(function () {
                         return add_icon
                     },
                     },
-                {data: "image_path", defaultContent: "no-image.png",
+                {data: "svg_path", defaultContent: "no-image.png",
                     render: function ( data, type, row ) {
                     if(data == null ){
                         img_path = media_url + "no-image.png"
                     }
                     else{
-                        img_path = media_url + data
+                        img_path =  data
                     }
 
                      return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';
                     },
                 },
+                {data: "refenceno"},
                 {data: "referent"},
 
 
@@ -675,38 +621,9 @@ $(function () {
         }
     });
 
-    variant_core_sizes_table.on('select', function (e, dt, type, indexes) {
-        if (type === 'row') {
-            let data = dt.row(indexes).id();
-            let variant_url = '/pricing/api/sizematerials/'+data+'?format=datatables'
-            variant_core_materials_table.ajax.url(variant_url).load()
 
-            // do something with the ID of the selected items
-        }
-    });
 
-    variant_core_sizes_table.on('deselect', function (e, dt, type, indexes) {
-        if (type === 'row') {
-            $('#btn_product_core_var_add').addClass('disabled')
-            let variant_url = '/pricing/api/sizematerials/'+0+'?format=datatables'
-            variant_core_materials_table.ajax.url(variant_url).load()
-        }
-    });
 
-    variant_core_materials_table.on('select', function (e, dt, type, indexes) {
-        if (type === 'row') {
-            let data = dt.row(indexes).id();
-            // do something with the ID of the selected items
-            $('#id_size_material').val(data)
-            $('#btn_product_core_var_add').removeClass('disabled')
-        }
-    });
-
-    variant_core_materials_table.on('deselect', function (e, dt, type, indexes) {
-        if (type === 'row') {
-            $('#btn_product_core_var_add').addClass('disabled')
-        }
-    });
 
     function SaveVariantOptionAdd(){
         var form = $(this);
@@ -753,11 +670,15 @@ $(function () {
     }
 
     function AddProductVariantCore(form){
+         form = $(this)
         $.ajax({
             url: form.attr("action"),
-            data: form.serialize(),
+            data: new FormData( this ),
             type: form.attr("method"),
-            dataType: 'json',
+            //dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
             success: function (data) {
                 if (data.form_is_valid) {
                     updateProductVariantCoreTable();
@@ -773,10 +694,19 @@ $(function () {
     function EditProductVariantCore(){
         form = $(this)
         $.ajax({
+
             url: form.attr("action"),
+            data: new FormData( this ),
+            type: form.attr("method"),
+            //dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+
+            /*url: form.attr("action"),
             data: form.serialize(),
             type: form.attr("method"),
-            dataType: 'json',
+            dataType: 'json',*/
             success: function (data) {
                 if (data.form_is_valid) {
                     updateProductVariantCoreTable();
@@ -844,12 +774,16 @@ $(function () {
         return false;
     }
 
-    function AddProductVariantSite(form){
+    function AddProductVariantSite(){
+        var form = $(this);
         $.ajax({
             url: form.attr("action"),
-            data: form.serialize(),
+            data: new FormData( this ),
             type: form.attr("method"),
-            dataType: 'json',
+            //dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
             success: function (data) {
                 if (data.form_is_valid) {
                     updateProductVariantSiteTable();
@@ -922,6 +856,27 @@ $(function () {
         return false;
     }
 
+    function AddAdditionalProductImage(){
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: new FormData( this ),
+            type: form.attr("method"),
+            //dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                if (data.upload) {
+                    $("#js-image-store_id").trigger('change');
+                } else {
+                    alert('error uploading')
+                }
+            }
+        });
+        return false;
+    }
+
     function updateSiteVariantOptionTable(){
         site_variants_options.ajax.reload()
     }
@@ -949,7 +904,9 @@ $(function () {
     $(document).on("submit", "#from-site_variant_option_edit", SaveSiteOption);
     $(document).on("submit", "#form-core_variant_option_edit", SaveVariantOptionAdd);
     $(document).on("submit", "#form-site_variant_edit", AddProductVariantSite);
+    $(document).on("submit", "#form-site_variant_add", AddProductVariantSite);
     $(document).on("submit", "#dlg-related_product-delete", RelatedProductUpdate);
+    $(document).on("submit", "#form-core_variant_add", AddProductVariantCore);
     $(document).on("change", "#js-group_option_select", function(){
          let newval = $(this).val()
          get_group_option_text(newval)
@@ -960,21 +917,8 @@ $(function () {
     });
 
 
+    $(document).on("submit", "#dform_product_image_add", AddAdditionalProductImage);
 
-    $("#form-core_variant_add").on("submit" , function (e) {
-        e.preventDefault()
-        AddProductVariantCore(form = $(this))
-    })
-
-    $("#form-site_variant_add").on("submit" , function (e) {
-        e.preventDefault()
-        AddProductVariantSite(form = $(this))
-    })
-
-    $("#form-site_variant_edit").on("submit" , function (e) {
-        e.preventDefault()
-        AddProductVariantSite(form = $(this))
-    })
 
 
     /**                                                          START - product additioanl images                                                  */
@@ -995,6 +939,7 @@ $(function () {
 
     //delete button on product additional image by store
     $(document).on("click", ".store_product_additional_images-dlg", loadForm);
+    $(document).on("click", ".product_additional_images-dlg", loadForm);
 
     $(document).on('submit', '#frm-store_product_additional_images-delete', function() {
 
@@ -1071,9 +1016,22 @@ $(function () {
  * code for product variants
  */
 
-    /*  when we add a new variant */
-   $('#product_variant_table_available').on('click', '.js-variant_site-add', function(){
+    $(document).on("click", ".js-variant_site-add", function(){
+       var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'POST',
+            data: {csrfmiddlewaretoken: window.CSRF_TOKEN},
+            success: function (data) {
+                if (data.is_saved) {
+                    updateSiteVariantTables()
+                }
+            }
+        });
+        return false;
+    });
 
+    $(document).on("click", ".js-variant_site-delete", function(){
         var btn = $(this);  // <-- HERE
         $.ajax({
             url: btn.attr("data-url"),  // <-- AND HERE
@@ -1086,26 +1044,8 @@ $(function () {
             }
         });
         return false;
-
     });
 
-    /*  when we remove an active variant */
-   $('#product_variant_active_table').on('click', '.js-variant_site-delete', function(){
-
-        var btn = $(this);  // <-- HERE
-        $.ajax({
-            url: btn.attr("data-url"),  // <-- AND HERE
-            type: 'POST',
-            data: {csrfmiddlewaretoken: window.CSRF_TOKEN},
-            success: function (data) {
-                if (data.is_saved) {
-                    updateSiteVariantTables()
-                }
-            }
-        });
-        return false;
-
-    });
 
     /*  update the 2 table to show the changes */
     function updateSiteVariantTables(){

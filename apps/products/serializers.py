@@ -3,6 +3,7 @@ from apps.products.models import OcProduct, OcProductDescriptionBase, OcTsgProdu
     OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
 from apps.options.models import OcTsgProductVariantOptions
 from apps.category.models import OcCategoryToStore
+from apps.pricing.models import OcTsgSizeMaterialCombPrices
 from django.conf import settings
 from apps.symbols.models import OcTsgProductSymbols
 from apps.options.models import OcTsgProductVariantCoreOptions
@@ -118,10 +119,20 @@ class CoreVariantSerializer(serializers.ModelSerializer):
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
+
+    store_size_material_price = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = OcTsgProductVariants
-        fields = ['prod_variant_id', 'variant_code', 'variant_overide_price', 'prod_var_core', 'alt_image', 'store', 'isdeleted']
-        depth = 3
+        fields = ['prod_variant_id', 'variant_code', 'variant_overide_price', 'prod_var_core', 'alt_image', 'store', 'isdeleted', 'alt_image_url', 'store_size_material_price']
+        depth = 4
+
+    def get_store_size_material_price(self, obj):
+        store_price = OcTsgSizeMaterialCombPrices.objects.filter(size_material_comb=obj.prod_var_core.size_material.id).filter(store_id=obj.store.store_id).values('price').first()
+        if store_price:
+            return store_price['price']
+        else:
+            return 0
 
 
 class StoreProductVariantSerialize(serializers.ModelSerializer):

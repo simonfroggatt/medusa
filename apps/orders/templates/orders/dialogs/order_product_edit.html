@@ -27,18 +27,35 @@
                            value="{{ form.single_unit_price.value }}">
                     <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}"
                        value="{{ form.bulk_used.value }}">
+
                     <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
                        value="1">
                     <div class="row">
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-2">
                             <label for="label_{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
                             <input type="text" class="form-control" id="label_{{ form.model.name }}"
                                    name="{{ form.model.name }}" value="{{ form.model.value }}">
                         </div>
-                        <div class="col-6 col-md-9">
+
+                        <div class="col-6 {% if price_for|upper == "I" %} col-md-8 {% else %} col-md-10 {% endif %}">
                             <label for="label_{{ form.name.name }}" class="form-label">{{ form.name.label }}</label>
                             <input type="text" class="form-control" id="label_{{ form.name.name }}"
                                    name="{{ form.name.name }}" value="{{ form.name.value }}">
+                        </div>
+                        {% if price_for|upper == "I" %}
+                            <div class="col-6 col-md-2">{{ form.status|as_crispy_field }}</div>
+                        {% endif %}
+                        <div class="col-6 col-md-1">
+                            <label for="label_{{ form.width.name }}"
+                                   class="form-label">{{ form.width.label }}</label>
+                            <input type="text" class="form-control" id="label_{{ form.width.name }}"
+                                   name="{{ form.width.name }}" value="{{ form.width.value }}">
+                        </div>
+                        <div class="col-6 col-md-1">
+                            <label for="label_{{ form.height.name }}"
+                                   class="form-label">{{ form.height.label }}</label>
+                            <input type="text" class="form-control" id="label_{{ form.height.name }}"
+                                   name="{{ form.height.name }}" value="{{ form.height.value }}">
                         </div>
                         <div class="col-6 col-md-3">
                             <label for="label_{{ form.size_name.name }}"
@@ -46,26 +63,14 @@
                             <input type="text" class="form-control" id="label_{{ form.size_name.name }}"
                                    name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
                         </div>
-                        <div class="col-6 col-md-5">
+                        <div class="col-6 col-md-4">
                             <label for="label_{{ form.material_name.name }}"
                                    class="form-label">{{ form.material_name.label }}</label>
                             <input type="text" class="form-control" id="label_{{ form.material_name.name }}"
                                    name="{{ form.material_name.name }}" value="{{ form.material_name.value }}">
                         </div>
-                        {% if price_for|upper == "I" %}
-                            <div class="col-2">{{ form.status|as_crispy_field }}</div>
-                            <div class="col-2">
-                                <label class="form-check-label">Bespoke Product</label>
-                                <div class="form-check form-switch form-switch-lg align-bottom">
-                                    <label class="form-check-label" for="{{ form.is_bespoke.name }}"></label>
-                                    <input class="form-check-input" type="checkbox" name="{{ form.is_bespoke.name }}"
-                                           id="{{ form.is_bespoke.name }}" {% if form.is_bespoke.value %}
-                                           checked {% endif %}>
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="col-6">{{ form.is_bespoke|as_crispy_field }}</div>
-                        {% endif %}
+                        <div class="col-2">{{ form.is_bespoke|as_crispy_field }}</div>
+
 
 
                         <div class="col-12">

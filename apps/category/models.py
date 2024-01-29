@@ -57,7 +57,7 @@ class OcCategoryDescriptionBase(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
     #image = models.CharField(max_length=255, blank=True, null=True)
-    image = models.ImageField(max_length=255, blank=True, null=True)
+    image = models.ImageField(upload_to='stores/category/', blank=True, null=True)
     meta_title = models.CharField(max_length=255)
     meta_description = models.CharField(max_length=1024)
     meta_keyword = models.CharField(max_length=512)

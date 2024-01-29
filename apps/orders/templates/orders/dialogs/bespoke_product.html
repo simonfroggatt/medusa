@@ -32,7 +32,7 @@
                     <div class="row">
                         <div class="col-2">
                             <label for="calc_width" class="form-label">Width (mm)</label>
-                            <input type="text" class="form-control js-calc_size_change" id="calc_width" placeholder="0">
+                            <input type="text" class="form-control js-calc_size_change" id="calc_width" placeholder="0" >
                         </div>
                         <div class="col-2">
                             <label for="calc_height" class="form-label">Height (mm)</label>
@@ -105,6 +105,8 @@
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}"
                        value=Null>
                 <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
+                <input type="hidden" id="{{ form.width.name }}" name="{{ form.width.name }}">
+                <input type="hidden" id="{{ form.height.name }}" name="{{ form.height.name }}">
                 <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="True">
 
                 <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
@@ -114,6 +116,8 @@
                 <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
                        value="{{ form.exclude_discount.value }}">
 
+                <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}" value="{{ form.bulk_used.value }}">
+                 <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}" value="1">
                 <div class="row">
                     <div class="col-3">
                         <label for="{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
@@ -162,6 +166,7 @@
                                     <div class="col-2">
                                         <input type="number" step="0.01" min="0.00" maxlength="3"
                                                class="form-control two-decimals calc_line_totals" id="{{ form.single_unit_price.name }}"
+                                               name="{{ form.single_unit_price.name }}"
                                                value="{{ form.price.value|floatformat:2 }}">
                                     </div>
                                 </div>
@@ -295,6 +300,8 @@
             function set_product_details(data_row) {
                 $('#form-bespoke #{{ form.product_id.name }}').val(0)
                 $('#form-bespoke #{{ form.size_name.name }}').val(data_row['size_material_comb']['product_size']['size_name'])
+                $('#form-bespoke #{{ form.width.name }}').val(data_row['size_material_comb']['product_size']['size_width'])
+                $('#form-bespoke #{{ form.height.name }}').val(data_row['size_material_comb']['product_size']['size_height'])
                 $('#form-bespoke #{{ form.material_name.name }}').val(data_row['size_material_comb']['product_material']['material_name'])
                 $('#form-bespoke #{{ form.orientation_name.name }}').val(data_row['size_material_comb']['product_size']['orientation'])
                 $('#form-bespoke #{{ form.product_variant.name }}').val(null)
@@ -305,8 +312,8 @@
 
                 manual_data_bespoke['width'] = data_row['size_material_comb']['product_size']['size_width']
                 manual_data_bespoke['calcwidth'] = data_row['size_material_comb']['product_size']['size_width']
-                manual_data_bespoke['height'] = data_row['size_material_comb']['product_size']['size_width']
-                manual_data_bespoke['calcheight'] = data_row['size_material_comb']['product_size']['size_width']
+                manual_data_bespoke['height'] = data_row['size_material_comb']['product_size']['size_height']
+                manual_data_bespoke['calcheight'] = data_row['size_material_comb']['product_size']['size_height']
                 manual_data_bespoke['material'] = data_row['size_material_comb']['product_material']['material_name']
                 manual_data_bespoke['price'] = data_row['price']
 
@@ -333,6 +340,9 @@
             $('#calc_button').on('click', function(){
                 let str_width = $('#calc_width').val()
                 let str_height =  $('#calc_height').val()
+                $('#form-bespoke #{{ form.width.name }}').val($('#calc_width').val())
+                $('#form-bespoke #{{ form.height.name }}').val($('#calc_height').val())
+
                 let material_id = $('#form-bespoke #material_id').val()
                 let margin =  $('#calc_margin').val()
                 let strurl = "/pricing/api/bespokeprices/?format=datatables&width="+str_width+"&height="+str_height+"&material_id="+material_id+"&margin="+margin

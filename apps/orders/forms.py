@@ -1,6 +1,7 @@
 from django import forms
-from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder, OcOrderTotal, OcTsgOrderShipment
+from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder, OcOrderTotal, OcTsgOrderShipment, OcTsgOrderDocuments
 from apps.shipping.models import OcTsgShippingMethod
+from apps.sites.models import OcStore
 
 class ProductEditForm(forms.ModelForm):
 
@@ -19,6 +20,8 @@ class ProductEditForm(forms.ModelForm):
             'tax',
             'status',
             'size_name',
+            'width',
+            'height',
             'material_name',
             'orientation_name',
             'is_bespoke',
@@ -53,6 +56,8 @@ class ProductAddForm(forms.ModelForm):
             'tax',
             'status',
             'size_name',
+            'width',
+            'height',
             'material_name',
             'orientation_name',
             'is_bespoke',
@@ -158,6 +163,8 @@ class OrderDetailsEditForm(forms.ModelForm):
         self.fields['payment_status'].empty_label = None
         self.fields['payment_method'].empty_label = None
         self.fields['order_type'].empty_label = None
+        self.fields['store'].empty_label = None
+        self.fields['store'].queryset = OcStore.objects.filter(store_id__gt=0)
 
     class Meta:
         model = OcOrder
@@ -175,6 +182,7 @@ class OrderDetailsEditForm(forms.ModelForm):
 
         labels = {
             'payment_method': 'Payment Method',
+            'order_type': 'Order Source',
         }
 
 
@@ -232,3 +240,17 @@ class OrderDiscountForm(forms.ModelForm):
                   'value'
                   ]
 
+
+class OrderDocumentForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(OrderDocumentForm, self).__init__(*args, **kwargs)
+        self.fields['type'].empty_label = None
+
+    class Meta:
+        model = OcTsgOrderDocuments
+        fields = '__all__'
+
+    widgets = {
+        'order': forms.Select(attrs={"hidden": True}),
+    }

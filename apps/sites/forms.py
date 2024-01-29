@@ -19,6 +19,6 @@ class StoreEditForm(forms.ModelForm):
         widgets = {
             'status': forms.CheckboxInput,
             'email_address': forms.EmailInput,
-
+            'address': forms.Textarea(attrs={'rows': 5}),
         }
 

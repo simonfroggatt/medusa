@@ -1,0 +1,35 @@
+{% load static %}
+<div class="container">
+    <div class="row">
+        <div class="col-12"><input type="number" value="{{ base_price }}" name='base_price' id="base_price"></div>
+        <div class="col">
+            {% for select in  select_data %}
+                <div id="div_select_{{ select.id }}" {% if select.is_dynamic %} style="display: none" {% endif %} data-option={{ select.id }}>
+                    <label for="option_class_{{ select.id }}" class="form-label">{{ select.label }}</label>
+                    <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class="form-select tsg_option_class {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}" >
+                        <option value="0" data-class={{ select.id }} data-option=0>{{ select.default }}</option>
+                        {% for class_values in select.values %}
+                            <option value="{{ class_values.id }}" data-class={{ select.id }} >{{  class_values.drop_down }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endfor %}
+        </div>
+    <div class="col-12">
+        <span>New price: </span><span id="new_price">{{ base_price }}</span>
+    </div>
+    </div>
+</div>
+
+{{ select_data|json_script:"optionvalues" }}
+{{ variant_info|json_script:"variantvalues" }}
+ <script>
+
+var select_values = JSON.parse(document.getElementById('optionvalues').textContent);
+var variant_info = JSON.parse(document.getElementById('variantvalues').textContent);
+// console.log(select_values)
+</script>
+
+
+
+

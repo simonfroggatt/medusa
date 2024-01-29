@@ -12,7 +12,7 @@
 
 {% block content %}
 
-<form method="post" action=" {% url 'create_material' %}">
+<form method="post" action=" {% url 'create_material' %}" enctype="multipart/form-data">
 {{ form.media }}
     {% csrf_token %}
 

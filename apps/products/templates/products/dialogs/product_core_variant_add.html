@@ -2,19 +2,21 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title"> Add Variant</h4>
+    <h4 class="modal-title"> Add CORE Variant</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
      <div class="container">
-        <form method="post" action="{% url 'product_core_variant-add' product_id %}" id="form-core_variant_add" novalidate >
+        <form method="post" action="{% url 'product_core_variant-add' product_id %}" id="form-core_variant_add"  enctype="multipart/form-data">
             {% csrf_token %}
-             <input type="hidden" id="product_id" name="product_id" value="{{ product_id }}">
-            <input type="hidden" id="size_material_id" name="size_material_id" value="0">
-            <input type="hidden" id="prod_variant_core_id" name="prod_variant_core_id" value="{{ form.initial.prod_variant_core_id }}">
-            {{ form.size_material|as_crispy_field }}
-            {{ form.product|as_crispy_field }}
+            {{ form.product.as_hidden }}
+             {{ form.size_material.as_hidden }}
+            {{ form.prod_variant_core_id.as_hidden }}
+
             <div class="row">
+                <div class="col-12">
+                    {{ form.variant_image|as_crispy_field }}
+                </div>
                 <div class="col-12">
                     {% include 'products/sub_layout/variant_core_size_material.html' %}
                 </div>

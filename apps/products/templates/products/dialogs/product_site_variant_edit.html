@@ -11,15 +11,21 @@
          <h4>{{ product_variant_obj.prod_var_core.size_material.product_size.size_name }} - {{ product_variant_obj.prod_var_core.size_material.product_material.material_name }}</h4>
          <h5>Current default prices is {{ product_variant_obj.prod_var_core.size_material.price }}</h5>
          <hr>
-         <form method="post" action="{% url 'site_variant-edit' product_variant_id %}" id="form-site_variant_edit" >
+         <form method="post" action="{% url 'site_variant-edit' product_variant_id %}" id="form-site_variant_edit" enctype="multipart/form-data">
             {% csrf_token %}
              <input type="hidden" id="product_variant_id" name="product_variant_id" value="{{ product_variant_id }}">
-             <input type="hidden" id="prod_core_id" name="prod_core_id" value="{{ product_variant_obj.prod_var_core_id }}">
+             {{ form.prod_var_core.as_hidden }}
             {{ form.digital_artwork|as_crispy_field }}
             {{ form.digital_artwork_price|as_crispy_field }}
             {{ form.store|as_crispy_field }}
             {{ form.isdeleted|as_crispy_field }}
             <div class="row">
+                <div class="col-4">
+                    <img src="{{ current_image }}" class="img-thumbnail tsg-thumbnail">
+                </div>
+                <div class="col-8">
+                    {{ form.alt_image|as_crispy_field }}
+                </div>
                 <div class="col-6">
                     {{ form.variant_code|as_crispy_field }}
                 </div>
@@ -41,4 +47,4 @@
     </div>
 </div>
 
-<script type="text/javascript" src="{% static 'js/products.js' %}"></script>
+<!-- <script type="text/javascript" src="{% static 'js/products.js' %}"></script> -->

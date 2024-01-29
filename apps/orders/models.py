@@ -54,10 +54,12 @@ class OcOrderStatus(models.Model):
     order_status_id = models.AutoField(primary_key=True)
     language_id = models.IntegerField()
     name = models.CharField(max_length=32)
+    order_by = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_order_status'
+        ordering = ['order_by']
         unique_together = (('order_status_id', 'language_id'),)
 
     def __str__(self):
@@ -68,10 +70,12 @@ class OcTsgPaymentMethod(models.Model):
     payment_method_id = models.AutoField(primary_key=True)
     payment_method_name = models.CharField(max_length=255, blank=True, null=True)
     payment_method_icon = models.CharField(max_length=255, blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_payment_method'
+        ordering = ['order_by']
 
     def __str__(self):
         return self.payment_method_name
@@ -81,22 +85,27 @@ class OcTsgOrderType(models.Model):
     order_type_id = models.AutoField(primary_key=True)
     order_type_name = models.CharField(max_length=255, blank=True, null=True)
     order_type_icon = models.CharField(max_length=255, blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_order_type'
+        ordering = ['order_by']
 
     def __str__(self):
         return self.order_type_name
 
 
+
 class OcTsgPaymentStatus(models.Model):
     payment_status_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64, blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_payment_status'
+        ordering = ['order_by']
 
     def __str__(self):
         return self.name
@@ -108,10 +117,12 @@ class OcTsgOrderProductStatus(models.Model):
     icon_path = models.CharField(max_length=255, blank=True, null=True)
     order_by = models.IntegerField(blank=True, null=True)
     is_flag = models.IntegerField(blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_order_product_status'
+        ordering = ['order_by']
 
     def __str__(self):
         return self.name
@@ -290,6 +301,8 @@ class OcOrderProduct(models.Model):
     tax_rate_desc = models.CharField(max_length=10, blank=True, null=True)
     reward = models.IntegerField()
     size_name = models.CharField(max_length=256, blank=True, null=True)
+    width = models.DecimalField(max_digits=10, decimal_places=0)
+    height = models.DecimalField(max_digits=10, decimal_places=0)
     orientation_name = models.CharField(max_length=255, blank=True, null=True)
     material_name = models.CharField(max_length=255, blank=True, null=True)
     product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, related_name='order_product_variant')
@@ -315,7 +328,7 @@ class OcOrderProduct(models.Model):
 
     def delete(self, using=None, keep_parents=False):
         super(OcOrderProduct, self).delete(using, keep_parents)
-        calc_order_totals(self.order.order_id)
+        #calc_order_totals(self.order.order_id)
 
     def save(self, *args, **kwargs):
         super(OcOrderProduct, self).save(*args, **kwargs)
@@ -397,92 +410,49 @@ class OcTsgOrderProductStatusHistory(models.Model):
         db_table = 'oc_tsg_order_product_status_history'
 
 
-def calc_order_totals(order_id, bl_recal_discount=True):
-    if bl_recal_discount:
-        calc_update_product_subtotal(order_id)
+class OcTsgFileTypes(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
 
-    qs_order = OcOrder.objects.filter(pk=order_id).first()
-    order_tax_rate = Decimal(qs_order.tax_rate.rate / 100)
-    order_tax_title = qs_order.tax_rate.name
-    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
-    sub_total_lines = Decimal(0.0)
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_file_types'
 
-    qs_totals = OcOrderTotal.objects.filter(order_id=order_id)
-    qs_shipping = qs_totals.filter(code='shipping')
-
-    qs_discount = qs_totals.filter(code='discount')
-    qs_total = qs_totals.get(code='total')
-    qs_sub = qs_totals.get(code='sub_total')
-    qs_tax = qs_totals.get(code='tax')
-
-    for product in qs_products.iterator():
-        sub_total_value = Decimal(product.price) * Decimal(product.quantity)
-        sub_total_lines += sub_total_value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-
-    if qs_shipping.exists():
-        sub_total = sub_total_lines + Decimal(qs_shipping.first().value)
-
-    if qs_discount.exists():
-        sub_total -= Decimal(qs_discount.first().value)
-
-    tax_rate_calc = 1 + order_tax_rate
-    order_total_float = sub_total * tax_rate_calc
-    order_total = Decimal(order_total_float.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
-    tax_total = order_total - sub_total
-
-    qs_total.value = float(order_total)
-    qs_total.save()
-    qs_sub.value = float(sub_total_lines)
-    qs_sub.save()
-    qs_tax.value = float(tax_total)
-    qs_tax.title = order_tax_title
-    qs_tax.save()
-
-    #now update the order
-    qs_order = OcOrder.objects.get(order_id=order_id)
-    qs_order.total = order_total
-    qs_order.save()
+    def __str__(self):
+        return self.name
 
 
-def calc_update_product_subtotal(order_id):
-    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
-    qs_order = OcOrder.objects.filter(pk=order_id).first()
-    sub_total_lines_discount = Decimal(0.0)
+class OcTsgOrderArtwork(models.Model):
+    title = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.CharField(max_length=255, blank=True, null=True)
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True)
+    version = models.CharField(max_length=255, blank=True, null=True)
+    approved = models.BooleanField(default=False)
+    approved_by = models.CharField(max_length=255, blank=True, null=True)
+    added_date = models.DateTimeField(blank=True, null=True)
+    approved_date = models.DateTimeField(blank=True, null=True)
 
-    if qs_order.customer.parent_company:
-        decimal_calc = Decimal(qs_order.customer.parent_company.discount / 100)
-        customer_discount = decimal_calc.quantize(Decimal('0.00'))
-    else:
-        customer_discount = Decimal(0.00)
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_artwork'
 
-    for product in qs_products.iterator():
-        if not product.exclude_discount:
-            discount_amount = Decimal(product.price) * Decimal(product.quantity) * Decimal(customer_discount)
-            sub_total_lines_discount += discount_amount.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-
-    qs_totals = OcOrderTotal.objects.filter(order_id=order_id)
-
-    if qs_totals.filter(code='discount').exists:
-        qs_discount = qs_totals.get(code='discount')
-        qs_discount.value = sub_total_lines_discount
-        qs_discount.save()
+    def __str__(self):
+        return self.title
 
 
+class OcTsgOrderDocuments(models.Model):
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True)
+    type = models.ForeignKey(OcTsgFileTypes, models.DO_NOTHING, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.FileField(upload_to='documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_documents'
 
+    def __str__(self):
+        return self.title
 
-
-def recalc_order_product_tax(order_id):
-    qs_order = OcOrder.objects.filter(pk=order_id).first()
-    tax_rate_val = Decimal(qs_order.tax_rate.rate / 100)
-    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
-    tax_value = 0.000
-    for product in qs_products:
-        tax_value = product.total * tax_rate_val
-        product.tax = Decimal(tax_value.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
-        product.save()
-
-    calc_order_totals(order_id)
 
 
 def add_order_product_history(order_product_id, old_id, new_id):

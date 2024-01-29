@@ -576,6 +576,8 @@ $(function () {
         $(form_id + ' #tax').val(tax_price)
         $(form_id + ' #line_total_cal').html(line_price);
         $(form_id + ' #line_total_cal').trigger('change');
+
+
     }
 
     $('.bulk_group_select').change(function () {
@@ -726,6 +728,27 @@ $(function () {
         return false;
     }
 
+    function OrderDocuemntUpload(){
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: new FormData( this ),
+            type: form.attr("method"),
+            //dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                if (data.upload) {
+                    alert('uploaded done')
+                } else {
+                    alert('error')
+                }
+            }
+        });
+        return false;
+    }
+
 
     $(document).on('click', '.js-order-product-edit', loadProductEditForm);
     $(document).on("submit", "#js-product-edit-submit", saveProductEditForm);
@@ -756,9 +779,7 @@ $(function () {
 
     $(document).on("submit", "#js-order-shipping-change", ShippingAddressSearchQuick);
 
-
-
-    //$(document).on("submit", ".order_billing_addressbook", BillingAddressQuick)
+    $(document).on("submit", "#form_order_document", OrderDocuemntUpload);
 
 
 })
@@ -775,4 +796,39 @@ function copy_orderno_to_clipboard(order_number) {
     document.body.removeChild(el);
 
 }
+
+//Dropzone.autoDiscover = false;
+
+Dropzone.options.orderDocDropzone = { // camelized version of the `id`
+    paramName: "filename", // The name that will be used to transfer the file
+    maxFilesize: 2, // MB
+    autoProcessQueue: false,
+    uploadMultiple: false,
+
+    init: function() {
+        var myDropzone = this;
+
+        // First change the button to actually tell Dropzone to process the queue.
+        this.element.querySelector("button[type=submit]").addEventListener("click", function (e) {
+            // Make sure that the form isn't actually being sent.
+            e.preventDefault();
+            e.stopPropagation();
+            myDropzone.processQueue();
+        });
+
+
+    },
+
+    success: function (file, response) {
+        if(response.upload){
+            alert('uploaded done')
+        } else {
+            alert('error')
+        }
+    }
+
+  };
+
+
+
 

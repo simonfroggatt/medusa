@@ -36,3 +36,90 @@
 
 
 </div>
+
+
+<script>
+    $(function () {
+        if ($.fn.dataTable.isDataTable('#variant_core_sizes_table')) {
+            var variant_core_sizes_table = $('#variant_core_sizes_table').DataTable();
+        } else {
+            var variant_core_sizes_table = $('#variant_core_sizes_table').DataTable({
+                "dom": "<'row'<'col-sm-6'f><'col-sm-6'T>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-6'><'col-sm-6'>>",
+                "processing": true,
+                "select": true,
+                "search": true,
+                "info": false,
+                "rowId": 'size_id',
+                "ajax": {
+                    "processing": true,
+                    "url": "/pricing/api/sizes?format=datatables",
+                },
+                columns: [
+                    {data: "size_name", defaultContent: ""},
+                    {data: "size_width", defaultContent: ""},
+                    {data: "size_height", defaultContent: ""},
+                    {data: "orientation.orientation_name", defaultContent: ""},
+                ]
+            });
+        };
+
+        if ($.fn.dataTable.isDataTable('#variant_core_materials_table')) {
+            var variant_core_materials_table = $('#variant_core_materials_table').DataTable();
+        } else {
+            var variant_core_materials_table = $('#variant_core_materials_table').DataTable({
+                "dom": "<'row'<'col-sm-6'f><'col-sm-6'T>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-6'><'col-sm-6'>>",
+                "processing": true,
+                "select": 'single',
+                "search": true,
+                "info": false,
+                "rowId": 'id',
+                "autoWidth": true,
+                "order": [[1, 'asc']],
+                columns: [
+                    {data: "product_material.material_name", defaultContent: ""},
+                    {data: "price", defaultContent: 0.00},
+                ]
+            });
+        }
+
+        variant_core_sizes_table.on('select', function (e, dt, type, indexes) {
+            if (type === 'row') {
+                let data = dt.row(indexes).id();
+                let variant_url = '/pricing/api/sizematerials/' + data + '?format=datatables'
+                variant_core_materials_table.ajax.url(variant_url).load()
+
+                // do something with the ID of the selected items
+            }
+        });
+
+        variant_core_sizes_table.on('deselect', function (e, dt, type, indexes) {
+            if (type === 'row') {
+                $('#btn_product_core_var_add').addClass('disabled')
+                let variant_url = '/pricing/api/sizematerials/' + 0 + '?format=datatables'
+                variant_core_materials_table.ajax.url(variant_url).load()
+            }
+        });
+
+         variant_core_materials_table.on('select', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = dt.row(indexes).id();
+            // do something with the ID of the selected items
+            $('#id_size_material').val(data)
+            $('#btn_product_core_var_add').removeClass('disabled')
+        }
+    });
+
+    variant_core_materials_table.on('deselect', function (e, dt, type, indexes) {
+        if (type === 'row') {
+            $('#btn_product_core_var_add').addClass('disabled')
+        }
+    });
+
+
+
+    })
+</script>

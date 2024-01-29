@@ -2,6 +2,8 @@ from django.urls import path
 from apps.orders import views
 from rest_framework import routers
 from django.urls import include
+from django.conf.urls.static import static
+from django.conf import settings
 
 router = routers.SimpleRouter()
 router.register(r'orders', views.Orders_asJSON)
@@ -71,4 +73,10 @@ urlpatterns = [
     path('live', views.live_order_list, name='liveorders'),
     path('all', views.order_list, name='allorders'),
     path('failed', views.failed_order_list, name='failedorders'),
-    ]
+
+
+    #uploads
+    path('document/upload', views.order_document_upload, name='order_document-upload'),
+
+    ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
+              + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

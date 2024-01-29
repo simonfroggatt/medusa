@@ -12,10 +12,18 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+environ.Env.read_env()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_DIR = os.path.join(BASE_DIR,'templates')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -27,9 +35,6 @@ SECRET_KEY = 'django-insecure-0%g862#abjugdfjbz1i3y3oc0)ifrdds-!t_m&-^c(4#!d8y#%
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
-
-
 
 # Application definition
 
@@ -60,6 +65,7 @@ INSTALLED_APPS = [
     'apps.templating',
     'apps.bulk',
     'apps.shipping',
+    'apps.suppliers',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -85,7 +91,9 @@ ROOT_URLCONF = 'medusa.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
+        'DIRS': [
+            TEMPLATE_DIR
+        ]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -162,6 +170,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
+
+STATIC_ROOT = '/static_cdn/'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     #os.path.join(BASE_DIR, 'apps/templating/static/templating'),
@@ -180,8 +190,23 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/options/static/options'),
                     os.path.join(BASE_DIR, 'apps/bulk/static/bulk'),
                     os.path.join(BASE_DIR, 'apps/shipping/static/shipping'),
+                    os.path.join(BASE_DIR, 'apps/suppliers/static/suppliers'),
 
                     ]
+
+MEDIA_ROOT = '/Users/simonfroggatt/Sites/tsg_storage/'
+MEDIA_URL = '/media/'
+
+#custom paths for files
+WEBSITE_ROOT = os.path.join(MEDIA_ROOT, 'stores')
+MEDUSA_ROOT = os.path.join(MEDIA_ROOT, 'medusa')
+
+MEDUSA_DOCS = os.path.join(MEDIA_ROOT, 'medusa/documents')
+MEDUSA_ARTWORK = os.path.join(MEDIA_ROOT, 'medusa/artwork')
+
+WEBSITE_CATEGORY = os.path.join(WEBSITE_ROOT, 'stores/category')
+WEBSITE_PRODUCTS = os.path.join(WEBSITE_ROOT, 'stores/products')
+WEBSITE_SYMBOL_SVG = os.path.join(WEBSITE_ROOT, 'stores/symbols/svg')
 
 
 # Default primary key field type
@@ -194,8 +219,6 @@ LOGIN_REDIRECT_URL = 'auth-login'
 
 # LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-
-
 
 SESSION_EXPIRE_SECONDS = 90  # 5 minute
 SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
@@ -226,9 +249,6 @@ REST_FRAMEWORK = {
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
-
-MEDIA_ROOT = '/Users/simonfroggatt/Sites/totalsafetygroup_stores/image/'
-MEDIA_URL = '/media/'
 
 REPORT_PATH = os.path.join(BASE_DIR, "static/reports")
 

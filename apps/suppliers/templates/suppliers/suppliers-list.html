@@ -1,0 +1,102 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="row top_bar">
+            <div class="col-3 col-lg-2">
+
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                {% include 'suppliers/sub_layouts/suppliers_list_top_navbar.html' %}
+            </div>
+        </div>
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="suppliers_table" class="table table-hover table-striped align-middle table-sm" >
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Logo</th>
+                                        <th>Company</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Telephone</th>
+                                        <th width="25px"></th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+
+<script>
+    $(document).ready(function() {
+
+   //     $("#js-supplier-create").click(loadForm);
+
+    $('#suppliers_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "responsive": false,
+        "ajax": {
+                 "processing": true,
+                 "url": "/suppliers/api/suppliers?format=datatables"
+             },
+        "deferRender": true,
+         "search": {
+            "regex": true
+        },
+        columns :[
+            {
+                data: "logo",
+                sortable: false,
+                render: function ( data, type, row ) {
+                    let image_src = '{% get_media_prefix %}';
+                    if(data == null ){
+                        image_src += "medusa/images/no-image.png"
+                    }
+                    else{
+                        image_src += data;
+                    }
+                    return '<img height="30px" src="' + image_src + '">'
+                 }
+            },
+            {data: "company"},
+            {data: "main_contact"},
+            {data: "order_email"},
+            {data: "main_telephone"},
+            {
+                data: "id",
+                sortable: false,
+                render: function ( data, type, row ) {
+                let edit_icon = '<a type="button" class="btn btn-sm {{ BUTTON_EDIT }}" href="' + data +'" role="button"><i class="{{ ICON_EDIT }} table-button"></i></a>'
+                return edit_icon;
+                }
+            },
+        ]
+    } );
+} );
+
+
+
+</script>
+
+{% endblock javascript %}

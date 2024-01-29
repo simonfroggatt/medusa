@@ -2,6 +2,8 @@
 {% load static %}
 {% block extra_css %}
    <!-- old datatables css -->
+   <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
 {% endblock extra_css %}
 
 {% block content %}
@@ -84,7 +86,7 @@
                         </div>
                             <div role="tabpanel" id="tab-documents" class="tab-pane fade">
                             <div class="panel-body">
-                                documents in here
+                                {% include 'orders/sub_layout/order_document_upload_form.html' %}
                             </div>
                         </div>
                         </div>
@@ -109,6 +111,8 @@
 
     </script>
     <script type="text/javascript" src="{% static 'js/orders.js' %}"></script>
+
+
 
 {% endblock javascript %}
 

@@ -431,7 +431,7 @@ def material_create(request):
     context['return_url'] = reverse_lazy('allmaterials')
 
     if request.method == 'POST':
-        form = MaterialForm(request.POST)
+        form = MaterialForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             success_url = reverse_lazy('allmaterials')
