@@ -74,7 +74,7 @@ $(function () {
                 searchable: false,
                 name: "store.name",
                 render: function ( data, type, row ) {
-                    let image_src =  static_const + '/images/stores/' + data.thumb;
+                    let image_src =  media_url + 'stores/branding/logos/' + data.thumb
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },
@@ -200,6 +200,9 @@ $(function () {
 
 
     $(document).on("click", "#contacts-tab", LoadCompanyContacts);
+    $(document).on("submit", "#form_company_document", DocumentUpload);
+    $(document).on("click", ".js-company_document-delete", loadForm);
+    $(document).on("submit", "#form-company_document-delete", DocumentUpload);
 
 
 })

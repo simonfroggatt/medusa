@@ -8,8 +8,8 @@
                      <div class="col-3">
                          <div class="float-end">
                              <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-0">
-                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
-                                        data-url=""
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-supplier-dlg"
+                                        data-url="{% url 'supplier_update' supplier_obj.id %}"
                                         data-dlgsize="modal-xl"
                                 ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
                         </div>

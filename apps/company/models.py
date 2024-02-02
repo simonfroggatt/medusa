@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcTaxRate, OcTsgPaymentTerms, OcTsgCountryIso, OcTsgAccountType
+from medusa.models import OcTaxRate, OcTsgPaymentTerms, OcTsgCountryIso, OcTsgAccountType, OcTsgFileTypes
 from apps.sites.models import OcStore, OcCurrency
 
 class OcTsgCustomerStatus(models.Model):
@@ -58,3 +58,20 @@ class OcTsgCompany(models.Model):
 
     def __str__(self):
         return self.company_name
+
+
+class OcTsgCompanyDocuments(models.Model):
+    company = models.ForeignKey(OcTsgCompany, models.DO_NOTHING, blank=True, null=True)
+    type = models.ForeignKey(OcTsgFileTypes, models.DO_NOTHING, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.FileField(upload_to='medusa/company/documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    cache_path = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_company_documents'
+
+    def __str__(self):
+        return self.title

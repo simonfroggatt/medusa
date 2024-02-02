@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core import serializers
 from django.template.loader import render_to_string
-from apps.pricing.models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
+from apps.pricing.models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, \
+    OcTsgSizeMaterialCombPrices, OcTsgMaterialSpec
 from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer
-from apps.pricing.forms import SizesForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo, StorePriceComboForm
+from apps.pricing.forms import SizesForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo, StorePriceComboForm, \
+    MaterialSpecForm
 from apps.sites.models import OcStore
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.urls import reverse_lazy
@@ -16,6 +18,9 @@ from apps.products import services as prod_services
 import json
 from django.db import connection
 from itertools import chain
+from medusa import services
+from django.conf import settings
+import os
 
 
 def all_sizes(request):
@@ -204,9 +209,22 @@ class MaterialUpdateView(UpdateView):
     success_url = reverse_lazy('allmaterials')
 
     def get_context_data(self, **kwargs):
+        pk = self.kwargs['pk']
+        material_obj = get_object_or_404(OcTsgProductMaterial, pk=pk)
         context = super().get_context_data(**kwargs)
         context['pageview'] = 'Materials'
         context['pageview_url'] = reverse_lazy('allmaterials')
+        context['heading'] = material_obj.material_name
+
+        material_docs_obj = OcTsgMaterialSpec.objects.filter(material_id=pk)
+        context['material_docs_obj'] = material_docs_obj
+        docform_initials = {'material': material_obj}
+        docform = MaterialSpecForm(initial=docform_initials)
+        context['docform'] = docform
+        context['material_id'] = pk
+        context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
+
         return context
 
 
@@ -468,5 +486,86 @@ class materials_excl_sizes(generics.ListAPIView):
 
         serializer = self.get_serializer(core_material_qs, many=True)
         return Response(serializer.data)
+
+
+def material_spec_fetch(request, material_id):
+    data =  dict()
+    material_docs_obj = OcTsgMaterialSpec.objects.filter(material_id=material_id)
+    template_name = 'pricing/materials/material_specs.html'
+    context = {'material_docs_obj': material_docs_obj}
+    material_obj = get_object_or_404(OcTsgProductMaterial,pk=material_id)
+    docform_initials = {'material': material_obj}
+    docform = MaterialSpecForm(initial=docform_initials)
+    context['docform'] = docform
+    context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+    data['html_content'] = render_to_string(template_name,
+                                            context,
+                                            request=request
+                                            )
+    return JsonResponse(data)
+
+
+
+def material_spec_upload(request):
+    data = dict()
+    if request.method == 'POST':
+        form = MaterialSpecForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            form_instance = form.instance
+            material_doc_obj = get_object_or_404(OcTsgMaterialSpec, pk=form_instance.pk)
+            cached_thumb = services.createUploadThumbnail(material_doc_obj.filename.file.name)
+            material_doc_obj.cache_path = cached_thumb
+            material_doc_obj.save()
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_material_spec', kwargs={'material_id': material_doc_obj.material_id})
+            data['divUpdate'] = ['div-material_specs', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        data['success_post'] = False
+
+    return JsonResponse(data)
+
+
+def material_spec_download(request, pk):
+    doc_obj = get_object_or_404(OcTsgMaterialSpec, pk=pk)
+    response = FileResponse(doc_obj.filename, as_attachment=True)
+    return response
+
+
+def material_spec_delete(request, pk):
+    data = dict()
+    template_name = 'pricing/materials/material_spec_delete.html'
+    context = dict()
+    material_doc_obj = get_object_or_404(OcTsgMaterialSpec, pk=pk)
+
+    if request.method == 'POST':
+        material_doc_obj = get_object_or_404(OcTsgMaterialSpec, pk=pk)
+        if material_doc_obj:
+            material_doc_obj.delete()
+            #delete the cached file
+            fullpath = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE ,material_doc_obj.cache_path)
+            if os.path.isfile(fullpath):
+                os.remove(fullpath)
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_material_spec',
+                                                     kwargs={'material_id': material_doc_obj.material_id})
+            data['divUpdate'] = ['div-material_specs', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> document"
+        context['action_url'] = reverse_lazy('material_spec-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-material_spec-delete'
+        context['material_id'] = material_doc_obj.material_id
+        data['upload'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                                     context,
+                                                     request=request
+                                                     )
+
+    return JsonResponse(data)
 
 

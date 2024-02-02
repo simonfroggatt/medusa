@@ -7,6 +7,7 @@ from apps.pricing.models import OcTsgSizeMaterialCombPrices
 from django.conf import settings
 from apps.symbols.models import OcTsgProductSymbols
 from apps.options.models import OcTsgProductVariantCoreOptions
+import os
 
 class ProductSerializer(serializers.ModelSerializer):
     #corevariants = serializers.RelatedField(many=True)
@@ -63,7 +64,7 @@ class ProductDescriptionBase(serializers.ModelSerializer):
 class ProductVariantCoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgProductVariantCore
-        fields = ['supplier_code']
+        fields = ['supplier_code', 'supplier_price']
 
 
 class ProductToStoreInfoSerializer(serializers.ModelSerializer):
@@ -114,17 +115,20 @@ class CoreVariantSerializer(serializers.ModelSerializer):
     size_material = SizeMaterialCombSerializer(read_only=True)
     class Meta:
         model = OcTsgProductVariantCore
-        fields = ['prod_variant_core_id','supplier_code', 'variant_image_url', 'gtin', 'bl_live', 'size_material']
+        fields = ['prod_variant_core_id','supplier_code', 'supplier_price', 'variant_image_url', 'gtin', 'bl_live', 'size_material']
         depth = 3
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
+    #alt_image_url return variant image filtered by site, if no image return the variant core alt image
+    #the variant vore image if blank returns the underlying product image
 
     store_size_material_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OcTsgProductVariants
-        fields = ['prod_variant_id', 'variant_code', 'variant_overide_price', 'prod_var_core', 'alt_image', 'store', 'isdeleted', 'alt_image_url', 'store_size_material_price']
+        fields = ['prod_variant_id', 'variant_code', 'variant_overide_price', 'prod_var_core', 'alt_image', 'store',
+                  'isdeleted', 'alt_image_url', 'store_size_material_price', 'site_variant_image_url']
         depth = 4
 
     def get_store_size_material_price(self, obj):
@@ -133,6 +137,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             return store_price['price']
         else:
             return 0
+
 
 
 class StoreProductVariantSerialize(serializers.ModelSerializer):
@@ -262,3 +267,16 @@ class RelatedByStoreProductSerializer(serializers.ModelSerializer):
         model = OcProductRelated
         fields = ['related']
         depth = 1
+
+
+class ProductSupplierListSerializer(serializers.ModelSerializer):
+    productdescbase = ProductDescriptionBase(read_only=True)
+
+    def get_image_url(self, product):
+         return #f"{settings.MEDIA_URL}{product.image}"
+
+    class Meta:
+        model = OcProduct
+        #fields = ['product_id', 'name']
+        fields = [ 'productdescbase', 'image_url', 'status']
+        depth = 2

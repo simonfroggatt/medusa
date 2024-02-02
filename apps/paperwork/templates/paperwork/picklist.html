@@ -86,7 +86,7 @@
 <body>
   <div class="row paperwork-header">
         <div class="column">
-            <img class="paperwork-logo" height="100px" src="{% static "" %}images/stores/{{order_obj.store.logo }}">
+            <img class="paperwork-logo" height="100px" src="{% get_media_prefix %}stores/branding/logos/{{order_obj.store.logo }}">
             image
         </div>
         <div class="column header-address">

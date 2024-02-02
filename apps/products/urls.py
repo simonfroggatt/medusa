@@ -21,8 +21,8 @@ router.register(r'product_site_variant_options_classes', views.ProductSiteVarian
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api/post-list/products/<int:store_id>/', views.ProductsListView.as_view(), name='products_post_list'),
-
     path('api/store/<int:store_id>/products', views.Product_by_Store.as_view(), name='product_list_by_store'),
+    path('api/supplier/<int:supplier_id>/products', views.Product_by_Supplier.as_view(), name='product_list_by_supplier'),
 
     #products
     path('api/productsite/<int:product_id>/<int:store_id>', views.ProductSite.as_view({'get': 'list'}), name='products_site_list'),
@@ -87,6 +87,12 @@ urlpatterns = [
     path('<int:pk>/categoryedit', views.product_category_edit, name='productcatgoryedit'),
     path('<int:pk>/storeedit', views.ProductSiteUpdate.as_view(), name='product_store_details_edit'),
     path('<int:pk>/storeadddlg', views.product_store_add_text_dlg, name='productstoreadd_dlg'),
+
+    #product docuements
+    path('document/upload', views.product_document_upload, name='product_document-upload'),
+    path('<int:product_id>/document/fetch', views.product_document_fetch, name='fetch_product_documents'),
+    path('document/<pk>/download', views.product_document_download, name='product_document-download'),
+    path('document/<pk>/delete', views.product_document_delete, name='product_document-delete'),
 
     #base
     path('', views.product_list, name='allproducts'),

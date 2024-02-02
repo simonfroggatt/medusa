@@ -1,22 +1,16 @@
 {% load static %}
 <div class="card h-100 mb-0">
-             <div class="card-header order_details">
-                 <div class="row">
-                     <div class="col-9 ">
-                         Order Details
-                     </div>
-                     <div class="col-3">
-                         <div class="float-end">
-                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
-                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-details-edit"
-                                        data-url="{% url 'orderdetailsedit' order_obj.order_id %}"
-                                        data-dlgsize=""
-                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
-                        </div>
-                         </div>
-                     </div>
-                 </div>
-             </div>
+    <div class="card-header order_details btn-toolbar align-items-center justify-content-between">
+        <div>
+            Order Details
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+            <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-details-edit"
+                    data-url="{% url 'orderdetailsedit' order_obj.order_id %}"
+                    data-dlgsize=""
+            ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+        </div>
+    </div>
              <div class="card-body">
                  <dl class="row text-nowrap" id="order_{{ order_obj.order_id }}">
                      {% if order_obj.customer %}

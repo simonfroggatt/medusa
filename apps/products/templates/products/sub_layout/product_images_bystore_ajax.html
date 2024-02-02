@@ -10,10 +10,10 @@
                     </div>
                     <div class="card-footer">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button class="btn {{ BUTTON_EDIT }} btn-sm me-md-2 store_product_additional_images-dlg" type="button" data-storeimageid="{{ product_image.id }}"
-                            data-url="{%  url 'store_product_additional_images-edit' product_id product_image.pk %}" >Edit</button>
-                            <button class="btn {{ BUTTON_DELETE }} btn-sm store_product_additional_images-dlg" type="button"
-                            data-url="{%  url 'store_product_additional_images-delete-dlg' product_id product_image.pk %}" >Delete</button>
+                            <button class="btn {{ BUTTON_EDIT_OUTLINE }} btn-sm store_product_additional_images-dlg" type="button" data-storeimageid="{{ product_image.id }}"
+                            data-url="{%  url 'store_product_additional_images-edit' product_id product_image.pk %}" ><i class="{{ ICON_EDIT_OUTLINE }}"></i></button>
+                            <button class="btn {{ BUTTON_DELETE_OUTLINE }} btn-sm store_product_additional_images-dlg" type="button"
+                            data-url="{%  url 'store_product_additional_images-delete-dlg' product_id product_image.pk %}" ><i class="{{ ICON_DELETE_OUTLINE }}"></i></button>
                         </div>
                     </div>
                 </div>

@@ -1,15 +1,18 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
-from apps.company.models import OcTsgCompany
+from apps.company.models import OcTsgCompany, OcTsgCompanyDocuments
 from apps.company.serializers import CompanyListSerializer
-from apps.company.forms import CompanyEditForm
+from apps.company.forms import CompanyEditForm, CompanyDocumentForm
 from django.urls import reverse_lazy
 from django.template.loader import render_to_string
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core import serializers
 from apps.customer.forms import CustomerForm, AddressForm
 from apps.customer.models import OcCustomer
+from medusa import services
+from django.conf import settings
+import os
 
 
 
@@ -50,6 +53,13 @@ def company_details(request, company_id):
     context['pageview'] = 'Companies'
     context['pageview_url'] = reverse_lazy('allcompanies')
     context['heading'] = company_obj.company_name
+
+    company_docs_obj = OcTsgCompanyDocuments.objects.filter(company_id=company_id)
+    context['company_docs_obj'] = company_docs_obj
+    docform_initials = {'company': company_obj}
+    docform = CompanyDocumentForm(initial=docform_initials)
+    context['docform'] = docform
+    context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
 
     return render(request, template_name, context)
 
@@ -249,6 +259,91 @@ def company_contact_save(request):
 
 
     data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
+
+    return JsonResponse(data)
+
+
+def company_document_fetch(request, company_id):
+    data =  dict()
+    company_docs_obj = OcTsgCompanyDocuments.objects.filter(company_id=company_id)
+    template_name = 'company/sub_layout/company_documents.html'
+    context = {'company_docs_obj': company_docs_obj}
+    company_obj = get_object_or_404(OcTsgCompany,pk=company_id)
+    docform_initials = {'company': company_obj}
+    docform = CompanyDocumentForm(initial=docform_initials)
+    context['docform'] = docform
+    context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
+
+
+    data['html_content'] = render_to_string(template_name,
+                                            context,
+                                            request=request
+                                            )
+
+    return JsonResponse(data)
+
+
+
+def company_document_upload(request):
+    data = dict()
+    if request.method == 'POST':
+        form = CompanyDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            form_instance = form.instance
+            company_doc_obj = get_object_or_404(OcTsgCompanyDocuments, pk=form_instance.pk)
+            cached_thumb = services.createUploadThumbnail(company_doc_obj.filename.file.name)
+            company_doc_obj.cache_path = cached_thumb
+            company_doc_obj.save()
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_company_documents', kwargs={'company_id': company_doc_obj.company_id})
+            data['divUpdate'] = ['div-company_documents', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        data['success_post'] = False
+
+    return JsonResponse(data)
+
+
+def company_document_download(request, pk):
+    doc_obj = get_object_or_404(OcTsgCompanyDocuments, pk=pk)
+    response = FileResponse(doc_obj.filename, as_attachment=True)
+    return response
+
+
+def company_document_delete(request, pk):
+    data = dict()
+    template_name = 'company/dialogs/company_document_delete.html'
+    context = dict()
+    company_doc_obj = get_object_or_404(OcTsgCompanyDocuments, pk=pk)
+
+    if request.method == 'POST':
+        company_doc_obj = get_object_or_404(OcTsgCompanyDocuments, pk=pk)
+        if company_doc_obj:
+            company_doc_obj.delete()
+            #delete the cached file
+            fullpath = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE ,company_doc_obj.cache_path)
+            if os.path.isfile(fullpath):
+                os.remove(fullpath)
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_company_documents',
+                                                     kwargs={'company_id': company_doc_obj.company_id})
+            data['divUpdate'] = ['div-company_documents', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> document"
+        context['action_url'] = reverse_lazy('company_document-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-company_document-delete'
+        context['company_id'] = company_doc_obj.company_id
+        data['upload'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                                     context,
+                                                     request=request
+                                                     )
 
     return JsonResponse(data)
 

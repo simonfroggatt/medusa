@@ -6,8 +6,11 @@ from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from apps.shipping.models import OcTsgCourier
 from decimal import Decimal
-from medusa.models import OcTsgCountryIso, OcTaxRate
+from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
+from django.core.validators import FileExtensionValidator
 from decimal import Decimal, ROUND_HALF_UP
+from django.conf import settings
+import os
 
 class OcOrderQuerySet(models.QuerySet):
     def successful(self):
@@ -410,20 +413,9 @@ class OcTsgOrderProductStatusHistory(models.Model):
         db_table = 'oc_tsg_order_product_status_history'
 
 
-class OcTsgFileTypes(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_file_types'
-
-    def __str__(self):
-        return self.name
-
-
 class OcTsgOrderArtwork(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
-    filename = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.FileField(upload_to='medusa/order/artwork/', blank=True, null=True)
     order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True)
     version = models.CharField(max_length=255, blank=True, null=True)
     approved = models.BooleanField(default=False)
@@ -443,15 +435,20 @@ class OcTsgOrderDocuments(models.Model):
     order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True)
     type = models.ForeignKey(OcTsgFileTypes, models.DO_NOTHING, blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    filename = models.FileField(upload_to='documents/')
+    filename = models.FileField(upload_to='medusa/order/documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    cache_path = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_tsg_order_documents'
 
     def __str__(self):
-        return self.title
+        return self.description
+
+    def short_name(self):
+        return os.path.basename(self.filename.name)
 
 
 

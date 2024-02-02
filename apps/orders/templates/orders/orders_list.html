@@ -75,7 +75,7 @@
                 name: "store.name",
                 class: "align-middle",
                 render: function ( data, type, row ) {
-                    let image_src = '{% static "images/stores/" %}' + data.thumb;
+                    let image_src = '{% get_media_prefix %}stores/branding/logos/' + data.thumb;
                     let store_logo = '<img height="15px" src="' + image_src + '">';
                     //return '<img height="15px" src="' + image_src + '">'
                     let order_type_icon = row['order_type']['order_type_icon']

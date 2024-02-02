@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from apps.quotes.forms import QuoteDetailsEditForm, ProductAddForm, ProductEditForm
-from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductMaterial, OcTsgProductToBulkDiscounts
+from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts
+from apps.pricing.models import OcTsgProductMaterial
 from django.urls import reverse_lazy
 from apps.products import services as prod_services
 from django.db.models import Sum, F

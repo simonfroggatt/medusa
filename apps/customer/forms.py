@@ -1,5 +1,5 @@
 from django import forms
-from .models import OcAddress, OcCustomer
+from .models import OcAddress, OcCustomer, OcTsgContactDocuments
 
 
 
@@ -48,3 +48,18 @@ class CustomerForm(forms.ModelForm):
         labels = {
             'notes': 'Comments and Notes',
         }
+
+
+class CustomerDocumentForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(CustomerDocumentForm, self).__init__(*args, **kwargs)
+        self.fields['type'].empty_label = None
+
+    class Meta:
+        model = OcTsgContactDocuments
+        fields = '__all__'
+
+    widgets = {
+        'contact': forms.Select(attrs={"hidden": True}),
+    }

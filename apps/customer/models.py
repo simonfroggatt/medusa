@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcTaxRate, OcTsgAccountType
+from medusa.models import OcTaxRate, OcTsgAccountType, OcTsgFileTypes
 from apps.sites.models import OcStore
 from apps.company.models import OcTsgCompany, OcTsgCountryIso
 
@@ -93,6 +93,22 @@ class OcAddress(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_address'
+
+
+class OcTsgContactDocuments(models.Model):
+    contact = models.ForeignKey(OcCustomer, models.DO_NOTHING, blank=True, null=True)
+    type = models.ForeignKey(OcTsgFileTypes, models.DO_NOTHING, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.FileField(upload_to='medusa/customer/documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    cache_path = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_contact_documents'
+
+
 
 
 

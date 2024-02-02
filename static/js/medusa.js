@@ -148,6 +148,52 @@ function SaveDialogFormRedirect() {
             }
         });
         return false;
+    };
+
+ function DocumentUpload(){
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: new FormData( this ),
+            type: form.attr("method"),
+            //dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                if (data.success_post) {
+                    reloadDocuments(data.document_ajax_url, data.divUpdate)
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    alert('error')
+                }
+            }
+        });
+        return false;
+    };
+
+     function reloadDocuments(ajax_url, divUpdate) {
+        AjaxUpdate( ajax_url, [divUpdate]);
+        return false;
+    }
+
+ function AjaxUpdate(url, updateIds)
+    {
+         $.ajax({
+            url: url,
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+                for ( var i = 0, l = updateIds.length; i < l; i++ ) {
+                    let updateElement = updateIds[i][0];
+                    let dataName = updateIds[i][1];
+                    let new_html = '#'+updateElement;
+                    console.log(new_html);
+                    $('#'+updateElement).html(data[dataName])
+                }
+            }
+        });
+        return false;
     }
 
     /***   Modal close functions **/

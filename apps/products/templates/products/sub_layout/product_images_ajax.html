@@ -1,19 +1,49 @@
- {% for product_image in images_obj %}
-            <div class="col ">
-                <div class="card h-100">
-                        <img src="{{ MEDIA_URL }}{{ product_image.image }}" class="card-img-top" alt="{{ product_image.alt_text }}">
-                    <div class="card-body">
-                        <p class="card-text">{{ product_image.alt_text }}</p>
-                    </div>
-                    <div class="card-footer">
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button class="btn {{ BUTTON_EDIT }} btn-sm me-md-2 product_additional_images-dlg" type="button" data-storeimageid="{{ product_image.pk }}"
-                            data-url="{% url 'product_additional_images-edit' product_image.product_image_id  %}">Edit</button>
-                            <button class="btn {{ BUTTON_DELETE }} btn-sm product_additional_images-dlg" type="button"
-                            data-url="{% url 'product_additional_images-delete' product_image.product_image_id  %}">Delete</button>
-                        </div>
-                    </div>
+{% load crispy_forms_tags %}
+{% load static %}
+{% for product_image in images_obj %}
+    <div class="col">
+        <div class="card h-100">
+            <img src="{{ MEDIA_URL }}{{ product_image.image }}" class="card-img-top" alt="{{ product_image.alt_text }}">
+            <div class="card-body">
+                <p class="card-text">{{ product_image.alt_text }}</p>
+            </div>
+            <div class="card-footer">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+
+                    <button class="btn {{ BUTTON_EDIT_OUTLINE }} btn-sm product_additional_images-dlg" type="button"
+                            data-storeimageid="{{ product_image.pk }}"
+                            data-url="{% url 'product_additional_images-edit' product_image.product_image_id %}"><i
+                            class="{{ ICON_EDIT_OUTLINE }}"></i></button>
+                    <button class="btn {{ BUTTON_DELETE_OUTLINE }} btn-sm product_additional_images-dlg" type="button"
+                            data-url="{% url 'product_additional_images-delete' product_image.product_image_id %}"><i
+                            class="{{ ICON_DELETE_OUTLINE }}"></i></button>
                 </div>
             </div>
         </div>
+    </div>
 {% endfor %}
+<div class="col">
+    <div class="card h-100">
+        <form method="post" enctype="multipart/form-data" action="{% url 'product_additional_images-add' product_id 0 %}" id="form_product_image_add" >
+            {{ additional_imageform.product.as_hidden }}
+
+        {% csrf_token %}
+      <div class="card-body">
+        <h6 class="card-title">{{ additional_imageform.image|as_crispy_field }}</h6>
+          {{ additional_imageform.alt_text|as_crispy_field }}
+        {{ additional_imageform.sort_order|as_crispy_field }}
+
+      </div>
+        <div class="card-footer text-center">
+        <small class="text-body-secondary"><button type="submit" class="btn btn-outline-success btn-sm " data-bs-toggle="tooltip"  data-bs-title="Upload File"
+                      ><i class="fa-regular fa-arrow-up"></i> Upload </button></small>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+

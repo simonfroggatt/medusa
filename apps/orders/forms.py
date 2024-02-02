@@ -2,6 +2,8 @@ from django import forms
 from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder, OcOrderTotal, OcTsgOrderShipment, OcTsgOrderDocuments
 from apps.shipping.models import OcTsgShippingMethod
 from apps.sites.models import OcStore
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, Field
 
 class ProductEditForm(forms.ModelForm):
 
@@ -246,6 +248,10 @@ class OrderDocumentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(OrderDocumentForm, self).__init__(*args, **kwargs)
         self.fields['type'].empty_label = None
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Field('type', css_class='custom-class'),
+        )
 
     class Meta:
         model = OcTsgOrderDocuments

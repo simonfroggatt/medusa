@@ -12,7 +12,7 @@
             <div class="col-3 col-lg-2">
                 <h2>{{ order_obj.store.prefix }}-<a id="js-order-number"
                         href="javascript: copy_orderno_to_clipboard({{ order_obj.order_id }})">{{ order_obj.order_id }}</a>
-                    <img src="{% static "" %}images/stores/{{ order_obj.store.thumb }}" class="img-responsive"
+                    <img src="{% get_media_prefix %}stores/branding/logos/{{ order_obj.store.thumb }}" class="img-responsive"
                          alt="{{ order_obj.store.name }}"></h2>
             </div>
             <div class="col-3 col-lg-4 align-middle" id="div_order_flags">
@@ -85,8 +85,8 @@
                             </div>
                         </div>
                             <div role="tabpanel" id="tab-documents" class="tab-pane fade">
-                            <div class="panel-body">
-                                {% include 'orders/sub_layout/order_document_upload_form.html' %}
+                            <div class="panel-body" id="div-order_documents">
+                                {% include 'orders/sub_layout/order_documents.html' %}
                             </div>
                         </div>
                         </div>
@@ -108,6 +108,7 @@
         const currency_symbol = '{{ order_obj.store.currency.symbol_left }}' ;
         let tax_rate = 0.00;
         let bulk_table_data = [];
+        const media_url = "{% get_media_prefix %}";
 
     </script>
     <script type="text/javascript" src="{% static 'js/orders.js' %}"></script>

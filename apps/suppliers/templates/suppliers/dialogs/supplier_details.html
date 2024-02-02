@@ -1,0 +1,71 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">{{ title }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{{ action_url }}" enctype="multipart/form-data"
+                      id="form-supplier-edit">
+
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-12 col-md-3">{{ form.company|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.website|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.code|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.logo|as_crispy_field }}</div>
+
+                        <div class="col-12 col-md-3">{{ form.main_contact|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.order_email|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.main_telephone|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.alt_telephone|as_crispy_field }}</div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="col-12">{{ form.address|as_crispy_field }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="row">
+                                <div class="col-6">{{ form.city|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.area|as_crispy_field }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">{{ form.postcode|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.country|as_crispy_field }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">{{ form.lead_time|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.account_type|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.payment_terms|as_crispy_field }}</div>
+                        <div class="col-12 col-md-3">{{ form.payment_days|as_crispy_field }}</div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">
+                                    Cancel
+                                </button>
+                                <button type="submit" id="delete" class="btn {{ BUTTON_UPDATE }} pull-right">
+                                    {{ action_button }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+

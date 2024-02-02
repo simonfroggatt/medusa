@@ -3,13 +3,13 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
-    OcProductImage, OcStoreProductImages
+    OcProductImage, OcStoreProductImages, OcTsgProductDocuments
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
 
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
     ProductSiteVariantOptionsSerializer, ProductCoreVariantOptionsSerializer, RelatedBaseDescriptionSerializer, \
-    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer  # , BaseProductListSerializer, ProductTestSerializer, ,
+    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer  # , BaseProductListSerializer, ProductTestSerializer, ,
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
@@ -18,16 +18,20 @@ from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClass
     OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues # , \
 # OcTsgOptionClass, OcTsgOptionValues
 
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core import serializers
 from django.template.loader import render_to_string
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
     VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm, \
-    SiteProductVariantForm, AdditionalProductStoreImages, AddionalProductImageForm, AddionalProductImageEditForm
+    SiteProductVariantForm, AdditionalProductStoreImages, AdditionalProductImageForm, AddionalProductImageEditForm, \
+    ProductDocumentForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
+from medusa import services
+from django.conf import settings
+import os
 
 from django.core.mail import send_mail
 
@@ -181,9 +185,20 @@ def product_details(request, product_id):
     template_name = 'products/product_layout.html'
 
     context['pageview'] = 'All products'
-    context['heading'] = 'product details'
+    context['pageview_url'] = reverse_lazy('allproducts')
+    context['heading'] = product_obj.productdescbase.title
+
     store_obj = OcStore.objects.exclude(store_id=0)
     context['store_obj'] = store_obj
+
+    product_docs_obj = OcTsgProductDocuments.objects.filter(product_id=product_id)
+    context['product_docs_obj'] = product_docs_obj
+
+
+    docform_initials = {'product': product_obj, 'type': 6}
+    docform = ProductDocumentForm(initial=docform_initials)
+    context['docform'] = docform
+
     return render(request, template_name, context)
 
 
@@ -272,16 +287,20 @@ def product_edit_base(request, product_id):
     context = dict()
     product_obj = get_object_or_404(OcProduct, product_id=product_id)
     product_base_desc_obj = get_object_or_404(OcProductDescriptionBase, product_id=product_id)
-
+    bl_base = False
+    bl_desc = False
     if request.method == 'POST':
         form_product = ProductForm(request.POST, request.FILES, instance=product_obj)
-        form_product_base_desc = ProductDescriptionBaseForm(request.POST, instance=product_base_desc_obj)
+        form_product_base_desc = ProductDescriptionBaseForm(request.POST, request.FILES, instance=product_base_desc_obj)
         if form_product.is_valid():
             form_product.save()
+            bl_base = True
         if form_product_base_desc.is_valid():
             form_product_base_desc.save()
-        success_url = reverse_lazy('product_details', kwargs={'product_id': product_id})
-        return HttpResponseRedirect(success_url)
+            bl_desc = True
+        if bl_desc & bl_base:
+            success_url = reverse_lazy('product_details', kwargs={'product_id': product_id})
+            return HttpResponseRedirect(success_url)
 
     else:
         form_product = ProductForm(instance=product_obj)
@@ -289,6 +308,7 @@ def product_edit_base(request, product_id):
 
     context['heading'] = "Products"
     context['pageview'] = "Base Edit"
+    context['product_id'] = product_id
     context['form_product'] = form_product
     context['form_product_desc'] = form_product_base_desc
     context['get_success_url'] = reverse_lazy('product_details', kwargs={'product_id': product_id})
@@ -303,8 +323,11 @@ class ProductSiteUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        store_product_obj = get_object_or_404(OcProductToStore, pk=pk)
         context['pageview'] = "Products"
-        context['heading'] = "Store data"
+        context['pageview_url'] = reverse_lazy('allproducts')
+        context['heading'] = store_product_obj.title
         return context
 
     def get_success_url(self):
@@ -584,7 +607,7 @@ def product_core_variant_add(request, pk):
         variant_core_obj = OcTsgProductVariantCore()
         variant_core_initials = {'product': product_obj, 'size_material_id': 1, 'supplier': 1, 'supplier_code': 'code',
                                  'supplier_price': 0.00, 'exclude_fpnp': False, 'gtin': '', 'shipping_cost': 0.00,
-                                 'bl_live': True}
+                                 'bl_live': True, 'lead_time_override': 0}
         form_obj = VariantCoreForm(instance=variant_core_obj, initial=variant_core_initials)
         data['form_is_valid'] = False
 
@@ -1092,10 +1115,19 @@ def product_additional_images_load(request, product_id, store_id):
     if store_id > 0:
         store_images_obj = OcStoreProductImages.objects.select_related('image').filter(store_product__product_id=product_id).filter(store_product__store_id=store_id).order_by('order_id')
         context['images_obj'] = store_images_obj;
+
     else:
         base_images_obj = OcProductImage.objects.filter(product_id=product_id).order_by('sort_order')
         context['images_obj'] = base_images_obj;
+        current_images = base_images_obj.last()
+        next_sort_number = 1
+        if current_images:
+            next_sort_number += 1
 
+        product_obj = get_object_or_404(OcProduct, pk=product_id)
+        additional_imageform_initials = {'product': product_obj, 'sort_order': next_sort_number}
+        context['additional_imageform'] = AdditionalProductImageForm(initial=additional_imageform_initials)
+        context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
 
     if store_id > 0:
         template_name = 'products/sub_layout/product_images_bystore_ajax.html'
@@ -1109,7 +1141,7 @@ def product_additional_images_add(request, product_id, store_id):
     product_obj = get_object_or_404(OcProduct, pk=product_id)
 
     if request.method == 'POST':
-        form = AddionalProductImageForm(request.POST, request.FILES)
+        form = AdditionalProductImageForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             data['upload'] = True
@@ -1122,7 +1154,7 @@ def product_additional_images_add(request, product_id, store_id):
         else:
             current_images = OcProductImage.objects.filter(product_id=product_id).order_by('-sort_order').first()
             form_initials = {'product': product_obj, 'sort_order': current_images.sort_order + 1}
-            form = AddionalProductImageForm(initial=form_initials)
+            form = AdditionalProductImageForm(initial=form_initials)
             template = 'products/dialogs/product_additional_images-add.html'
             #store_product_additional_obj = OcStoreProductImages.objects.filter(pk=pk)
             context = {'product_id': product_id}
@@ -1147,7 +1179,9 @@ def product_additional_images_store_add(request, product_id, store_id):
         selected_list = request.POST.getlist('check_images')
         store_product_id = request.POST.get('store_product_id')
         product_images_selected = OcProductImage.objects.filter(product_image_id__in=selected_list)
-        last_image_order = store_product_active_additional_obj.order_by('-order_id').first().order_id
+        last_image_order = 1
+        if store_product_active_additional_obj:
+            last_image_order = store_product_active_additional_obj.order_by('-order_id').first().order_id
         if product_images_selected:
             for values in product_images_selected:
                 new_additional_image = OcStoreProductImages()
@@ -1161,8 +1195,11 @@ def product_additional_images_store_add(request, product_id, store_id):
         return JsonResponse(data)
 
     else:
-        store_product_active_additional_obj = OcStoreProductImages.objects.select_related('image').filter(store_product__product_id=product_id).filter(store_product__store_id=store_id)
-        store_product_id = store_product_active_additional_obj.first().store_product_id
+        #we need to get the store_product_id for this product
+        store_product_obj = OcProductToStore.objects.filter(product_id=product_id, store_id=store_id).first()
+        #store_product_active_additional_obj = OcStoreProductImages.objects.select_related('image').filter(store_product__product_id=product_id).filter(store_product__store_id=store_id)
+
+        store_product_id = OcProductToStore.objects.filter(product_id=product_id, store_id=store_id).first().id
         store_product_active_additional_defined = store_product_active_additional_obj.values_list('image_id')
         store_product_active_additional_list = list(chain(*store_product_active_additional_defined))
         store_product_additional_image_obj = OcProductImage.objects.filter(product_id=product_id).exclude(product_image_id__in=store_product_active_additional_list)
@@ -1377,6 +1414,26 @@ class Product_by_Store(generics.ListAPIView):
         return queryset.order_by('product_id')
 
 
+class Product_by_Supplier(generics.ListAPIView):
+    serializer_class = ProductSupplierListSerializer
+    model = serializer_class.Meta.model
+
+    def get_queryset(self, store_id=0):
+        if self.kwargs['supplier_id']:
+            supplier_id = self.kwargs['supplier_id']
+        else:
+            supplier_id = 0
+
+        if supplier_id > 0:
+            queryset = self.model.objects.filter(corevariants__supplier_id=supplier_id).distinct()
+        else:
+            queryset = self.model.objects.all().order_by('product_id')
+
+        return queryset.order_by('product_id')
+
+
+
+
 
 #product options for adding to order
 class ProductSiteVariantOptionClasses(viewsets.ModelViewSet):
@@ -1392,7 +1449,7 @@ class ProductSiteVariantOptionClasses(viewsets.ModelViewSet):
 def product_additioanl_image_upload(request):
     data = dict()
     if request.method == 'POST':
-        form = AddionalProductImageForm(request.POST, request.FILES)
+        form = AdditionalProductImageForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             data['upload'] = True
@@ -1400,5 +1457,87 @@ def product_additioanl_image_upload(request):
             data['upload'] = False
     else:
         data['upload'] = False
+
+    return JsonResponse(data)
+
+
+def product_document_upload(request):
+    data = dict()
+    if request.method == 'POST':
+        form = ProductDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            form_instance = form.instance
+            product_doc_obj = get_object_or_404(OcTsgProductDocuments, pk=form_instance.pk)
+            cached_thumb = services.createUploadThumbnail(product_doc_obj.filename.file.name)
+            product_doc_obj.cache_path = cached_thumb
+            product_doc_obj.save()
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_product_documents',
+                                                     kwargs={'product_id': product_doc_obj.product_id})
+
+            data['divUpdate'] = ['div-product_documents', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        data['success_post'] = False
+
+    return JsonResponse(data)
+
+
+def product_document_delete(request, pk):
+    data = dict()
+    template_name = 'products/dialogs/product_document_delete.html'
+    context = dict()
+    order_doc_obj = get_object_or_404(OcTsgProductDocuments, pk=pk)
+
+    if request.method == 'POST':
+        product_doc_obj = get_object_or_404(OcTsgProductDocuments, pk=pk)
+        if product_doc_obj:
+            product_doc_obj.delete()
+            #delete the cached file
+            fullpath = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE ,product_doc_obj.cache_path)
+            if os.path.isfile(fullpath):
+                os.remove(fullpath)
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_product_documents',
+                                                     kwargs={'product_id': product_doc_obj.product_id})
+            data['divUpdate'] = ['div-product_documents', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> document"
+        context['action_url'] = reverse_lazy('product_document-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-product_document-delete'
+        context['product_id'] = order_doc_obj.product_id
+        data['upload'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                                     context,
+                                                     request=request
+                                                     )
+
+    return JsonResponse(data)
+
+def product_document_download(request, pk):
+    doc_obj = get_object_or_404(OcTsgProductDocuments, pk=pk)
+    response = FileResponse(doc_obj.filename, as_attachment=True)
+    return response
+
+
+def product_document_fetch(request, product_id):
+    data =  dict()
+    product_docs_obj = OcTsgProductDocuments.objects.filter(product_id=product_id)
+    template_name = 'products/sub_layout/product_documents.html'
+    context = {'product_docs_obj': product_docs_obj}
+    product_obj = get_object_or_404(OcProduct,pk=product_id)
+    docform_initials = {'product': product_obj, 'type' : 6}
+    docform = ProductDocumentForm(initial=docform_initials)
+    context['docform'] = docform
+    context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+    data['html_content'] = render_to_string(template_name,
+                                            context,
+                                            request=request
+                                            )
 
     return JsonResponse(data)

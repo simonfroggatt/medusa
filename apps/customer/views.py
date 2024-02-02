@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core import serializers
-from .models import OcCustomer, OcAddress
+from .models import OcCustomer, OcAddress, OcTsgContactDocuments
 from .serializers import CustomerListSerializer
-from .forms import AddressForm, CustomerForm
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from .forms import AddressForm, CustomerForm, CustomerDocumentForm
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django.template.loader import render_to_string
@@ -14,6 +14,9 @@ import json
 import hashlib
 from django.utils.crypto import get_random_string
 from django.contrib import messages
+from medusa import services
+from django.conf import settings
+import os
 
 
 def customers_list(request):
@@ -59,7 +62,12 @@ def customers_details(request, customer_id):
     content['heading'] = customer_obj.fullname
     content['pageview'] = "Customers"
 
-
+    customer_docs_obj = OcTsgContactDocuments.objects.filter(contact_id=customer_id)
+    content['customer_docs_obj'] = customer_docs_obj
+    docform_initials = {'contact': customer_obj}
+    docform = CustomerDocumentForm(initial=docform_initials)
+    content['docform'] = docform
+    content['thumbnail_cache'] = settings.THUMBNAIL_CACHE
 
     return render(request, template_name, content)
 
@@ -535,6 +543,91 @@ def customer_assign_company(request, customer_id):
                                              context,
                                              request=request
                                              )
+
+    return JsonResponse(data)
+
+
+def customer_document_fetch(request, customer_id):
+    data =  dict()
+    customer_docs_obj = OcTsgContactDocuments.objects.filter(contact_id=customer_id)
+    template_name = 'customer/sub_layouts/customer_documents.html'
+    context = {'customer_docs_obj': customer_docs_obj}
+    customer_obj = get_object_or_404(OcCustomer,pk=customer_id)
+    docform_initials = {'contact': customer_obj}
+    docform = CustomerDocumentForm(initial=docform_initials)
+    context['docform'] = docform
+    context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
+
+
+    data['html_content'] = render_to_string(template_name,
+                                            context,
+                                            request=request
+                                            )
+
+    return JsonResponse(data)
+
+
+
+def customer_document_upload(request):
+    data = dict()
+    if request.method == 'POST':
+        form = CustomerDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            form_instance = form.instance
+            customer_doc_obj = get_object_or_404(OcTsgContactDocuments, pk=form_instance.pk)
+            cached_thumb = services.createUploadThumbnail(customer_doc_obj.filename.file.name)
+            customer_doc_obj.cache_path = cached_thumb
+            customer_doc_obj.save()
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_customer_documents', kwargs={'customer_id': customer_doc_obj.contact_id})
+            data['divUpdate'] = ['div-customer_documents', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        data['success_post'] = False
+
+    return JsonResponse(data)
+
+
+def customer_document_download(request, pk):
+    doc_obj = get_object_or_404(OcTsgContactDocuments, pk=pk)
+    response = FileResponse(doc_obj.filename, as_attachment=True)
+    return response
+
+
+def customer_document_delete(request, pk):
+    data = dict()
+    template_name = 'customer/dialogs/customer_document_delete.html'
+    context = dict()
+    customer_doc_obj = get_object_or_404(OcTsgContactDocuments, pk=pk)
+
+    if request.method == 'POST':
+        customer_doc_obj = get_object_or_404(OcTsgContactDocuments, pk=pk)
+        if customer_doc_obj:
+            customer_doc_obj.delete()
+            #delete the cached file
+            fullpath = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE ,customer_doc_obj.cache_path)
+            if os.path.isfile(fullpath):
+                os.remove(fullpath)
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_customer_documents',
+                                                     kwargs={'customer_id': customer_doc_obj.contact_id})
+            data['divUpdate'] = ['div-customer_documents', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> document"
+        context['action_url'] = reverse_lazy('customer_document-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-customer_document-delete'
+        context['customer_id'] = customer_doc_obj.contact_id
+        data['upload'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                                     context,
+                                                     request=request
+                                                     )
 
     return JsonResponse(data)
 

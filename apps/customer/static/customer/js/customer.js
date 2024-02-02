@@ -125,7 +125,7 @@ $(function()
                 searchable: false,
                 name: "store.name",
                 render: function ( data, type, row ) {
-                    let image_src =  static_const + '/images/stores/' + data.thumb;
+                    let image_src =  media_url + 'stores/branding/logos/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },
@@ -253,7 +253,9 @@ $(function()
                 searchable: false,
                 name: "store.name",
                 render: function ( data, type, row ) {
-                    let image_src =  static_const + '/images/stores/' + data.thumb;
+
+                    let image_src =  media_url + 'stores/branding/logos/' + data.thumb;
+                   // let image_src =  static_const + '/images/stores/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },
@@ -318,6 +320,10 @@ $(function()
 
      $(document).on("submit", "#form_customer_notes", SaveNotes);
      $(document).on("submit", "#form-customer-company-assign", saveForm);
+     
+     $(document).on("submit", "#form_customer_document", DocumentUpload);
+     $(document).on("click", ".js-customer_document-delete", loadForm);
+     $(document).on("submit", "#form-customer_document-delete", DocumentUpload);
 
 
 

@@ -1,5 +1,5 @@
 from django import forms
-from .models import OcTsgCompany
+from .models import OcTsgCompany, OcTsgCompanyDocuments
 
 
 class CompanyEditForm(forms.ModelForm):
@@ -20,3 +20,16 @@ class CompanyEditForm(forms.ModelForm):
         }
 
 
+class CompanyDocumentForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(CompanyDocumentForm, self).__init__(*args, **kwargs)
+        self.fields['type'].empty_label = None
+
+    class Meta:
+        model = OcTsgCompanyDocuments
+        fields = '__all__'
+
+    widgets = {
+        'company': forms.Select(attrs={"hidden": True}),
+    }

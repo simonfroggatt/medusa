@@ -65,7 +65,8 @@ $(function(){
         columns :[
             {data: "store.thumb",
             render: function ( data, type, row ) {
-                    let image_src =  static_const + 'images/stores/' + data;
+
+                    let image_src =  media_url + 'stores/branding/logos' + data;
                     return '<img height="15px" src="' + image_src + '">'
                  }},
             {data: "size_material_comb.product_size.size_name", defaultContent: ""},
@@ -164,6 +165,11 @@ $(function(){
     $(document).on('submit', '#form-store_price-delete', saveStoreComboPriceSave);
     $(document).on('submit', '#form-prices-size-delete', deletePriceSize);
     $(document).on('submit', '#form-prices-material-delete', deletePriceMaterial);
+
+    //specs for materials
+    $(document).on("submit", "#form_material_spec", DocumentUpload);
+    $(document).on("click", ".js-material_spec-delete", loadForm);
+    $(document).on("submit", "#form-material_spec-delete", DocumentUpload);
 
 
     /* - manual calc stuff */

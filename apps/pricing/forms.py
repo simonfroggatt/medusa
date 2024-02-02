@@ -1,5 +1,6 @@
 from django import forms
-from .models import OcTsgProductSizes, OcTsgOrientation, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
+from .models import OcTsgProductSizes, OcTsgOrientation, OcTsgProductMaterial, OcTsgSizeMaterialComb, \
+    OcTsgSizeMaterialCombPrices, OcTsgMaterialSpec
 from bootstrap_modal_forms.forms import BSModalModelForm
 from django.conf import settings
 from tinymce.widgets import TinyMCE
@@ -59,4 +60,18 @@ class StorePriceComboForm(forms.ModelForm):
     widgets = {
         'size_material_comb': forms.Select(attrs={"hidden":True}),
         'store_id': forms.HiddenInput,
+    }
+
+
+class MaterialSpecForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(MaterialSpecForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = OcTsgMaterialSpec
+        fields = '__all__'
+
+    widgets = {
+        'material': forms.Select(attrs={"hidden": True}),
     }

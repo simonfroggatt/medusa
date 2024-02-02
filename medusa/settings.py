@@ -208,6 +208,8 @@ WEBSITE_CATEGORY = os.path.join(WEBSITE_ROOT, 'stores/category')
 WEBSITE_PRODUCTS = os.path.join(WEBSITE_ROOT, 'stores/products')
 WEBSITE_SYMBOL_SVG = os.path.join(WEBSITE_ROOT, 'stores/symbols/svg')
 
+THUMBNAIL_CACHE = 'preview_cache'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

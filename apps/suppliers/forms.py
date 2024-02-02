@@ -1,5 +1,5 @@
 from django import forms
-from apps.suppliers.models import OcSupplier
+from apps.suppliers.models import OcSupplier, OcTsgSupplierDocuments
 
 
 class SuppliersEditForm(forms.ModelForm):
@@ -25,3 +25,17 @@ class SuppliersEditForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'rows': 4}),
         }
 
+
+class SupplierDocumentForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(SupplierDocumentForm, self).__init__(*args, **kwargs)
+        self.fields['type'].empty_label = None
+
+    class Meta:
+        model = OcTsgSupplierDocuments
+        fields = '__all__'
+
+    widgets = {
+        'supplier': forms.Select(attrs={"hidden": True}),
+    }

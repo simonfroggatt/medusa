@@ -133,3 +133,14 @@ class OcSupplier(models.Model):
 
     def __str__(self):
         return self.company
+
+
+class OcTsgFileTypes(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_file_types'
+
+    def __str__(self):
+        return self.name

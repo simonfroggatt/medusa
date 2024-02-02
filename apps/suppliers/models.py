@@ -1,5 +1,5 @@
 from django.db import models
-from medusa.models import OcTsgCountryIso, OcTsgPaymentTerms, OcTsgAccountType
+from medusa.models import OcTsgCountryIso, OcTsgPaymentTerms, OcTsgAccountType, OcTsgFileTypes
 
 
 class OcSupplier(models.Model):
@@ -32,9 +32,12 @@ class OcSupplier(models.Model):
 
 class OcTsgSupplierDocuments(models.Model):
     supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True)
-    filepath = models.FileField(upload_to='medusa/supplier/documents/')
+    type = models.ForeignKey(OcTsgFileTypes, models.DO_NOTHING, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.FileField(upload_to='medusa/supplier/documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    cache_path = models.CharField(max_length=255, blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
-    date_added = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False

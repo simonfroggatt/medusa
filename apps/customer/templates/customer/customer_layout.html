@@ -10,7 +10,7 @@
          <div class="row top_bar">
             <div class="col-6">
                 <h2><img height="20px" src="
-                    {% static '/images/stores/' %}{{ customer_obj.store.thumb }}">{{ customer_obj.fullname }}</h2>
+                    {% get_media_prefix %}stores/branding/logos/{{ customer_obj.store.thumb }}">{{ customer_obj.fullname }}</h2>
             </div>
             <div class="col-6" id="top_nav_bar">
                 {% include 'customer/customer_layout_navbar.html' %}
@@ -73,8 +73,8 @@
                         </div>
                     </div>
                     <div role="tabpanel" id="tab-documents" class="tab-pane fade">
-                        <div class="panel-body">
-                            documents in here
+                        <div class="panel-body" id="div-customer_documents">
+                            {% include 'customer/sub_layouts/customer_documents.html' %}
                         </div>
                     </div>
                             <div role="tabpanel" id="tab-notes" class="tab-pane fade">

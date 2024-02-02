@@ -29,7 +29,7 @@ $(function () {
                      sortable: false,
                      searchable: false,
                      render: function (data, type, row) {
-                         let image_src = static_const + "images/stores/" + data;
+                         let image_src = media_url + "stores/branding/logos/" + data;
                          return '<img height="15px" src="' + image_src + '">'
                      }
                  },
@@ -90,7 +90,7 @@ $(function () {
                        sortable: false,
                        searchable: false,
                        render: function (data, type, row) {
-                           let image_src = static_const + "images/stores/" + data;
+                           let image_src = media_url + "stores/branding/logos/" + data;
                            return '<img height="15px" src="' + image_src + '">'
                        }
                    },
@@ -199,6 +199,12 @@ $(function () {
                 "url": "/products/api/corevariants/" + js_product_id + "?format=datatables",
             },
             columns: [
+                {
+                    data: "variant_image_url",
+                    render: function (data, type, row, meta) {
+                        return '<img height="30px" class="rounded mx-auto d-block" src="' + data + '">';
+                    }
+                },
                 {data: "supplier_code"},
                 {
                     data: "size_material.product_size.size_name"
@@ -206,16 +212,13 @@ $(function () {
                 {
                     data: "size_material.product_material.material_name"
                 },
-
                 {
                     data: "size_material.price"
                 },
                 {
-                    data: "variant_image_url",
-                    render: function (data, type, row, meta) {
-                        return '<img height="30px" class="rounded mx-auto d-block" src="' + data + '">';
-                    }
+                    data: "supplier_price"
                 },
+
                 {
                     data: "bl_live",
                     render: function (data, type, row) {
@@ -337,7 +340,7 @@ $(function () {
             columns: [
                 {data: "store.thumb",
                     render: function ( data, type, row ) {
-                    let image_src =  static_const + 'images/stores/' + data;
+                    let image_src = media_url + "stores/branding/logos/" + data;
                     return '<img height="15px" src="' + image_src + '">'
                  }},
                 {
@@ -363,7 +366,7 @@ $(function () {
                     }
                 },
                 {
-                    data: "alt_image_url", defaultContent: "no-image.png",
+                    data: "site_variant_image_url", defaultContent: "no-image.png",
                     render: function (data, type, row, meta) {
                         return '<img height="30px" class="rounded mx-auto d-block" src="' + data + '">';
                     },
@@ -404,13 +407,13 @@ $(function () {
             columns: [
                 {data: "product_related_store.store__thumb",
                     render: function ( data, type, row ) {
-                    let image_src =  static_const + 'images/stores/' + data;
+                    let image_src =  media_url + 'stores/branding/logos/' + data;
                     return '<img height="15px" src="' + image_src + '">'
                  }},
 
                 {   data: "product_desc.product__image",
                     render: function ( data, type, row ) {
-                    let image_src =  media_url + data;
+                    let image_src =  media_url +data;
                     return '<img height="50px" src="' + image_src + '">';
                  },
                  defaultContent: "" },
@@ -917,7 +920,7 @@ $(function () {
     });
 
 
-    $(document).on("submit", "#dform_product_image_add", AddAdditionalProductImage);
+    $(document).on("submit", "#form_product_image_add", AddAdditionalProductImage);
 
 
 
@@ -1071,7 +1074,13 @@ $(function () {
                }
            });
            return false;
-    }
+    };
+
+
+    $(document).on("submit", "#form_product_document", DocumentUpload);
+    $(document).on("click", ".js-product_document-delete", loadForm);
+    $(document).on("submit", "#form-product_document-delete", DocumentUpload);
+
 
 })
 

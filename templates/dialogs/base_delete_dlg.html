@@ -1,0 +1,21 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">{{ dialog_title|safe }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<form method="post" action="{{ action_url }}"
+      id="{{ form_id }}">
+    {% csrf_token %}
+    {% block hiddenvariables %}
+    {% endblock hiddenvariables %}
+    <div class="modal-body">
+        {% block main_content %}
+        {% endblock main_content %}
+    </div>
+    <div class="modal-footer">
+            <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+            <button type="submit" id="delete" class="btn {{ BUTTON_DELETE }} pull-right">Delete</button>
+    </div>
+</form>

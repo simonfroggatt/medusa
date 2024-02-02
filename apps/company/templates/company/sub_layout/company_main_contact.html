@@ -4,7 +4,8 @@
                  <div class="row">
                      <div class="col-9 ">
                           Main Contact
-                         <img height="20px" src="{% static "" %}images/stores/{{ company_obj.store.thumb }}" class="img-responsive"
+                         stores/branding/logos/
+                         <img height="20px" src="{% get_media_prefix %}stores/branding/logos/{{ company_obj.store.thumb }}" class="img-responsive"
                          alt="{{ company_obj.store.name }}">
                      </div>
                      <div class="col-3">

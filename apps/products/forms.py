@@ -1,11 +1,15 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
-    OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage
+    OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage, \
+    OcTsgProductDocuments
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions
 
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
+from crispy_bootstrap5.bootstrap5 import FloatingField
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, Row, Column
 
 
 class ProductForm(forms.ModelForm):
@@ -56,6 +60,10 @@ class ProductDescriptionBaseForm(forms.ModelForm):
 
 class SiteProductDetailsForm(forms.ModelForm):
 
+    def __init__(self, *args, **kwargs):
+        super(SiteProductDetailsForm, self).__init__(*args, **kwargs)
+        self.fields['tax_class'].empty_label = None
+        self.fields['bulk_group'].empty_label = None
 
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
     long_description = forms.CharField(widget=TinyMCE(attrs={'rows': 20}), required=False)
@@ -74,6 +82,10 @@ class SiteProductDetailsForm(forms.ModelForm):
             'product': forms.HiddenInput,
             'store': forms.HiddenInput,
 
+        }
+
+        field_classes = {
+            'image': SvgAndImageFormField,
         }
 
 
@@ -120,6 +132,10 @@ class VariantCoreOptionsOrderForm(forms.ModelForm):
 
 
 class VariantCoreForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(VariantCoreForm, self).__init__(*args, **kwargs)
+        self.fields['supplier'].empty_label = None
+
     class Meta:
         model = OcTsgProductVariantCore
         fields = '__all__'
@@ -137,6 +153,12 @@ class VariantCoreForm(forms.ModelForm):
             'gtin': 'GTIN',
             'bl_live': 'LIVE',
         }
+
+        field_classes = {
+            'variant_image': SvgAndImageFormField,
+        }
+
+
 
 class VariantCoreEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -208,13 +230,34 @@ class AdditionalProductStoreImages(forms.ModelForm):
             'alt_text': 'Image ALT-TEXT for this website',
         }
 
-class AddionalProductImageForm(forms.ModelForm):
+class AdditionalProductImageForm(forms.ModelForm):
     class Meta:
         model = OcProductImage
         fields = '__all__'
+
+        field_classes = {
+            'image': SvgAndImageFormField,
+        }
 
 
 class AddionalProductImageEditForm(forms.ModelForm):
     class Meta:
         model = OcProductImage
         fields = ['product_image_id', 'sort_order', 'alt_text']
+
+
+class ProductDocumentForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(ProductDocumentForm, self).__init__(*args, **kwargs)
+        self.fields['type'].empty_label = None
+
+
+    class Meta:
+        model = OcTsgProductDocuments
+        fields = '__all__'
+
+    widgets = {
+        'product': forms.Select(attrs={"hidden": True}),
+    }
+

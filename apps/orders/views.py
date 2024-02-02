@@ -4,9 +4,10 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
-     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory #,calc_order_totals, recalc_order_product_tax
-from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcTsgProductMaterial, OcProduct, \
+     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments #,calc_order_totals, recalc_order_product_tax
+from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcProduct, \
      OcTsgProductVariantCore, OcTsgProductVariants
+from apps.pricing.models import OcTsgProductMaterial
 from apps.options.models import OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, OcTsgOptionValueDynamics
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
@@ -18,7 +19,7 @@ from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, Product
     OrderDetailsEditForm, OrderShippingChoiceEditForm, OrderShipItForm, OrderTaxChangeForm, \
     OrderDiscountForm, OrderDocumentForm
 
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
 from apps.shipping.models import OcTsgShippingMethod
@@ -27,12 +28,14 @@ from django.urls import reverse_lazy
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.db.models import Sum
+from medusa import services
 import operator
 
 from apps.customer.serializers import AddressSerializer
 
 from collections import OrderedDict
 from itertools import chain
+
 
 class Orders2(viewsets.ViewSet):
     """
@@ -249,6 +252,12 @@ def order_details(request, order_id):
     docform_initials = {'order': order_obj}
     docform = OrderDocumentForm(initial=docform_initials)
     context['docform'] = docform
+
+    #and fetch any exisiting documents
+    order_docs_obj = OcTsgOrderDocuments.objects.filter(order_id=order_id)
+    context['order_docs_obj'] = order_docs_obj
+    context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
     return render(request, template_name, context)
 
 
@@ -1395,16 +1404,86 @@ def recalc_order_product_tax(order_id):
     calc_order_totals(order_id)
 
 
+def order_document_fetch(request, order_id):
+    data =  dict()
+    order_docs_obj = OcTsgOrderDocuments.objects.filter(order_id=order_id)
+    template_name = 'orders/sub_layout/order_documents.html'
+    context = {'order_docs_obj': order_docs_obj}
+    order_obj = get_object_or_404(OcOrder,pk=order_id)
+    docform_initials = {'order': order_obj}
+    docform = OrderDocumentForm(initial=docform_initials)
+    context['docform'] = docform
+    context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
+
+
+    data['html_content'] = render_to_string(template_name,
+                                            context,
+                                            request=request
+                                            )
+
+    return JsonResponse(data)
+
+
+
 def order_document_upload(request):
     data = dict()
     if request.method == 'POST':
         form = OrderDocumentForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            data['upload'] = True
+            form_instance = form.instance
+            order_doc_obj = get_object_or_404(OcTsgOrderDocuments, pk=form_instance.pk)
+            cached_thumb = services.createUploadThumbnail(order_doc_obj.filename.file.name)
+            order_doc_obj.cache_path = cached_thumb
+            order_doc_obj.save()
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_order_documents', kwargs={'order_id': order_doc_obj.order_id})
+            data['divUpdate'] = ['div-order_documents', 'html_content']
         else:
-            data['upload'] = False
+            data['success_post'] = False
     else:
+        data['success_post'] = False
+
+    return JsonResponse(data)
+
+
+def order_document_download(request, pk):
+    doc_obj = get_object_or_404(OcTsgOrderDocuments, pk=pk)
+    response = FileResponse(doc_obj.filename, as_attachment=True)
+    return response
+
+
+def order_document_delete(request, pk):
+    data = dict()
+    template_name = 'orders/dialogs/order_document_delete.html'
+    context = dict()
+    order_doc_obj = get_object_or_404(OcTsgOrderDocuments, pk=pk)
+
+    if request.method == 'POST':
+        order_doc_obj = get_object_or_404(OcTsgOrderDocuments, pk=pk)
+        if order_doc_obj:
+            order_doc_obj.delete()
+            #delete the cached file
+            fullpath = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE ,order_doc_obj.cache_path)
+            if os.path.isfile(fullpath):
+                os.remove(fullpath)
+            data['success_post'] = True
+            data['document_ajax_url'] = reverse_lazy('fetch_order_documents',
+                                                     kwargs={'order_id': order_doc_obj.order_id})
+            data['divUpdate'] = ['div-order_documents', 'html_content']
+        else:
+            data['success_post'] = False
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> document"
+        context['action_url'] = reverse_lazy('order_document-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-order_document-delete'
+        context['order_id'] = order_doc_obj.order_id
         data['upload'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                                     context,
+                                                     request=request
+                                                     )
 
     return JsonResponse(data)

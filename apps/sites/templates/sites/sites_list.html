@@ -73,7 +73,7 @@
                 sortable: false,
                 searchable: false,
                 render: function ( data, type, row ) {
-                    let image_src = '{% static "images/stores/" %}' + data;
+                    let image_src = media_url + "stores/branding/logos/" + data;
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },

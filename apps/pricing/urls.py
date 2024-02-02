@@ -34,4 +34,12 @@ urlpatterns = [
     path('prices/<int:pk>/store/delete', views.store_price_combo_delete, name='storepricecombodelete'),
     path('prices/<int:size_material_id>/store/create', views.store_price_combo_create, name='storepricecombocreate'),
     path('materials/details/<int:material_id>', views.material_details, name='materialdetails'),
+
+
+    path('material/spec/upload', views.material_spec_upload, name='material_spec-upload'),
+    path('material/<int:material_id>/spec/fetch', views.material_spec_fetch, name='fetch_material_spec'),
+    path('material/spec/<pk>/download', views.material_spec_download, name='material_spec-download'),
+    path('material/spec/<pk>/delete', views.material_spec_delete, name='material_spec-delete'),
+
+
     ]

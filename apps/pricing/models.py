@@ -101,3 +101,19 @@ class OcTsgSizeMaterialCombPrices(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_size_material_store_combs'
+
+
+class OcTsgMaterialSpec(models.Model):
+    material = models.ForeignKey(OcTsgProductMaterial, models.DO_NOTHING, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.FileField(upload_to='stores/materials/specs/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    cache_path = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_material_spec'
+
+    def __str__(self):
+        return self.title

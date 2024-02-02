@@ -3,7 +3,7 @@ from medusa.models import OcTsgCategoryTypes, OcLanguage
 from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
-from medusa.models import OcTaxRate, OcSupplier, OcTaxClass
+from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes
 from apps.category.models import OcCategoryToStore
 
 
@@ -63,7 +63,7 @@ class OcProductToStore(models.Model):
     store = models.ForeignKey(OcStore, models.DO_NOTHING, related_name='productstore')
     status = models.BooleanField()
     price_from = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    image = models.CharField(max_length=1024, blank=True, null=True)
+    image = models.ImageField(upload_to='stores/products/', null=True, blank=True)
     include_google_merchant = models.BooleanField()
     tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -89,30 +89,6 @@ class OcProductToStore(models.Model):
         managed = False
         db_table = 'oc_product_to_store'
         unique_together = (('store', 'product'),)
-
-
-class OcTsgProductMaterial(models.Model):
-    material_id = models.AutoField(primary_key=True)
-    material_name = models.CharField(max_length=255, db_collation='latin1_swedish_ci')
-    material_desc = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    material_desc_full = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    mounting_desc = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    mounting_desc_full = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    thickness_desc = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    thickness_desc_full = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    fixing_desc = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    fixing_desc_full = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    colour_desc = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    colour_desc_full = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    code = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-    image = models.CharField(max_length=255, db_collation='latin1_swedish_ci', blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_product_material'
-
-    def __str__(self):
-        return self.material_name
 
 
 class OcTsgProductSizes(models.Model):
@@ -189,6 +165,25 @@ class OcTsgProductVariants(models.Model):
             return f"{settings.MEDIA_URL}{self.alt_image}"
         else:
             return self.prod_var_core.variant_image_url
+
+    @property
+    def site_variant_image_url(self):
+        if self.alt_image:  #we have an alternative for this variant
+            return f"{settings.MEDIA_URL}{self.alt_image}"
+        else: #no image - now check core_variant
+            if self.prod_var_core.variant_image:  #the core variant has a variant image
+                return f"{settings.MEDIA_URL}{self.prod_var_core.variant_image}"
+            else: #check if the product site info has an image
+                store_image = OcProductToStore.objects.filter(store_id=self.store_id, product_id=self.prod_var_core.product_id).values('image').first()
+                if store_image['image']:
+                    return f"{settings.MEDIA_URL}{store_image['image']}"
+                else:
+                    return f"{settings.MEDIA_URL}{self.prod_var_core.product.image}"
+
+
+
+
+
 
 
 
@@ -359,3 +354,20 @@ class OcStoreProductImages(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_store_product_images'
+
+
+class OcTsgProductDocuments(models.Model):
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, blank=True, null=True)
+    type = models.ForeignKey(OcTsgFileTypes, models.DO_NOTHING, blank=True, null=True, related_name='product_document_type')
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.filename = models.FileField(upload_to='medusa/product/documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    cache_path = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_documents'
+
+    def __str__(self):
+        return self.title

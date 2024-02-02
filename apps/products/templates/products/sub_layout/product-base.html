@@ -35,8 +35,8 @@
                             <dd class="col-9">{{ product_obj.productdescbase.title }}</dd>
                             <dt class="col-3">Description</dt>
                             <dd class="col-9">{{ product_obj.productdescbase.description|truncatechars:100 }}</dd>
-                            <dt class="col-3">Supplier</dt>
-                            <dd class="col-9">{{ product_obj.supplier }}</dd>
+                            <dt class="col-3">Bulk Pricing</dt>
+                            <dd class="col-9">{{ product_obj.bulk_group }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                             <dt class="col-3">Meta Keywords</dt>
                             <dd class="col-9">{{ product_obj.productdescbase.meta_keyword }}</dd>
                             <dt class="col-3">Tags</dt>
-                            <dd class="col-9">{{ product_obj.productdescbase.tags }}</dd>
+                            <dd class="col-9">{{ product_obj.productdescbase.tag }}</dd>
                         </dl>
                     </div>
                 </div>

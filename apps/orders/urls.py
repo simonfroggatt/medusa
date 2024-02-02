@@ -77,6 +77,9 @@ urlpatterns = [
 
     #uploads
     path('document/upload', views.order_document_upload, name='order_document-upload'),
+    path('<int:order_id>/document/fetch', views.order_document_fetch, name='fetch_order_documents'),
+    path('document/<pk>/download', views.order_document_download, name='order_document-download'),
+    path('document/<pk>/delete', views.order_document_delete, name='order_document-delete')
 
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

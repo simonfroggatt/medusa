@@ -11,7 +11,7 @@
             {% csrf_token %}
             {{ form.product.as_hidden }}
              {{ form.size_material.as_hidden }}
-            {{ form.prod_variant_core_id.as_hidden }}
+            {{ form.prod_variant_core.as_hidden }}
 
             <div class="row">
                 <div class="col-12">
@@ -21,8 +21,9 @@
                     {% include 'products/sub_layout/variant_core_size_material.html' %}
                 </div>
                 <div class="col-6">{{ form.supplier|as_crispy_field }}</div>
-                <div class="col-3">{{ form.supplier_code|as_crispy_field }}</div>
-                <div class="col-3">{{ form.supplier_price|as_crispy_field }}</div>
+                <div class="col-2">{{ form.supplier_code|as_crispy_field }}</div>
+                <div class="col-2">{{ form.supplier_price|as_crispy_field }}</div>
+                <div class="col-2">{{ form.lead_time_override|as_crispy_field }}</div>
                 <div class="col-6">{{ form.exclude_fpnp|as_crispy_field }}{{ form.bl_live|as_crispy_field }}</div>
                 <div class="col-3">{{ form.shipping_cost|as_crispy_field }}</div>
                 <div class="col-3">{{ form.gtin|as_crispy_field }}</div>

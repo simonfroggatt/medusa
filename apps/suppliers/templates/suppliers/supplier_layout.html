@@ -1,7 +1,7 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% block extra_css %}
-   <!-- old datatables css -->
+    <!-- old datatables css -->
 {% endblock extra_css %}
 
 {% block content %}
@@ -14,15 +14,15 @@
 
             </div>
             <div class="col-4 col-lg-4">
-                {% include 'suppliers/sub_layouts/supplier_details_top_navbar.html' %}
+
             </div>
         </div>
         <div class="row pb-2">
             <div class="col-12 col-sm-6 pe-0" id="card_supplier_main_contact">
-                 {% include 'suppliers/sub_layouts/supplier_main_contact.html' %}
+                {% include 'suppliers/sub_layouts/supplier_main_contact.html' %}
             </div>
             <div class="col-12 col-sm-6 ">
-                 {% include 'suppliers/sub_layouts/supplier_account_details.html' %}
+                {% include 'suppliers/sub_layouts/supplier_account_details.html' %}
             </div>
         </div>
         <div class="row" id="supplier-details-tabs">
@@ -49,24 +49,24 @@
                         <div class="tab-content">
                             <div role="tabpanel" id="tab-products" class="tab-pane fade show active">
                                 <div class="panel-body">
-                                    products in here
+                                    {% include 'suppliers/sub_layouts/supplier_product_list.html' %}
                                 </div>
                             </div>
                             <div role="tabpanel" id="tab-materials" class="tab-pane fade">
-                            <div class="panel-body">
-                                materials in here
+                                <div class="panel-body">
+                                    materials in here
+                                </div>
                             </div>
-                        </div>
                             <div role="tabpanel" id="tab-art" class="tab-pane fade">
-                            <div class="panel-body">
-                                artwork in here
+                                <div class="panel-body">
+                                    artwork in here
+                                </div>
                             </div>
-                        </div>
                             <div role="tabpanel" id="tab-documents" class="tab-pane fade">
-                            <div class="panel-body">
-                                documents in here
+                                <div class="panel-body" id="div-supplier_documents">
+                                    {% include 'suppliers/sub_layouts/supplier_documents.html' %}
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -78,7 +78,100 @@
 {% endblock content %}
 
 {% block javascript %}
+    <script>
+        $(document).ready(function () {
 
+            if ($.fn.dataTable.isDataTable('#supplier_product_table')) {
+                var supplier_product_table = $('#supplier_product_table').DataTable();
+            } else {
+                var supplier_product_table = $('#supplier_product_table').DataTable({
+                    "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                        "<'row'<'col-12'tr>>",
+                    "processing": true,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                    "pageLength": 25,
+                    "autoWidth": false,
+                    "responsive": false,
+                    "serverSide": true,
+                    "rowId": 'product_id',
+                    "ajax": {
+                        "processing": true,
+                        "url": "/products/api/supplier/{{ supplier_obj.id }}/products?format=datatables",
+
+                        "type": "GET",
+                    },
+                    "deferRender": false,
+
+                    "search": {
+                        "regex": true
+                    },
+                    columns: [
+
+                        {
+                            data: "image_url",
+                            name: "thumbnail",
+                            searchable: "false",
+                            sortable: "false",
+                            render: function (data, type, row, meta) {
+                                return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
+                            }
+                        },
+                        {
+                            data: "productdescbase.name",
+                        },
+                        {
+                            data: "productdescbase.title",
+                        },
+                        {
+                            data: "status",
+                            searchable: "false",
+                            render: function (data) {
+                                if (data == 1) {
+                                    return '<span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>'
+                                } else {
+                                    return '<span class="badge rounded-pill badge-soft-danger font-size-14">OFF-LINE</span>'
+                                }
+                            }
+                        },
+                    ]
+                });
+            }
+            ;
+
+
+            function SaveSupplier() {
+                var form = $(this);
+                $.ajax({
+                    url: form.attr("action"),
+                    data: new FormData(this),
+                    type: form.attr("method"),
+                    //dataType: 'json',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (data) {
+                        if (data.form_is_valid) {
+                            updateProductVariantSiteTable();
+                            $("#modal-base").modal("hide");
+                        } else {
+                            $("#modal-base .modal-content").html(data.html_form);
+                        }
+                    }
+                });
+                return false;
+            }
+
+            $(document).on('click', '.js-supplier-dlg', loadForm);
+           // $(document).on("submit", "#form-supplier-edit", SaveSupplier);
+
+            $(document).on("submit", "#form_supplier_document", DocumentUpload);
+            $(document).on("click", ".js-supplier_document-delete", loadForm);
+            $(document).on("submit", "#form-supplier_document-delete", DocumentUpload);
+
+        });
+
+
+    </script>
 
 {% endblock javascript %}
 

@@ -27,9 +27,9 @@ $(function () {
                 "defaultContent": 'no-image.png',
                 render: function (data, type, row) {
                     if (data === undefined || data === null) {
-                        return '<img height="30px" class="rounded mx-auto d-block" src="http://safetysigns/image/no-image.png">'
+                        return '<img height="30px" class="rounded mx-auto d-block" src="'+ media_url+'stores/no-image.png">'
                     } else {
-                        let image_src = 'http://safetysigns/image/' + data;
+                        let image_src =  data;
                         return '<a href="' + image_src + '" data-lightbox="image"><img height="30px" class="rounded mx-auto d-block" src="' + image_src + '">';
                     }
 
@@ -728,27 +728,6 @@ $(function () {
         return false;
     }
 
-    function OrderDocuemntUpload(){
-        var form = $(this);
-        $.ajax({
-            url: form.attr("action"),
-            data: new FormData( this ),
-            type: form.attr("method"),
-            //dataType: 'json',
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function (data) {
-                if (data.upload) {
-                    alert('uploaded done')
-                } else {
-                    alert('error')
-                }
-            }
-        });
-        return false;
-    }
-
 
     $(document).on('click', '.js-order-product-edit', loadProductEditForm);
     $(document).on("submit", "#js-product-edit-submit", saveProductEditForm);
@@ -766,8 +745,8 @@ $(function () {
     $(document).on('click', '.js-order-shipping-choice-edit', loadOrderShippingChoiceEditForm);
     $(document).on("submit", "#js-order-shipping-choice-edit", SaveOrderShippingChoiceEditForm);
 
-    $(document).on('click', '.js-order-ship-it', LoadOrderShipIt);
-    $(document).on("submit", "#js-order-ship-it", SaveOrderShipIt);
+    //$(document).on('click', '.js-order-ship-it', LoadOrderShipIt);
+    //$(document).on("submit", "#js-order-ship-it", SaveOrderShipIt);
 
     $(document).on("submit", "#js-order-delete-form", saveOrderDeleteForm);
 
@@ -777,10 +756,14 @@ $(function () {
 
     $(document).on("click", "#dropdownMenuPrint", PrintPaperWork);
 
+
     $(document).on("submit", "#js-order-shipping-change", ShippingAddressSearchQuick);
 
-    $(document).on("submit", "#form_order_document", OrderDocuemntUpload);
 
+    //order documents
+    $(document).on("submit", "#form_order_document", DocumentUpload);
+    $(document).on("click", ".js-order_document-delete", loadForm);
+    $(document).on("submit", "#form-order_document-delete", DocumentUpload);
 
 })
 

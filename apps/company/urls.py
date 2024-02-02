@@ -19,6 +19,12 @@ urlpatterns = [
     path('<int:company_id>/edit', views.company_details_edit, name='company_details_edit'),
     path('<int:company_id>/contacts', views.company_contacts, name='company_contacts'),
     path('<int:company_id>/addressbook', views.company_addressbook, name='company_addressbook'),
+    
+#documents
+    path('document/upload', views.company_document_upload, name='company_document-upload'),
+    path('<int:company_id>/document/fetch', views.company_document_fetch, name='fetch_company_documents'),
+    path('document/<pk>/download', views.company_document_download, name='company_document-download'),
+    path('document/<pk>/delete', views.company_document_delete, name='company_document-delete'),
 
 
     path('', views.company_list, name='allcompanies'),

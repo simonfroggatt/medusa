@@ -2,7 +2,6 @@
 {% load crispy_forms_tags %}
 <form method="post" enctype="multipart/form-data" action="{% url 'order_document-upload' %}" id="form_order_document">
     {% csrf_token %}
-    {{ docform.order.as_hidden }}
 
     <div class="row">
         <div class="col-4">
@@ -17,9 +16,6 @@
     </div>
     <button type="submit">Upload</button>
   </form>
-
-
-
 <script>
 
 
