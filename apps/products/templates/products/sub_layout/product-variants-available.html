@@ -69,7 +69,7 @@ $(document).ready(function() {
                         render: function ( data, type, row ) {
                             let current_store_id = $('#js-variant-add-store_id').val();
                             let dataurl = "/products/sitevariant/add/"+data+"/"+current_store_id;
-                            return '<a class="btn btn-outline-success btn-sm js-variant_site-add" data-url='+dataurl+' role="button"><i class="fa-solid fa-plus"></i></a>';
+                            return '<a class="btn btn-outline-success btn-tsg-row js-variant_site-add" data-url='+dataurl+' role="button"><i class="fa-solid fa-plus"></i></a>';
 
                         },
                     sortable: false,

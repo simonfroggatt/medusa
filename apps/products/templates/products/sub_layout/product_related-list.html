@@ -1,9 +1,25 @@
 {% load static %}
-<div class="row pe-2">
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn btn-sm btn-success js-product-dlg" data-url="{% url 'related_product-add' product_obj.product_id %}" data-dlgsize="modal-lg">Add</button>
-            </div>
+
+<div class="row">
+    <div class="col-6">
+        <select class="form-select pb-2" aria-label="Store" id="js-related_list-store_id" name="store_id">
+            <option value=0>All Websites</option>
+            {% for store_data in store_obj.all %}
+                <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-6">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="button" class="btn btn-sm btn-success js-product-dlg"
+                    data-url="{% url 'related_product-add' product_obj.product_id %}" data-dlgsize="modal-xl"><i
+                    class="fa-solid fa-link"></i> Add Related
+            </button>
+        </div>
+    </div>
 </div>
+
 <div class="row">
     <div class="col-12">
         <div class="ibox">

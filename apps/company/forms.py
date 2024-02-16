@@ -3,6 +3,16 @@ from .models import OcTsgCompany, OcTsgCompanyDocuments
 
 
 class CompanyEditForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CompanyEditForm, self).__init__(*args, **kwargs)
+        self.fields['payment_terms'].empty_label = None
+        self.fields['status'].empty_label = None
+        self.fields['account_type'].empty_label = None
+        self.fields['store'].empty_label = None
+        self.fields['company_type'].empty_label = None
+        self.fields['country'].empty_label = None
+        self.fields['tax_rate'].empty_label = None
+
 
     class Meta:
         model = OcTsgCompany

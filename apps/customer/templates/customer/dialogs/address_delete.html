@@ -1,17 +1,15 @@
 <div class="modal-header">
-    <h4 class="modal-title">Update Address</h4>
+    <h4 class="modal-title">DELETE Address</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
     <div class="container">
         <form method="post" action="{% url 'customeraddressdelete' customer_id address_id %}" class="js-address-submit">
             {% csrf_token %}
-
             <div class="row">
                 <div class="col-md-12">
                     <p>Are you sure you want to delete this address?</p>
                 </div>
-
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>

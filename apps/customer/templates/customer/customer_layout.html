@@ -9,8 +9,7 @@
     <div class="wrapper wrapper-content layout-details">
          <div class="row top_bar">
             <div class="col-6">
-                <h2><img height="20px" src="
-                    {% get_media_prefix %}stores/branding/logos/{{ customer_obj.store.thumb }}">{{ customer_obj.fullname }}</h2>
+                <h2>{{ customer_obj.fullname }}</h2>
             </div>
             <div class="col-6" id="top_nav_bar">
                 {% include 'customer/customer_layout_navbar.html' %}

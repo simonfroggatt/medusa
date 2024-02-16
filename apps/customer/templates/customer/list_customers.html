@@ -79,11 +79,12 @@
             {data: "email"},
             {data: "telephone"},
             {
-                data: null,
+                data: "customer_id",
                 sortable: false,
                 render: function ( data, type, row ) {
-                let edit_icon = '<a type="button" class="btn btn-sm {{ BUTTON_EDIT }}" href="details/' + row['customer_id'] + '" role="button"><i class="{{ ICON_EDIT }} table-button"></i></a>'
-                return edit_icon;
+                     let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="details/' + data + '"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
+                    let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row" role="button" data-url="' + data + 'delete/' + data + '" data-dlgsize="modal-sm"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
+                    return edit_icon;
                 }
             },
             {

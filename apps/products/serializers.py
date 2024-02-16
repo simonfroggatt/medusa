@@ -81,9 +81,9 @@ class ProductListSerializer(serializers.ModelSerializer):
     productdescbase = ProductDescriptionBase(read_only=True)
     corevariants = ProductVariantCoreSerializer(many=True, read_only=True)
 
-    def get_corevariants(self, products):
-        return ', '.join(
-            [''.join(str(variants.supplier_code).split()) for variants in products.corevariants.only('supplier_code')])
+    #def get_corevariants(self, products):
+    #    return ', '.join(
+    #        [''.join(str(variants.supplier_code).split()) for variants in products.corevariants.only('supplier_code')])
 
     def get_image_url(self, product):
         return f"{settings.MEDIA_URL}{product.image}"
@@ -92,7 +92,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcProduct
         #fields = ['product_id', 'model', 'image_url', 'status', 'productdescbase', 'corevariants']
-        fields = ['product_id', 'model', 'image_url', 'status', 'productdescbase', 'corevariants']
+        fields = ['product_id', 'model', 'image_url', 'status','productdescbase', 'corevariants']
         depth = 2
 
 
@@ -115,7 +115,7 @@ class CoreVariantSerializer(serializers.ModelSerializer):
     size_material = SizeMaterialCombSerializer(read_only=True)
     class Meta:
         model = OcTsgProductVariantCore
-        fields = ['prod_variant_core_id','supplier_code', 'supplier_price', 'variant_image_url', 'gtin', 'bl_live', 'size_material']
+        fields = ['prod_variant_core_id','supplier_code', 'supplier_price', 'variant_image_url', 'gtin', 'bl_live', 'size_material', 'pack_count']
         depth = 3
 
 
@@ -167,7 +167,8 @@ class TestProduct(serializers.ModelSerializer):
 class ProductStoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcProductToStore
-        fields = '__all__'
+        fields = [field.name for field in model._meta.fields]
+        fields.extend(['image_url'])
 
         depth = 1
 

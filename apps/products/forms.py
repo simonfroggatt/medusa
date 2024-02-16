@@ -1,7 +1,7 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
     OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage, \
-    OcTsgProductDocuments
+    OcTsgProductDocuments, OcProductRelated
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions
 
@@ -260,4 +260,12 @@ class ProductDocumentForm(forms.ModelForm):
     widgets = {
         'product': forms.Select(attrs={"hidden": True}),
     }
+
+class RelatedEditForm(forms.ModelForm):
+
+    class Meta:
+        model = OcProductRelated
+        fields = '__all__'
+
+
 

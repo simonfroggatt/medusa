@@ -1,13 +1,10 @@
 <div class="card-header order_details ">
-            <div class="row">
+            <div class="row align-items-center justify-content-between">
                     <div class="col-3">
                         <i class="fa-solid fa-shipping-fast"></i> Shipping
                     </div>
                     <div class="col-6">
                     {% if order_obj.customer %}
-                    <button class="btn {{ BUTTON_EXTRA }} col-12 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseShippingAddress" aria-expanded="false" aria-controls="collapseShippingAddress">
-                            Address book
-                        </button>
                         <div class="collapse" id="collapseShippingAddress">
                             <form method="post" id="order_shipping_addressbook" action="{% url 'ordershippingfrombook' order_obj.order_id %}">
                             <input type="hidden" id="address_book_id_shipping" name="address_book_id_shipping" value="0">
@@ -25,26 +22,35 @@
                             </div>
                             </form>
                         </div>
-
                     {% endif %}
                     </div>
                     <div class="col-3">
 
-                     <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+                     <div class="btn-group justify-content-end ">
+                         {% if order_obj.customer %}
+                                <button class="btn {{ BUTTON_EXTRA_OUTLINE }} btn-sm" type="button" data-bs-toggle="collapse"
+                                     data-bs-target="#collapseShippingAddress" aria-expanded="false"
+                                     aria-controls="collapseShippingAddress"
+                                    ><i class="fa-regular fa-location-dot"></i>
+                                </button>
+                         {% endif %}
                          {% if addressItem|length > 2 %}
-                               <button type="button" class="btn {{ BUTTON_ADD }} btn-sm js-order-address-edit"
+                               <button type="button" class="btn {{ BUTTON_ADD_OUTLINE }} btn-sm js-order-address-edit"
                                         data-url="{% url 'ordershippingaddresssearch' order_obj.order_id %}"
-                                        data-dlgsize="modal-lg"
-                                ><i class="fa-solid fa-search fa-pull-right ms-0"></i></button>
+                                        data-dlgsize="modal-lg">
+                                        <i class="fa-solid fa-search fa-pull-right ms-0"></i>
+                               </button>
                         {% endif %}
-                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-address-edit"
+                                <button type="button" class="btn {{ BUTTON_EDIT_OUTLINE }} btn-sm js-order-address-edit"
                                         data-url="{% url 'ordershippingaddressedit' order_obj.order_id %}"
-                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+                                        data-dlgsize="modal-lg">
+                                        <i class="{{ ICON_EDIT }} fa-pull-right"></i>
+                                </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="card-body ">
+            <div class="card-body pb-0">
                  <div id="order-shipping">
                     {% include 'orders/sub_layout/shipping_address_ajax.html' %}
                 </div>

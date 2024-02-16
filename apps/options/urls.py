@@ -9,9 +9,10 @@ router.register(r'groups', views.OptionGroups)
 router.register(r'group_values', views.OptionGroupsValues)
 router.register(r'types', views.OptionTypes)
 router.register(r'class', views.OptionClass)
+router.register(r'product_options', views.AllProductOptions)
+router.register(r'product_option_values', views.AllProductOptionValues)
 
 urlpatterns = [
-    path('', views.option_list, name='alloptions'),
     path('api/', include(router.urls)),
 
 #classes
@@ -47,4 +48,16 @@ urlpatterns = [
     path('api/class/values/<class_id>/valueadd/<int:option_value_id>', views.predefinedClassValuesAdd, name='option_class_predefined_values-add'),
     path('api/class/values/valueremove/<int:class_option_value_id>', views.predefinedClassValuesRemove, name='option_class_predefined_values-remove'),
     path('api/class/values/valueorder/<int:class_option_value_id>', views.predefinedClassValuesOrder, name='option_class_predefined_values-order'),
+
+
+#production options
+    path('productoptions', views.productOptions_list, name='allproductoptions'),
+    path('productoptions/create', views.productOptions_create, name='allproductoptions-create'),
+    path('productoptions/<int:pk>/edit', views.productOptions_edit, name='allproductoptions-edit'),
+    path('productoptions/<int:pk>/delete', views.productOptions_delete, name='allproductoptions-delete'),
+
+    path('productoptions_values', views.productOptionsValue_list, name='allproductoptions_values'),
+    path('productoptions_values/create', views.productOptionsValue_create, name='allproductoptions_values-create'),
+    path('productoptions_values/<int:pk>/edit', views.productOptionsValue_edit, name='allproductoptions_value-edit'),
+    path('productoptions_values/<int:pk>/delete', views.productOptionsValue_delete, name='allproductoptions_value-delete'),
     ]

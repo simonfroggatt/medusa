@@ -9,7 +9,6 @@
      <div class="container">
          <h4>{{ product_variant_obj.store.name }}</h4>
          <h4>{{ product_variant_obj.prod_var_core.size_material.product_size.size_name }} - {{ product_variant_obj.prod_var_core.size_material.product_material.material_name }}</h4>
-         <h5>Current default prices is {{ product_variant_obj.prod_var_core.size_material.price }}</h5>
          <hr>
          <form method="post" action="{% url 'site_variant-edit' product_variant_id %}" id="form-site_variant_edit" enctype="multipart/form-data">
             {% csrf_token %}
@@ -31,8 +30,12 @@
                 </div>
                 <div class="col-5">
                     {{ form.variant_overide_price|as_crispy_field}}
-
+                    <div id="passwordHelpBlock" class="form-text">
+                        Current default prices is {{ product_variant_obj.prod_var_core.size_material.price }}
+                    </div>
                 </div>
+
+
             </div>
             <div class="row">
 

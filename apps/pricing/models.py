@@ -83,6 +83,7 @@ class OcTsgSizeMaterialComb(models.Model):
     product_material = models.ForeignKey(OcTsgProductMaterial, models.DO_NOTHING, related_name='combo_material')
     price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
+    weight = models.DecimalField(max_digits=10, decimal_places=5, blank=True, null=True)
 
     class Meta:
         managed = False

@@ -1,5 +1,9 @@
 from django.db import models
+
 from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants
+from medusa.models import OcLanguage
+
+
 # Create your models here.
 
 class OcTsgOptionTypes(models.Model):
@@ -138,6 +142,80 @@ class OcTsgOptionValueDynamics(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_option_value_dynamics'
+
+# This is the opencart stop option type - we use it apply options at the product level
+
+class OcTsgProductOptionType(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_option_type'
+
+    def __str__(self):
+        return self.name
+
+
+class OcOption(models.Model):
+    option_id = models.AutoField(primary_key=True)
+    type = models.ForeignKey(OcTsgProductOptionType, models.DO_NOTHING, blank=True, null=True)
+    sort_order = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'oc_option'
+
+    def __str__(self):
+        description_obj = OcOptionDescription.objects.filter(language=1, option_id=self.option_id).first()
+        return description_obj.name
+
+    @property
+    def option_desc(self):
+        description_obj = OcOptionDescription.objects.filter(language=1, option_id=self.option_id).first()
+        return description_obj.name
+
+
+
+
+class OcOptionDescription(models.Model):
+    option = models.ForeignKey(OcOption, models.DO_NOTHING, 'option_description')
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
+    name = models.CharField(max_length=128)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_option_description'
+
+    def __str__(self):
+        return self.name
+
+
+class OcOptionValue(models.Model):
+    option_value_id = models.AutoField(primary_key=True)
+    option = models.ForeignKey(OcOption, models.DO_NOTHING)
+    image = models.CharField(max_length=255, blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_option_value'
+
+
+class OcOptionValueDescription(models.Model):
+    option_value = models.ForeignKey(OcOptionValue, models.DO_NOTHING, related_name='option_value')
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
+    name = models.CharField(max_length=128)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_option_value_description'
+
+    def __str__(self):
+        return self.name
+
+
+
+
 
 
 

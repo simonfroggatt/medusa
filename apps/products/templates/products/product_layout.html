@@ -39,7 +39,12 @@
                             <li>
                                 <a class="nav-link" id="site-variants-tab" data-bs-toggle="tab"
                                    href="#tab-site-variants" role="tab">
-                                    <i class="fa-solid fa-gear"></i> Site Variants & Options</a>
+                                    <i class="fa-regular fa-sliders"></i> Site Variants & Options</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="product-option-tab" data-bs-toggle="tab"
+                                   href="#tab-product-options" role="tab">
+                                    <i class="fa-solid fa-gear"></i> Product Options</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#tab-address"
@@ -83,6 +88,11 @@
                             <div role="tabpanel" id="tab-site-variants" class="tab-pane fade ">
                                 <div class="panel-body" id="tab-site-variants_contents">
                                     {% include 'products/sub_layout/site_specific/product-variant-list_by_site.html' %}
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-product-options" class="tab-pane fade ">
+                                <div class="panel-body" id="tab-product-options_contents">
+                                    {% include 'products/sub_layout/product_options-list.html' %}
                                 </div>
                             </div>
                             <div role="tabpanel" id="tab-alt-text" class="tab-pane fade">

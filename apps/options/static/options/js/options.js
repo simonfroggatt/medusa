@@ -219,8 +219,8 @@ $(function () {
                         sortable: false,
                         className: 'text-md-end text-start',
                         render: function (data, type, row) {
-                            let edit_icon = '<a class="btn btn-primary btn-sm" id="js-group_value-edit" data-url="value/edit/' + data + '" role="button" ><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                            let delete_icon = '<a class="btn btn-danger btn-sm" id="js-group_value-edit" data-url="value/delete/' + data + '" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
+                            let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" id="js-group_value-edit" data-url="value/edit/' + data + '" role="button" ><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                            let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row" id="js-group_value-edit" data-url="value/delete/' + data + '" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                             return edit_icon + " " + delete_icon
                         }
                     },
@@ -393,5 +393,22 @@ $(function () {
             $('#form-option_value_product_variant #value_product-submit').prop('disabled', true)
         }
     });
+
+
+
+    /* - PRODUCT OPTIONS - THE OLD OPENCART THINGS  */
+     $(document).on('click', '.js-product_option-btn', loadForm);
+     $(document).on('submit', '#form-product_options', function () {
+         SaveDialogUpdateTable('product_options_table', $(this));
+         return false;
+     });
+
+     $(document).on('submit', '#form-product_options_values', function () {
+         SaveDialogUpdateTable('product_options_values_table', $(this));
+         return false;
+     });
+
+
+
 
 })

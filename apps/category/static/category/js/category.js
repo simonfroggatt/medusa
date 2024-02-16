@@ -47,8 +47,8 @@
                 sortable: false,
                 className: 'text-md-end text-start',
                 render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm" href="' +data  + '/storeeditpk'+'"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                let delete_icon = '<a  class="btn btn-danger btn-sm js-category-edit" role="button" data-url="api/storetextdelete/'+data+'" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
+                let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" href="' +data  + '/storeeditpk'+'"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                let delete_icon = '<a  class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-category-edit" role="button" data-url="api/storetextdelete/'+data+'" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                 return  edit_icon + " " + delete_icon;
 
                 }
@@ -126,8 +126,8 @@
                 sortable: false,
                 className: 'text-md-end text-start',
                 render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm js-category-edit" role="button" data-url="'+data+'/storecatparentdlg"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                let delete_icon = '<a  class="btn btn-danger btn-sm js-category-edit" role="button" data-url="api/storeparentdelete/'+data+ '" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
+                let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-category-edit" role="button" data-url="'+data+'/storecatparentdlg"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                let delete_icon = '<a  class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-category-edit" role="button" data-url="api/storeparentdelete/'+data+ '" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                 return  edit_icon + " " + delete_icon;
 
                 }

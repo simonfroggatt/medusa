@@ -61,6 +61,7 @@ def customers_details(request, customer_id):
     content['form'] = form
     content['heading'] = customer_obj.fullname
     content['pageview'] = "Customers"
+    content['pageview_url'] = reverse_lazy('allcustomers')
 
     customer_docs_obj = OcTsgContactDocuments.objects.filter(contact_id=customer_id)
     content['customer_docs_obj'] = customer_docs_obj
@@ -490,11 +491,27 @@ def customer_update_notes(request, customer_id):
 
 def customer_address_set_billing(request, customer_id, address_id):
     data = dict()
+    customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    address_obj = get_object_or_404(OcAddress, pk=address_id)
+    if address_obj.customer_id == customer_obj.customer_id:  #simple check to see if this is valid
+        address_obj.default_billing = 1
+        address_obj.save()
+        customer_update_detault_address(address_obj)
+        data['is_saved'] = True
+
     return JsonResponse(data)
 
 
 def customer_address_set_shipping(request, customer_id, address_id):
     data = dict()
+    customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    address_obj = get_object_or_404(OcAddress, pk=address_id)
+    if address_obj.customer_id == customer_obj.customer_id:  # simple check to see if this is valid
+        address_obj.default_shipping = 1
+        address_obj.save()
+        customer_update_detault_address(address_obj)
+        data['is_saved'] = True
+
     return JsonResponse(data)
 
 

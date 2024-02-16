@@ -23,7 +23,9 @@
                     <div class="col-12">
                         <div class="row">
                             <div class="col-2">
-                                <img class="img-thumbnail" src="{% get_media_prefix %}{{ form_product.image.value }}">
+                                <a href="" data-lightbox="image">
+                                    <img class="img-thumbnail tsg-thumbnail"  src="{% get_media_prefix %}{{ form_product.image.value }}">
+                                </a>
                             </div>
                             <div class="col-6">{{ form_product.image|as_crispy_field }}</div>
                             <div class="col-2">{{ form_product.supplier|as_crispy_field }}</div>

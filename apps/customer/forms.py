@@ -4,6 +4,11 @@ from .models import OcAddress, OcCustomer, OcTsgContactDocuments
 
 
 class AddressForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(AddressForm, self).__init__(*args, **kwargs)
+        self.fields['country'].empty_label = None
+
     class Meta:
         model = OcAddress
         fields = [

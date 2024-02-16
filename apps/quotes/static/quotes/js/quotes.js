@@ -77,8 +77,8 @@ $(function () {
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
 
-                        let edit_icon = '<a class="btn btn-primary btn-sm js-quote-product-edit" role="button" data-url="' + current_quote_id + '/product/edit/' + data + '" data-dlgsize="modal-xl"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-sm js-quote-product-edit" role="button" data-url="' + current_quote_id + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
+                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-quote-product-edit" role="button" data-url="' + current_quote_id + '/product/edit/' + data + '" data-dlgsize="modal-xl"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                        let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-quote-product-edit" role="button" data-url="' + current_quote_id + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
                         return delete_icon + "  " + edit_icon;
 
                     },

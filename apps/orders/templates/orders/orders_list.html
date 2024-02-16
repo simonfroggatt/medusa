@@ -203,9 +203,9 @@
 
                     //return printed_icon + " " + shipping_icon + /* " " + delete_icon + "  " +*/ edit_icon;
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
-                        let printed_icon = '<button type="button" class="btn btn-sm ' + printed_colour +  '" disabled><i class="fa-solid fa-print  "></i></button>'
-                        let shipping_icon = '<button type="button" class="btn btn-sm '+ shipping_colour + '" disabled><i class="fa-solid fa-shipping-fast "></i></button>'
-                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm" role="button" href="' + data + '"><i class="{{ ICON_EDIT }} "></i></a>'
+                        let printed_icon = '<button type="button" class="btn btn-tsg-row ' + printed_colour +  '" disabled><i class="fa-solid fa-print  "></i></button>'
+                        let shipping_icon = '<button type="button" class="btn btn-tsg-row '+ shipping_colour + '" disabled><i class="fa-solid fa-shipping-fast "></i></button>'
+                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" role="button" href="' + data + '"><i class="{{ ICON_EDIT }} "></i></a>'
                     return btn_grp + shipping_icon + printed_icon + edit_icon +'</div>'
                 }
             },

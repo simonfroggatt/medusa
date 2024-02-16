@@ -65,6 +65,7 @@ urlpatterns = [
     path('api/product/<int:product_id>/deleteproductsymbol/<int:symbol_id>', views.delete_product_symbol, name='products_symbol_delete'),
 
     #related items
+    path('related/<int:product_id>/store/<int:store_id>', views.RelatedItemByStore.as_view({'get': 'list'}), name='related_product-store'),
     path('related/<int:pk>/add', views.related_item_add, name='related_product-add'),
     path('related/<int:pk>/edit', views.related_item_edit, name='related_product-edit'),
     path('related/<int:pk>/delete', views.related_item_delete, name='related_product-delete'),

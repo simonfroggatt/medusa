@@ -20,12 +20,14 @@ def button_colours(request):
         'BUTTON_EDIT': 'btn-primary',
         'BUTTON_EDIT_OUTLINE': 'btn-outline-primary',
         'BUTTON_ADD': 'btn-success',
+        'BUTTON_ADD_OUTLINE': 'btn-outline-success',
         'BUTTON_DELETE': 'btn-danger',
         'BUTTON_DELETE_OUTLINE': 'btn-outline-danger',
         'BUTTON_OK': 'btn-success',
         'BUTTON_CANCEL': 'btn-secondary',
         'BUTTON_UPDATE': 'btn-success',
         'BUTTON_EXTRA': 'btn-warning',
+        'BUTTON_EXTRA_OUTLINE': 'btn-outline-warning',
         'BUTTON_INFO': 'btn-secondary',
     }
 

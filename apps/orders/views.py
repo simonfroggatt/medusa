@@ -1465,9 +1465,10 @@ def order_document_delete(request, pk):
         if order_doc_obj:
             order_doc_obj.delete()
             #delete the cached file
-            fullpath = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE ,order_doc_obj.cache_path)
-            if os.path.isfile(fullpath):
-                os.remove(fullpath)
+            if order_doc_obj.cache_path:
+                fullpath = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE ,order_doc_obj.cache_path)
+                if os.path.isfile(fullpath):
+                    os.remove(fullpath)
             data['success_post'] = True
             data['document_ajax_url'] = reverse_lazy('fetch_order_documents',
                                                      kwargs={'order_id': order_doc_obj.order_id})

@@ -189,9 +189,9 @@ $(function()
 
                     //return printed_icon + " " + shipping_icon + /* " " + delete_icon + "  " +*/ edit_icon;
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
-                    let printed_icon = '<button type="button" class="btn btn-sm disabled ' + printed_colour + '"><i class="fa-solid fa-print  "></i></button>'
-                    let shipping_icon = '<button type="button" class="btn btn-sm disabled ' + shipping_colour + '"><i class="fa-solid fa-shipping-fast "></i></button>'
-                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/orders/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
+                    let printed_icon = '<button type="button" class="btn btn-tsg-row disabled ' + printed_colour + '"><i class="fa-solid fa-print  "></i></button>'
+                    let shipping_icon = '<button type="button" class="btn btn-tsg-row disabled ' + shipping_colour + '"><i class="fa-solid fa-shipping-fast "></i></button>'
+                    let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="/orders/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
                     return btn_grp + shipping_icon + printed_icon + edit_icon + '</div>'
                 }
             },
@@ -288,7 +288,7 @@ $(function()
                 render: function (data, type, row) {
 
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
-                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/quotes/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
+                    let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="/quotes/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
                     return btn_grp +  edit_icon + '</div>'
                 }
             },
@@ -317,6 +317,22 @@ $(function()
   }
 
 
+  function setAddressDefault(){
+      var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+                if (data.is_saved) {
+                   updateAddressBook();
+                } else {
+
+                }
+            }
+        });
+        return false;
+  }
 
      $(document).on("submit", "#form_customer_notes", SaveNotes);
      $(document).on("submit", "#form-customer-company-assign", saveForm);
@@ -324,6 +340,9 @@ $(function()
      $(document).on("submit", "#form_customer_document", DocumentUpload);
      $(document).on("click", ".js-customer_document-delete", loadForm);
      $(document).on("submit", "#form-customer_document-delete", DocumentUpload);
+
+      $(document).on("click", ".js-customer_set_address_default", setAddressDefault);
+
 
 
 

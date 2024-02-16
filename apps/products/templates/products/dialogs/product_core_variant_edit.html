@@ -30,12 +30,13 @@
                         <div class="col-12">{{ form.supplier|as_crispy_field }}</div>
                         <div class="col-6">{{ form.supplier_code|as_crispy_field }}</div>
                         <div class="col-6">{{ form.supplier_price|as_crispy_field }}</div>
+                        <div class="col-12">{{ form.gtin|as_crispy_field }}</div>
                     </div>
                 </div>
-                <div class="col-3">{{ form.exclude_fpnp|as_crispy_field }}{{ form.bl_live|as_crispy_field }}</div>
+                <div class="col-3 ">{{ form.bl_live|as_crispy_field }}{{ form.exclude_fpnp|as_crispy_field }}</div>
                     <div class="col-3">{{ form.shipping_cost|as_crispy_field }}</div>
-                    <div class="col-3">{{ form.gtin|as_crispy_field }}</div>
                     <div class="col-3">{{ form.lead_time_override|as_crispy_field }}</div>
+                    <div class="col-3">{{ form.pack_count|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }}r ">Cancel</button>

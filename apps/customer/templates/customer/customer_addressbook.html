@@ -5,10 +5,10 @@
     <div class="col">
         <div class="card h-100 mb-0">
             <div class="card-header d-grid gap-1 d-flex justify-content-end">
-                <a class="btn btn-primary btn-xs {{ address.default_billing|yesno:'btn-success,btn-secondary,btn-secondary' }}" href="#" role="button"><i class="fa-solid fa-pound-sign fa-sm"></i></a>
-                <a class="btn btn-primary btn-xs {{ address.default_shipping|yesno:'btn-success,btn-secondary,btn-secondary' }}" href="#" role="button"><i class="fa-solid fa-shipping-fast fa-sm"></i></a>
-                <a class="btn {{ BUTTON_EDIT }} btn-xs js-address-edit" data-url="{% url 'customeraddressedit' customer_obj.customer_id address.pk %}" role="button"><i class="{{ ICON_EDIT }} fa-sm"></i></a>
-                <a class="btn {{ BUTTON_DELETE }} btn-xs js-address-delete {% if address_book|length == 1 %} disabled {% endif %}" data-url="{% url 'customeraddressdelete' customer_obj.customer_id address.pk %}" role="button"  ><i class="{{ ICON_DELETE }} fa-sm"></i></a>
+                <a class="btn btn-primary btn-sm {{ address.default_billing|yesno:'btn-success,btn-secondary,btn-secondary' }} js-customer_set_address_default" data-url="{% url 'customeraddresssetbilling' customer_obj.customer_id address.pk %}" role="button"><i class="fa-solid fa-pound-sign fa-sm"></i></a>
+                <a class="btn btn-primary btn-sm {{ address.default_shipping|yesno:'btn-success,btn-secondary,btn-secondary' }} js-customer_set_address_default"  data-url="{% url 'customeraddresssetshipping' customer_obj.customer_id address.pk %}" role="button"><i class="fa-solid fa-shipping-fast fa-sm"></i></a>
+                <a class="btn {{ BUTTON_EDIT }} btn-sm js-address-edit" data-url="{% url 'customeraddressedit' customer_obj.customer_id address.pk %}" role="button"><i class="{{ ICON_EDIT }} fa-sm"></i></a>
+                <a class="btn {{ BUTTON_DELETE }} btn-sm js-address-delete {% if address_book|length == 1 %} disabled {% endif %}" data-url="{% url 'customeraddressdelete' customer_obj.customer_id address.pk %}" role="button"  ><i class="{{ ICON_DELETE }} fa-sm"></i></a>
             </div>
             <div class="card-body ">
                          {% include 'customer/address_details.html' with address=address %}

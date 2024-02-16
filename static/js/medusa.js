@@ -150,6 +150,26 @@ function SaveDialogFormRedirect() {
         return false;
     };
 
+function SaveDialogUpdateTable(table_name, form)
+    {
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    let dt = $('#'+table_name).DataTable();
+                    dt.ajax.reload();
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
  function DocumentUpload(){
         var form = $(this);
         $.ajax({

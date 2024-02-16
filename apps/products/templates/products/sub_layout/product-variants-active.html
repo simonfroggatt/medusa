@@ -50,7 +50,7 @@ $(document).ready(function() {
                         render: function ( data, type, row ) {
                             let current_store_id = $('#js-variant-add-store_id').val();
                             let dataurl = "/products/sitevariant/delete/"+data;
-                            return '<a class="btn btn-outline-danger btn-sm js-variant_site-delete" role="button" data-url="'+dataurl+'"><i class="fa-solid fa-trash"></i></a>';
+                            return '<a class="btn btn-outline-danger btn-tsg-row js-variant_site-delete" role="button" data-url="'+dataurl+'"><i class="fa-solid fa-trash"></i></a>';
 
                         },
                      sortable: false,

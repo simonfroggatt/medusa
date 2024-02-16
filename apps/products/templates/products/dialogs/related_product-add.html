@@ -6,30 +6,204 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
-     <div class="container">
-        <form method="post" action="" id="form-core_variant_add" novalidate >
+    <div class="container">
+        <form method="post" action="{% url 'related_product-add' product_id %}" id="form-related_products-add"
+              novalidate>
             {% csrf_token %}
-             <input type="hidden" id="product_id" name="product_id" value="}">
-            <input type="hidden" id="size_material_id" name="size_material_id" value="0">
-            <input type="hidden" id="prod_variant_core_id" name="prod_variant_core_id" value="">
+        <input type="hidden" id="new_related_id" name="new_related_id">
+        <input type="hidden" id="product_id" name="product_id" value="{{ product_id }}">
 
             <div class="row">
-                <div class="col-12">
+                <div class="col-6">
+                    <label class="form-label" for="js-related-store_id">Store For Related Item</label>
+                    <select class="form-select" aria-label="Store" id="js-related-store_id"
+                            name="store_id">
+                        {% for store_data in store_obj.all %}
+                            <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label" for="related_order">Order Position</label>
+                    <input class="form-control" type="number" min="0" value="{{ order_by_next }}" id="related_order"
+                           name="related_order"</div>
+            </div>
 
-                </div>
-                <div class="col-12">
-                    <input class="form-check-input " type="checkbox" id="reverse_related" checked>
-                    <label class="form-check-label" for="reverse_related">Use Company Address</label>
-                </div>
-                <div class="col-md-12">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
-                        <button type="submit" id="btn_product_core_var_add" class="btn {{ BUTTON_ADD }} pull-right disabled">Add</button>
-                    </div>
+            <div class="col-12 pt-2 ">
+                <div class="ibox-content border-top-2">
+
+                    <table id="product_related_table_add" class="table table-hover table-striped align-middle table-sm">
+                        <thead>
+                        <tr>
+                            <th class="col-1">Image</th>
+                            <th class="col-10">Name</th>
+                            <th class="col-1">Status</th>
+                        </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
-        </form>
+            <div class="col-md-12">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Close</button>
+                    <button type="submit" id="btn_related_product_add"
+                            class="btn {{ BUTTON_ADD }} pull-right disabled">Add
+                    </button>
+                </div>
+            </div>
     </div>
+    </form>
+</div>
 </div>
 
-<!-- <script type="text/javascript" src="{% static 'js/products.js' %}"></script> -->
+<script>
+
+    $(document).ready(function () {
+
+        if ($.fn.dataTable.isDataTable('#product_related_table_add')) {
+            var product_related_table_add = $('#product_related_table_add').DataTable();
+        } else {
+            var product_related_table_add = $('#product_related_table_add').DataTable({
+                "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                    "<'row'<'col-12'tr>>",
+                "processing": true,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "pageLength": 10,
+                "autoWidth": true,
+                "responsive": false,
+                "serverSide": true,
+                "select": true,
+                "scroller": true,
+                "scrollY": "400px",
+                "rowId": "id",
+                "ajax": {
+                    "processing": true,
+                    "url": "/products/api/store/1/products?format=datatables",
+
+                    "type": "GET",
+                },
+                "deferRender": false,
+
+                "search": {
+                    "regex": true
+                },
+                columns: [
+                    {
+                        data: "image_url",
+                        name: "thumbnail",
+                        searchable: "false",
+                        sortable: "false",
+                        render: function (data, type, row, meta) {
+                            return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
+                        }
+                    },
+
+                    {
+                        data: "name",
+
+                        render: function (data, type, row, meta) {
+                            let rtn_str = "";
+                            if (data == null) {
+                                rtn_str = row['product']['productdescbase']['name'];
+                            } else {
+                                rtn_str = data
+                            }
+                            return rtn_str;
+                        }
+                    },
+                    {
+                        data: "product.status",
+                        render: function (data, type, row) {
+                            if (data) {
+                                return '<span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>'
+                            } else {
+                                return '<span class="badge rounded-pill badge-soft-danger font-size-14">OFF-LINE</span>'
+                            }
+
+                        }
+                    },
+                    {
+                        data: "description",
+                        render: function (data, type, row, meta) {
+                            let rtn_str = "";
+                            if (data == null) {
+                                rtn_str = row['product']['productdescbase']['description'];
+                            } else {
+                                rtn_str = data
+                            }
+                            return rtn_str;
+                        },
+                        "visible": false
+                    },
+
+                    {
+                        data: "title",
+                        render: function (data, type, row, meta) {
+                            let rtn_str = "";
+                            if (data == null) {
+                                rtn_str = row['product']['productdescbase']['title'];
+                            } else {
+                                rtn_str = data
+                            }
+                            return rtn_str;
+                        },
+                        "visible": false,
+                    },
+                    {
+                        data: "product.corevariants",
+                        name: "product.corevariants.supplier_code",
+                        "visible": false,
+                        "searchable": true
+                    },
+                    {
+                        data: "product.productdescbase.name",
+                        visible: false,
+                        searchable: true
+                    },
+                    {
+                        data: "product.productdescbase.title",
+                        visible: false,
+                        searchable: true
+                    },
+                    {
+                        data: "product.productdescbase.description",
+                        visible: false,
+                        searchable: true
+                    },
+                    {
+                        data: "id",
+                        visible: false,
+                        searchable: true
+                    }
+                ]
+            });
+        };
+
+         product_related_table_add.on('select', function (e, dt, type, indexes) {
+             if (type === 'row') {
+                 let related_product_id = dt.row(indexes).id();
+                 alert(related_product_id)
+                 $('#new_related_id').val(related_product_id);
+                 $('#btn_related_product_add').removeClass('disabled');
+             }
+
+        });
+
+         product_related_table_add.on('deselect', function (e, dt, type, indexes) {
+             if (type === 'row') {
+                 $('#new_related_id').val(0);
+                 $('#btn_related_product_add').addClass('disabled');
+             }
+            });
+
+    $('#js-related-store_id').on('change', function () {
+        let store_id = $(this).val()
+        let ajax_url = "/products/api/store/" + store_id + "/products?format=datatables"
+        let dt = $('#product_related_table_add').DataTable();
+        dt.ajax.url(ajax_url).load();
+    });
+
+    });
+
+</script>
+

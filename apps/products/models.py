@@ -125,6 +125,7 @@ class OcTsgProductVariantCore(models.Model):
     shipping_cost = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
     lead_time_override = models.IntegerField(default=0)
+    pack_count = models.IntegerField(default=1)
 
 
     class Meta:
@@ -137,6 +138,7 @@ class OcTsgProductVariantCore(models.Model):
             return f"{settings.MEDIA_URL}{self.variant_image}"
         else:
             return self.product.image_url
+
 
 
 

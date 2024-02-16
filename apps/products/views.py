@@ -25,7 +25,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
     VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm, \
     SiteProductVariantForm, AdditionalProductStoreImages, AdditionalProductImageForm, AddionalProductImageEditForm, \
-    ProductDocumentForm
+    ProductDocumentForm, RelatedEditForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
@@ -83,6 +83,7 @@ class Related(viewsets.ModelViewSet):
     serializer_class = RelatedSerializer
 
     def retrieve(self, request, pk=None):
+
         product_object = OcProductToStore.objects.filter(product_id=pk).filter(store_id__gt=0).values_list('id')
         product_list = list(chain(*product_object))
 
@@ -607,7 +608,7 @@ def product_core_variant_add(request, pk):
         variant_core_obj = OcTsgProductVariantCore()
         variant_core_initials = {'product': product_obj, 'size_material_id': 1, 'supplier': 1, 'supplier_code': 'code',
                                  'supplier_price': 0.00, 'exclude_fpnp': False, 'gtin': '', 'shipping_cost': 0.00,
-                                 'bl_live': True, 'lead_time_override': 0}
+                                 'bl_live': True, 'lead_time_override': 0, 'pack_count': 1}
         form_obj = VariantCoreForm(instance=variant_core_obj, initial=variant_core_initials)
         data['form_is_valid'] = False
 
@@ -1040,13 +1041,30 @@ def site_variant_edit(request, pk):
     context['product_variant_obj'] = product_variant_obj
     form_obj = SiteProductVariantForm(instance=product_variant_obj)
     context['form'] = form_obj
-    context['current_image'] = product_variant_obj.alt_image_url
+    context['current_image'] = product_variant_obj.site_variant_image_url
 
     data['html_form'] = render_to_string(template_name,
                                          context,
                                          request=request
                                          )
     return JsonResponse(data)
+
+class RelatedItemByStore(viewsets.ModelViewSet):
+    queryset = OcProductRelated.objects.all()
+    serializer_class = RelatedSerializer
+
+    def list(self, request, *args, **kwargs):
+        product_id = kwargs['product_id']
+        store_id = kwargs['store_id']
+        if store_id > 0:
+            related_obj = OcProductRelated.objects.filter(product__product_id=product_id, product__store_id=store_id).order_by('order')
+            serializer = self.get_serializer(related_obj, many=True)
+        else:
+            related_obj = OcProductRelated.objects.all().order_by('order')
+            serializer = self.get_serializer(related_obj, many=True)
+
+        return Response(serializer.data)
+
 
 
 def related_item_delete(request, pk):
@@ -1071,10 +1089,27 @@ def related_item_delete(request, pk):
 
 def related_item_add(request, pk):
     data = dict()
-    context = {'related_id': pk}
-    template_name = 'products/dialogs/related_product-add.html/'
+    context = {'product_id': pk}
 
-    data['html_form'] = render_to_string(template_name,
+    related_obj = OcProductRelated.objects.filter(product_id=pk).order_by('order').last()
+    context['order_by_next'] = related_obj.order + 1
+    store_obj = OcStore.objects.exclude(store_id=0)
+    context['store_obj'] = store_obj
+    template_name = 'products/dialogs/related_product-add.html/'
+    data['form_is_valid'] = False
+
+    if request.method == 'POST':
+        new_related_obj = OcProductRelated()
+        new_related_obj.related_id = request.POST.get('new_related_id');
+        new_related_obj.product_id = request.POST.get('product_id');
+        new_related_obj.order = request.POST.get('related_order');
+        new_related_obj.save()
+        if new_related_obj.pk:
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        data['html_form'] = render_to_string(template_name,
                                          context,
                                          request=request
                                          )
@@ -1085,6 +1120,20 @@ def related_item_edit(request, pk):
     data = dict()
     context = {'related_id': pk}
     template_name = 'products/dialogs/related_product-edit.html/'
+    related_obj = get_object_or_404(OcProductRelated, pk=pk)
+    if request.method == 'POST':
+        form = RelatedEditForm(request.POST, instance=related_obj)
+        context['form'] = form
+        if form.is_valid():
+            form.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        related_obj = get_object_or_404(OcProductRelated, pk=pk)
+        form_obj = RelatedEditForm(instance=related_obj)
+        context['form'] = form_obj
 
     data['html_form'] = render_to_string(template_name,
                                          context,

@@ -36,8 +36,8 @@ $(function () {
                      className: 'text-md-end text-start',
                      render: function (data, type, row) {
 
-                         let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/customer/details/' + data + '"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
-                         let delete_icon = '<a class="btn btn-danger btn-sm" role="button" data-url="' + data + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
+                         let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="/customer/details/' + data + '"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
+                         let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row" role="button" data-url="' + data + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
                          return delete_icon + " " + edit_icon;
 
                      }
@@ -141,9 +141,9 @@ $(function () {
 
                     //return printed_icon + " " + shipping_icon + /* " " + delete_icon + "  " +*/ edit_icon;
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
-                    let printed_icon = '<button type="button" class="btn btn-sm disabled ' + printed_colour + '"><i class="fa-solid fa-print  "></i></button>'
-                    let shipping_icon = '<button type="button" class="btn btn-sm disabled ' + shipping_colour + '"><i class="fa-solid fa-shipping-fast "></i></button>'
-                    let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="/orders/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
+                    let printed_icon = '<button type="button" class="btn btn-tsg-row disabled ' + printed_colour + '"><i class="fa-solid fa-print  "></i></button>'
+                    let shipping_icon = '<button type="button" class="btn btn-tsg-row disabled ' + shipping_colour + '"><i class="fa-solid fa-shipping-fast "></i></button>'
+                    let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="/orders/' + data + '"><i class="'+ icons_context['ICON_EDIT'] +' "></i></a>'
                     return btn_grp + shipping_icon + printed_icon + edit_icon + '</div>'
                 }
             },

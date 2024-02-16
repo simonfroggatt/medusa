@@ -1,13 +1,10 @@
  <div class="card-header order_details">
-                <div class="row">
+                <div class="row align-items-center justify-content-between">
                     <div class="col-3 ">
                         <i class="fa-solid fa-pound-sign"></i> Billing
                     </div>
                     <div class="col-6">
                     {% if order_obj.customer %}
-                    <button class="btn {{ BUTTON_EXTRA }} col-12 btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress" aria-expanded="false" aria-controls="collapseBillingAddress">
-                            Address book
-                        </button>
                         <div class="collapse" id="collapseBillingAddress">
                             <form method="post" id="order_billing_addressbook" action="{% url 'orderbillingfrombook' order_obj.order_id %}">
                             <input type="hidden" id="address_book_id_billing" name="address_book_id_billing" value="0">
@@ -27,10 +24,17 @@
                         </div>
                     {% endif %}
                     </div>
-
                     <div class="col-3">
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
-                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-address-edit"
+                        <div class="btn-group justify-content-end">
+                        {% if order_obj.customer %}
+                                <button class="btn {{ BUTTON_EXTRA_OUTLINE }} btn-sm" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress"
+                                        aria-expanded="false" aria-controls="collapseBillingAddress">
+                                   <i class="fa-regular fa-location-dot"></i>
+                        </button>
+                        {% endif %}
+
+                                <button type="button" class="btn {{ BUTTON_EDIT_OUTLINE }} btn-sm js-order-address-edit"
                                         data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
                                 ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
                                  {% if order_obj.customer %}

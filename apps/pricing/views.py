@@ -95,8 +95,8 @@ class BasePrices(generics.ListAPIView):
     queryset = OcTsgSizeMaterialComb.objects.all()
     serializer_class = BasePricesSerializer
 
-    def post(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+   # def post(self, request, *args, **kwargs):
+    #    return self.list(request, *args, **kwargs)
 
 
 class StorePrices(viewsets.ModelViewSet):

@@ -33,8 +33,18 @@ $(function () {
                          return '<img height="15px" src="' + image_src + '">'
                      }
                  },
+                 {
+                     data: "image_url",
+                     sortable: false,
+                     searchable: false,
+                     render: function (data, type, row, meta) {
+                        return '<img height="30px" class="rounded mx-auto d-block" src="' + data + '">';
+                    }
+                 },
+
                  {data: "name"},
                  {data: "description"},
+                 {data: "bulk_group.group_name"},
                  {
                      data: "status",
                      render: function (data, type, row) {
@@ -51,7 +61,7 @@ $(function () {
                      sortable: false,
                      className: 'text-md-end text-start',
                      render: function (data, type, row) {
-                         let edit_icon = '<a class="btn btn-primary btn-sm" href="' + data + '/storeedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                         let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" href="' + data + '/storeedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
                          return edit_icon;
 
                      }
@@ -119,8 +129,8 @@ $(function () {
                        sortable: false,
                        className: 'text-md-end text-start',
                        render: function (data, type, row) {
-                           let edit_icon = '<a class="btn btn-primary btn-sm js-product-dlg" role="button" data-url="' + data + '/categoryedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                           let delete_icon = '<a  class="btn btn-danger btn-sm js-product-dlg" role="button" data-url="' + data + '/categorydeletedlg"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
+                           let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categoryedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                           let delete_icon = '<a  class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categorydeletedlg"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                            return edit_icon + " " + delete_icon;
 
                        }
@@ -170,8 +180,8 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn btn-primary btn-xs js-product-edit" href="variant/'+data+'" role="button" ><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-xs js-product-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
+                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-edit" href="variant/'+data+'" role="button" ><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-product-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return edit_icon + " " + delete_icon
                     }
                 },
@@ -189,7 +199,7 @@ $(function () {
             "pageLength": 100,
             "paging": false,
             "info": false,
-            "autoWidth": false,
+            "autoWidth": true,
             "searching": false,
             "responsive": true,
             "select": 'single',
@@ -212,6 +222,11 @@ $(function () {
                 {
                     data: "size_material.product_material.material_name"
                 },
+
+                {
+                    data: "pack_count"
+                },
+
                 {
                     data: "size_material.price"
                 },
@@ -235,8 +250,8 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="corevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="corevariant/'+data+'/delete" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
+                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-variant-edit" data-url="corevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-variant-edit" data-url="corevariant/'+data+'/delete" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return delete_icon + " " + edit_icon
                     }
                 },
@@ -376,8 +391,8 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="sitevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
-                        let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
+                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-variant-edit" data-url="sitevariant/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-variant-edit" data-url="variant/delete/'+data+'" role="button" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return edit_icon;//+ " " + delete_icon
                     }
                 },
@@ -402,7 +417,7 @@ $(function () {
             "order": [[0, 'asc'], [3,'asc']],
             "ajax": {
                 "processing": true,
-                "url": "/products/api/related/" + js_product_id + "?format=datatables",
+                "url": "/products/related/" + js_product_id + "/store/0?format=datatables",
             },
             columns: [
                 {data: "product_related_store.store__thumb",
@@ -427,8 +442,8 @@ $(function () {
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                         let edit_icon = '<a class="btn btn-primary btn-xs js-variant-edit" data-url="related/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
-                           let delete_icon = '<a class="btn btn-danger btn-xs js-variant-edit" data-url="related/'+data+'/delete" role="button" data-dlgsize="modal-sm" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
+                         let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-variant-edit" data-url="related/'+data+'/edit" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                           let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-variant-edit" data-url="related/'+data+'/delete" role="button" data-dlgsize="modal-sm" ><i class="'+ icons_context['ICON_DELETE'] +' table-button"></i></a>';
                         return edit_icon+ " " + delete_icon
                     }
                 }
@@ -479,7 +494,7 @@ $(function () {
                 {
                     data: "symbol.id",
                     render: function (data, type, row) {
-                        let remove_icon = '<a class="btn btn-warning btn-sm js-product-symbol-edit" role="button" data-url="api/product/' + product_id +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-minus"></i></a>';
+                        let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-symbol-edit" role="button" data-url="api/product/' + product_id +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-minus"></i></a>';
                         return remove_icon
                     },
                 }
@@ -517,7 +532,7 @@ $(function () {
             columns: [
                     {data: "id",
                     render: function ( data, type, row ) {
-                        let add_icon = '<a class="btn btn-success btn-sm js-product-symbol-edit" role="button" data-url="api/product/' + product_id + '/addproductsymbol/' + row['id'] + '"><i class="fa-solid fa-plus"></i></a>';
+                        let add_icon = '<a class="btn btn-success btn-tsg-row js-product-symbol-edit" role="button" data-url="api/product/' + product_id + '/addproductsymbol/' + row['id'] + '"><i class="fa-solid fa-plus"></i></a>';
                         return add_icon
                     },
                     },
@@ -840,6 +855,7 @@ $(function () {
     }
 
     function RelatedProductUpdate(){
+        alert('asdsadas')
         form = $(this)
         $.ajax({
             url: form.attr("action"),
@@ -908,7 +924,7 @@ $(function () {
     $(document).on("submit", "#form-core_variant_option_edit", SaveVariantOptionAdd);
     $(document).on("submit", "#form-site_variant_edit", AddProductVariantSite);
     $(document).on("submit", "#form-site_variant_add", AddProductVariantSite);
-    $(document).on("submit", "#dlg-related_product-delete", RelatedProductUpdate);
+
     $(document).on("submit", "#form-core_variant_add", AddProductVariantCore);
     $(document).on("change", "#js-group_option_select", function(){
          let newval = $(this).val()
@@ -1080,6 +1096,24 @@ $(function () {
     $(document).on("submit", "#form_product_document", DocumentUpload);
     $(document).on("click", ".js-product_document-delete", loadForm);
     $(document).on("submit", "#form-product_document-delete", DocumentUpload);
+
+
+
+    /** - RELATED ITEMS **/
+    $(document).on("submit", "#form-related_products-add", RelatedProductUpdate);
+    $(document).on("submit", "#form-related_product_edit", RelatedProductUpdate);
+    $(document).on("submit", "#dlg-related_product-delete", RelatedProductUpdate);
+
+    $(document).on("change", "#js-related_list-store_id", function(){
+         let store_id = $(this).val();
+         let ajax_url = "/products/related/" + js_product_id + "/store/" + store_id + "?format=datatables";
+         let dt = $('#product_related_table').DataTable();
+         dt.ajax.url(ajax_url).load();
+
+
+    });
+
+
 
 
 })

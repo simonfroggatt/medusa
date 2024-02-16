@@ -73,8 +73,8 @@
                     sortable: false,
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-sm " href="/bulk/' + data + '/edit" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
-                        let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-sm js-options-edit" data-url="/bulk/' + data + '/delete" role="button" ><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
+                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row " href="/bulk/' + data + '/edit" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
+                        let delete_icon = '<a class="btn {{ BUTTON_DELETE }} btn-tsg-row js-options-edit" data-url="/bulk/' + data + '/delete" role="button" ><i class="{{ ICON_DELETE }} fa-sm"></i></a>';
                         return edit_icon + " " + delete_icon
                     }
                 },

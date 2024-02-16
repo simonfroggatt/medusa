@@ -2,12 +2,14 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from apps.options.models import OcTsgOptionTypes, OcTsgOptionClassGroups, OcTsgOptionClass, OcTsgOptionValues, \
-    OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues
+    OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues, OcOption, OcOptionDescription, \
+    OcOptionValue, OcOptionValueDescription
 from apps.options.forms import ClassEditForm, ValueEditForm, TypesEditForm, GroupEditForm, GroupValueEditForm, \
-    ClassValuesOrderForm
+    ClassValuesOrderForm, ProductOptionValueDescForm, ProductOptionValueForm, ProductOptionForm, ProductOptionDescForm
 from apps.products.models import OcProduct, OcTsgProductVariantCore
 from .serializers import OptionValuesSerializer, OptionGroupSerializer, OptionTypeSerializer, OptionClassSerializer, \
-    OptionGroupValueSerializer, OptionClassPredefinedValuesSerializer
+    OptionGroupValueSerializer, OptionClassPredefinedValuesSerializer, ProductOptionValueDescSerializer, \
+    ProductOptionsDescSerializer
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 import json
@@ -16,13 +18,20 @@ from django.template.loader import render_to_string
 from itertools import chain
 
 
+class AllProductOptions(viewsets.ModelViewSet):
+    queryset = OcOptionDescription.objects.all()
+    serializer_class = ProductOptionsDescSerializer
 
-# Create your views here.
+    def get_queryset(self):
+        return super().get_queryset().filter(language_id=1)
 
-def option_list(request):
-    template_name = 'options/option_list.html'
-    context = {'pageview': 'All options'}
-    return render(request, template_name, context)
+
+class AllProductOptionValues(viewsets.ModelViewSet):
+    queryset = OcOptionValueDescription.objects.all()
+    serializer_class = ProductOptionValueDescSerializer
+
+    def get_queryset(self):
+        return super().get_queryset().filter(language_id=1)
 
 
 def option_class_types(request):
@@ -47,6 +56,8 @@ def option_values_list(request):
     template_name = 'options/option_value_list.html'
     context = {'pageview': 'All Values'}
     return render(request, template_name, context)
+
+
 
 
 class OptionValues(viewsets.ModelViewSet):
@@ -535,3 +546,241 @@ def predefinedClassValuesOrder(request, class_option_value_id):
                                          )
 
     return JsonResponse(data)
+
+
+#product opions - the old opencart rubbish
+
+def productOptions_list(request):
+    template_name = 'options/product_option_list.html'
+    context = {'pageview': 'All Product options'}
+    return render(request, template_name, context)
+
+def productOptions_create(request):
+    data = dict()
+    return JsonResponse(data)
+
+
+def productOptions_edit(request, pk):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_options-edit.html'
+    class_option_desc_obj = get_object_or_404(OcOptionDescription, pk=pk)
+    class_option_obj = class_option_desc_obj.option
+
+    if request.method == 'POST':
+        form_option = ProductOptionForm(request.POST, instance=class_option_obj)
+        form_option_desc = ProductOptionDescForm(request.POST, instance=class_option_desc_obj)
+        if form_option.is_valid():
+            form_option.save();
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+        if form_option_desc.is_valid():
+            form_option_desc.save();
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+        context['form_option'] = form_option
+        context['form_option_desc'] = form_option_desc
+    else:
+        data['form_is_valid'] = False
+        context['form_option'] = ProductOptionForm(instance=class_option_obj)
+        context['form_option_desc'] = ProductOptionDescForm(instance=class_option_desc_obj)
+
+    context['dialog_title'] = "<strong>Edit</strong> OPTION"
+    context['action_url'] = reverse_lazy('allproductoptions-edit', kwargs={'pk': pk})
+    context['form_id'] = 'form-product_options'
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def productOptions_create(request):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_options-edit.html'
+    class_option_obj = OcOption()
+    class_option_desc_obj = OcOptionDescription()
+
+
+    if request.method == 'POST':
+        form_option = ProductOptionForm(request.POST)
+
+        if form_option.is_valid():
+            new_option = form_option.save()
+            request.POST._mutable = True
+            request.POST['option'] = new_option
+            form_option_desc = ProductOptionDescForm(request.POST)
+            if form_option_desc.is_valid():
+                form_option_desc.save()
+                data['form_is_valid'] = True
+            else:
+                data['form_is_valid'] = False
+        else:
+            data['form_is_valid'] = False
+
+        context['form_option'] = form_option
+        context['form_option_desc'] = form_option_desc
+    else:
+        data['form_is_valid'] = False
+        product_option_initials = {'sort_order': 1, 'type': 1}
+        context['form_option'] = ProductOptionForm(instance=class_option_obj, initial=product_option_initials)
+        product_option_desc_initials = {'option': class_option_obj, 'language': 1, 'name':'new option'}
+        context['form_option_desc'] = ProductOptionDescForm(instance=class_option_desc_obj, initial=product_option_desc_initials)
+
+    context['dialog_title'] = "<strong>Edit</strong> OPTION"
+    context['action_url'] = reverse_lazy('allproductoptions-create')
+    context['form_id'] = 'form-product_options'
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def productOptions_delete(request, pk):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_option_values-delete.html'
+    if request.method == 'POST':
+        product_option_obj = get_object_or_404(OcOption, pk=pk)
+        product_option_obj.delete()
+        data['form_is_valid'] = True
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> OPTION"
+        context['action_url'] = reverse_lazy('allproductoptions-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-product_options'
+        context['option_id'] = pk
+        data['form_is_valid'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+#product opions values - the old opencart rubbish
+
+def productOptionsValue_list(request):
+    template_name = 'options/product_option_values_list.html'
+    context = {'pageview': 'All Product Option Value'}
+    return render(request, template_name, context)
+
+
+def productOptionsValue_create(request):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_option_values-edit.html'
+    class_option_value_obj = OcOptionValue()
+    class_option_value_desc_obj = OcOptionValueDescription()
+
+    if request.method == 'POST':
+        form_values = ProductOptionValueForm(request.POST)
+        if form_values.is_valid():
+            new_value = form_values.save()
+            request.POST._mutable = True
+            request.POST['option_value'] = new_value
+            form_desc = ProductOptionValueDescForm(request.POST)
+            if form_desc.is_valid():
+                form_desc.save();
+                data['form_is_valid'] = True
+            else:
+                data['form_is_valid'] = False
+        else:
+            data['form_is_valid'] = False
+
+        context['form_value'] = form_values
+        context['form_desc'] = form_desc
+    else:
+        data['form_is_valid'] = False
+        product_option_obj = OcOption.objects.all().first()
+        class_option_value_initial = {'sort_order': 1, 'option': product_option_obj}
+        context['form_value'] = ProductOptionValueForm(instance=class_option_value_obj, initial=class_option_value_initial)
+        class_option_value_desc_initials = {'option_value': class_option_value_obj, 'language': 1, 'name': 'New Value'}
+        context['form_desc'] = ProductOptionValueDescForm(instance=class_option_value_desc_obj, initial=class_option_value_desc_initials)
+
+    context['dialog_title'] = "<strong>Edit</strong> option VALUE"
+    context['action_url'] = reverse_lazy('allproductoptions_values-create')
+    context['form_id'] = 'form-product_options_values'
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def productOptionsValue_edit(request, pk):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_option_values-edit.html'
+    class_option_value_desc_obj = get_object_or_404(OcOptionValueDescription, pk=pk)
+    class_option_value_obj = class_option_value_desc_obj.option_value
+
+    if request.method == 'POST':
+        form_values = ProductOptionValueForm(request.POST, instance=class_option_value_obj)
+        form_desc = ProductOptionValueDescForm(request.POST, instance=class_option_value_desc_obj)
+        if form_values.is_valid():
+            form_values.save();
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+        if form_desc.is_valid():
+            form_desc.save();
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+        context['form_value'] = form_values
+        context['form_desc'] = form_desc
+    else:
+        data['form_is_valid'] = False
+        context['form_value'] = ProductOptionValueForm(instance=class_option_value_obj)
+        context['form_desc'] = ProductOptionValueDescForm(instance=class_option_value_desc_obj)
+
+    context['dialog_title'] = "<strong>Edit</strong> option VALUE"
+    context['action_url'] = reverse_lazy('allproductoptions_value-edit', kwargs={'pk': pk})
+    context['form_id'] = 'form-product_options_values'
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def productOptionsValue_delete(request, pk):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_option_values-delete.html'
+    if request.method == 'POST':
+        class_option_value_obj = get_object_or_404(OcOptionValue, pk=pk)
+        class_option_value_obj.delete()
+        data['form_is_valid'] = True
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> option VALUE"
+        context['action_url'] = reverse_lazy('allproductoptions_value-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-product_options_values'
+        context['option_id'] = pk
+        data['form_is_valid'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+

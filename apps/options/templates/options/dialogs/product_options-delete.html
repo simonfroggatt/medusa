@@ -1,0 +1,10 @@
+{% extends 'dialogs/base_delete_dlg.html' %}
+{% load static %}
+
+{% block hiddenvariables %}
+<input type="hidden" id="option_id" name="option_id" value="{{ option_id }}">
+{% endblock hiddenvariables %}
+
+{% block main_content %}
+    Are you sure you want to delete this product option?
+{% endblock main_content %}

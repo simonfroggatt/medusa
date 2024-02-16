@@ -1,0 +1,19 @@
+{% load static %}
+<h3>Active Options</h3>
+                <table id="product_options_active_table" class="table table-hover table-striped align-middle table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th width="col-2">Option</th>
+                        <th width="col-1">Ref No.</th>
+                        <th class="col-9">Name</th>
+                        <th class="text-end">&nbsp;</th>
+                    </tr>
+                    </thead>
+                </table>
+
+<script>
+    window.CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+
+

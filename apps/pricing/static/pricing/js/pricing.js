@@ -7,7 +7,7 @@ $(function(){
         "processing" : true,
         "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
         "pageLength": 25,
-        "autoWidth": false,
+        "autoWidth": true,
         "select": 'single',
         "responsive": false,
         "ajax": {
@@ -27,14 +27,15 @@ $(function(){
             {data: "product_size.size_height", defaultContent: ""},
             {data: "product_material.material_name", defaultContent: ""},
             {data: "price", defaultContent: 0.00},
+            {data: "weight", defaultContent: 0.00},
             {
                 data: "id",
                 sortable: false,
                 className: 'text-end',
                 render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn btn-primary btn-sm" role="button" href="' +data+ '/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm" role="button" href="delete/' + data + '"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
-                let add_icon = '<a class="btn btn-success btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fa-solid fa-globe fa-sm"></i></a>';
+                let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="' +data+ '/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                let delete_icon = '<a class="btn '+ button_context['BUTTON_DELeTE'] +' btn-tsg-row" role="button" href="delete/' + data + '"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
+                let add_icon = '<a class="btn '+ button_context['BUTTON_ADD'] +' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fa-solid fa-globe fa-sm"></i></a>';
                 return delete_icon + "  " + edit_icon + " " +add_icon
                 }
             },
@@ -82,8 +83,8 @@ $(function(){
                 render: function ( data, type, row ) {
                     let store_id = row['store']['store_id'];
                     let size_material_id = row['size_material_comb']['id'];
-                let edit_icon = '<a class="btn btn-primary btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                let delete_icon = '<a class="btn btn-danger btn-sm js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/delete"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
+                let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/delete"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
                 return delete_icon + "  " + edit_icon;
                 }
             }
@@ -168,7 +169,7 @@ $(function(){
 
     //specs for materials
     $(document).on("submit", "#form_material_spec", DocumentUpload);
-    $(document).on("click", ".js-material_spec-delete", loadForm);
+    $(document).on("click", ".js-company_document-delete", loadForm);
     $(document).on("submit", "#form-material_spec-delete", DocumentUpload);
 
 

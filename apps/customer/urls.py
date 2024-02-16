@@ -39,6 +39,8 @@ urlpatterns = [
     path('document/<pk>/download', views.customer_document_download, name='customer_document-download'),
     path('document/<pk>/delete', views.customer_document_delete, name='customer_document-delete'),
 
+    #dynamics
+
   #  path('address/<int:pk>', views.customer_address_view),
    # path('address/edit/<int:address_id>', views.customer_address_view),
    # path('address/create/<int:customer_id>', views.customer_address_view),
