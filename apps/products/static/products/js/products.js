@@ -556,6 +556,91 @@ $(function () {
         });
     }
 
+      if ($.fn.dataTable.isDataTable('#product_options_active_table')) {
+        var product_options_active_table = $('#product_options_active_table').DataTable();
+    } else {
+        let product_id = sessionStorage.getItem("product_id");
+        var product_options_active_table = $('#product_options_active_table').DataTable({
+            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'product_option.product_option_id',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/productoptions/"+product_id+"?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": false,
+
+            "search": {
+                "regex": true
+            },
+            columns: [
+                {data: "product_option.option_desc"},
+                {data: "option_value.option_value_desc"},
+                {data: "option.type.name"},
+                {data: "product_option.option.sort_order"},
+                {data: "product_option.required"},
+                {
+                    data: "product_option.product_option_id",
+                    render: function (data, type, row) {
+                        let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-symbol-edit" role="button" data-url="api/product/' + product_id +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-minus"></i></a>';
+                        return remove_icon
+                    },
+                }
+
+            ]
+        });
+    }
+
+       if ($.fn.dataTable.isDataTable('#product_options_available_table')) {
+        var product_options_available_table = $('#product_options_active_table').DataTable();
+    } else {
+        let product_id = sessionStorage.getItem("product_id");
+        var product_options_available_table = $('#product_options_available_table').DataTable({
+            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'option_value_id',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/productoptions-available/"+product_id+"?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": false,
+
+            "search": {
+                "regex": true
+            },
+            columns: [
+                {
+                    data: "product_option.product_option_id",
+                    render: function (data, type, row) {
+                        let remove_icon = '<a class="btn btn-success btn-tsg-row js-product-symbol-edit" role="button" data-url="api/product/' + product_id +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-plus"></i></a>';
+                        return remove_icon
+                    },
+                },
+                {data: "option_desc"},
+                {data: "option_value_desc"},
+                {data: "option.type.name"},
+            ]
+        });
+    }
+
     product_core_variants_table.on('select', function (e, dt, type, indexes) {
         if (type === 'row') {
             let data = dt.row(indexes).id();

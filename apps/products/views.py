@@ -9,15 +9,15 @@ from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
     ProductSiteVariantOptionsSerializer, ProductCoreVariantOptionsSerializer, RelatedBaseDescriptionSerializer, \
-    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer  # , BaseProductListSerializer, ProductTestSerializer, ,
+    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer, \
+    OptionValueExtSerialiszer, ProductOptionsValueSerializer # , BaseProductListSerializer, ProductTestSerializer, ,
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups, \
-    OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues # , \
-# OcTsgOptionClass, OcTsgOptionValues
-
+    OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues, OcProductOption, OcProductOptionValue, \
+    OcOptionValue, OcOptionValueDescription
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core import serializers
 from django.template.loader import render_to_string
@@ -118,6 +118,37 @@ class ProductCategories(viewsets.ModelViewSet):
 class Symbols(viewsets.ModelViewSet):
     queryset = OcTsgSymbols.objects.all()
     serializer_class = ProductSymbolSerialzer
+
+
+
+class ProductOptions(viewsets.ModelViewSet):
+    queryset = OcProductOptionValue.objects.all()
+    serializer_class = ProductOptionsValueSerializer
+
+    def retrieve(self, request, pk=None):
+        product_option_values_object = OcProductOptionValue.objects.filter(product_id=pk)
+        serializer = self.get_serializer(product_option_values_object, many=True)
+        return Response(serializer.data)
+
+
+class ProductOptionsAvailable(viewsets.ModelViewSet):
+    queryset = OcOptionValue.objects.all()
+    serializer_class = OptionValueExtSerialiszer
+
+    def retrieve(self, request, pk=None):
+        product_options_values_defined = OcProductOptionValue.objects.filter(product_id=pk).values_list('option_value_id')
+        product_option_values_list = list(chain(*product_options_values_defined))
+
+
+        #and for the stupid text ones too
+        product_options_defined = OcProductOption.objects.filter(product_id=pk).values_list('option_id')
+        product_option_list = list(chain(*product_options_defined))
+        #product_options_obj = product_options_obj.objects.exclude(option_id__in=product_option_list)
+        product_options_obj = OcOptionValue.objects.exclude(option_value_id__in=product_option_values_list).exclude(option_id__in=product_option_list)
+
+        #product_options_obj = OcOptionValue.objects.all()
+        serializer = self.get_serializer(product_options_obj, many=True)
+        return Response(serializer.data)
 
 
 class ProductCoreVariantOption(viewsets.ModelViewSet):

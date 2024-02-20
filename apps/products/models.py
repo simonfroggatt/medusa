@@ -6,8 +6,6 @@ from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPric
 from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes
 from apps.category.models import OcCategoryToStore
 
-
-
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     model = models.CharField(max_length=64)

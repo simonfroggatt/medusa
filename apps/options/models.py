@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants
+from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants, OcProduct
 from medusa.models import OcLanguage
 
 
@@ -200,6 +200,11 @@ class OcOptionValue(models.Model):
         managed = False
         db_table = 'oc_option_value'
 
+    @property
+    def option_value_desc(self):
+        description_obj = OcOptionValueDescription.objects.filter(language=1,option_value_id=self.option_value_id).first()
+        return description_obj.name
+
 
 class OcOptionValueDescription(models.Model):
     option_value = models.ForeignKey(OcOptionValue, models.DO_NOTHING, related_name='option_value')
@@ -214,6 +219,36 @@ class OcOptionValueDescription(models.Model):
         return self.name
 
 
+class OcProductOption(models.Model):
+    product_option_id = models.AutoField(primary_key=True)
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='product_option_product')
+    option = models.ForeignKey(OcOption, models.DO_NOTHING, related_name='product_option_option')
+    value = models.TextField(blank=True, null=True)
+    required = models.BooleanField(default=False)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_product_option'
+
+
+class OcProductOptionValue(models.Model):
+    product_option_value_id = models.AutoField(primary_key=True)
+    product_option = models.ForeignKey(OcProductOption, models.DO_NOTHING, 'product_option_value_product_option')
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='product_option_value_product')
+    option = models.ForeignKey(OcOption, models.DO_NOTHING, related_name='product_option_value_option')
+    option_value = models.ForeignKey(OcOptionValue, models.DO_NOTHING, related_name='product_option_value_option_value')
+    quantity = models.IntegerField(default=1)
+    subtract = models.IntegerField(default=0)
+    price = models.DecimalField(max_digits=15, decimal_places=4)
+    price_prefix = models.CharField(max_length=1, blank=True, null=True)
+    points = models.IntegerField()
+    points_prefix = models.CharField(max_length=1, blank=True, null=True)
+    weight = models.DecimalField(max_digits=15, decimal_places=8)
+    weight_prefix = models.CharField(max_length=1, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_product_option_value'
 
 
 

@@ -15,6 +15,9 @@ router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
 router.register(r'product_core_variant_options', views.ProductCoreVariantOption)
 router.register(r'product_site_variant_options', views.ProductSiteVariantOption)
 router.register(r'product_site_variant_options_classes', views.ProductSiteVariantOptionClasses)
+
+router.register(r'productoptions', views.ProductOptions)
+router.register(r'productoptions-available', views.ProductOptionsAvailable)
 #router.register(r'store/products', views.Product_by_Store)
 
 
@@ -94,6 +97,7 @@ urlpatterns = [
     path('<int:product_id>/document/fetch', views.product_document_fetch, name='fetch_product_documents'),
     path('document/<pk>/download', views.product_document_download, name='product_document-download'),
     path('document/<pk>/delete', views.product_document_delete, name='product_document-delete'),
+
 
     #base
     path('', views.product_list, name='allproducts'),
