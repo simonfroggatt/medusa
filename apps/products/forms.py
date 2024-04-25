@@ -3,7 +3,7 @@ from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductT
     OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage, \
     OcTsgProductDocuments, OcProductRelated
 
-from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions
+from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions, OcProductOption, OcOptionValue
 
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
@@ -268,4 +268,16 @@ class RelatedEditForm(forms.ModelForm):
         fields = '__all__'
 
 
+class ProductOptionEditForm(forms.ModelForm):
+
+    class Meta:
+        model = OcProductOption
+        fields = ['required', 'value']
+
+
+class OptionValueEditForm(forms.ModelForm):
+
+    class Meta:
+        model = OcOptionValue
+        fields = ['sort_order']
 

@@ -61,6 +61,11 @@ urlpatterns = [
     path('group_class/<int:group_id>', views.group_class_list_html, name='group_class_values'),
     path('class_values/<int:class_id>', views.class_value_list_html, name='class_values'),
 
+    #product options
+    path('api/product/<int:product_id>/productoption/add/<int:pk>', views.product_option_add, name='products_option_add'),
+    path('api/product/<int:product_id>/productoption/delete/<int:pk>', views.product_option_delete, name='products_option_delete'),
+    path('api/product/<int:product_id>/productoption/edit/<int:pk>', views.product_option_edit, name='products_option_edit'),
+
 
 
     #symbols

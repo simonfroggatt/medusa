@@ -3,7 +3,6 @@ from django.db import models
 from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants, OcProduct
 from medusa.models import OcLanguage
 
-
 # Create your models here.
 
 class OcTsgOptionTypes(models.Model):
@@ -160,6 +159,7 @@ class OcOption(models.Model):
     option_id = models.AutoField(primary_key=True)
     type = models.ForeignKey(OcTsgProductOptionType, models.DO_NOTHING, blank=True, null=True)
     sort_order = models.IntegerField()
+    isdeleted = models.BooleanField(default=False)
 
     class Meta:
         managed = False
@@ -195,6 +195,7 @@ class OcOptionValue(models.Model):
     option = models.ForeignKey(OcOption, models.DO_NOTHING)
     image = models.CharField(max_length=255, blank=True, null=True)
     sort_order = models.IntegerField(blank=True, null=True)
+    isdeleted = models.BooleanField(default=False)
 
     class Meta:
         managed = False
@@ -223,8 +224,9 @@ class OcProductOption(models.Model):
     product_option_id = models.AutoField(primary_key=True)
     product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='product_option_product')
     option = models.ForeignKey(OcOption, models.DO_NOTHING, related_name='product_option_option')
-    value = models.TextField(blank=True, null=True)
-    required = models.BooleanField(default=False)
+    value = models.CharField(max_length=20, blank=True, null=True)
+    required = models.BooleanField(default=True)
+    isdeleted = models.BooleanField(default=False)
 
     class Meta:
         managed = False
@@ -245,10 +247,14 @@ class OcProductOptionValue(models.Model):
     points_prefix = models.CharField(max_length=1, blank=True, null=True)
     weight = models.DecimalField(max_digits=15, decimal_places=8)
     weight_prefix = models.CharField(max_length=1, blank=True, null=True)
+    isdeleted = models.BooleanField(default=False)
 
     class Meta:
         managed = False
         db_table = 'oc_product_option_value'
+
+
+
 
 
 

@@ -20,6 +20,15 @@ class SiteUpdate(UpdateView):
     template_name = 'sites/site_details.html'
     success_url = reverse_lazy('allsites')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = super().get_object()
+        breadcrumbs = []
+        breadcrumbs.append({'name': 'Sites', 'url': reverse_lazy('allsites')})
+        context['breadcrumbs'] = breadcrumbs
+        context['heading'] = obj.name
+        return context
+
 
 class SiteCreate(CreateView):
     model = OcStore
@@ -96,7 +105,6 @@ def site_create(request):
 
 def all_sites(request):
     template_name = 'sites/sites_list.html'
-    context = {'pageview': 'Sites'}
-    context['heading'] = ""
+    context = {'heading': "Sites"}
     return render(request, template_name, context)
 

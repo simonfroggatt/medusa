@@ -8,7 +8,8 @@ from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFl
 from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcProduct, \
      OcTsgProductVariantCore, OcTsgProductVariants
 from apps.pricing.models import OcTsgProductMaterial
-from apps.options.models import OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, OcTsgOptionValueDynamics
+from apps.options.models import OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
+    OcTsgOptionValueDynamics, OcProductOption, OcProductOptionValue, OcOption, OcOptionDescription
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
@@ -63,21 +64,29 @@ def order_test(request, order_id):
 
 def order_list(request):
     template_name = 'orders/orders_list.html'
-    context = {'pageview': 'All Orders'}
+    context = {'heading': 'All Orders'}
     context['order_status'] = 'ALL'
     return render(request, template_name, context)
 
 
 def live_order_list(request):
     template_name = 'orders/orders_list.html'
-    context = {'pageview': 'Live Orders'}
+    context = {'heading': 'Live Orders'}
+    breadcrumbs = []
+    context['breadcrumbs'] = breadcrumbs
     context['order_status'] = 'LIVE'
+    return render(request, template_name, context)
+
+def new_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'heading': 'New Orders'}
+    context['order_status'] = 'NEW'
     return render(request, template_name, context)
 
 
 def failed_order_list(request):
     template_name = 'orders/orders_list.html'
-    context = {'pageview': 'Failed Orders'}
+    context = {'heading': 'Failed Orders'}
     context['order_status'] = 'FAILED'
     return render(request, template_name, context)
 
@@ -98,6 +107,8 @@ class Orders_asJSON(viewsets.ModelViewSet):
         status = self.request.GET.get('status', 'ALL')
         if status == 'LIVE':
             queryset = self.model.objects.live()
+        elif status == 'NEW':
+            queryset = self.model.objects.new()
         elif status == 'FAILED':
             queryset = self.model.objects.failed()
         else:
@@ -237,9 +248,9 @@ def order_details(request, order_id):
 
     template_name = 'orders/order_layout.html'
 
-
-    context['pageview'] = 'All orders'
-    context['pageview_url'] = reverse_lazy('allorders')
+    breadcrumbs = []
+    context['breadcrumbs'] = breadcrumbs
+    breadcrumbs.append({'name': 'All Orders', 'url': reverse_lazy('allorders')})
     context['heading'] = 'order details'
 
     order_products_obj = OcOrderProduct.objects.filter(order_id=order_id)
@@ -1052,6 +1063,46 @@ def ajax_product_variant_options(request, store_id, product_variant_id):
     context['variant_info'] = variant_info
     context['select_data'] = select_data
     context['base_price'] = 1.00
+    data['html_content'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+    #return render(request, template_name, context)
+
+####### - New option is in
+def ajax_product_options(request, product_id):
+    #given a product the options
+    select_data = []
+    #get the option class
+    data = dict()
+    options_unique = OcProductOption.objects.filter(product_id=product_id, isdeleted=0).values('option_id', 'required').distinct()
+
+    #now step though each options and get the type etc
+    option_markup = []
+    for option in options_unique:
+        product_option_data = dict()
+        bl_required = False
+        option_obj = OcOptionDescription.objects.filter(option_id=option['option_id'], language_id=1).first() #not dealing with multi languages at the moment
+        product_option_data['option_type'] = option_obj.option.type_id
+        product_option_data['option_name'] = option_obj.name
+        product_option_data['option_id'] = option['option_id']
+        if option['required'] == 1:
+            bl_required = True
+        option_data = OcProductOptionValue.objects.filter(option_id=option['option_id'], product_id=product_id)
+        #now set through each of these
+        product_option_values = []
+        for option_value in option_data:
+            product_option_values.append({'id': option_value.option_value.option_value_id, 'value' : option_value.option_value.option_value_desc})
+        product_option_data['option_values'] = product_option_values
+        product_option_data['option_required'] = bl_required
+        option_markup.append(product_option_data)
+
+
+    template_name = 'orders/dialogs/product_options_ajax.html'
+    context = {'product_id': product_id}
+    context['options_markup'] = option_markup
     data['html_content'] = render_to_string(template_name,
                                          context,
                                          request=request

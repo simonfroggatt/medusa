@@ -44,10 +44,12 @@ class OcStore(models.Model):
     country = models.CharField(max_length=255, blank=True, null=True)
     logo_paperwork = models.CharField(max_length=255, blank=True, null=True)
     status = models.BooleanField(blank=True)
+    product_code = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'oc_store'
+        ordering = ['store_id']
 
     def store_thumb_url(self):
         if self.thumb:

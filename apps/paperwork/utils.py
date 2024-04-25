@@ -160,11 +160,11 @@ def order_payment_details(order_obj, currency_symbol):
         if order_history_obj.payment_status_id != 2:
             order_payment_str = 'Payment not received / failed'
             order_payment_str += '<BR/>Last Payment Attempt Type:' + order_history_obj.payment_status.name
-            order_payment_str += ' made by:' + order_history_obj.payment_method.payment_method_name
+            order_payment_str += ' made by:' + order_history_obj.payment_method.method_name
             order_payment_str += '<BR/>Merchant message ' + order_history_obj.comment
         else:
             order_payment_str = 'Paid with thanks'
-            order_payment_str += '<BR/>Paid via ' + order_history_obj.payment_method.payment_method_name
+            order_payment_str += '<BR/>Paid via ' + order_history_obj.payment_method.method_name
             if order_obj.date_due:
                 order_payment_str += ' at ' + order_obj.date_due.strftime('%d/%m/%Y')
             order_payment_str += '<BR/>' + order_history_obj.comment

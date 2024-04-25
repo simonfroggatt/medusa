@@ -16,7 +16,6 @@ class SymbolShortSerializer(serializers.ModelSerializer):
 
 
 class SymbolSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = OcTsgSymbols
         fields = '__all__'

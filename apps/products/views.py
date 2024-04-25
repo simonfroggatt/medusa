@@ -14,6 +14,7 @@ from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVa
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
+from apps.orders.models import OcOrderOption
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups, \
     OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues, OcProductOption, OcProductOptionValue, \
@@ -25,7 +26,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
     VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm, \
     SiteProductVariantForm, AdditionalProductStoreImages, AdditionalProductImageForm, AddionalProductImageEditForm, \
-    ProductDocumentForm, RelatedEditForm
+    ProductDocumentForm, RelatedEditForm, ProductOptionEditForm, OptionValueEditForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
@@ -144,7 +145,9 @@ class ProductOptionsAvailable(viewsets.ModelViewSet):
         product_options_defined = OcProductOption.objects.filter(product_id=pk).values_list('option_id')
         product_option_list = list(chain(*product_options_defined))
         #product_options_obj = product_options_obj.objects.exclude(option_id__in=product_option_list)
-        product_options_obj = OcOptionValue.objects.exclude(option_value_id__in=product_option_values_list).exclude(option_id__in=product_option_list)
+        type_exclude_list = [1, 4]
+        product_options_obj = OcOptionValue.objects.exclude(option_value_id__in=product_option_values_list)#\
+          #  .exclude(option_id__in=product_option_list)
 
         #product_options_obj = OcOptionValue.objects.all()
         serializer = self.get_serializer(product_options_obj, many=True)
@@ -173,7 +176,7 @@ class ProductSiteVariantOption(viewsets.ModelViewSet):
 
 def product_list(request):
     template_name = 'products/products_list.html'
-    context = {'pageview': 'All products'}
+    context = {'heading': 'All products'}
     return render(request, template_name, context)
 
 
@@ -216,8 +219,9 @@ def product_details(request, product_id):
     context = {"product_obj": product_obj}
     template_name = 'products/product_layout.html'
 
-    context['pageview'] = 'All products'
-    context['pageview_url'] = reverse_lazy('allproducts')
+    breadcrumbs = []
+    breadcrumbs.append({'name': 'Products', 'url': reverse_lazy('allproducts')})
+    context['breadcrumbs'] = breadcrumbs
     context['heading'] = product_obj.productdescbase.title
 
     store_obj = OcStore.objects.exclude(store_id=0)
@@ -338,8 +342,11 @@ def product_edit_base(request, product_id):
         form_product = ProductForm(instance=product_obj)
         form_product_base_desc = ProductDescriptionBaseForm(instance=product_base_desc_obj)
 
-    context['heading'] = "Products"
-    context['pageview'] = "Base Edit"
+    context['heading'] = "Base Edit"
+    breadcrumbs = []
+    breadcrumbs.append({'name': 'Products', 'url': reverse_lazy('allproducts')})
+    breadcrumbs.append({'name': product_obj.productdescbase.title, 'url': reverse_lazy('product_details', kwargs={'product_id': product_id})})
+    context['breadcrumbs'] = breadcrumbs
     context['product_id'] = product_id
     context['form_product'] = form_product
     context['form_product_desc'] = form_product_base_desc
@@ -357,9 +364,12 @@ class ProductSiteUpdate(UpdateView):
         context = super().get_context_data(**kwargs)
         pk = self.kwargs['pk']
         store_product_obj = get_object_or_404(OcProductToStore, pk=pk)
-        context['pageview'] = "Products"
-        context['pageview_url'] = reverse_lazy('allproducts')
-        context['heading'] = store_product_obj.title
+        breadcrumbs = []
+        breadcrumbs.append({'name': 'Products', 'url': reverse_lazy('allproducts')})
+        breadcrumbs.append({'name':  store_product_obj.title,
+                            'url': reverse_lazy('product_details', kwargs={'product_id': store_product_obj.product_id})})
+        context['breadcrumbs'] = breadcrumbs
+        context['heading'] = 'Site Product Details'
         return context
 
     def get_success_url(self):
@@ -1619,5 +1629,89 @@ def product_document_fetch(request, product_id):
                                             context,
                                             request=request
                                             )
+
+    return JsonResponse(data)
+
+
+def product_option_add(request, product_id, pk):
+    data = dict()
+
+    if request.method == 'POST':
+        option_obj = get_object_or_404(OcOptionValue, pk=pk)
+
+        product_option_obj = OcProductOption(product_id=product_id)
+        product_option_obj.option = option_obj.option
+        product_option_obj.value = ''  #default to blank
+
+        product_option_obj.save()
+
+        product_option_value_obj = OcProductOptionValue(quantity=1, subtract= 0, price= 0, price_prefix='', points=0,
+                                                        points_prefix='', weight=0, weight_prefix='',
+                                                        product_id=product_id,
+                                                        product_option=product_option_obj)
+
+
+        product_option_value_obj.option_value = option_obj
+        product_option_value_obj.option = option_obj.option
+        product_option_value_obj.save()
+        if product_option_value_obj.product_option_value_id > 0:
+            data['is_saved'] = True
+        else:
+            data['is_saved'] = False
+    else:
+        data['is_saved'] = False
+
+    return JsonResponse(data)
+
+
+def product_option_delete(request, product_id, pk):
+    data = dict()
+
+    if request.method == 'POST':
+        #check if this option is used in any past order, if so - refuse to delete it
+        past_orders_obj = OcOrderOption.objects.filter(product_option_value=pk)
+        product_option_value_obj = get_object_or_404(OcProductOptionValue, pk=pk)
+        option_type = product_option_value_obj.option.type_id
+        if past_orders_obj:
+            product_option_value_obj.isdeleted = True
+            product_option_value_obj.save()
+            if option_type == 2:  # this is a hack due to how shite opencart is
+                product_option_obj = product_option_value_obj.option
+                product_option_obj.isdeleted = True
+        else:
+            if option_type == 2: #this is a hack due to how shite opencart is
+                product_option_obj = product_option_value_obj.option
+                product_option_obj.delete()
+            product_option_value_obj.delete()
+        data['is_saved'] = True
+    else:
+        data['is_saved'] = False
+
+    return JsonResponse(data)
+
+
+def product_option_edit(request, product_id, pk):
+    data = dict()
+    context = dict()
+    template_name = 'products/dialogs/product_option_edit.html'
+    product_option_obj = get_object_or_404(OcProductOption, pk=pk)
+    context['product_id'] = product_id
+    context['product_option_id'] = pk
+    context['option_name'] = product_option_obj.option.option_desc
+    if request.method == 'POST':
+        form_obj = ProductOptionEditForm(request.POST, instance=product_option_obj)
+        if form_obj.is_valid():
+            form_obj.save();
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        data['form_is_valid'] = False
+        form = ProductOptionEditForm(instance=product_option_obj)
+        context['form'] = form
+        data['html_form'] = render_to_string(template_name,
+                                                context,
+                                                request=request
+                                                )
 
     return JsonResponse(data)

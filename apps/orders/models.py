@@ -5,6 +5,7 @@ import datetime as dt
 from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from apps.shipping.models import OcTsgCourier
+from apps.options.models import OcProductOption, OcProductOptionValue
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
 from django.core.validators import FileExtensionValidator
@@ -14,12 +15,18 @@ import os
 
 class OcOrderQuerySet(models.QuerySet):
     def successful(self):
-        valid_status = [2]
-        return self.filter(payment_status_id__in=valid_status)
+        valid_status = [2, 3, 8]
+        order_status_excl = [4,5]
+        return self.exclude(order_status_id__in=order_status_excl).filter(payment_status_id__in=valid_status)
 
     def live(self):
         valid_status = [2, 3, 8]
-        return self.exclude(order_status_id=99).filter(payment_status_id__in=valid_status)
+        order_status_excl = [99, 1]
+        return self.exclude(order_status_id__in=order_status_excl).filter(payment_status_id__in=valid_status)
+
+    def new(self):
+        valid_status = [2, 3, 8]
+        return self.filter(order_status_id=1).filter(payment_status_id__in=valid_status)
 
     def failed(self):
         valid_status = [2, 3, 8]
@@ -29,8 +36,8 @@ class OcOrderQuerySet(models.QuerySet):
        #ß today_data = '2019-06-17'
         return 1
 
-    def test_it_qs(self):
-        return '123'
+    def order_range(self, start_date, end_date):
+        return self.filter(date_added__gte=start_date, date_added__lt=end_date)
 
 
 class OcOrderManager(models.Manager):
@@ -43,14 +50,20 @@ class OcOrderManager(models.Manager):
     def live(self):
         return self.get_queryset().live()
 
+    def new(self):
+        return self.get_queryset().new()
+
     def failed(self):
         return self.get_queryset().failed()
 
     def days_since(self):
         return 3
 
-    def test_it_mm(self):
-        return self.get_queryset().test_it_qs()
+    def orders_range(self, start_date, end_date, bl_successful = True):
+        if bl_successful:
+            return self.get_queryset().order_range(start_date, end_date).successful()
+        else:
+            return self.get_queryset().order_range(start_date, end_date)
 
 
 class OcOrderStatus(models.Model):
@@ -71,7 +84,7 @@ class OcOrderStatus(models.Model):
 
 class OcTsgPaymentMethod(models.Model):
     payment_method_id = models.AutoField(primary_key=True)
-    payment_method_name = models.CharField(max_length=255, blank=True, null=True)
+    method_name = models.CharField(max_length=255, blank=True, null=True)
     payment_method_icon = models.CharField(max_length=255, blank=True, null=True)
     order_by = models.IntegerField(blank=True, null=True)
 
@@ -81,7 +94,7 @@ class OcTsgPaymentMethod(models.Model):
         ordering = ['order_by']
 
     def __str__(self):
-        return self.payment_method_name
+        return self.method_name
 
 
 class OcTsgOrderType(models.Model):
@@ -228,7 +241,7 @@ class OcOrder(models.Model):
         return delta.days
 
     def short_date(self):
-        return self.date_added.strftime('%-m %b, %H:%M')
+        return self.date_added.strftime('%-d %b, %H:%M')
 
     class Meta:
         managed = False
@@ -290,6 +303,14 @@ class OcOrderFlags(models.Model):
         unique_together = (('order', 'flag'),)
 
 
+class OcTsgDiscountType(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_discount_type'
+
+
 class OcOrderProduct(models.Model):
     order_product_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(OcOrder, models.DO_NOTHING, db_column='order_id', related_name='order_products')
@@ -299,6 +320,8 @@ class OcOrderProduct(models.Model):
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=2)
     discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    discount_type = models.ForeignKey(OcTsgDiscountType, models.DO_NOTHING, db_column='discount_type', blank=True,
+                                      null=True, default=1, related_name='discounttype')
     total = models.DecimalField(max_digits=15, decimal_places=2)
     tax = models.DecimalField(max_digits=15, decimal_places=2)
     tax_rate_desc = models.CharField(max_length=10, blank=True, null=True)
@@ -361,10 +384,10 @@ class OcOrderTotal(models.Model):
 
 class OcOrderOption(models.Model):
     order_option_id = models.AutoField(primary_key=True)
-    order_id = models.IntegerField()
-    order_product = models.ForeignKey('OcOrderProduct', models.DO_NOTHING, related_name='order_product_option')
-    product_option_id = models.IntegerField()
-    product_option_value_id = models.IntegerField()
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING)
+    order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_option')
+    product_option = models.ForeignKey(OcProductOption, models.DO_NOTHING)
+    product_option_value = models.ForeignKey(OcProductOptionValue, models.DO_NOTHING, blank=True, null=True)
     name = models.CharField(max_length=255)
     value = models.TextField()
     type = models.CharField(max_length=32)
@@ -372,6 +395,7 @@ class OcOrderOption(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_order_option'
+
 
 
 class OcOrderHistory(models.Model):

@@ -8,6 +8,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from apps.orders.models import OcOrder, OcTsgPaymentMethod
+from apps.company.models import OcTsgCompany, OcTsgCompanyType
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView
 from django.urls import reverse_lazy
 import json
@@ -21,9 +22,8 @@ import os
 
 def customers_list(request):
     template_name = 'customer/list_customers.html'
-    content = {'pageview': 'Customers'}
-    content['heading'] = ""
-    return render(request, template_name, content)
+    context = {'heading': 'Customers'}
+    return render(request, template_name, context)
 
 
 class customer_list_asJSON_s(viewsets.ModelViewSet):
@@ -59,9 +59,11 @@ def customers_details(request, customer_id):
     content['customer_address'] = addresses
     content['address_book'] = address_book
     content['form'] = form
+
     content['heading'] = customer_obj.fullname
-    content['pageview'] = "Customers"
-    content['pageview_url'] = reverse_lazy('allcustomers')
+    breadcrumbs = []
+    breadcrumbs.append({'name': 'Customers', 'url': reverse_lazy('allcustomers')})
+    content['breadcrumbs'] = breadcrumbs
 
     customer_docs_obj = OcTsgContactDocuments.objects.filter(contact_id=customer_id)
     content['customer_docs_obj'] = customer_docs_obj
@@ -555,6 +557,63 @@ def customer_assign_company(request, customer_id):
     else:
         template_name = 'customer/dialogs/assign_company.html'
         context = {'customer_id': customer_id, 'store_id': customer_obj.store_id}
+
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)
+
+def customer_convert_to_company(request, customer_id):
+    data = dict()
+    customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    if request.method == 'POST':
+        new_company_type = request.POST.get('company_type')
+        new_company_obj = OcTsgCompany()
+        default_address = get_default_address(customer_obj)
+        billing_address = default_address['billing']
+        #copyt from customer
+        new_company_obj.company_name = billing_address.company
+        new_company_obj.fullname = customer_obj.fullname
+        new_company_obj.email = billing_address.email
+        new_company_obj.telephone = billing_address.telephone
+        new_company_obj.address = billing_address.address_1
+        if billing_address.address_2:
+            new_company_obj.address += ' ' + billing_address.address_2
+        new_company_obj.city = billing_address.city
+        new_company_obj.area = billing_address.area
+        new_company_obj.postcode = billing_address.postcode
+        new_company_obj.country_id = billing_address.country_id
+        new_company_obj.xero_id = customer_obj.xero_id
+
+        #set defaults
+        new_company_obj.payment_days = 0
+        new_company_obj.credit_limit = 0
+        new_company_obj.discount = 0
+        new_company_obj.tax_rate_id = 86
+        new_company_obj.company_type_id = new_company_type
+        new_company_obj.payment_terms_id = 1
+        new_company_obj.store_id = customer_obj.store_id
+        new_company_obj.status_id = 1
+        new_company_obj.country_id = 826
+
+        new_company_obj.save()
+        customer_obj.parent_company = new_company_obj
+        customer_obj.account_type_id = 1
+        if customer_obj.company is None:
+            customer_obj.company = billing_address.company
+
+        customer_obj.save()
+        data['form_is_valid'] = True
+        refresh_url = reverse_lazy('company_details', kwargs={'company_id': new_company_obj.pk})
+        return HttpResponseRedirect(refresh_url)
+
+    else:
+        template_name = 'customer/dialogs/convert_to_company.html'
+        company_type = OcTsgCompanyType.objects.all()
+        context = {'customer_id': customer_id}
+        context['company_type'] = company_type
 
         data['html_form'] = render_to_string(template_name,
                                              context,

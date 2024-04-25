@@ -37,9 +37,8 @@ urlpatterns = [
     path('bulk/', include('apps.bulk.urls')),
     path('shipping/', include('apps.shipping.urls')),
     path('suppliers/', include('apps.suppliers.urls')),
+    path('dashboard/', include('apps.dashboard.urls')),
     path('', views.StarterPageView.as_view(), name='apps-pages-starter'),
-    path('dashboard', views.dashboard, name='dashboard'),  # Dashboard
-    path('password_change/', views.DashboardView.as_view(), name='change_password'),  # Change Password
     path('admin/', admin.site.urls),
     path('tinymce/', include('tinymce.urls')),
 

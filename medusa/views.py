@@ -9,16 +9,3 @@ class StarterPageView(View):
         greeting['heading'] = "Starter Page"
         greeting['pageview'] = "Pages"
         return render(request, 'pages-starter.html',greeting)
-
-
-class DashboardView(View):
-    def get(self, request):
-        greeting = {}
-        greeting['heading'] = "Dashboard"
-        greeting['pageview'] = "Dashboard"
-        return render(request, 'menu/dashboard.html',greeting)
-
-
-def dashboard(request):
-    template_name = 'dashboard.html'
-    return render(request, template_name)

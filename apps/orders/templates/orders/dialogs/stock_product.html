@@ -25,11 +25,19 @@
                         <i class="fa-solid fa-list"></i> Variants</a>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="add_dlg_stock_product-options" data-bs-toggle="tab"
+                       href="#tab-add_dlg_stock_product-options"
+                       role="tab">
+                        <i class="fa-solid fa-gears" id="js-tab_product_option_icon"></i> Product Options</a>
+                </li>
+                <li class="nav-item" role="presentation">
                     <a class="nav-link" id="add_dlg_stock_variants-options" data-bs-toggle="tab"
                        href="#tab-add_dlg_stock_variants-options"
                        role="tab">
-                        <i class="fa-solid fa-list"></i> Options</a>
+                        <i class="fa-regular fa-sliders js-tab_variant_option_icon"></i> Variant options
+                    </a>
                 </li>
+
                 <li class="nav-item" role="presentation">
                     <a class="nav-link" id="add_dlg_stock_related" data-bs-toggle="tab"
                        href="#tab-add_dlg_stock_related"
@@ -51,6 +59,12 @@
                         </thead>
                     </table>
                 </div>
+                <div role="tabpanel" id="tab-add_dlg_stock_product-options" class="tab-pane fade">
+                    <div class="panel-body" id="ajax_load-product_stock_options">
+
+                    </div>
+                </div>
+
                 <div role="tabpanel" id="tab-add_dlg_stock_variants-options" class="tab-pane fade">
                     <div class="panel-body" id="ajax_load-product_variant_options">
 
@@ -325,6 +339,7 @@
                     let product_id = product_table.row(indexes).id()
                     set_variant_url(product_id)
                     set_related_url(product_id)
+                    set_product_options(product_id)
                     set_product_details(product_table.row(indexes).data())
                     set_bulk_group(product_table.row(indexes).data())
                 }
@@ -495,6 +510,20 @@
             function set_related_url(product_id) {
                 let ajax_url = "/products/related/" + product_id + "/store?format=datatables"
                 add_product_related_table.ajax.url(ajax_url).load();
+            }
+
+            function set_product_options(product_id){
+                let url = '/orders/product/'+product_id+'/ajax_load_options/';
+                $.ajax({
+                    url: url,  // <-- AND HERE
+                    type: 'get',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.html_content) {
+                            $("#ajax_load-product_stock_options").html(data.html_content);
+                        }
+                    },
+                });
             }
 
             product_table.on('draw', function () {

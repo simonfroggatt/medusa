@@ -1,0 +1,37 @@
+{% load static %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            {% for option_data in  options_markup %}
+                <div id="div_product_option_{{ option_data.option_id }}"  data-option={{ option_data.option_id }}>
+                    <label for="product_option_{{ option_data.option_id }}" class="form-label">{{ option_data.option_name }}</label>
+                    {% if option_data.option_type == 1 %}
+                    <select id="product_option_{{ option_data.option_id }}" data-selectclass="{{ option_data.option_id }}" class="form-select tsg_option_class name="product_option_{{ option_data.option_id }}" >
+                        {% for option_values in option_data.option_values %}
+                            <option value="{{ option_values.id }}" data-optionvalue={{ option_values.id }} >{{  option_values.value }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    {% if option_data.option_type == 2 %}
+                        {% for option_values in option_data.option_values %}
+                            <input type="text" id="product_option_{{ option_values.id }}" name="product_option_{{ option_values.id }}" data-optionvalue={{ option_values.id }}>
+                        {% endfor %}
+
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{{ options_markup|json_script:"optionmarkup" }}
+ <script>
+
+var option_markup = JSON.parse(document.getElementById('optionvaoptionmarkuplues').textContent);
+// console.log(select_values)
+</script>
+
+
+
+

@@ -1,3 +1,4 @@
 # Project exclude paths
 /venv/
 .env
+/apps/dashboard/migrations/

@@ -1,10 +1,34 @@
  <div class="card-header order_details">
-                <div class="row align-items-center justify-content-between">
-                    <div class="col-3 ">
+                <div class="row align-items-center ">
+                    <div class="col-6 ">
                         <i class="fa-solid fa-pound-sign"></i> Billing
                     </div>
-                    <div class="col-6">
+                    <div class="col-6 text-end">
+                        <div class="btn-group">
+                        {% if order_obj.customer %}
+                                <button class="btn {{ BUTTON_EXTRA }} btn-sm" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress"
+                                        aria-expanded="false" aria-controls="collapseBillingAddress">
+                                   <i class="fa-regular fa-location-dot"></i>
+                        </button>
+                        {% endif %}
+
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-address-edit"
+                                        data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+                                 {% if order_obj.customer %}
+                                   <!-- <button type="button" class="btn btn-primary btn-sm js-order-address-edit"
+                                            data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
+                                    ><i class="fa-solid fa-search fa-pull-right"></i></button> -->
+                                {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+
                     {% if order_obj.customer %}
+                        <div class="row">
+                         <div class="col-12">
                         <div class="collapse" id="collapseBillingAddress">
                             <form method="post" id="order_billing_addressbook" action="{% url 'orderbillingfrombook' order_obj.order_id %}">
                             <input type="hidden" id="address_book_id_billing" name="address_book_id_billing" value="0">
@@ -22,30 +46,10 @@
                             </div>
                             </form>
                         </div>
-                    {% endif %}
-                    </div>
-                    <div class="col-3">
-                        <div class="btn-group justify-content-end">
-                        {% if order_obj.customer %}
-                                <button class="btn {{ BUTTON_EXTRA_OUTLINE }} btn-sm" type="button"
-                                        data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress"
-                                        aria-expanded="false" aria-controls="collapseBillingAddress">
-                                   <i class="fa-regular fa-location-dot"></i>
-                        </button>
-                        {% endif %}
-
-                                <button type="button" class="btn {{ BUTTON_EDIT_OUTLINE }} btn-sm js-order-address-edit"
-                                        data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
-                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
-                                 {% if order_obj.customer %}
-                                   <!-- <button type="button" class="btn btn-primary btn-sm js-order-address-edit"
-                                            data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
-                                    ><i class="fa-solid fa-search fa-pull-right"></i></button> -->
-                                {% endif %}
-
                         </div>
-                    </div>
-                </div>
+                        </div>
+                    {% endif %}
+
             </div>
             <div class="card-body pb-0">
                 <div id="order-billing">

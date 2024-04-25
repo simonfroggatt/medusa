@@ -41,6 +41,11 @@
                                     <i class="fa-solid fa-user"></i> Contacts</a>
                             </li>
                             <li>
+                                <a class="nav-link" id="addressbook-tab" data-bs-toggle="tab" href="#tab-addressbook"
+                                   role="tab">
+                                    <i class="fa-solid fa-map-marker-alt"></i> Address Book</a>
+                            </li>
+                            <li>
                                 <a class="nav-link" id="art-tab" data-bs-toggle="tab" href="#tab-art" role="tab"><i
                                         class="fa-regular fa-image"></i> Artwork</a>
                             </li>
@@ -60,6 +65,11 @@
                             <div role="tabpanel" id="tab-contacts" class="tab-pane fade">
                             <div class="panel-body">
                                 {% include 'company/sub_layout/customers_list.html' %}
+                            </div>
+                        </div>
+                            <div role="tabpanel" id="tab-addressbook" class="tab-pane fade">
+                            <div class="panel-body">
+                                {% include 'company/sub_layout/company_addressbook.html' %}
                             </div>
                         </div>
                             <div role="tabpanel" id="tab-art" class="tab-pane fade">

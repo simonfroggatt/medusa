@@ -4,7 +4,6 @@ from .models import OcAddress, OcCustomer, OcTsgContactDocuments
 
 
 class AddressForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         super(AddressForm, self).__init__(*args, **kwargs)
         self.fields['country'].empty_label = None
@@ -42,6 +41,9 @@ class AddressForm(forms.ModelForm):
         }
 
 class CustomerForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CustomerForm, self).__init__(*args, **kwargs)
+        self.fields['store'].empty_label = None
     class Meta:
         model = OcCustomer
         fields = '__all__'

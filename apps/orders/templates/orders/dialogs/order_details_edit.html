@@ -41,11 +41,11 @@
         changedto = $(this).val()
         if(changedto == 7) { // PO
             $('#id_{{ form.payment_status.name }}').val(3)  //waioting
-            $('#id_{{ form.order_status.name }}').val(2)  //received
+            $('#id_{{ form.order_status.name }}').val(1)  //open
         }
         if(changedto == 5) { //Proforma
             $('#id_{{ form.payment_status.name }}').val(8)  //waioting
-            $('#id_{{ form.order_status.name }}').val(2)  //received
+            $('#id_{{ form.order_status.name }}').val(1)  //open
         }
 
     });

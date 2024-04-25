@@ -1,0 +1,37 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Convert to Company</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'customer_convert_to_company' customer_id%}"
+                      id="form-customer-convert-company">
+                    {% csrf_token %}
+                    <input type="hidden" id="customer_id" name="customer_id"
+                           value="{{ customer_id }}">
+                What type of company would you like to convert this customer to?
+                    <div class="col-md-12">
+
+                        <select name="company_type" id="company_type" class="form-select">
+                            {% for company_data in company_type %}
+                                <option value="{{ company_data.company_type_id }}">{{ company_data.company_type_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                <div class="col-md-12 pt-2">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="convert" class="btn {{ BUTTON_EDIT }} pull-right">Convert</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

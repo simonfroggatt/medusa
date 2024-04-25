@@ -16,12 +16,12 @@ from itertools import chain
 
 def all_cats(request):
     template_name = 'category/cats-list.html'
-    context = {'pageview': 'Categories'}
+    context = {'heading': 'Categories'}
     return render(request, template_name, context)
 
 
 class Categories(viewsets.ModelViewSet):
-    queryset = OcCategory.objects.filter(category_id__gt=0)
+    queryset = OcCategory.objects.filter(category_id__gt=0).order_by('category_id')
     serializer_class = CategorySerialise
 
 
@@ -63,10 +63,13 @@ class CategoryStoreEdit(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['heading'] = "Categories"
-        context['pageview'] = "Cat info"
+        category_obj = get_object_or_404(OcCategoryToStore, pk=self.kwargs['pk'])
 
-        category_obj =  get_object_or_404(OcCategoryToStore, pk=self.kwargs['pk'])
+        breadcrumbs = []
+        breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
+        breadcrumbs.append({'name': category_obj.category.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': category_obj.category_id})})
+        context['breadcrumbs'] = breadcrumbs
+        context['heading'] = "SITE text"
         context['category_name'] = category_obj.category.name
         context['store_thumb'] = category_obj.store.thumb
         return context
@@ -84,9 +87,13 @@ class CategoryEdit(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['heading'] = "Categories"
-        context['pageview'] = "Cat info"
-       # success_url = reverse_lazy('categorybaseedit', kwargs={'pk': self.kwargs['pk']})
+        category_obj = get_object_or_404(OcCategory, pk=self.kwargs['pk'])
+        context['heading'] = "BASE text"
+        breadcrumbs = []
+        breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
+        breadcrumbs.append({'name': category_obj.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': category_obj.category_id})})
+        context['breadcrumbs'] = breadcrumbs
+
         return context
 
     def get_success_url(self):
@@ -98,10 +105,12 @@ class CategoryEdit(UpdateView):
 def category_details(request, pk):
     template = 'category/category_layout.html'
     context = {}
-    context['pageview'] = "Categories"
-    context['heading'] = pk
-
     category_obj = get_object_or_404(OcCategoryDescriptionBase, pk=pk)
+    breadcrumbs = []
+    breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
+    context['breadcrumbs'] = breadcrumbs
+    context['heading'] = category_obj.name
+
     context['category_obj'] = category_obj
 
     return render(request, template, context)

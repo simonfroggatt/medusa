@@ -27,7 +27,7 @@ urlpatterns = [
     path('api/customer/<int:customer_id>/order_create', views.order_customer_create, name='api_createorder'),
     path('api/customer/<int:customer_id>/quote_create', create_quote_customer, name='api_createquote'),
     path('api/customer/<int:customer_id>/delete', views.customer_delete, name='api_customer_delete'),
-    path('<int:customer_id>/companyassign', views.customer_assign_company, name='customerassigncompany'),
+
     path('details/<int:customer_id>/password/edit', views.customers_edit_password, name='customereditpassword'),
     path('create', views.contact_create, name='create_customer'),
 
@@ -38,6 +38,11 @@ urlpatterns = [
     path('<int:customer_id>/document/fetch', views.customer_document_fetch, name='fetch_customer_documents'),
     path('document/<pk>/download', views.customer_document_download, name='customer_document-download'),
     path('document/<pk>/delete', views.customer_document_delete, name='customer_document-delete'),
+
+    #compnay stuff
+
+    path('<int:customer_id>/companyassign', views.customer_assign_company, name='customerassigncompany'),
+    path('<int:customer_id>/convert', views.customer_convert_to_company, name='customer_convert_to_company'),
 
     #dynamics
 

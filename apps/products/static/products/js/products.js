@@ -577,7 +577,7 @@ $(function () {
                 "url": "/products/api/productoptions/"+product_id+"?format=datatables",
                 "type": "GET",
             },
-            "deferRender": false,
+            "deferRender": true,
 
             "search": {
                 "regex": true
@@ -585,15 +585,34 @@ $(function () {
             columns: [
                 {data: "product_option.option_desc"},
                 {data: "option_value.option_value_desc"},
+                 {data: "product_option.value"},
                 {data: "option.type.name"},
                 {data: "product_option.option.sort_order"},
-                {data: "product_option.required"},
+                {
+                    data: "product_option.required",
+                    render: function (data, type, row) {
+                    if (data) {
+                        return '<span class="badge rounded-pill badge-soft-danger font-size-10">REQUIRED</span>'
+                    } else {
+                        return '<span class="badge rounded-pill badge-soft-success font-size-10">OPTIONAL</span>'
+                    }
+
+                    }
+                },
                 {
                     data: "product_option.product_option_id",
+                    className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-symbol-edit" role="button" data-url="api/product/' + product_id +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-minus"></i></a>';
-                        return remove_icon
+                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-option-edit-btn" data-url="api/product/'+product_id+'/productoption/edit/'+data+'" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-option-btn" role="button" data-url="api/product/'+product_id+'/productoption/delete/'+row['product_option_value_id']+'"><i class="fa-solid fa-minus"></i></a>';
+                        return edit_icon + ' ' + remove_icon
                     },
+                     sortable: false,
+                     searchable: false,
+                },
+                {
+                    data: "product_option_value_id",
+                    visible: false,
                 }
 
             ]
@@ -621,18 +640,20 @@ $(function () {
                 "url": "/products/api/productoptions-available/"+product_id+"?format=datatables",
                 "type": "GET",
             },
-            "deferRender": false,
+            "deferRender": true,
 
             "search": {
                 "regex": true
             },
             columns: [
                 {
-                    data: "product_option.product_option_id",
+                    data: "option_value_id",
                     render: function (data, type, row) {
-                        let remove_icon = '<a class="btn btn-success btn-tsg-row js-product-symbol-edit" role="button" data-url="api/product/' + product_id +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-plus"></i></a>';
+                        let remove_icon = '<a class="btn btn-success btn-tsg-row js-product-option-btn" role="button" data-url="api/product/'+product_id+'/productoption/add/'+data+'"><i class="fa-solid fa-plus"></i></a>';
                         return remove_icon
                     },
+                     sortable: false,
+                     searchable: false,
                 },
                 {data: "option_desc"},
                 {data: "option_value_desc"},
@@ -940,7 +961,6 @@ $(function () {
     }
 
     function RelatedProductUpdate(){
-        alert('asdsadas')
         form = $(this)
         $.ajax({
             url: form.attr("action"),
@@ -1198,6 +1218,34 @@ $(function () {
 
     });
 
+    /** --  product options  --  **/
+     $(document).on("click", ".js-product-option-edit-btn", loadForm);
+     $(document).on("click", ".js-product-option-btn", AddRemoveProductOption);
+
+    function updateProductOptionsTables()
+    {
+        var product_option_table_available = $('#product_options_available_table').DataTable();
+        var product_option_table_active = $('#product_options_active_table').DataTable();
+
+        product_option_table_available.ajax.reload();
+        product_option_table_active.ajax.reload();
+
+    }
+
+    function AddRemoveProductOption() {
+        var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'POST',
+            data: {csrfmiddlewaretoken: window.CSRF_TOKEN},
+            success: function (data) {
+                if (data.is_saved) {
+                    updateProductOptionsTables()
+                }
+            }
+        });
+        return false;
+    }
 
 
 

@@ -1,0 +1,16 @@
+<div class="row row-cols-1 row-cols-md-2  row-cols-xl-3 row-cols-xxl-4 g-4">
+    {% for address_books in address_book_list %}
+        {% for address in address_books %}
+        <div class="col">
+            <div class="card h-100 mb-0">
+                <div class="card-header d-grid gap-1 d-flex text-start">
+                    <a href="/customer/details/{{address.customer.customer_id}}">{{ address.customer.fullname }}</a>
+                </div>
+                <div class="card-body ">
+                             {% include 'customer/address_details.html' with address=address %}
+                        </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endfor %}
+</div>

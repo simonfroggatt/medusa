@@ -19,8 +19,7 @@ import os
 # Create your views here.
 def company_list(request):
     template_name = 'company/company_list.html'
-    content = {'pageview': 'Company'}
-    content['heading'] = ""
+    content = {'heading': 'Companies'}
     return render(request, template_name, content)
 
 
@@ -50,8 +49,9 @@ def company_details(request, company_id):
 
     template_name = 'company/company_layout.html'
 
-    context['pageview'] = 'Companies'
-    context['pageview_url'] = reverse_lazy('allcompanies')
+    breadcrumbs = []
+    breadcrumbs.append({'name': 'Companies', 'url': reverse_lazy('allcompanies')})
+    context['breadcrumbs'] = breadcrumbs
     context['heading'] = company_obj.company_name
 
     company_docs_obj = OcTsgCompanyDocuments.objects.filter(company_id=company_id)
@@ -60,6 +60,14 @@ def company_details(request, company_id):
     docform = CompanyDocumentForm(initial=docform_initials)
     context['docform'] = docform
     context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
+    #get all the address for the contacts in the conpany
+    contacts_obj = OcCustomer.objects.filter(parent_company_id=company_id)
+    address_book = []
+    for contact in contacts_obj:
+        address_book.append(contact.address_customer.all().order_by('postcode'))
+    context['address_book_list'] = address_book
+
 
     return render(request, template_name, context)
 
@@ -153,8 +161,13 @@ def company_details_edit(request, company_id):
     if request.method == 'POST':
         form = CompanyEditForm(request.POST, instance=company_details_obj)
         if form.is_valid():
+            if 'account_type' in form.changed_data:
+                new_account_type = form.cleaned_data['account_type']
+                company_contact_change_account_type(company_id, new_account_type)
             data['form_is_valid'] = True
             company_details_obj.save()
+            #not lets check to see if we need to do anything extra
+
         else:
             data['form_is_valid'] = False
 
@@ -203,6 +216,7 @@ def company_create_contact(request, company_id):
         'safe': 1,
         'customer_group': 1,
         'account_type': company_obj.account_type,
+        'telephone': company_obj.telephone,
         'email': company_obj.email[company_obj.email.index('@')  : ]
     }
 
@@ -261,6 +275,12 @@ def company_contact_save(request):
     data['redirect_url'] = reverse_lazy('customerdetails', kwargs={'customer_id': customer_id})
 
     return JsonResponse(data)
+
+def company_contact_change_account_type(company_id, new_account_type):
+    contacts_obj = OcCustomer.objects.filter(parent_company_id=company_id)
+    for contact in contacts_obj:
+        contact.account_type = new_account_type
+        contact.save()
 
 
 def company_document_fetch(request, company_id):

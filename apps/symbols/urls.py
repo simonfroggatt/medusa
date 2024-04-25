@@ -4,12 +4,12 @@ from rest_framework import routers
 from django.urls import include
 
 router = routers.SimpleRouter()
-#router.register(r'symbols', views.Symbols.as_view())
+router.register(r'symbols', views.Symbols)
 
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/symbols/', views.Symbols.as_view(), name='list_all_symbols'),
+    #path('api/symbols/', views.Symbols.as_view(), name='list_all_symbols'),
     path('<int:pk>', views.SymbolsUpdateView.as_view(), name='symboldetails'),
     #path('create/', views.symbol_create, name='symbolcreate'),
     path('create/', views.SymbolCreateView.as_view(), name='symbolcreate'),

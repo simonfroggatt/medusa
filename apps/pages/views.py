@@ -13,7 +13,6 @@ class Blogs(viewsets.ModelViewSet):
     queryset = OcTsgBlogs.objects.all()
     serializer_class = BlogSerializer
 
-
 class BlogUpdate(UpdateView):
     model = OcTsgBlogs
     form_class = BlogDetailsEditForm
@@ -22,7 +21,7 @@ class BlogUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['testit'] = 'this is a test'
+        context['heading'] = 'Blogs'
         return context
 
 
@@ -34,7 +33,7 @@ class BlogCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['testit'] = 'this is a test'
+        context['header'] = 'Blogs'
         return context
 
 
@@ -95,15 +94,13 @@ def blog_create(request):
 
 def allBlogs(request):
     template_name = 'pages/blogs/blogs_list.html'
-    content = {'pageview': 'Blogs'}
-    content['heading'] = ""
-    return render(request, template_name, content)
+    context = {'heading': 'Blogs'}
+    return render(request, template_name, context)
 
 def allInfo(request):
     template_name = 'pages/info/information_list.html'
-    content = {'pageview': 'Information'}
-    content['heading'] = ""
-    return render(request, template_name, content)
+    context = {'heading': "Information"}
+    return render(request, template_name, context)
 
 
 class BlogUpdate(UpdateView):
@@ -112,10 +109,14 @@ class BlogUpdate(UpdateView):
     template_name = 'pages/blogs/blog_details.html'
     success_url = reverse_lazy('allblogs')
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     blog_id = self.object.id
-    #     return context
+    def get_context_data(self, **kwargs):
+         context = super().get_context_data(**kwargs)
+         obj = super().get_object()
+         breadcrumbs = []
+         breadcrumbs.append({'name': 'Blogs', 'url': reverse_lazy('allblogs')})
+         context['breadcrumbs'] = breadcrumbs
+         context['heading'] = obj.title
+         return context
 
 
 class Information(viewsets.ModelViewSet):
@@ -128,6 +129,15 @@ class InfoUpdate(UpdateView):
     form_class = InformationDetailsEditForm
     template_name = 'pages/info/information_details.html'
     success_url = reverse_lazy('allinfo')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = super().get_object()
+        breadcrumbs = []
+        breadcrumbs.append({'name': 'Infomation', 'url': reverse_lazy('allinfo')})
+        context['breadcrumbs'] = breadcrumbs
+        context['heading'] = obj.title
+        return context
 
 
 def info_create(request):

@@ -61,6 +61,7 @@ class OcTsgSymbols(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_symbols'
+        ordering = ['id']
 
     @property
     def symbol_image_url(self):

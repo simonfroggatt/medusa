@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'apps.bulk',
     'apps.shipping',
     'apps.suppliers',
+    'apps.dashboard',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -158,13 +159,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'GMT'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -191,6 +192,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/bulk/static/bulk'),
                     os.path.join(BASE_DIR, 'apps/shipping/static/shipping'),
                     os.path.join(BASE_DIR, 'apps/suppliers/static/suppliers'),
+                    os.path.join(BASE_DIR, 'apps/dashboard/static/dashboard'),
 
                     ]
 

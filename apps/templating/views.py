@@ -17,8 +17,7 @@ class Templates(viewsets.ModelViewSet):
 
 def all_templates(request):
     template_name = 'templating/template_list.html'
-    context = {'pageview': 'Templates'}
-    context['heading'] = ""
+    context = {'heading': "Templates"}
     return render(request, template_name, context)
 
 
@@ -27,4 +26,13 @@ class TemplateUpdate(UpdateView):
     form_class = TemplateDetailsEditForm
     template_name = 'templating/template_details.html'
     success_url = reverse_lazy('alltemplates')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = super().get_object()
+        breadcrumbs = []
+        breadcrumbs.append({'name': 'Templates', 'url': reverse_lazy('alltemplates')})
+        context['breadcrumbs'] = breadcrumbs
+        context['heading'] = obj.name
+        return context
 

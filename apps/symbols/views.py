@@ -10,17 +10,27 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
 
 
-class Symbols(generics.ListAPIView):
+
+class Symbols(viewsets.ModelViewSet):
     queryset = OcTsgSymbols.objects.all()
-    serializer_class = SymbolShortSerializer
+    serializer_class = SymbolSerializer
+    def get_queryset(self):
+        return OcTsgSymbols.objects.all()
 
     def post(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+#class Symbols(generics.ListAPIView):
+#    queryset = OcTsgSymbols.objects.all()
+#    serializer_class = SymbolShortSerializer
+
+ #   def post(self, request, *args, **kwargs):
+ #       return self.list(request, *args, **kwargs)
+
 
 def all_symbols(request):
     template_name = 'symbols/symbols-list.html';
-    context = {'pageview': 'Symbols'}
+    context = {'heading': 'Symbols'}
 
     return render(request, template_name, context)
 
@@ -81,9 +91,12 @@ class SymbolsUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
         obj = super().get_object()
-        context['pageview'] = 'Symbols'
-        context['pageview_url'] = reverse_lazy('allsymbols')
+        breadcrumbs = []
+        breadcrumbs.append({'name': 'Symbols', 'url': reverse_lazy('allsymbols')})
+        context['breadcrumbs'] = breadcrumbs
+        context['heading'] = obj.refenceno
         context['symbol_image_path'] = f"{settings.MEDIA_URL}{obj.image_path}"
         return context
 

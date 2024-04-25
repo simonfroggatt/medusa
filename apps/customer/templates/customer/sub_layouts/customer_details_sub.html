@@ -14,6 +14,10 @@
                 <dd class="col-9"><a href="mailto:{{ customer_obj.email }}">{{ customer_obj.email }}</a></dd>
                 <dt class="col-3">Phone</dt>
                 <dd class="col-9">{{ customer_obj.telephone }}</dd>
+                {% if customer_obj.mobile %}
+                    <dt class="col-3">Mobile</dt>
+                    <dd class="col-9">{{ customer_obj.mobile }}</dd>
+                {% endif %}
                 {% if customer_obj.account_type %}
                     <dt class="col-3">Account Type</dt>
                     <dd class="col-9">{{ customer_obj.account_type }}</dd>

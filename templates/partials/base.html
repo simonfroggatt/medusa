@@ -65,7 +65,9 @@
                             <div class=" d-sm-flex align-items-center justify-content-between page-title-box">
                                 <div class="page-title-left">
                                     <ol class="breadcrumb m-0">
-                                        <li class="breadcrumb-item"><a href="{{pageview_url}}">{{pageview}}</a></li>
+                                        {% for breadcrumb in breadcrumbs %}
+                                            <li class="breadcrumb-item"><a href="{{breadcrumb.url}}">{{breadcrumb.name}}</a></li> 
+                                        {% endfor %}
                                         <li class="breadcrumb-item active">{{heading}}</li>
                                     </ol>
                                 </div>

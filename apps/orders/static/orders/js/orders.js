@@ -745,8 +745,8 @@ $(function () {
     $(document).on('click', '.js-order-shipping-choice-edit', loadOrderShippingChoiceEditForm);
     $(document).on("submit", "#js-order-shipping-choice-edit", SaveOrderShippingChoiceEditForm);
 
-    //$(document).on('click', '.js-order-ship-it', LoadOrderShipIt);
-    //$(document).on("submit", "#js-order-ship-it", SaveOrderShipIt);
+    $(document).on('click', '.js-order-ship-it', LoadOrderShipIt);
+    $(document).on("submit", "#js-order-ship-it", SaveOrderShipIt);
 
     $(document).on("submit", "#js-order-delete-form", saveOrderDeleteForm);
 

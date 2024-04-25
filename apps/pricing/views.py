@@ -224,7 +224,6 @@ class MaterialUpdateView(UpdateView):
         context['material_id'] = pk
         context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
 
-
         return context
 
 

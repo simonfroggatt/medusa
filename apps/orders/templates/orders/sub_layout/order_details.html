@@ -48,7 +48,7 @@
                      <dt class="col-3">Status:</dt>
                      <dd class="col-9">{{ order_obj.order_status.name }}</dd>
                      <dt class="col-3">Payment:</dt>
-                     <dd class="col-9">{{order_obj.payment_method.payment_method_name }} - {{order_obj.payment_status.name }}</dd>
+                     <dd class="col-9">{{order_obj.payment_method.method_name }} - {{order_obj.payment_status.name }}</dd>
                      <dt class="col-3">Shipment:
                          {% if shippingObj %}
                         <a class="btn btn-sm" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">

@@ -52,10 +52,10 @@
                     <div class="col-3">
                         <div class="float-end">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
-                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
-                                        data-url=""
+                                <a type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
+                                        href="{% url 'categorybaseedit' category_obj.category_id %}"
                                         data-dlgsize="modal-xl"
-                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                             </div>
                         </div>
                     </div>

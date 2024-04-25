@@ -1,0 +1,288 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div id="daily_chart" class=""></div>
+            </div>
+            <div class="col-md-6">
+                <div id="weekly_chart" class="a"></div>
+            </div>
+            <div class="col-md-12">
+                <div id="monthly_chart" class=""></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block javascript %}
+
+<script>
+    var payment_method_options = {
+          chart: {
+          type: 'bar',
+          height: 350,
+          stacked: true,
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: false
+          }
+        },
+        responsive: [{
+          breakpoint: 480,
+          options: {
+            legend: {
+              position: 'bottom',
+              offsetX: -10,
+              offsetY: 0
+            }
+          }
+        }],
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            borderRadius: 10,
+            borderRadiusApplication: 'end', // 'around', 'end'
+            borderRadiusWhenStacked: 'last', // 'all', 'last'
+            dataLabels: {
+              total: {
+                enabled: true,
+                style: {
+                  fontSize: '13px',
+                  fontWeight: 900
+                }
+              }
+            }
+          },
+        },
+        legend: {
+          position: 'right',
+          offsetY: 40
+        },
+        fill: {
+          opacity: 1
+        }
+        };
+
+
+
+
+
+        function daily_method_chart()
+        {
+            let daily_options = {
+          chart: {
+          type: 'bar',
+          height: 350,
+          stacked: true,
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: false
+          }
+        },
+        responsive: [{
+          breakpoint: 480,
+          options: {
+            legend: {
+              position: 'bottom',
+              offsetX: -10,
+              offsetY: 0
+            }
+          }
+        }],
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            borderRadius: 10,
+            borderRadiusApplication: 'end', // 'around', 'end'
+            borderRadiusWhenStacked: 'last', // 'all', 'last'
+            dataLabels: {
+              total: {
+                enabled: true,
+                style: {
+                  fontSize: '13px',
+                  fontWeight: 900
+                }
+              }
+            }
+          },
+        },
+        legend: {
+          position: 'right',
+          offsetY: 40
+        },
+        fill: {
+          opacity: 1
+        }
+        };
+
+            let daily_data = {{ daily_by_method|safe }};
+            let daily_series = [];
+            let daily_labels = [];
+            for (var item in daily_data) {
+               daily_series.push(daily_data[item])
+                daily_labels.push(item)
+            }
+            daily_options.series = daily_series;
+            daily_options.labels = daily_labels;
+            daily_options.chart.type = 'pie'
+
+            var dailyChart = new ApexCharts(document.querySelector("#daily_chart"), daily_options);
+            dailyChart.render();
+        }
+
+        function weekly_method_chart()
+        {
+            let weekly_options = {
+          chart: {
+          type: 'bar',
+          height: 350,
+          stacked: true,
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: false
+          }
+        },
+        responsive: [{
+          breakpoint: 480,
+          options: {
+            legend: {
+              position: 'bottom',
+              offsetX: -10,
+              offsetY: 0
+            }
+          }
+        }],
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            borderRadius: 10,
+            borderRadiusApplication: 'end', // 'around', 'end'
+            borderRadiusWhenStacked: 'last', // 'all', 'last'
+            dataLabels: {
+              total: {
+                enabled: true,
+                style: {
+                  fontSize: '13px',
+                  fontWeight: 900
+                }
+              }
+            }
+          },
+        },
+        legend: {
+          position: 'right',
+          offsetY: 40
+        },
+        fill: {
+          opacity: 1
+        }
+        };
+            let weekly_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            weekly_options.xaxis = {
+                categories: weekly_labels,
+
+            }
+            let weekly_data = {{ weekly_by_method|safe }};
+            let weekly_series = [];
+            for (var item in weekly_data) {
+               weekly_series.push({
+                  name: item,
+                  data: weekly_data[item]
+                });
+            }
+            weekly_options.series = weekly_series;
+
+            var weeklyChart = new ApexCharts(document.querySelector("#weekly_chart"), weekly_options);
+            weeklyChart.render();
+        }
+
+        function monthly_method_chart()
+        {
+            let monthly_options = {
+          chart: {
+          type: 'bar',
+          height: 350,
+          stacked: true,
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: false
+          }
+        },
+        responsive: [{
+          breakpoint: 480,
+          options: {
+            legend: {
+              position: 'bottom',
+              offsetX: -10,
+              offsetY: 0
+            }
+          }
+        }],
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            borderRadius: 10,
+            borderRadiusApplication: 'end', // 'around', 'end'
+            borderRadiusWhenStacked: 'last', // 'all', 'last'
+            dataLabels: {
+              total: {
+                enabled: true,
+                style: {
+                  fontSize: '13px',
+                  fontWeight: 900
+                }
+              }
+            }
+          },
+        },
+        legend: {
+          position: 'right',
+          offsetY: 40
+        },
+        fill: {
+          opacity: 1
+        }
+        };
+
+            let monthly_data = {{ monthly_by_method|safe }};
+            let monthly_range = {{ monthly_range|safe }};
+
+            monthly_options.xaxis = {
+                type: 'datetime',
+                tickAmount: 1   ,
+                min: new Date(monthly_range['start']).getTime(),
+                max: new Date(monthly_range['end']).getTime(),
+            }
+
+            let monthly_series = [];
+            for (var item in monthly_data) {
+               monthly_series.push({
+                  name: item,
+                  data: monthly_data[item]
+                });
+            }
+            monthly_options.series = monthly_series
+
+            var monthlyChart = new ApexCharts(document.querySelector("#monthly_chart"), monthly_options);
+            monthlyChart.render();
+        }
+
+        daily_method_chart()
+        weekly_method_chart()
+        monthly_method_chart()
+</script>
+
+{% endblock %}

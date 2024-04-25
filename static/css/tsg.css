@@ -449,6 +449,10 @@ table.table-mail tr td {
   color: #20de20;
 }
 
+.flag-darkgreen {
+  color: #008800;
+}
+
 .btn-green,
 .btn-green.disabled,
 .btn-green:disabled {
