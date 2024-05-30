@@ -5,6 +5,7 @@ import pathlib
 from svglib.svglib import svg2rlg
 from django.db.models import Sum, F
 from decimal import Decimal, ROUND_HALF_UP
+from django.urls import path, include
 
 
 def create_company_logo(company_obj):
@@ -178,6 +179,7 @@ def order_payment_details_simple(order_obj, currency_symbol):
     order_payment_str = ''
     if order_obj.payment_status_id == 2:
         order_payment_str = 'Paid with thanks'
+        order_payment_str +='<br/>Paid via ' + order_obj.payment_method.method_name
     else:
         order_payment_str = 'Payment Type:' + order_obj.payment_status.name
         order_payment_str += '<BR/>Due Date:' + order_obj.date_added.strftime('%d/%m/%Y')

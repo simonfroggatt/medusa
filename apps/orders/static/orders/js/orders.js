@@ -765,6 +765,10 @@ $(function () {
     $(document).on("click", ".js-order_document-delete", loadForm);
     $(document).on("submit", "#form-order_document-delete", DocumentUpload);
 
+    //XERO api stuff
+    $(document).on("click", ".js-xero-api", XeroApiCall);
+    $(document).on("click", ".js-xero-dlg", XeroApiCallDlg);
+
 })
 
 function copy_orderno_to_clipboard(order_number) {

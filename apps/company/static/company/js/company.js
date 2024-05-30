@@ -170,7 +170,6 @@ $(function () {
     } );
 
 
-
     $(document).on('click', '.js-company-dlg', loadForm);
     $(document).on("submit", "#js-company-edit-form", SaveDialogFormRedirect);
 
@@ -203,6 +202,10 @@ $(function () {
     $(document).on("submit", "#form_company_document", DocumentUpload);
     $(document).on("click", ".js-company_document-delete", loadForm);
     $(document).on("submit", "#form-company_document-delete", DocumentUpload);
+
+    //XERO api stuff
+    $(document).on("click", ".js-xero-company-api", XeroApiCall);
+    $(document).on("click", ".js-xero-company-dlg", XeroApiCallDlg);
 
 
 })

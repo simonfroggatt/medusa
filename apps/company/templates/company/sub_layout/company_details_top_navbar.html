@@ -7,8 +7,32 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-
                 <a class="btn btn-success js-company-contact-create" role="button" data-url="{% url 'create_company_contact' company_obj.pk %}" data-dlgsize="modal-lg"><i class="fa-solid fa-user-plus"></i> New Contact</a>
+
+                <div class="dropdown dropstart">
+                    <button class="btn {{ BUTTON_EXTRA }} " type="button" id="dropdownOrderOptions"
+                            data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fa-solid fa-cog"></i>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
+                        {% if company_obj.xero_id %}
+                            <li>
+                                <a class="dropdown-item js-xero-company-api" role="button"
+                                   data-url="{% url 'company_xero_update' company_obj.pk %}" data-dlgsize="modal-sm">Update Xero</a>
+                            </li>
+                        {% else %}
+                            <li>
+                                <a class="dropdown-item js-xero-company-api" role="button"
+                                   data-url="{% url 'company_xero_add' company_obj.pk %}" data-dlgsize="modal-sm">Add to Xero</a>
+                            </li>
+                        {% endif %}
+<hr>
+                        <li class="list-group-item-danger">
+                            <a class="dropdown-item js-order-product-edit text-danger" role="button"
+                               data-url="" data-dlgsize="modal-sm">Archieve</a>
+                           </li>
+                    </ul>
+                </div>
+
             </div>
         </div>
     </div>

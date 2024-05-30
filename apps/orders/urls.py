@@ -83,7 +83,13 @@ urlpatterns = [
     path('document/upload', views.order_document_upload, name='order_document-upload'),
     path('<int:order_id>/document/fetch', views.order_document_fetch, name='fetch_order_documents'),
     path('document/<pk>/download', views.order_document_download, name='order_document-download'),
-    path('document/<pk>/delete', views.order_document_delete, name='order_document-delete')
+    path('document/<pk>/delete', views.order_document_delete, name='order_document-delete'),
+
+    #accounting
+    path('api/<int:pk>/xero/update', views.order_xero_update, name = 'order-update-xero'),
+    path('api/<int:pk>/xero/add', views.order_xero_add, name = 'order-add-xero'),
+    path('api/<int:pk>/xero/link', views.order_xero_link, name = 'order-xero-link'),
+    path('api/<int:pk>/xero/marksent', views.order_xero_marksent, name = 'order-xero-marksent'),
 
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

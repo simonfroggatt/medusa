@@ -222,5 +222,85 @@ function UpdateSiteVarientTable(){
 
      var product_symbol_table_available = $('#product_variants_site_table').DataTable();
      product_symbol_table_available.ajax.reload();
+    };
+
+function add_toast_message(message, header, type = 'success', autohide = true) {
+    var uniqueIDNumber = 'toast_' + new Date().getTime();
+    let new_toast = document.createElement('div')
+    let toast_string = '<div class="toast text-' + type + '" role="alert" aria-live="assertive" data-bs-autohide="'+autohide+'" aria-atomic="true" id="' + uniqueIDNumber + '">';
+    if (header.length > 1) {
+        toast_string += '<div class="toast-header">';
+        toast_string += '<strong class="me-auto">';
+        toast_string += header;
+        toast_string += '</strong>';
+        toast_string += '<small class="text-body-secondary">just now</small>';
+        toast_string += '<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>';
+        toast_string += '</div>';
+    }
+    toast_string += '<div class="toast-body">';
+    toast_string += message;
+    toast_string += '</div>';
+    toast_string += '</div>';
+    new_toast.innerHTML = [toast_string].join('')
+
+    let toastStack = document.getElementById('toastStackDiv')
+    toastStack.append(new_toast)
+    let newtoast = document.getElementById(uniqueIDNumber)
+
+    const myToast = bootstrap.Toast.getOrCreateInstance(newtoast)
+    myToast.show()
+
+}
+
+
+
+var XeroApiCall = function (){
+        var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+
+            },
+            success: function (data) {
+                if (data.status === 'OK') {
+                    let api_call_type = data.xero_call_type
+                    add_toast_message(api_call_type + ' was updated', 'XERO ' + api_call_type +' - API', 'bg-success')
+                } else {
+                     let api_call_type = data.xero_call_type
+                    let error_obj = data.error
+                    let error_details = error_obj['error_details']
+                    let error_str = ''
+                    error_details.forEach(function (item, index) {
+                        error_str = error_str + item['Message'] + '<br>'
+                        })
+
+                    add_toast_message(error_str, 'XERO ' + api_call_type + ' - API', 'bg-error')
+                }
+            },
+        });
+    }
+
+
+var XeroApiCallDlg = function(){
+        var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
+                $("#modal-base #modal-outer").addClass('modal-lg')
+                $("#modal-base").modal("show");
+            },
+            success: function (data) {
+                if (data.xero_status === 'OK') {
+                    $("#modal-base").modal("hide")
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            },
+        });
     }
 

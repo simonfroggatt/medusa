@@ -39,12 +39,17 @@ urlpatterns = [
     path('document/<pk>/download', views.customer_document_download, name='customer_document-download'),
     path('document/<pk>/delete', views.customer_document_delete, name='customer_document-delete'),
 
-    #compnay stuff
+    #comnnay stuff
 
     path('<int:customer_id>/companyassign', views.customer_assign_company, name='customerassigncompany'),
     path('<int:customer_id>/convert', views.customer_convert_to_company, name='customer_convert_to_company'),
 
+    #xero
+    path('<int:customer_id>/xero/add', views.customer_xero_add, name='customer_xero_add'),
+    path('<int:customer_id>/xero/update', views.customer_xero_update, name='customer_xero_update'),
     #dynamics
+
+
 
   #  path('address/<int:pk>', views.customer_address_view),
    # path('address/edit/<int:address_id>', views.customer_address_view),

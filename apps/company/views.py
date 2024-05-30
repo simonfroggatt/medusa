@@ -13,6 +13,7 @@ from apps.customer.models import OcCustomer
 from medusa import services
 from django.conf import settings
 import os
+from cryptography.fernet import Fernet
 
 
 
@@ -366,5 +367,19 @@ def company_document_delete(request, pk):
                                                      )
 
     return JsonResponse(data)
+
+
+def company_xero_add(request, company_id):
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(company_id).encode()).decode()
+    return_url = reverse_lazy('xero_company_add', kwargs={'company_id': company_id, 'encrypted': encrypted_order_num})
+    return HttpResponseRedirect(return_url)
+
+def company_xero_update(request, company_id):
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(company_id).encode()).decode()
+    return_url = reverse_lazy('xero_company_update',
+                              kwargs={'company_id': company_id, 'encrypted': encrypted_order_num})
+    return HttpResponseRedirect(return_url)
 
 

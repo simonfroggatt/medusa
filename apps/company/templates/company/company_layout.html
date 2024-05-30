@@ -8,10 +8,14 @@
     <div class="wrapper wrapper-content layout-details">
         <div class="row top_bar">
             <div class="col-6 col-lg-4">
-                <h2>{{ company_obj.company_name }} <i class="{{ company_obj.status.status_image}}"></i></h2>
+                <h2>{{ company_obj.company_name }} <i class="{{ company_obj.status.status_image}}"></i>
+                {% if company_obj.xero_id %}
+                        <a href="https://go.xero.com/app/contacts/contact/{{company_obj.xero_id}}" target="_blank"><img src="{% get_media_prefix %}stores/3rdpartylogo/Xero_logo.svg" class="img-responsive tsg-thumbnail"
+                                        alt="Xero"></a>
+                    {% endif %}
+                </h2>
             </div>
             <div class="col-2 col-lg-4">
-
             </div>
             <div class="col-4 col-lg-4">
                 {% include 'company/sub_layout/company_details_top_navbar.html' %}

@@ -38,6 +38,7 @@ urlpatterns = [
     path('shipping/', include('apps.shipping.urls')),
     path('suppliers/', include('apps.suppliers.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
+    path('xero_api/', include('apps.xero_api.urls')),
     path('', views.StarterPageView.as_view(), name='apps-pages-starter'),
     path('admin/', admin.site.urls),
     path('tinymce/', include('tinymce.urls')),

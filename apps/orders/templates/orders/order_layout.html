@@ -9,13 +9,18 @@
 {% block content %}
     <div class="wrapper wrapper-content layout-details">
         <div class="row top_bar align-middle">
-            <div class="col-3 col-lg-2">
+            <div class="col-3 col-lg-3">
                 <h2>{{ order_obj.store.prefix }}-<a id="js-order-number"
                         href="javascript: copy_orderno_to_clipboard({{ order_obj.order_id }})">{{ order_obj.order_id }}</a>
-                    <img src="{% get_media_prefix %}stores/branding/logos/{{ order_obj.store.thumb }}" class="img-responsive"
-                         alt="{{ order_obj.store.name }}"></h2>
+                    <img src="{% get_media_prefix %}stores/branding/logos/{{ order_obj.store.thumb }}" class="img-responsive tsg-thumbnail"
+                         alt="{{ order_obj.store.name }}">
+                    {% if order_obj.xero_id %}
+                        <a href="https://go.xero.com/app/invoicing/view/{{order_obj.xero_id}}" target="_blank"><img src="{% get_media_prefix %}stores/3rdpartylogo/Xero_logo.svg" class="img-responsive tsg-thumbnail"
+                                        alt="Xero"></a>
+                    {% endif %}
+                </h2>
             </div>
-            <div class="col-3 col-lg-4 align-middle" id="div_order_flags">
+            <div class="col-3 col-lg-3 align-middle" id="div_order_flags">
                 {% include 'orders/sub_layout/order_flags.html' %}
             </div>
             <div class="col-6 col-lg-6">

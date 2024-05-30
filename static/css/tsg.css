@@ -634,6 +634,10 @@ div.dataTables_wrapper div.dataTables_filter input {
     max-width: 400px;
   }
 
+.img-responsive.tsg-thumbnail {
+   max-height: 1em
+}
+
 
 .btn-group-xs > .btn, .btn-tsg-row
 {

@@ -24,6 +24,7 @@ class OcTaxRate(models.Model):
     type = models.CharField(max_length=1)
     date_added = models.DateTimeField()
     date_modified = models.DateTimeField()
+    accounting_code = models.CharField(max_length=32)
 
     class Meta:
         managed = False

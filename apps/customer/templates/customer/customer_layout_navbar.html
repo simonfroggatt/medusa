@@ -27,8 +27,34 @@
                                data-url="{% url 'customer_convert_to_company'  customer_obj.pk  %}" data-dlgsize="modal-md">Convert to Company</a>
                            </li>
                          {% endif %}
+                        {% if customer_obj.xero_id %}
+                            <li>
+                                <a class="dropdown-item js-xero-contact-api" role="button"
+                                   data-url="{%  url 'customer_xero_update' customer_obj.pk %}" data-dlgsize="modal-sm">Update Xero - Con</a>
+                            </li>
+                        {% else %}
+                            {% if customer_obj.parent_company %}
+                                 {% if customer_obj.parent_company.xero_id %}
+                                    <li>
+                                        <a class="dropdown-item js-xero-contact-api" role="button"
+                                           data-url="{%  url 'company_xero_update' customer_obj.parent_company.pk %}" data-dlgsize="modal-sm">Update Xero - Comp</a>
+                                    </li>
+                                {% else %}
+                                    <li>
+                                    <a class="dropdown-item js-xero-contact-api" role="button"
+                                       data-url="{%  url 'company_xero_add' customer_obj.parent_company.pk %}" data-dlgsize="modal-sm">Add to Xero - Comp</a>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                                <li>
+                                    <a class="dropdown-item js-xero-contact-api" role="button"
+                                       data-url="{%  url 'customer_xero_add' customer_obj.pk %}" data-dlgsize="modal-sm">Add to Xero - Con</a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    <hr>
                         <li class="list-group-item-danger">
-                            <a class="dropdown-item js-customer-edit" role="button"
+                            <a class="dropdown-item js-customer-edit text-danger" role="button"
                                data-url="{% url 'api_customer_delete' customer_obj.pk %}" data-dlgsize="modal-sm">Delete</a>
                            </li>
                     </ul>

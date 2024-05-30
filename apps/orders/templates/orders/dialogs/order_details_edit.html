@@ -39,12 +39,21 @@
     //some some cool stuff with payment types etc.
     $('#id_{{ form.payment_method.name }}').change(function() {
         changedto = $(this).val()
-        if(changedto == 7) { // PO
-            $('#id_{{ form.payment_status.name }}').val(3)  //waioting
+        if(changedto == 7) { // Proforma
+            $('#id_{{ form.payment_status.name }}').val(3)  //waiting
             $('#id_{{ form.order_status.name }}').val(1)  //open
         }
-        if(changedto == 5) { //Proforma
-            $('#id_{{ form.payment_status.name }}').val(8)  //waioting
+        if(changedto == 5) { //PO
+            let po_ref = $('#id_{{ form.customer_order_ref.name }}').val()
+            if (po_ref.length == 0) {
+                new_po = prompt("Please enter the PO reference", "")
+                if (new_po != null) {
+                    $('#id_{{ form.customer_order_ref.name }}').val(new_po)
+                    $('#id_{{ form.payment_status.name }}').val(8)  //Approved
+                }
+                else
+                    $('#id_{{ form.payment_status.name }}').val(1)  //Failed
+            }
             $('#id_{{ form.order_status.name }}').val(1)  //open
         }
 

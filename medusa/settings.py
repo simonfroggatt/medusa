@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 import environ
+from django.contrib import messages
 
 env = environ.Env(
     # set casting, default value
@@ -67,6 +68,7 @@ INSTALLED_APPS = [
     'apps.shipping',
     'apps.suppliers',
     'apps.dashboard',
+    'apps.xero_api',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -193,6 +195,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/shipping/static/shipping'),
                     os.path.join(BASE_DIR, 'apps/suppliers/static/suppliers'),
                     os.path.join(BASE_DIR, 'apps/dashboard/static/dashboard'),
+                    os.path.join(BASE_DIR, 'apps/xero_api/static/xero_api'),
+
 
                     ]
 
@@ -255,6 +259,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 REPORT_PATH = os.path.join(BASE_DIR, "static/reports")
+REPORT_URL = 'http://127.0.0.1:8000'
 
 TINYMCE_JS_URL = os.path.join(STATIC_URL, "libs/tinymce/tinymce.min.js")
 
@@ -265,12 +270,32 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 TINYMCE_COMPRESSOR = False
 
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'alert-info',
+    messages.INFO: 'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR: 'alert-danger',
+}
+
+TOAST_TAGS = {
+    'INFO': 'bg-info',
+    'SUCCESS': 'bg-success',
+    'WARNING': 'bg-warning',
+    'ERROR': 'bg-danger',
+}
+
+#TSG - constants
 TSG_PAYMENT_TYPES = {
     'Proforma': 7,
     'PO': 5
 }
 
 TSG_PRODUCT_STATUS_SHIPPING = [8, 9]
+TSG_ORDER_STATUS_PROCESSED = 3
+TSG_PAYMENT_STATUS_PAID = 2
 
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -279,4 +304,11 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sales@safetysignsandnotices.co.uk' # Replace with your Google Workspace email address
 EMAIL_HOST_PASSWORD = '$me11yb0nes' # Replace with your Google Workspace email password
+
+#XERO API
+XERO_CLIENT_ID = 'CF09696A2AA3439A8C196E0951704336'
+XERO_CLIENT_SECRET = 'yblgaWg93p_kMZKCrztUT5T4gn2sbG4megdNqlz0gVSvds-t'
+XERO_TOKEN_FERNET = b'Z4mVj1JlAM5CxyKfHbvs0f8q9X4wsBqHZUD6FdmsHDk='
+
+
 

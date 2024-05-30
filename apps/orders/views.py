@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
@@ -36,6 +36,7 @@ from apps.customer.serializers import AddressSerializer
 
 from collections import OrderedDict
 from itertools import chain
+from cryptography.fernet import Fernet
 
 
 class Orders2(viewsets.ViewSet):
@@ -210,15 +211,19 @@ class OrderProductHistory(viewsets.ModelViewSet):
 
 
 def order_details(request, order_id):
+    breadcrumbs = []
     order_obj = get_object_or_404(OcOrder, pk=order_id)
-
     context = {"order_obj": order_obj}
+    context['heading'] = 'order details'
+
+
     if order_obj.customer_id > 0:
         context["addressItem"] = order_obj.customer.address_customer.all().order_by('postcode')
     else:
         context["addressItem"] = []
 
     #order_obj.orderflags.all()
+    order_type = order_obj.get_order_status()
 
 
     nav_dict = dict()
@@ -226,18 +231,40 @@ def order_details(request, order_id):
     nav_dict['label'] = "Order"
     product_flags = OcOrderProduct.objects.select_related('status').filter(order=order_id, status__is_flag=1).order_by('status__order_by').values('status__icon_path','status__name').distinct()
 
-    try:
-        next_order_id = order_obj.get_next_by_date_added().pk
-        nav_dict["next_url"] = reverse_lazy('order_details', kwargs={'order_id': next_order_id})
+    if order_type == 'LIVE':
+        context['order_status'] = 'LIVE'
+        order_obj_status = OcOrder.objects.live()
+        breadcrumbs.append({'name': 'Orders'})
+        breadcrumbs.append({'name': 'LIVE Orders', 'url': reverse_lazy('liveorders')})
+    elif order_type == 'NEW':
+        breadcrumbs.append({'name': 'Orders'})
+        context['order_status'] = 'NEW'
+        order_obj_status = OcOrder.objects.new()
+        breadcrumbs.append({'name': 'NEW Orders', 'url': reverse_lazy('neworders')})
+    elif order_type == 'FAILED':
+        breadcrumbs.append({'name': 'Orders'})
+        context['order_status'] = 'FAILED'
+        order_obj_status = OcOrder.objects.failed()
+        breadcrumbs.append({'name': 'FAILED Orders', 'url': reverse_lazy('failedorders')})
+    else:
+        context['order_status'] = 'ALL'
+        order_obj_status = OcOrder.objects.all()
+        breadcrumbs.append({'name': 'Orders'})
+        breadcrumbs.append({'name': 'ALL Orders', 'url': reverse_lazy('allorders')})
 
+    try:
+        next_order_id = order_obj_status.filter(order_id__gt=order_id).order_by('order_id').first().pk
+        nav_dict["next_url"] = reverse_lazy('order_details', kwargs={'order_id': next_order_id})
     except:
         nav_dict["next_url"] = ""
 
     try:
-        previous_order_id = order_obj.get_previous_by_date_added().pk
+        previous_order_id = order_obj_status.filter(order_id__lt=order_id).order_by('-order_id').first().pk
         nav_dict["previous_url"] = reverse_lazy('order_details', kwargs={'order_id': previous_order_id})
     except:
         nav_dict["previous_url"] = ""
+
+    context['breadcrumbs'] = breadcrumbs
 
     context["nav_data"] = nav_dict
     context["orderFlags"] = order_obj.orderflags.all()
@@ -248,10 +275,7 @@ def order_details(request, order_id):
 
     template_name = 'orders/order_layout.html'
 
-    breadcrumbs = []
-    context['breadcrumbs'] = breadcrumbs
-    breadcrumbs.append({'name': 'All Orders', 'url': reverse_lazy('allorders')})
-    context['heading'] = 'order details'
+
 
     order_products_obj = OcOrderProduct.objects.filter(order_id=order_id)
     order_lines = order_products_obj.count()
@@ -268,6 +292,8 @@ def order_details(request, order_id):
     order_docs_obj = OcTsgOrderDocuments.objects.filter(order_id=order_id)
     context['order_docs_obj'] = order_docs_obj
     context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
+
 
     return render(request, template_name, context)
 
@@ -1539,3 +1565,38 @@ def order_document_delete(request, pk):
                                                      )
 
     return JsonResponse(data)
+
+def order_xero_update(request, pk):
+    # simply encrpyt the order id and pass this, and then decrypt to check they match
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(pk).encode()).decode()
+    # convert this to a str
+    return_url = reverse_lazy('xero_order_update', kwargs={'order_id': pk, 'encrypted': encrypted_order_num})
+    return HttpResponseRedirect(return_url)
+
+def order_xero_add(request, pk):
+    #simply encrpyt the order id and pass this, and then decrypt to check they match
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(pk).encode()).decode()
+    #convert this to a str
+    return_url = reverse_lazy('xero_order_add', kwargs={'order_id': pk, 'encrypted': encrypted_order_num })
+    return HttpResponseRedirect(return_url)
+
+
+def order_xero_link(request, pk):
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(pk).encode()).decode()
+    # convert this to a str
+    return_url = reverse_lazy('xero_order_link', kwargs={'order_id': pk, 'encrypted': encrypted_order_num})
+
+    return HttpResponseRedirect(return_url)
+
+
+def order_xero_marksent(request, pk):
+    # simply encrpyt the order id and pass this, and then decrypt to check they match
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(pk).encode()).decode()
+    # convert this to a str
+    data = dict()
+    return_url = reverse_lazy('xero_order_link', kwargs={'order_id': pk, 'encrypted': encrypted_order_num})
+    return HttpResponseRedirect(return_url)

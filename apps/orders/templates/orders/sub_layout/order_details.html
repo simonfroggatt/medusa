@@ -39,16 +39,23 @@
 
                      <dt class="col-3">Order No:</dt>
                      <dd class="col-9">{{ order_obj.order_id }}</dd>
+                    {% if order_obj.customer_order_ref %}
                      <dt class="col-3">Purchase Ref:</dt>
                      <dd class="col-9">{{ order_obj.customer_order_ref|default:"&nbsp;" }}</dd>
+                    {% endif %}
                      <dt class="col-3">Date:</dt>
                      <dd class="col-9">{{ order_obj.date_added }}</dd>
-                    <dt class="col-3">Source:</dt>
-                     <dd class="col-9">{{ order_obj.order_type.order_type_name }}</dd>
+                    {% if order_obj.due_date %}
+                        <dt class="col-3">Due Date:</dt>
+                        <dd class="col-9">{{ order_obj.due_date }}</dd>
+                    {% endif %}
+
                      <dt class="col-3">Status:</dt>
                      <dd class="col-9">{{ order_obj.order_status.name }}</dd>
                      <dt class="col-3">Payment:</dt>
                      <dd class="col-9">{{order_obj.payment_method.method_name }} - {{order_obj.payment_status.name }}</dd>
+                 <dt class="col-3">Source:</dt>
+                     <dd class="col-9">{{ order_obj.order_type.order_type_name }}</dd>
                      <dt class="col-3">Shipment:
                          {% if shippingObj %}
                         <a class="btn btn-sm" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">

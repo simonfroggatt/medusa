@@ -1,3 +1,4 @@
+import requests
 from django.shortcuts import render, get_object_or_404
 from apps.orders.models import OcOrder, OcOrderProduct
 from apps.orders.serializers import OrderProductListSerializer
@@ -24,6 +25,10 @@ from decimal import Decimal, ROUND_HALF_UP
 import pathlib
 from PyPDF2 import PdfFileMerger, PdfFileWriter, PdfFileReader
 from medusa.settings import TSG_PRODUCT_STATUS_SHIPPING
+from django.conf import settings
+from urllib.parse import quote
+from django.urls import path, include, reverse_lazy
+from django.http import HttpResponse, HttpResponseRedirect
 
 
 def gen_pick_list(order_id, bl_excl_shipped=False):
@@ -35,7 +40,7 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
                             rightMargin=3 * mm, leftMargin=3 * mm,
                             topMargin=8 * mm, bottomMargin=3 * mm,
                             title=f'Despatch-Note_'+order_ref_number,  # exchange with your title
-                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            author="Total Safety Group Ltd",  # exchange with your authors name
                             )
 
     # Our container for 'Flowable' objects
@@ -104,15 +109,20 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
         order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
         order_item_tbl_data[2] = ""
         if order_item_data.product_variant:
-            if order_item_data.product_variant.alt_image:
-                image_src = f'http://safetysigns/image/{order_item_data.product_variant.alt_image}'
-            else:
-                if order_item_data.product_variant.prod_var_core.variant_image:
-                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.variant_image}'
-                else:
-                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.product.image}'
+            image_src = order_item_data.product_variant.site_variant_image_url
+            #if order_item_data.product_variant.alt_image:
 
-            img = Image(image_src)
+            #if order_item_data.product_variant.site_variant_image_url:
+            #    image_src = order_item_data.product_variant.site_variant_image_url
+            #else:
+            ##    if order_item_data.product_variant.prod_var_core.variant_image:
+            #        image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.variant_image}'
+            #    else:
+            #        image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.product.image}'
+
+            root_url = path
+           # img = Image('http://127.0.0.1:8000/'+ quote(image_src))
+            img = Image(settings.REPORT_URL + quote(image_src))
             img._restrictSize(image_max_w, image_max_h)
         else:
             img = ''
@@ -245,15 +255,16 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
         order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
         order_item_tbl_data[2] = ""
         if order_item_data.product_variant:
-            if order_item_data.product_variant.alt_image:
-                image_src = f'http://safetysigns/image/{order_item_data.product_variant.alt_image}'
-            else:
-                if order_item_data.product_variant.prod_var_core.variant_image:
-                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.variant_image}'
-                else:
-                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.product.image}'
+            image_src = order_item_data.product_variant.site_variant_image_url
+            # if order_item_data.product_variant.alt_image:
+            #     image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.alt_image}'
+            # else:
+            #     if order_item_data.product_variant.prod_var_core.variant_image:
+            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.variant_image}'
+            #     else:
+            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.product.image}'
 
-            img = Image(image_src)
+            img = Image(settings.REPORT_URL + quote(image_src))
             img._restrictSize(image_max_w, image_max_h)
         else:
             img = ''
@@ -415,15 +426,16 @@ def gen_invoice(order_id):
         product_description = utils.create_product_desc(order_item_data)
         order_item_tbl_data[1] = Paragraph(product_description, styles['table_data'])
         if order_item_data.product_variant:
-            if order_item_data.product_variant.alt_image:
-                image_src = f'http://safetysigns/image/{order_item_data.product_variant.alt_image}'
-            else:
-                if order_item_data.product_variant.prod_var_core.variant_image:
-                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.variant_image}'
-                else:
-                    image_src = f'http://safetysigns/image/{order_item_data.product_variant.prod_var_core.product.image}'
+            image_src = order_item_data.product_variant.site_variant_image_url
+            # if order_item_data.product_variant.alt_image:
+            #     image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.alt_image}'
+            # else:
+            #     if order_item_data.product_variant.prod_var_core.variant_image:
+            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.variant_image}'
+            #     else:
+            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.product.image}'
 
-            img = Image(image_src)
+            img = Image(settings.REPORT_URL + quote(image_src))
             img._restrictSize(image_max_w, image_max_h)
         else:
             img = ''
@@ -544,14 +556,14 @@ def gen_merged_paperwork(request, order_id):
 
     if 'print_picklist' in request.POST:
         pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
-        set_printed(order_id)
+        set_printed(request, order_id)
     if 'print_shipping' in request.POST:
         pdflist.append(gen_shipping_page(order_id))
     if 'print_invoice' in request.POST:
         pdflist.append(gen_invoice(order_id))
     if 'print_collection' in request.POST:
         pdflist.append(gen_collection_note(order_id, bl_exclude_shipped))
-        set_printed(order_id)
+        set_printed(request, order_id)
 
     result_pdf = PdfFileWriter()
 
@@ -669,12 +681,12 @@ def gen_quote_pdf(quote_id, bl_total=True):
         quote_item_tbl_data[1] = Paragraph(product_description, styles['table_data'])
         if quote_item_data.product_variant:
             if quote_item_data.product_variant.alt_image:
-                image_src = f'http://safetysigns/image/{quote_item_data.product_variant.alt_image}'
+                image_src = f'{settings.MEDIA_URL}/image/{quote_item_data.product_variant.alt_image}'
             else:
                 if quote_item_data.product_variant.prod_var_core.variant_image:
-                    image_src = f'http://safetysigns/image/{quote_item_data.product_variant.prod_var_core.variant_image}'
+                    image_src = f'{settings.MEDIA_URL}/image/{quote_item_data.product_variant.prod_var_core.variant_image}'
                 else:
-                    image_src = f'http://safetysigns/image/{quote_item_data.product_variant.prod_var_core.product.image}'
+                    image_src = f'{settings.MEDIA_URL}/image/{quote_item_data.product_variant.prod_var_core.product.image}'
 
             img = Image(image_src)
             img._restrictSize(image_max_w, image_max_h)
@@ -766,11 +778,20 @@ def gen_quote_paperwork(request, quote_id):
     return response
 
 
-def set_printed(order_id):
+def set_printed(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_obj.printed = 1
-    order_obj.order_status_id = 3
+    order_obj.order_status_id = settings.TSG_ORDER_STATUS_PROCESSED
     order_obj.save()
+    _push_to_xero(request, order_id)
 
 
+def _push_to_xero(request, order_id):
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    if order_obj.xero_id:
+        xero_url = reverse_lazy('order-update-xero', kwargs={'pk': order_obj.order_id})
+    else:
+        xero_url = reverse_lazy('order-add-xero', kwargs={'pk': order_obj.order_id})
+    base_url = request.build_absolute_uri(xero_url)
+    r = requests.get(base_url)
 

@@ -1,0 +1,34 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Xero Invoice Link</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="}" class="js-xero-invoice-link-submit"
+              name="js-form_xero_invoice_link-edit-form" id="form_xero_invoice_link">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col"><span id="invoice_url_to_copy">{{ invoiceURL }}</span>
+                <button type="button" class="btn btn-success pull-right btncopy"
+                                data-clipboard-target="#invoice_url_to_copy">Copy
+                        </button>
+                </div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Close</button>
+                      <button type="submit" id="mark" class="btn {{ BUTTON_EDIT }} pull-right">Mark</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+
+
+

@@ -334,6 +334,7 @@ $(function()
         return false;
   }
 
+
      $(document).on("submit", "#form_customer_notes", SaveNotes);
      $(document).on("submit", "#form-customer-company-assign", saveForm);
      
@@ -343,7 +344,9 @@ $(function()
 
       $(document).on("click", ".js-customer_set_address_default", setAddressDefault);
 
-
+    //XERO api stuff
+    $(document).on("click", ".js-xero-contact-api", XeroApiCall);
+    $(document).on("click", ".js-xero-contact-dlg", XeroApiCallDlg);
 
 
 

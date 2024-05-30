@@ -12,6 +12,7 @@
                 <form method="post" action="{% url 'company_details_edit' order_id %}"
                       id="js-company-edit-form">
                     {% csrf_token %}
+                    {{ form.xero_id.as_hidden }}
                     <div class="row border-bottom">
                         <div class="col-md-4">{{ form.company_name|as_crispy_field }}</div>
                         <div class="col-md-4">{{ form.company_type|as_crispy_field }}</div>

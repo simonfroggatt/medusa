@@ -40,6 +40,7 @@ class OcOrderQuerySet(models.QuerySet):
         return self.filter(date_added__gte=start_date, date_added__lt=end_date)
 
 
+
 class OcOrderManager(models.Manager):
     def get_queryset(self):
         return OcOrderQuerySet(self.model, using=self._db)
@@ -217,9 +218,11 @@ class OcOrder(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     date_due = models.DateField(blank=True, null=True)
     order_status = models.ForeignKey(OcOrderStatus, models.DO_NOTHING, blank=True, null=True)
-    payment_method = models.ForeignKey('OcTsgPaymentMethod', models.DO_NOTHING, blank=True, null=True)
     order_type = models.ForeignKey('OcTsgOrderType', models.DO_NOTHING)
+    payment_method = models.ForeignKey('OcTsgPaymentMethod', models.DO_NOTHING, blank=True, null=True)
     payment_status = models.ForeignKey(OcTsgPaymentStatus, models.DO_NOTHING, blank=True, null=True)
+    payment_date = models.DateTimeField(blank=True, null=True)
+    payment_ref = models.CharField(max_length=255, blank=True, null=True)
     xero_id = models.CharField(max_length=256, blank=True, null=True)
     customer_order_ref = models.CharField(max_length=255, blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate', blank=True, null=True)
@@ -242,6 +245,27 @@ class OcOrder(models.Model):
 
     def short_date(self):
         return self.date_added.strftime('%-d %b, %H:%M')
+
+    def get_order_status(self):
+        status = ''
+        payment_status = [2, 3, 8]; # 2 = paid, 3 = processing, 8 = shipped
+        order_status_excl = [4,5, 99, 1] # 4 = cancelled, 5 = refunded, 99 = deleted, 1 = pending
+        order_status_live = [99, 1] #
+        if self.payment_status_id in payment_status:
+            if self.order_status_id not in order_status_excl:
+                status = 'LIVE'
+            else:
+                status = 'NEW'
+        else:
+            status = 'FAILED'
+
+        return status
+
+    def save(self, *args, **kwargs):
+
+        if self.payment_status_id == 2:
+            self.payment_date = dt.datetime.now()
+        super(OcOrder, self).save(*args, **kwargs)
 
     class Meta:
         managed = False

@@ -1,0 +1,28 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Xero Errors</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col">
+                    <H3>There where errors</H3>
+                    <dt>Error Type</dt><dd>{{ errors.error_type }}</dd>
+                    <dt>Error Process</dt><dd>{{ errors.error_process }}</dd>
+                    <dt>Error Code</dt><dd>{{ errors.error_code }}</dd>
+                </div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Close</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

@@ -18,6 +18,7 @@ from django.contrib import messages
 from medusa import services
 from django.conf import settings
 import os
+from cryptography.fernet import Fernet
 
 
 def customers_list(request):
@@ -706,5 +707,19 @@ def customer_document_delete(request, pk):
                                                      )
 
     return JsonResponse(data)
+
+def customer_xero_add(request, customer_id):
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(customer_id).encode()).decode()
+    return_url = reverse_lazy('xero_customer_add', kwargs={'contact_id': customer_id, 'encrypted': encrypted_order_num})
+    return HttpResponseRedirect(return_url)
+
+
+def customer_xero_update(request, customer_id):
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(customer_id).encode()).decode()
+    return_url = reverse_lazy('xero_customer_update', kwargs={'contact_id': customer_id, 'encrypted': encrypted_order_num})
+    return HttpResponseRedirect(return_url)
+
 
 
