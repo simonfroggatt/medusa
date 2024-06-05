@@ -1051,8 +1051,15 @@ $(function () {
          let store_id = $(this).val()
          let product_id = sessionStorage.getItem("product_id");
          let data_url = product_id + '/additional_images/' + store_id +'/add';
-         $('#js-product_addtional_images_add').attr('data-url', data_url);
-         loadProductImages(product_id, store_id);
+         if(store_id > 0) {
+             $('#js-product_addtional_images_add').attr('data-url', data_url);
+             $('#js-product_addtional_images_add').removeClass('disabled')
+
+         }
+         else {
+            $('#js-product_addtional_images_add').addClass('disabled')
+         }
+          loadProductImages(product_id, store_id);
     });
 
     $('#js-variant-store_id').on('change', function() {

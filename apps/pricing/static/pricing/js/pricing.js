@@ -67,7 +67,7 @@ $(function(){
             {data: "store.thumb",
             render: function ( data, type, row ) {
 
-                    let image_src =  media_url + 'stores/branding/logos' + data;
+                    let image_src =  media_url + 'stores/branding/logos/' + data;
                     return '<img height="15px" src="' + image_src + '">'
                  }},
             {data: "size_material_comb.product_size.size_name", defaultContent: ""},

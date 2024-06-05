@@ -1,3 +1,5 @@
+
+
 $(function(){
     $('.tsg_option_class').change(function () {
         let class_id = $(this).find(':selected').data('class')
@@ -6,9 +8,24 @@ $(function(){
         let price_modifier = calcExtraPrice();
         let old_price = $('#base_price').val()
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
-        $('#new_price').html(new_price);
+       //SetSingleUnitPrice(new_price, 'form-stock', true);
+       // $('#new_price').html(new_price);
     })
 })
+
+
+function ClassChange(){
+    let class_id = $(this).find(':selected').data('class')
+        let value_id = $(this).val()
+        ShowHideDynamics();
+        let price_modifier = calcExtraPrice();
+        let old_price = $('#base_price').val()
+        let new_price = parseFloat(price_modifier) + parseFloat(old_price);
+        ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#form-stock', true);
+       // $('#new_price').html(new_price);
+}
+
+ $(document).on('change', '.tsg_option_class', ClassChange);
 
 function getClassArray(class_id){
     //get the class info from the local var

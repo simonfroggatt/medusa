@@ -364,9 +364,10 @@ class ProductSiteUpdate(UpdateView):
         context = super().get_context_data(**kwargs)
         pk = self.kwargs['pk']
         store_product_obj = get_object_or_404(OcProductToStore, pk=pk)
+        context['base_image'] = store_product_obj.product.image_url
         breadcrumbs = []
         breadcrumbs.append({'name': 'Products', 'url': reverse_lazy('allproducts')})
-        breadcrumbs.append({'name':  store_product_obj.title,
+        breadcrumbs.append({'name':  store_product_obj.product.productdescbase.title,
                             'url': reverse_lazy('product_details', kwargs={'product_id': store_product_obj.product_id})})
         context['breadcrumbs'] = breadcrumbs
         context['heading'] = 'Site Product Details'

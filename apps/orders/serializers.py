@@ -79,7 +79,7 @@ class OrderProductListSerializer(serializers.ModelSerializer):
         model = OcOrderProduct
         #fields = ['order_id','order_product_id', 'product_id', 'name', 'model', 'quantity', 'price', 'total', 'tax', 'product_variant']
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['order_product_option'])
+        fields.extend(['order_product_option', 'order_product_variant_options'])
         fields.remove('order')
         depth = 3
 

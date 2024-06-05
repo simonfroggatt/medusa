@@ -53,6 +53,17 @@ $(function () {
                 },
             },
             {
+                "data": "order_product_variant_options",
+                "searchable": false,
+                render: function (data, type, row) {
+                    let options_text = "";
+                    $.each(data, function (index, value) {
+                        options_text += index > 0 ? '<br>' + value.class_name + " : " + value.value_name : value.class_name + " : " + value.value_name;
+                    });
+                    return options_text;
+                },
+            },
+            {
                 "data": "status.name",
                 "defaultContent": 'open',
                 className: 'text-md-end',
@@ -249,10 +260,12 @@ $(function () {
     let saveProductAddForm = function () {
         var form = $(this);
         let url = form.attr("action");
-        let data = form.serialize();
+        let data_variant_options = $('#form_variant_options').serialize()
+        let data_options = $('#form_product_options').serialize()
+        let data = form.serialize() + '&' + data_variant_options + '&' + data_options
         $.ajax({
             url: form.attr("action"),
-            data: form.serialize(),
+            data: data,
             type: form.attr("method"),
             dataType: 'json',
             success: function (data) {
@@ -549,7 +562,7 @@ $(function () {
         let product_price = form_id + " #price";
         let line_price = 0.00;
         let tax_price = 0.00;
-        let base_price = $(form_id + ' #single_unit_price').val();
+        let base_price = $(form_id + ' #single_unit_price').val().toFixed(2);
         let discount_price = 0.00;
         let qty = parseInt($(qty_field).val())
         let bulk_group_id = $(form_id + ' .bulk_group_select').val();
@@ -567,7 +580,6 @@ $(function () {
 
         } else {
             line_price = (qty * $('#single_unit_price').val()).toFixed(2);
-            alert(base_price);
         }
 
         tax_price = parseFloat(line_price * tax_rate).toFixed(2);
@@ -580,6 +592,8 @@ $(function () {
 
     }
 
+
+
     $('.bulk_group_select').change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         drawBulkTable(this.value, form_id)
@@ -588,7 +602,7 @@ $(function () {
 
 
     function drawBulkTable(bulk_group_id, form_id) {
-        let base_price = $(form_id + ' #single_unit_price').val()
+        let base_price = $(form_id + ' #single_unit_price').val().toFixed(2);
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
         })[0];
@@ -815,6 +829,14 @@ Dropzone.options.orderDocDropzone = { // camelized version of the `id`
     }
 
   };
+
+var ORDERSNAMESPACE = {}
+ORDERSNAMESPACE.SetSingleUnitPrice = function (new_price, form_id, bl_update_pricing = false) {
+        let base_price = $(form_id + ' #single_unit_price').val(new_price);
+        if (bl_update_pricing) {
+            SetPrice(true, form_id)
+        }
+    }
 
 
 

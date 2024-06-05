@@ -1,24 +1,26 @@
 {% load static %}
 <div class="container">
+<form name="form_variant_options" id="form_variant_options">
     <div class="row">
-        <div class="col-12"><input type="number" value="{{ base_price }}" name='base_price' id="base_price"></div>
+        <div class="col-12"><input type="hidden" value="{{ base_price }}" name='base_price' id="base_price"></div>
         <div class="col">
             {% for select in  select_data %}
-                <div id="div_select_{{ select.id }}" {% if select.is_dynamic %} style="display: none" {% endif %} data-option={{ select.id }}>
-                    <label for="option_class_{{ select.id }}" class="form-label">{{ select.label }}</label>
-                    <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class="form-select tsg_option_class {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}" >
-                        <option value="0" data-class={{ select.id }} data-option=0>{{ select.default }}</option>
-                        {% for class_values in select.values %}
-                            <option value="{{ class_values.id }}" data-class={{ select.id }} >{{  class_values.drop_down }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="row mb-2" id="div_select_{{ select.id }}" {% if select.is_dynamic %} style="display: none" {% endif %} data-option={{ select.id }}>
+                    <label for="option_class_{{ select.id }}" class="col-form-label col-sm-2">{{ select.label }}</label>
+                    <div class="col-sm-10">
+                        <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class=" form-select tsg_option_class {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}" >
+                            <option value="0" data-class={{ select.id }} data-option=0>{{ select.default }}</option>
+                            {% for class_values in select.values %}
+                                <option value="{{ class_values.id }}" data-class={{ select.id }} >{{  class_values.drop_down }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             {% endfor %}
         </div>
-    <div class="col-12">
-        <span>New price: </span><span id="new_price">{{ base_price }}</span>
+
     </div>
-    </div>
+</form>
 </div>
 
 {{ select_data|json_script:"optionvalues" }}

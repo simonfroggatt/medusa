@@ -146,7 +146,7 @@ class OcTsgProductVariants(models.Model):
     prod_variant_id = models.AutoField(primary_key=True)
     prod_var_core = models.ForeignKey(OcTsgProductVariantCore, models.DO_NOTHING, related_name='storeproductvariants')
     variant_code = models.CharField(max_length=255, blank=True, null=True)
-    variant_overide_price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    variant_overide_price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, default=0.00)
     alt_image = models.ImageField(upload_to='stores/products/', null=True, blank=True)
     store = models.ForeignKey(OcStore, models.DO_NOTHING)
     digital_artwork = models.IntegerField(blank=True, null=True)

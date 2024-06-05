@@ -64,6 +64,7 @@ class SiteProductDetailsForm(forms.ModelForm):
         super(SiteProductDetailsForm, self).__init__(*args, **kwargs)
         self.fields['tax_class'].empty_label = None
         self.fields['bulk_group'].empty_label = None
+        self.fields['image'].default = None
 
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
     long_description = forms.CharField(widget=TinyMCE(attrs={'rows': 20}), required=False)
@@ -213,6 +214,11 @@ class SiteProductVariantForm(forms.ModelForm):
             'digital_artwork_def': forms.HiddenInput,
             'isdeleted': forms.HiddenInput,
         }
+
+        field_classes = {
+            'alt_image': SvgAndImageFormField,
+        }
+
 
 
 class AdditionalProductStoreImages(forms.ModelForm):

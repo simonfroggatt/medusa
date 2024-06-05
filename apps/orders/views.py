@@ -4,12 +4,12 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
-     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments #,calc_order_totals, recalc_order_product_tax
+     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, OcOrderOption #,calc_order_totals, recalc_order_product_tax
 from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcProduct, \
      OcTsgProductVariantCore, OcTsgProductVariants
 from apps.pricing.models import OcTsgProductMaterial
 from apps.options.models import OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
-    OcTsgOptionValueDynamics, OcProductOption, OcProductOptionValue, OcOption, OcOptionDescription
+    OcTsgOptionValueDynamics, OcProductOption, OcProductOptionValue, OcOption, OcOptionDescription, OcOptionValue, OcOptionValueDescription
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
@@ -37,6 +37,7 @@ from apps.customer.serializers import AddressSerializer
 from collections import OrderedDict
 from itertools import chain
 from cryptography.fernet import Fernet
+import re
 
 
 class Orders2(viewsets.ViewSet):
@@ -361,6 +362,8 @@ def order_add_product(request, order_id):
             order_product = form.save(commit=False)
             order_product.reward = 0
             order_product.save()
+            order_product_id = order_product.order_product_id
+            set_product_options_and_variant_options(request.POST, order_id, order_product_id, order_product.product_id)
             calculate_order_total(order_id)
             data['form_is_valid'] = True
         else:
@@ -1075,16 +1078,28 @@ def ajax_product_variant_options(request, store_id, product_variant_id):
     store_size_material_price = OcTsgSizeMaterialCombPrices.objects.select_related('size_material_comb__product_size').filter(
         size_material_comb_id=core_size_material_id).filter(store_id=store_id).first()
 
+    if store_size_material_price:
+        variant_size_material_info = store_size_material_price
+        variant_info['size_width'] = variant_size_material_info.size_material_comb.product_size.size_height
+        variant_info['size_height'] = variant_size_material_info.size_material_comb.product_size.size_width
+        var_price = variant_size_material_info.price
+    else:
+        variant_size_material_info = OcTsgSizeMaterialComb.objects.select_related('product_size').filter(
+            pk=core_size_material_id).first()
+        variant_info['size_width'] = variant_size_material_info.product_size.size_height
+        variant_info['size_height'] = variant_size_material_info.product_size.size_width
+        var_price = variant_size_material_info.price
 
-    variant_info['size_width'] = store_size_material_price.size_material_comb.product_size.size_height
-    variant_info['size_height'] = store_size_material_price.size_material_comb.product_size.size_width
-    if product_variant_obj.variant_overide_price > 0:
+
+    if product_variant_obj.variant_overide_price > 0.00:
         variant_info['base_price'] = product_variant_obj.variant_overide_price
     else:
-        variant_info['base_price'] = store_size_material_price.price
+        variant_info['base_price'] = var_price
 
-    #template_name = 'orders/dialogs/product_variant_options.html'
+
     template_name = 'orders/dialogs/product_variant_options_ajax.html'
+    #template_name = 'orders/dialogs/product_variant_options.html'
+
     context = {'product_variant_id': product_variant_id}
     context['variant_info'] = variant_info
     context['select_data'] = select_data
@@ -1096,6 +1111,60 @@ def ajax_product_variant_options(request, store_id, product_variant_id):
 
     return JsonResponse(data)
     #return render(request, template_name, context)
+
+
+def ajax_product_variant_options_test(request, store_id, product_variant_id):
+    #given a variant_id and a store, get
+    select_data = []
+    #get the option class
+
+    select_data = create_product_variant_select_objects(store_id,product_variant_id)
+    data = dict()
+
+
+    #get the variant details
+    product_variant_obj = get_object_or_404(OcTsgProductVariants, pk=product_variant_id);
+
+    variant_info = dict()
+
+    core_size_material_id = product_variant_obj.prod_var_core.size_material_id
+
+    store_size_material_price = OcTsgSizeMaterialCombPrices.objects.select_related('size_material_comb__product_size').filter(
+        size_material_comb_id=core_size_material_id).filter(store_id=store_id).first()
+
+    if store_size_material_price:
+        variant_size_material_info = store_size_material_price
+        variant_info['size_width'] = variant_size_material_info.size_material_comb.product_size.size_height
+        variant_info['size_height'] = variant_size_material_info.size_material_comb.product_size.size_width
+        var_price = variant_size_material_info.price
+    else:
+        variant_size_material_info = OcTsgSizeMaterialComb.objects.select_related('product_size').filter(
+            pk=core_size_material_id).first()
+        variant_info['size_width'] = variant_size_material_info.product_size.size_height
+        variant_info['size_height'] = variant_size_material_info.product_size.size_width
+        var_price = variant_size_material_info.price
+
+
+    if product_variant_obj.variant_overide_price > 0.00:
+        variant_info['base_price'] = product_variant_obj.variant_overide_price
+    else:
+        variant_info['base_price'] = var_price
+
+
+    template_name = 'orders/dialogs/product_variant_options_ajax.html'
+    template_name = 'orders/dialogs/product_variant_options.html'
+
+    context = {'product_variant_id': product_variant_id}
+    context['variant_info'] = variant_info
+    context['select_data'] = select_data
+    context['base_price'] = 1.00
+    data['html_content'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    #return JsonResponse(data)
+    return render(request, template_name, context)
 
 ####### - New option is in
 def ajax_product_options(request, product_id):
@@ -1127,6 +1196,7 @@ def ajax_product_options(request, product_id):
 
 
     template_name = 'orders/dialogs/product_options_ajax.html'
+
     context = {'product_id': product_id}
     context['options_markup'] = option_markup
     data['html_content'] = render_to_string(template_name,
@@ -1315,6 +1385,82 @@ def create_dynamic_options_from_product_variant(store_id, class_option_values):
                 option_list['is_dynamic'] = True
             select_info.extend(option_select_list)
     return select_info
+
+def set_product_options_and_variant_options(post_data, order_id, order_product_id, product_id):
+    #get the class and value pairs from the post data
+    variant_class_pairs = get_variant_class_pairs(post_data)
+    if variant_class_pairs:
+        add_order_product_variant_options(variant_class_pairs, order_product_id)
+
+    product_class_pairs = get_product_option_pairs(post_data)
+    if product_class_pairs:
+        add_order_product_options(product_class_pairs, order_id, order_product_id, product_id)
+
+def get_variant_class_pairs(post_data):
+    #get the class and value pairs from the post data
+    variant_class_pairs = []
+    for key in post_data.keys():
+        if key.startswith('option_class_'):
+            class_id = int(key.split('_')[2])
+            value_id = int(post_data[key])
+            #if 'dynamic_' + str(class_id) in post_data:
+            #    dynamic_value_id = post_data['dynamic_' + class_id]
+            #    variant_class_pairs.append({'class_id':
+            #                                    class_id, 'value_id': dynamic_value_id})
+            if value_id > 0:
+                variant_class_pairs.append({'class_id': class_id, 'value_id': value_id})
+    return variant_class_pairs
+
+def get_product_option_pairs(post_data):
+    #get the class and value pairs from the post data
+    product_option_pairs = []
+    for key in post_data.keys():
+        if key.startswith('product_option_'):
+            class_id = key.split('_')[2]
+            value_id = post_data[key]
+            if value_id:
+                product_option_pairs.append({'option_name': class_id, 'option_value': value_id})
+    return product_option_pairs
+
+def add_order_product_variant_options(variant_options, order_product_id):
+    #given a list of variant options, add them to the order product
+    variant_class_obj = OcTsgOptionClass.objects.all()
+    variant_values_obj = OcTsgOptionValues.objects.all()
+    for variant_option in variant_options:
+        order_product_variant_option = OcTsgOrderProductOptions()
+        order_product_variant_option.order_product_id = order_product_id
+        order_product_variant_option.class_field_id = variant_option['class_id']
+        order_product_variant_option.class_name = variant_class_obj.filter(pk=variant_option['class_id']).first().label
+        order_product_variant_option.value_id = variant_option['value_id']
+        order_product_variant_option.value_name = variant_values_obj.filter(pk=variant_option['value_id']).first().title
+        order_product_variant_option.save()
+
+def add_order_product_options(product_options, order_id, order_product_id, product_id):
+    #given a list of product options, add them to the order product
+    product_option_value_obj_all = OcProductOptionValue.objects.all()
+    product_option_obj = OcOptionValue.objects.all()
+    for product_option in product_options:
+        order_product_option = OcOrderOption()
+        order_product_option.order_product_id = order_product_id
+        order_product_option.order_id = order_id
+        product_option_value_obj = product_option_value_obj_all.filter(product_id=product_id, option_value_id=product_option['option_name']).first()
+        option_type = product_option_value_obj.option.type.pk
+        order_product_option.order_option_id = product_option_value_obj.option_id
+        if option_type == 2: #text box
+            order_product_option.product_option_id = product_option_value_obj.product_option.product_option_id
+            order_product_option.product_option_value_id = product_option_value_obj.product_option_value_id
+            order_product_option.name = product_option_value_obj.option.option_desc
+            order_product_option.value = product_option['option_value']
+        elif option_type == 1:  #select boxß
+            order_product_option.product_option_id = product_option_value_obj.product_option.product_option_id
+            order_product_option.product_option_value_id = product_option_value_obj.product_option_value_id
+            option_value_desc_obj = OcOptionValueDescription.objects.filter(option_value_id=product_option['option_value']).first()
+            order_product_option.value = option_value_desc_obj.name
+            order_product_option.product_option_value_id = product_option['option_value']
+            order_product_option.name = product_option_value_obj.option.option_desc
+
+        order_product_option.type = option_type
+        order_product_option.save()
 
 
 def calculate_order_total(order_id, bl_discount=True, bl_recalc_shipping=True):

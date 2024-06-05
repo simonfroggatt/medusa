@@ -5,7 +5,7 @@ import datetime as dt
 from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from apps.shipping.models import OcTsgCourier
-from apps.options.models import OcProductOption, OcProductOptionValue
+from apps.options.models import OcProductOption, OcProductOptionValue, OcTsgOptionClass, OcTsgOptionValues
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
 from django.core.validators import FileExtensionValidator
@@ -497,6 +497,18 @@ class OcTsgOrderDocuments(models.Model):
 
     def short_name(self):
         return os.path.basename(self.filename.name)
+
+
+class OcTsgOrderProductOptions(models.Model):
+    order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_variant_options')
+    class_field = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, db_column='class_id', blank=True, null=True)  # Field renamed because it was a Python reserved word.
+    class_name = models.CharField(max_length=255, blank=True, null=True)
+    value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
+    value_name = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_product_options'
 
 
 
