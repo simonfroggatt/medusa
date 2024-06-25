@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import OcTsgOptionValues, OcTsgOptionClassGroups, OcTsgOptionTypes, OcTsgOptionClass, \
     OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues, OcOption, OcOptionDescription, \
-    OcOptionValueDescription, OcOptionValue
+    OcOptionValueDescription, OcOptionValue, OcTsgProductOption, OcOptionValues
 
 
 class OptionValuesSerializer(serializers.ModelSerializer):
@@ -91,3 +91,10 @@ class ProductOptionValueDescSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
         depth = 4
+
+class ProductOptionValueSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OcOptionValues
+        fields = '__all__'
+        depth = 1

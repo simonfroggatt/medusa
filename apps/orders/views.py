@@ -4,12 +4,13 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
-     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, OcOrderOption #,calc_order_totals, recalc_order_product_tax
+     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, OcTsgOrderOption #,calc_order_totals, recalc_order_product_tax
 from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcProduct, \
      OcTsgProductVariantCore, OcTsgProductVariants
 from apps.pricing.models import OcTsgProductMaterial
-from apps.options.models import OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
-    OcTsgOptionValueDynamics, OcProductOption, OcProductOptionValue, OcOption, OcOptionDescription, OcOptionValue, OcOptionValueDescription
+from apps.options.models import (OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
+    OcTsgOptionValueDynamics, OcProductOption, OcProductOptionValue, OcOption, OcOptionDescription, OcOptionValue,
+                                 OcOptionValueDescription, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues)
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
@@ -1167,7 +1168,7 @@ def ajax_product_variant_options_test(request, store_id, product_variant_id):
     return render(request, template_name, context)
 
 ####### - New option is in
-def ajax_product_options(request, product_id):
+def ajax_product_options_old(request, product_id):
     #given a product the options
     select_data = []
     #get the option class
@@ -1196,6 +1197,43 @@ def ajax_product_options(request, product_id):
 
 
     template_name = 'orders/dialogs/product_options_ajax.html'
+
+    context = {'product_id': product_id}
+    context['options_markup'] = option_markup
+    data['html_content'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+    #return render(request, template_name, context)
+
+def ajax_product_options(request, product_id):
+    #given a product the options
+    #get the option class
+    data = dict()
+
+    product_options = OcTsgProductOption.objects.filter(product_id=product_id).order_by('sort_order')
+
+    #now step though each options and get the type etc
+    option_markup = []
+    for option_group in product_options:
+        product_option_data = dict()
+        product_option_data['option_name'] = option_group.label
+        product_option_data['option_type'] = option_group.option_type_id
+        product_option_data['id'] = option_group.pk
+
+        #now get the values for this group
+        product_option_values_obj = OcTsgProductOptionValues.objects.filter(product_option_id=option_group.pk).order_by('sort_order')
+        product_option_values = []
+        for option_value in product_option_values_obj:
+            product_option_values.append({'id': option_value.option_value_id, 'value' : option_value.option_value.name})
+        product_option_data['option_values'] = product_option_values
+        option_markup.append(product_option_data)
+
+
+    template_name = 'orders/dialogs/product_options_ajax.html'
+    #template_name = 'orders/dialogs/product_options_test.html'
 
     context = {'product_id': product_id}
     context['options_markup'] = option_markup
@@ -1416,10 +1454,15 @@ def get_product_option_pairs(post_data):
     product_option_pairs = []
     for key in post_data.keys():
         if key.startswith('product_option_'):
-            class_id = key.split('_')[2]
-            value_id = post_data[key]
+            option_value_splits = key.split('_')
+            class_id = option_value_splits[2]
+            if len(option_value_splits) > 3:
+                value_id = option_value_splits[3]
+            else:
+                value_id = post_data[key]
+            value_name = post_data[key]
             if value_id:
-                product_option_pairs.append({'option_name': class_id, 'option_value': value_id})
+                product_option_pairs.append({'option_name': class_id, 'option_value': value_name, 'option_value_id': value_id})
     return product_option_pairs
 
 def add_order_product_variant_options(variant_options, order_product_id):
@@ -1437,29 +1480,28 @@ def add_order_product_variant_options(variant_options, order_product_id):
 
 def add_order_product_options(product_options, order_id, order_product_id, product_id):
     #given a list of product options, add them to the order product
-    product_option_value_obj_all = OcProductOptionValue.objects.all()
-    product_option_obj = OcOptionValue.objects.all()
+    product_options_obj = OcTsgProductOption.objects.all()
     for product_option in product_options:
-        order_product_option = OcOrderOption()
+        order_product_option = OcTsgOrderOption()
         order_product_option.order_product_id = order_product_id
         order_product_option.order_id = order_id
-        product_option_value_obj = product_option_value_obj_all.filter(product_id=product_id, option_value_id=product_option['option_name']).first()
-        option_type = product_option_value_obj.option.type.pk
-        order_product_option.order_option_id = product_option_value_obj.option_id
-        if option_type == 2: #text box
-            order_product_option.product_option_id = product_option_value_obj.product_option.product_option_id
-            order_product_option.product_option_value_id = product_option_value_obj.product_option_value_id
-            order_product_option.name = product_option_value_obj.option.option_desc
-            order_product_option.value = product_option['option_value']
-        elif option_type == 1:  #select boxß
-            order_product_option.product_option_id = product_option_value_obj.product_option.product_option_id
-            order_product_option.product_option_value_id = product_option_value_obj.product_option_value_id
-            option_value_desc_obj = OcOptionValueDescription.objects.filter(option_value_id=product_option['option_value']).first()
-            order_product_option.value = option_value_desc_obj.name
-            order_product_option.product_option_value_id = product_option['option_value']
-            order_product_option.name = product_option_value_obj.option.option_desc
 
-        order_product_option.type = option_type
+        product_options_data = product_options_obj.filter(pk=product_option['option_name']).first()
+
+        option_type = product_options_data.option_type_id
+        order_product_option.option_id = product_option['option_name']
+        order_product_option.option_name = product_options_data.label
+
+#{'option_name': class_id, 'option_value': value_name, 'option_value_id': value_id}
+
+        if option_type == 2: #text box
+            order_product_option.value_name = product_option['option_value']
+            order_product_option.value_id = product_option['option_value_id']
+        elif option_type == 1:  #select boxß
+            product_value_data = OcOptionValues.objects.filter(pk=product_option['option_value']).first()
+            order_product_option.value_name = product_value_data.name
+            order_product_option.value_id = product_value_data.pk
+
         order_product_option.save()
 
 

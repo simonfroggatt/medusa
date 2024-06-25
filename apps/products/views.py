@@ -5,20 +5,19 @@ from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore
     OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
     OcProductImage, OcStoreProductImages, OcTsgProductDocuments
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
-
 from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
     ProductSiteVariantOptionsSerializer, ProductCoreVariantOptionsSerializer, RelatedBaseDescriptionSerializer, \
     RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer, \
-    OptionValueExtSerialiszer, ProductOptionsValueSerializer # , BaseProductListSerializer, ProductTestSerializer, ,
+    OptionValueExtSerialiszer, ProductOptionsValueSerializer, ProductOptionsCurrentSerializer, ProductOptionValuesSerializer
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
-from apps.orders.models import OcOrderOption
+from apps.orders.models import OcTsgProductOption
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups, \
     OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues, OcProductOption, OcProductOptionValue, \
-    OcOptionValue, OcOptionValueDescription
+    OcOptionValue, OcOptionValueDescription, OcTsgProductOptionValues, OcOptionValues
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core import serializers
 from django.template.loader import render_to_string
@@ -26,7 +25,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
     VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm, \
     SiteProductVariantForm, AdditionalProductStoreImages, AdditionalProductImageForm, AddionalProductImageEditForm, \
-    ProductDocumentForm, RelatedEditForm, ProductOptionEditForm, OptionValueEditForm
+    ProductDocumentForm, RelatedEditForm, ProductOptionEditForm, ProductOptionSortEditForm, ProductOptionSortEditForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
@@ -121,37 +120,38 @@ class Symbols(viewsets.ModelViewSet):
     serializer_class = ProductSymbolSerialzer
 
 
-
 class ProductOptions(viewsets.ModelViewSet):
-    queryset = OcProductOptionValue.objects.all()
-    serializer_class = ProductOptionsValueSerializer
+    queryset = OcTsgProductOption.objects.all()
+    serializer_class = ProductOptionsCurrentSerializer
 
     def retrieve(self, request, pk=None):
-        product_option_values_object = OcProductOptionValue.objects.filter(product_id=pk)
+        product_option_values_object = OcTsgProductOption.objects.filter(product_id=pk).order_by('sort_order')
+        serializer = self.get_serializer(product_option_values_object, many=True)
+        return Response(serializer.data)
+
+class ProductOptionsActive(viewsets.ModelViewSet):
+    queryset = OcTsgProductOptionValues.objects.all()
+    serializer_class = ProductOptionsValueSerializer
+    def retrieve(self, request, pk=None):
+        product_option_values_object = OcTsgProductOptionValues.objects.filter(product_option_id=pk).order_by('sort_order')
         serializer = self.get_serializer(product_option_values_object, many=True)
         return Response(serializer.data)
 
 
 class ProductOptionsAvailable(viewsets.ModelViewSet):
-    queryset = OcOptionValue.objects.all()
-    serializer_class = OptionValueExtSerialiszer
+    queryset = OcOptionValues.objects.all()
+    serializer_class = ProductOptionValuesSerializer
 
     def retrieve(self, request, pk=None):
-        product_options_values_defined = OcProductOptionValue.objects.filter(product_id=pk).values_list('option_value_id')
+        product_options_values_defined = OcTsgProductOptionValues.objects.filter(product_option_id=pk).values_list('option_value_id')
         product_option_values_list = list(chain(*product_options_values_defined))
-
-
         #and for the stupid text ones too
-        product_options_defined = OcProductOption.objects.filter(product_id=pk).values_list('option_id')
-        product_option_list = list(chain(*product_options_defined))
-        #product_options_obj = product_options_obj.objects.exclude(option_id__in=product_option_list)
-        type_exclude_list = [1, 4]
-        product_options_obj = OcOptionValue.objects.exclude(option_value_id__in=product_option_values_list)#\
-          #  .exclude(option_id__in=product_option_list)
-
-        #product_options_obj = OcOptionValue.objects.all()
+        product_options_obj = OcOptionValues.objects.exclude(pk__in=product_option_values_list)
         serializer = self.get_serializer(product_options_obj, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+        for item in data:
+            item['option_value_id'] = pk
+        return Response(data)
 
 
 class ProductCoreVariantOption(viewsets.ModelViewSet):
@@ -1634,43 +1634,46 @@ def product_document_fetch(request, product_id):
     return JsonResponse(data)
 
 
-def product_option_add(request, product_id, pk):
+def product_option_add(request, product_id, option_id, value_id):
     data = dict()
 
     if request.method == 'POST':
-        option_obj = get_object_or_404(OcOptionValue, pk=pk)
-
-        product_option_obj = OcProductOption(product_id=product_id)
-        product_option_obj.option = option_obj.option
-        product_option_obj.value = ''  #default to blank
-
-        product_option_obj.save()
-
-        product_option_value_obj = OcProductOptionValue(quantity=1, subtract= 0, price= 0, price_prefix='', points=0,
-                                                        points_prefix='', weight=0, weight_prefix='',
-                                                        product_id=product_id,
-                                                        product_option=product_option_obj)
-
-
-        product_option_value_obj.option_value = option_obj
-        product_option_value_obj.option = option_obj.option
-        product_option_value_obj.save()
-        if product_option_value_obj.product_option_value_id > 0:
-            data['is_saved'] = True
+        product_option_obj = OcTsgProductOptionValues()
+        last_product_option_values = OcTsgProductOptionValues.objects.filter(product_option_id=option_id).order_by('-sort_order').first()
+        if last_product_option_values:
+            product_option_obj.sort_order = last_product_option_values.sort_order + 1
         else:
-            data['is_saved'] = False
+            product_option_obj.sort_order = 1
+
+        product_option_obj.option_value_id = value_id
+        product_option_obj.product_option_id = option_id
+        product_option_obj.save()
+        data['is_saved'] = True
     else:
         data['is_saved'] = False
 
     return JsonResponse(data)
 
 
+
 def product_option_delete(request, product_id, pk):
     data = dict()
 
     if request.method == 'POST':
+        product_option_value_obj = get_object_or_404(OcTsgProductOptionValues, pk=pk)
+        product_option_value_obj.delete()
+        data['is_saved'] = True
+    else:
+        data['is_saved'] = False
+
+    return JsonResponse(data)
+
+def product_option_delete_old(request, product_id, pk):
+    data = dict()
+
+    if request.method == 'POST':
         #check if this option is used in any past order, if so - refuse to delete it
-        past_orders_obj = OcOrderOption.objects.filter(product_option_value=pk)
+        past_orders_obj = OcTsgProductOption.objects.filter(product_option_value=pk)
         product_option_value_obj = get_object_or_404(OcProductOptionValue, pk=pk)
         option_type = product_option_value_obj.option.type_id
         if past_orders_obj:
@@ -1695,17 +1698,16 @@ def product_option_edit(request, product_id, pk):
     data = dict()
     context = dict()
     template_name = 'products/dialogs/product_option_edit.html'
-    product_option_obj = get_object_or_404(OcProductOption, pk=pk)
+    product_option_obj = get_object_or_404(OcTsgProductOption, pk=pk)
     context['product_id'] = product_id
-    context['product_option_id'] = pk
-    context['option_name'] = product_option_obj.option.option_desc
+    context['pk'] = pk
     if request.method == 'POST':
         form_obj = ProductOptionEditForm(request.POST, instance=product_option_obj)
         if form_obj.is_valid():
             form_obj.save();
-            data['form_is_valid'] = True
+            data['is_saved'] = True
         else:
-            data['form_is_valid'] = False
+            data['is_saved'] = False
     else:
         data['form_is_valid'] = False
         form = ProductOptionEditForm(instance=product_option_obj)
@@ -1714,5 +1716,83 @@ def product_option_edit(request, product_id, pk):
                                                 context,
                                                 request=request
                                                 )
+    return JsonResponse(data)
 
+
+def product_option_sortorder_edit(request, product_id, pk):
+    data = dict()
+    context = dict()
+    template_name = ('products/dialogs/product_option_sortorder.html')
+    product_option_obj = get_object_or_404(OcTsgProductOptionValues, pk=pk)
+    context['product_id'] = product_id
+    context['pk'] = pk
+    if request.method == 'POST':
+        form_obj = ProductOptionSortEditForm(request.POST, instance=product_option_obj)
+        if form_obj.is_valid():
+            form_obj.save();
+            data['is_saved'] = True
+        else:
+            data['is_saved'] = False
+    else:
+        data['form_is_valid'] = False
+        form = ProductOptionSortEditForm(instance=product_option_obj)
+        context['form'] = form
+        data['html_form'] = render_to_string(template_name,
+                                                context,
+                                                request=request
+                                                )
+    return JsonResponse(data)
+
+
+def product_option_list_add(request, product_id):
+    data = dict()
+    context = dict()
+    template_name = 'products/dialogs/product_option_add.html'
+    context['product_id'] = product_id
+    if request.method == 'POST':
+        form_obj = ProductOptionEditForm(request.POST)
+        if form_obj.is_valid():
+            form_obj.save()
+            data['is_saved'] = True
+        else:
+            data['is_saved'] = False
+    else:
+        data['form_is_valid'] = False
+        product_obj = get_object_or_404(OcProduct, pk=product_id)
+        initial_values = {
+            'product': product_obj,
+        }
+        current_product_options = OcTsgProductOption.objects.filter(product_id=product_id).order_by(
+            '-sort_order').first()
+        if current_product_options:
+            initial_values['sort_order'] = current_product_options.sort_order + 1
+        else:
+            initial_values['sort_order'] = 1
+
+        product_option_obj_new = OcTsgProductOption()
+        form = ProductOptionEditForm(instance=product_option_obj_new, initial=initial_values)
+        context['form'] = form
+        data['html_form'] = render_to_string(template_name,
+                                                context,
+                                                request=request
+                                                )
+    return JsonResponse(data)
+
+
+def product_option_list_delete(request, product_id, pk):
+    data = dict()
+    context = dict()
+    template_name = 'products/dialogs/product_option_list_delete.html'
+    product_option_obj = get_object_or_404(OcTsgProductOption, pk=pk)
+    context['product_id'] = product_id
+    context['pk'] = pk
+    if request.method == 'POST':
+        product_option_obj.delete()
+        data['is_saved'] = True
+    else:
+        data['is_saved'] = False
+        data['html_form'] = render_to_string(template_name,
+                                                context,
+                                                request=request
+                                                )
     return JsonResponse(data)

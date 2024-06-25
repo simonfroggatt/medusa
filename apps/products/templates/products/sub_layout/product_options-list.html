@@ -1,14 +1,29 @@
 {% load static %}
 <div class="row">
-    <div class="col-5 pe-2">
-        {% include 'products/sub_layout/product_options-active.html' %}
-    </div>
-    <div class="col-1">
-
+    <div class="col-6">
+        <h3>Active Options</h3>
     </div>
     <div class="col-6">
-        {% include 'products/sub_layout/product_options-available.html' %}
+        <a id="js-product_add_option" class="btn {{ BUTTON_ADD }} pull-right" role="button"
+                data-url="{% url 'products_option_list_add' product_obj.product_id %}" data-dlgsize="modal-sm" >
+            <i class="fa fa-plus"></i> Add Option
+        </a>
+     </div>
+</div>
+<div class="row">
+    <div class="col-12">
+
+                <table id="product_options_current" class="table table-hover table-striped align-middle table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th width="col-2">Option</th>
+                        <th class="col-1">Type</th>
+                        <th class="col-1">Order</th>
+                        <th class="col-1">Required</th>
+                    </tr>
+                    </thead>
+                </table>
     </div>
 </div>
-
 

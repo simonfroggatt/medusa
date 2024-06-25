@@ -6,7 +6,7 @@ from svglib.svglib import svg2rlg
 from django.db.models import Sum, F
 from decimal import Decimal, ROUND_HALF_UP
 from django.urls import path, include
-
+from apps.orders.models import OcTsgOrderOption, OcTsgOrderProductOptions
 
 def create_company_logo(company_obj):
     maxW = 90 * mm
@@ -181,20 +181,24 @@ def order_payment_details_simple(order_obj, currency_symbol):
         order_payment_str = 'Paid with thanks'
         order_payment_str +='<br/>Paid via ' + order_obj.payment_method.method_name
     else:
-        order_payment_str = 'Payment Type:' + order_obj.payment_status.name
-        order_payment_str += '<BR/>Due Date:' + order_obj.date_added.strftime('%d/%m/%Y')
+        order_payment_str = 'Payment Type : ' + order_obj.payment_status.name
+        order_payment_str += '<BR/>Due Date : ' + order_obj.date_added.strftime('%d/%m/%Y')
     return order_payment_str
 
 
 def create_product_desc(order_line, bl_orientation=True):
     product_desc = ''
     product_desc += order_line.name + "<BR/>"
-    product_desc += f'Size:{order_line.size_name}<BR/>'
+    product_desc += f'{order_line.size_name} - '
     if bl_orientation:
         product_orientaion = f'({order_line.orientation_name})'
     else:
         product_orientaion = ''
-    product_desc += f'Material:{order_line.material_name} {product_orientaion}'
+    product_desc += f'{order_line.material_name} {product_orientaion}'
+
+    options_text = get_order_product_line_options(order_line.order_product_id)
+    product_desc = f'{product_desc}<BR/>{options_text}'
+
     return product_desc
 
 def quote_shipping(quote_obj):
@@ -300,3 +304,31 @@ class NumberedCanvas(canvas.Canvas):
         self.setFont('Helvetica', 8, leading=None)
         self.drawRightString(205*mm, 5*mm,
             "Page %d of %d" % (self._pageNumber, page_count))
+
+
+def order_has_options(order_id):
+    order_options_obj = OcTsgOrderOption.objects.filter(order_id=order_id)
+    if order_options_obj:
+        return True
+
+    order_addons_obj = OcTsgOrderProductOptions.objects.filter(order_product__order_id=order_id)
+    if order_addons_obj:
+        return True
+    else:
+        return False
+
+
+def get_order_product_line_options(order_product_id):
+    options_obj = OcTsgOrderOption.objects.filter(order_product_id=order_product_id)
+    option_text = ''
+    option_break = ''
+    for option in options_obj:
+        option_text = f'{option_text}{option_break}{option.option_name} : {option.value_name}'
+        option_break = '<BR/>'
+
+    addon_obj = OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id)
+    for addon in addon_obj:
+        option_text = f'{option_text}{option_break}{addon.class_name} : {addon.value_name}'
+        option_break = '<BR/>'
+
+    return option_text

@@ -2,20 +2,16 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title"> Change Product Option</h4>
+    <h4 class="modal-title"> Change Option Sort</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
      <div class="container">
-        <form method="post" action="{% url 'products_option_edit' product_id pk %}"
-              id="dlg_product_option_edit_form" name="dlg_product_option_edit_form">
+        <form method="post" action="{% url 'products_option_edit_sortorder' product_id pk %}"
+              id="dlg_product_option_edit_sort_form" name="dlg_product_option_edit_sort_form">
             {% csrf_token %}
-            {{ form.product.as_hidden }}
             <div class="row">
-                <div class="col-md-12">{{ form.label|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.option_type|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.sort_order|as_crispy_field }}</div>
-                <div class="col-md-12">{{ form.required|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.sort_order|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>

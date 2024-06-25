@@ -556,10 +556,71 @@ $(function () {
         });
     }
 
+      if ($.fn.dataTable.isDataTable('#product_options_current')) {
+        var product_options_current = $('#product_options_active_table').DataTable();
+    } else {
+        let product_id = sessionStorage.getItem("product_id");
+        var product_options_current = $('#product_options_current').DataTable({
+            "dom": "<'row'<'col-6'fl><'col-6'p>>" +
+                "<'row'<'col-12'tr>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 10,
+            "autoWidth": false,
+            "responsive": false,
+            "serverSide": false,
+            "scroller": true,
+            scrollY: 400,
+            "rowId": 'id',
+            "select": 'single',
+            "ajax": {
+                "processing": true,
+                "url": "/products/api/productoptions/"+product_id+"?format=datatables",
+                "type": "GET",
+            },
+            "deferRender": true,
+
+            "search": {
+                "regex": true
+            },
+            "order": [[2, "asc"]],
+            columns: [
+                {data: "label"},
+                {data: "option_type.name"},
+                {data: "sort_order"},
+                {
+                    data: "required",
+                    render: function (data, type, row) {
+                    if (data) {
+                        return '<span class="badge rounded-pill badge-soft-danger font-size-10">REQUIRED</span>'
+                    } else {
+                        return '<span class="badge rounded-pill badge-soft-success font-size-10">OPTIONAL</span>'
+                    }
+
+                    }
+                },
+                {
+                    data: "id",
+                    className: 'text-md-end text-start',
+                    render: function (data, type, row) {
+                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-option-edit-btn" data-url="api/product/'+product_id+'/productoption/edit/'+data+'" role="button" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-option-edit-btn" role="button" data-url="api/product/'+product_id+'/productoption/'+data+'/delete/"><i class="fa-solid fa-minus"></i></a>';
+                        return edit_icon + ' ' + remove_icon
+                    },
+                     sortable: false,
+                     searchable: false,
+                },
+            ]
+        });
+    }
+
+
+
       if ($.fn.dataTable.isDataTable('#product_options_active_table')) {
         var product_options_active_table = $('#product_options_active_table').DataTable();
     } else {
         let product_id = sessionStorage.getItem("product_id");
+        let product_option_id = 2
         var product_options_active_table = $('#product_options_active_table').DataTable({
             "dom": "<'row'<'col-6'fl><'col-6'p>>" +
                 "<'row'<'col-12'tr>>",
@@ -571,10 +632,10 @@ $(function () {
             "serverSide": false,
             "scroller": true,
             scrollY: 400,
-            "rowId": 'product_option.product_option_id',
+            "rowId": 'id',
             "ajax": {
                 "processing": true,
-                "url": "/products/api/productoptions/"+product_id+"?format=datatables",
+                "url": "/products/api/productoptions-active/"+0+"?format=datatables",
                 "type": "GET",
             },
             "deferRender": true,
@@ -582,38 +643,21 @@ $(function () {
             "search": {
                 "regex": true
             },
+            "order": [[1, "asc"]],
             columns: [
-                {data: "product_option.option_desc"},
-                {data: "option_value.option_value_desc"},
-                 {data: "product_option.value"},
-                {data: "option.type.name"},
-                {data: "product_option.option.sort_order"},
+                {data: "option_value.name"},
+                {data: "sort_order"},
                 {
-                    data: "product_option.required",
-                    render: function (data, type, row) {
-                    if (data) {
-                        return '<span class="badge rounded-pill badge-soft-danger font-size-10">REQUIRED</span>'
-                    } else {
-                        return '<span class="badge rounded-pill badge-soft-success font-size-10">OPTIONAL</span>'
-                    }
-
-                    }
-                },
-                {
-                    data: "product_option.product_option_id",
+                    data: "id",
                     className: 'text-md-end text-start',
                     render: function (data, type, row) {
-                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-option-edit-btn" data-url="api/product/'+product_id+'/productoption/edit/'+data+'" role="button" data-dlgsize="modal-lg"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
-                        let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-option-btn" role="button" data-url="api/product/'+product_id+'/productoption/delete/'+row['product_option_value_id']+'"><i class="fa-solid fa-minus"></i></a>';
-                        return edit_icon + ' ' + remove_icon
+                        let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-option-edit-btn" data-url="api/product/'+product_id+'/productoption/edit/sortorder/'+data+'" role="button" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_EDIT'] +' table-button"></i></a>';
+                        let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-option-btn" role="button" data-url="api/product/'+product_id+'/productoption/delete/'+data+'"><i class="fa-solid fa-minus"></i></a>';
+                        return edit_icon + '&nbsp;' +remove_icon
                     },
                      sortable: false,
                      searchable: false,
                 },
-                {
-                    data: "product_option_value_id",
-                    visible: false,
-                }
 
             ]
         });
@@ -637,7 +681,7 @@ $(function () {
             "rowId": 'option_value_id',
             "ajax": {
                 "processing": true,
-                "url": "/products/api/productoptions-available/"+product_id+"?format=datatables",
+                "url": "/products/api/productoptions-available/"+0+"?format=datatables",
                 "type": "GET",
             },
             "deferRender": true,
@@ -647,17 +691,20 @@ $(function () {
             },
             columns: [
                 {
-                    data: "option_value_id",
+                    data: "id",
                     render: function (data, type, row) {
-                        let remove_icon = '<a class="btn btn-success btn-tsg-row js-product-option-btn" role="button" data-url="api/product/'+product_id+'/productoption/add/'+data+'"><i class="fa-solid fa-plus"></i></a>';
+                        let remove_icon = '<a class="btn btn-success btn-tsg-row js-product-option-btn" role="button" data-url="api/product/'+product_id+'/productoption/'+row['option_value_id']+'/add/'+data+'"><i class="fa-solid fa-plus"></i></a>';
                         return remove_icon
                     },
                      sortable: false,
                      searchable: false,
                 },
-                {data: "option_desc"},
-                {data: "option_value_desc"},
-                {data: "option.type.name"},
+                {data: "name"},
+                {
+                    data: 'option_value_id',
+                    sortable: false,
+                    visible: false
+                }
             ]
         });
     }
@@ -743,6 +790,21 @@ $(function () {
         if (type === 'row') {
             $('#dropdownSiteVariantOptions').addClass('disabled')
         }
+    });
+
+
+    product_options_current.on('select', function (e, dt, type, indexes) {
+         if (type === 'row') {
+            let data = dt.row(indexes).id();
+            let variant_url = "/products/api/productoptions-active/"+data+"?format=datatables";
+            product_options_active_table.ajax.url(variant_url).load();
+            let variant_url_available = "/products/api/productoptions-available/"+data+"?format=datatables";
+            product_options_available_table.ajax.url(variant_url_available).load();
+         }
+    });
+
+    product_options_current.on('deselect', function (e, dt, type, indexes) {
+
     });
 
 
@@ -1137,16 +1199,6 @@ $(function () {
     $(document).on("click", "#js-product_addtional_images_add", loadForm);
 
 
-        /**                                                         END - product additioanl images                                                  */
-
-
-
-
-
-    /***
- * code for product variants
- */
-
     $(document).on("click", ".js-variant_site-add", function(){
        var btn = $(this);  // <-- HERE
         $.ajax({
@@ -1176,6 +1228,8 @@ $(function () {
         });
         return false;
     });
+
+
 
 
     /*  update the 2 table to show the changes */
@@ -1216,6 +1270,8 @@ $(function () {
     $(document).on("submit", "#form-related_product_edit", RelatedProductUpdate);
     $(document).on("submit", "#dlg-related_product-delete", RelatedProductUpdate);
 
+
+
     $(document).on("change", "#js-related_list-store_id", function(){
          let store_id = $(this).val();
          let ajax_url = "/products/related/" + js_product_id + "/store/" + store_id + "?format=datatables";
@@ -1227,15 +1283,60 @@ $(function () {
 
     /** --  product options  --  **/
      $(document).on("click", ".js-product-option-edit-btn", loadForm);
+     $(document).on("click", "#js-product_add_option", loadForm);
+
      $(document).on("click", ".js-product-option-btn", AddRemoveProductOption);
+     $(document).on("submit", "#dlg_product_option_edit_form", function() {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.is_saved) {
+                    $("#modal-base").modal("hide");
+                    var product_options_current = $('#product_options_current').DataTable();
+                     product_options_current.ajax.reload();
+                }
+                else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    });
+
+     $(document).on("submit", "#dlg_product_option_edit_sort_form", function() {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.is_saved) {
+                    $("#modal-base").modal("hide");
+                    var product_option_table_active = $('#product_options_active_table').DataTable();
+                     product_option_table_active.ajax.reload();
+                }
+                else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    });
 
     function updateProductOptionsTables()
     {
         var product_option_table_available = $('#product_options_available_table').DataTable();
         var product_option_table_active = $('#product_options_active_table').DataTable();
 
+
         product_option_table_available.ajax.reload();
         product_option_table_active.ajax.reload();
+
 
     }
 

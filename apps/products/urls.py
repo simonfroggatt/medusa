@@ -17,6 +17,7 @@ router.register(r'product_site_variant_options', views.ProductSiteVariantOption)
 router.register(r'product_site_variant_options_classes', views.ProductSiteVariantOptionClasses)
 
 router.register(r'productoptions', views.ProductOptions)
+router.register(r'productoptions-active', views.ProductOptionsActive)
 router.register(r'productoptions-available', views.ProductOptionsAvailable)
 #router.register(r'store/products', views.Product_by_Store)
 
@@ -62,9 +63,12 @@ urlpatterns = [
     path('class_values/<int:class_id>', views.class_value_list_html, name='class_values'),
 
     #product options
-    path('api/product/<int:product_id>/productoption/add/<int:pk>', views.product_option_add, name='products_option_add'),
+    path('api/product/<int:product_id>/productoption/<int:option_id>/add/<int:value_id>', views.product_option_add, name='products_option_add'),
     path('api/product/<int:product_id>/productoption/delete/<int:pk>', views.product_option_delete, name='products_option_delete'),
     path('api/product/<int:product_id>/productoption/edit/<int:pk>', views.product_option_edit, name='products_option_edit'),
+    path('api/product/<int:product_id>/productoption/edit/sortorder/<int:pk>', views.product_option_sortorder_edit, name='products_option_edit_sortorder'),
+    path('api/product/<int:product_id>/productoption/add/', views.product_option_list_add, name='products_option_list_add'),
+    path('api/product/<int:product_id>/productoption/<int:pk>/delete/', views.product_option_list_delete, name='products_option_list_delete'),
 
 
 

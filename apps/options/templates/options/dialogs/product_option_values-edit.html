@@ -9,14 +9,9 @@
     <div class="container">
         <form method="post" action="{{ action_url }}" id="{{ form_id }}">
             {% csrf_token %}
-            {{ form_value.option_value_id.as_hidden }}
-            {{ form_desc.language.as_hidden }}
-            {{ form_desc.pk.as_hidden }}
-            {{ form_desc.option_value.as_hidden }}
+            {{ form.language.as_hidden }}
             <div class="row">
-                <div class="col-md-12">{{ form_desc.name|as_crispy_field }}</div>
-                <div class="col-md-12">{{ form_value.option|as_crispy_field }}</div>
-                <div class="col-md-12">{{ form_value.sort_order|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.name|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>

@@ -1,5 +1,6 @@
 import datetime as dt
 import calendar
+from apps.orders.models import OcTsgOrderOption, OcTsgOrderProductOptions
 def order_highlight_code(order_obj):
     """1 Live, 2 Pending, 3 Failed - """
     h_code = 3
@@ -37,3 +38,13 @@ def create_due_date(order_obj):
     order_obj.due_date = due_date
     order_obj.save()
     return due_date
+
+
+def get_order_product_line_options(order_product_id):
+    options_obj = OcTsgOrderOption.objects.filter(order_product_id=order_product_id)
+    addon_obj = OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id)
+    data ={
+        'options': options_obj,
+        'addons': addon_obj
+    }
+    return data

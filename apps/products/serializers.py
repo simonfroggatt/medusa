@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
-from apps.options.models import OcTsgProductVariantOptions, OcProductOption, OcProductOptionValue
+from apps.options.models import OcTsgProductVariantOptions, OcProductOption, OcProductOptionValue, OcTsgProductOption, OcTsgProductOptionValues
 from apps.category.models import OcCategoryToStore
 from apps.pricing.models import OcTsgSizeMaterialCombPrices
 from django.conf import settings
 from apps.symbols.models import OcTsgProductSymbols
-from apps.options.models import OcTsgProductVariantCoreOptions, OcOptionValue, OcOptionValueDescription
+from apps.options.models import OcTsgProductVariantCoreOptions, OcOptionValue, OcOptionValueDescription, OcOptionValues
 import os
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -308,12 +308,13 @@ class ProductOptionsSerializer(serializers.ModelSerializer):
 
 
 class ProductOptionsValueSerializer(serializers.ModelSerializer):
-    product_option = ProductOptionsSerializer(read_only=True)
-    option_value = ProductOptionValueExtSerialiszer(read_only=True)
+
     class Meta:
-        model = OcProductOptionValue
-        fields = ['product_option_value_id', 'product_option', 'option_value', 'option']
-        depth = 3
+        model = OcTsgProductOptionValues
+        fields = ['id', 'sort_order', 'option_value']
+        depth = 2
+
+
 
 
 class OptionValueExtSerialiszer(serializers.ModelSerializer):
@@ -331,3 +332,18 @@ class OptionValueExtSerialiszer(serializers.ModelSerializer):
 
     def get_option_value_desc(self, obj):
         return obj.option_value_desc
+
+
+class ProductOptionsCurrentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductOption
+        fields = '__all__'
+        depth = 2
+
+class ProductOptionValuesSerializer(serializers.ModelSerializer):
+
+
+    class Meta:
+        model = OcOptionValues
+        fields = '__all__'
+        depth = 2

@@ -254,7 +254,42 @@ class OcProductOptionValue(models.Model):
         db_table = 'oc_product_option_value'
 
 
+#new deisgn here
 
+class OcOptionValues(models.Model):
+    language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
+    name = models.CharField(max_length=128)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_option_values'
+
+    def __str__(self):
+        return self.name
+
+class OcTsgProductOption(models.Model):
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, blank=True, null=True)
+    option_type = models.ForeignKey(OcTsgProductOptionType, models.DO_NOTHING, blank=True, null=True)
+    label = models.CharField(max_length=255, blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+    required = models.BooleanField(default=False)
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_option'
+
+    def __str__(self):
+        return self.label
+
+
+class OcTsgProductOptionValues(models.Model):
+    product_option = models.ForeignKey(OcTsgProductOption, models.DO_NOTHING, blank=True, null=True)
+    option_value = models.ForeignKey(OcOptionValues, models.DO_NOTHING, blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+    isdeleted = models.BooleanField(default=False)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_option_values'
 
 
 

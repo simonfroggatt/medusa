@@ -72,6 +72,7 @@ urlpatterns = [
 
     #product options
     path('product/<int:product_id>/ajax_load_options/', views.ajax_product_options, name='product_variant_ajax_options'),
+   # path('product/<int:product_id>/ajax_load_options_test/', views.ajax_product_options_test, name='product_variant_ajax_options_test'),
 
     path('<int:order_id>/test/', views.order_test),
     path('live', views.live_order_list, name='liveorders'),

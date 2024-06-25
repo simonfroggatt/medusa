@@ -5,7 +5,7 @@ import datetime as dt
 from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from apps.shipping.models import OcTsgCourier
-from apps.options.models import OcProductOption, OcProductOptionValue, OcTsgOptionClass, OcTsgOptionValues
+from apps.options.models import OcProductOption, OcProductOptionValue, OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
 from django.core.validators import FileExtensionValidator
@@ -406,21 +406,6 @@ class OcOrderTotal(models.Model):
      #   calc_order_totals(self.order.order_id)
 
 
-class OcOrderOption(models.Model):
-    order_option_id = models.AutoField(primary_key=True)
-    order = models.ForeignKey(OcOrder, models.DO_NOTHING)
-    order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_option')
-    product_option = models.ForeignKey(OcProductOption, models.DO_NOTHING)
-    product_option_value = models.ForeignKey(OcProductOptionValue, models.DO_NOTHING, blank=True, null=True)
-    name = models.CharField(max_length=255)
-    value = models.TextField()
-    type = models.CharField(max_length=32)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_order_option'
-
-
 
 class OcOrderHistory(models.Model):
     order_history_id = models.AutoField(primary_key=True)
@@ -512,6 +497,19 @@ class OcTsgOrderProductOptions(models.Model):
 
 
 
+class OcTsgOrderOption(models.Model):
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True)
+    order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, blank=True, null=True, related_name='order_product_option')
+    option = models.ForeignKey(OcTsgProductOption, models.DO_NOTHING, blank=True, null=True)
+    option_name = models.CharField(max_length=255, blank=True, null=True)
+    value = models.ForeignKey(OcOptionValues, models.DO_NOTHING, blank=True, null=True)
+    value_name = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_option'
+
+
 def add_order_product_history(order_product_id, old_id, new_id):
     if old_id != new_id:
         new_history_obj = OcTsgOrderProductStatusHistory()
@@ -519,4 +517,7 @@ def add_order_product_history(order_product_id, old_id, new_id):
         new_history_obj.old_status_id = old_id
         new_history_obj.status_id = new_id
         new_history_obj.save()
+
+
+
 

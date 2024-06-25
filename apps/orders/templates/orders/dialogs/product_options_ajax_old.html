@@ -4,11 +4,11 @@
     <div class="row">
         <div class="col">
             {% for option_data in  options_markup %}
-                <div class="row" id="div_product_option_{{ option_data.id }}"  data-option={{ option_data.id }}>
-                    <label for="product_option_{{ option_data.id }}" class="col-form-label col-sm-2">{{ option_data.option_name }}</label>
+                <div class="row" id="div_product_option_{{ option_data.option_id }}"  data-option={{ option_data.option_id }}>
+                    <label for="product_option_{{ option_data.option_id }}" class="col-form-label col-sm-2">{{ option_data.option_name }}</label>
                     {% if option_data.option_type == 1 %}
                     <div class="col-sm-10">
-                        <select id="product_option_{{ option_data.id }}" data-selectclass="{{ option_data.option_id }}" class="form-select tsg_option_class" name="product_option_{{ option_data.id }}" >
+                        <select id="product_option_{{ option_data.option_id }}" data-selectclass="{{ option_data.option_id }}" class="form-select tsg_option_class" name="product_option_{{ option_data.option_id }}" >
                             {% for option_values in option_data.option_values %}
                              <option value="{{ option_values.id }}" data-optionvalue={{ option_values.id }} >{{  option_values.value }}</option>
                             {% endfor %}
@@ -18,7 +18,7 @@
                     {% if option_data.option_type == 2 %}
                         <div class="col-sm-10">
                         {% for option_values in option_data.option_values %}
-                            <input type="text" id="product_option_{{ option_data.id }}_{{ option_values.id }}" name="product_option_{{ option_data.id }}_{{ option_values.id }}" data-optionvalue={{ option_values.id }}>
+                            <input type="text" id="product_option_{{ option_values.id }}" name="product_option_{{ option_values.id }}" data-optionvalue={{ option_values.id }}>
                         {% endfor %}
                         </div>
 

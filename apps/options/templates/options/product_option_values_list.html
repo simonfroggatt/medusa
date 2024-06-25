@@ -24,9 +24,7 @@
                                        style="width:100%">
                         <thead>
                         <tr>
-                            <th class="col-3">Name</th>
-                            <th class="col-5">Option</th>
-                            <th class="col-1">Order</th>
+                            <th class="col-11">Name</th>
                             <th class="text-end" width="100px">&nbsp;</th>
                         </tr>
                         </thead>
@@ -67,10 +65,8 @@
         "order": [[ 2, "asc" ]],
         columns :[
             {data: "name"},
-            {data: "option_value.option_desc"},
-            {data: "option_value.sort_order"},
             {
-                data: "option_value.option_value_id",
+                data: "id",
                 sortable: false,
                 className: 'text-md-end text-start',
                 render: function ( data, type, row ) {

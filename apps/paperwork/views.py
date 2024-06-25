@@ -1,6 +1,6 @@
 import requests
 from django.shortcuts import render, get_object_or_404
-from apps.orders.models import OcOrder, OcOrderProduct
+from apps.orders.models import OcOrder, OcOrderProduct, OcTsgOrderOption, OcTsgOrderProductOptions
 from apps.orders.serializers import OrderProductListSerializer
 from apps.quotes.models import OcTsgQuote, OcTsgQuoteProduct
 from apps.quotes.serializers import QuoteProductListSerializer
@@ -15,7 +15,7 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_LEFT, TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, Frame, PageTemplate, NextPageTemplate, FrameBreak
 from reportlab_qrcode import QRCodeImage
-from reportlab.graphics import renderPDF
+from reportlab.graphics import renderPDF, renderPM
 from reportlab.lib import colors
 from apps.paperwork import utils
 from svglib.svglib import svg2rlg
@@ -29,6 +29,111 @@ from django.conf import settings
 from urllib.parse import quote
 from django.urls import path, include, reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect
+from django.template.loader import get_template
+from svglib.svglib import svg2rlg
+from io import BytesIO
+from xhtml2pdf import pisa
+
+from wand.api import library
+import wand.color
+import wand.image
+
+from cairosvg import svg2png
+
+
+from django.template.loader import render_to_string
+from django.contrib.staticfiles import finders
+
+
+def fetch_resources(uri, rel):
+    path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
+    return path
+
+def link_callback(uri, rel):
+    """
+    Convert HTML URIs to absolute system paths so xhtml2pdf can access those
+    resources
+    """
+    result = finders.find(uri)
+    if result:
+        if not isinstance(result, (list, tuple)):
+            result = [result]
+        result = list(os.path.realpath(path) for path in result)
+        path = result[0]
+    else:
+        sUrl = settings.STATIC_URL  # Typically /static/
+        sRoot = settings.STATIC_ROOT  # Typically /home/userX/project_static/
+        mUrl = settings.MEDIA_URL  # Typically /media/
+        mRoot = settings.MEDIA_ROOT  # Typically /home/userX/project_static/media/
+
+        if uri.startswith(mUrl):
+            path = os.path.join(mRoot, uri.replace(mUrl, ""))
+        elif uri.startswith(sUrl):
+            path = os.path.join(sRoot, uri.replace(sUrl, ""))
+        else:
+            return uri
+
+    # make sure that file exists
+    if not os.path.isfile(path):
+        raise RuntimeError(
+            'media URI must start with %s or %s' % (sUrl, mUrl)
+        )
+
+
+def render_to_pdf(template_path, context={}):
+    # Create a Django response object, and specify content_type as pdf
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    BytesIO(html.encode("ISO-8859-1"))
+
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), dest=result, link_callback=link_callback)
+    if pdf.err:
+        return HttpResponse("Invalid PDF", status_code=400, content_type='text/plain')
+    return HttpResponse(result.getvalue(), content_type='application/pdf')
+
+
+    #pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
+    # if error then show some funny view
+    #if not pisa_status.err:
+    #    return HttpResponse(result.getvalue(), content_type='application/pdf')
+    #return None
+
+def test_pdf(request):
+    order_obj = OcOrder.objects.get(pk=28)
+    css_name = 'paperwork/despatch_note.css'
+    template_name = 'paperwork/despatch_note.html'
+    context = {'order_obj': order_obj}
+    template = get_template(template_name)
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")),dest=result, link_callback=link_callback)
+    if pdf.err:
+        return HttpResponse("Invalid PDF", status_code=400, content_type='text/plain')
+    return HttpResponse(result.getvalue(), content_type='application/pdf')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def gen_pick_list(order_id, bl_excl_shipped=False):
@@ -51,7 +156,7 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
-    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=10, leading=12))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=12))
     styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
 
 #company logo
@@ -110,20 +215,21 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
         order_item_tbl_data[2] = ""
         if order_item_data.product_variant:
             image_src = order_item_data.product_variant.site_variant_image_url
-            #if order_item_data.product_variant.alt_image:
+            if image_src.endswith('.svg'):
+                svg_url = filename=settings.REPORT_URL + quote(image_src)
+                image_file_name = os.path.basename(quote(image_src))
+                image_file = os.path.splitext(image_file_name)
 
-            #if order_item_data.product_variant.site_variant_image_url:
-            #    image_src = order_item_data.product_variant.site_variant_image_url
-            #else:
-            ##    if order_item_data.product_variant.prod_var_core.variant_image:
-            #        image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.variant_image}'
-            #    else:
-            #        image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.product.image}'
+                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
+                if not os.path.isfile(image_url):
+                    svg2png(url=svg_url, write_to=image_url)
+            else:
+                image_url = settings.REPORT_URL + quote(image_src)
 
-            root_url = path
-           # img = Image('http://127.0.0.1:8000/'+ quote(image_src))
-            img = Image(settings.REPORT_URL + quote(image_src))
+            img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
+
+
         else:
             img = ''
 
@@ -172,6 +278,167 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     return buffer
 
 
+def gen_pick_list_type2(order_id, bl_excl_shipped=False):
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Despatch-Note_'+order_ref_number,  # exchange with your title
+                            author="Total Safety Group Ltd",  # exchange with your authors name
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=10))
+
+#company logo
+    comp_logo = utils.create_company_logo(order_obj.store)
+
+#company contact & order details
+    header_address = utils.create_address(order_obj.store)
+
+# create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1),'MIDDLE'),
+                                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                                    ]))
+    elements.append(header_tbl)
+
+
+# Title
+    elements.append(Paragraph("Despatch Note Type 2", styles['title']))
+
+# order details
+    contacts_str = utils.contact_details(order_obj)
+    order_str = utils.order_details(order_obj)
+    order_tbl_data = [
+        [Paragraph(contacts_str, styles['header_main']), Paragraph(order_str, styles['header_main'])]
+    ]
+    order_col_width = 40 * mm
+    order_tbl_data = Table(order_tbl_data, colWidths=[doc.width - order_col_width, order_col_width])
+    order_tbl_data.setStyle(TableStyle([
+                                        ('ALIGN', (1, 1), (1, 1), "RIGHT")]))
+    elements.append(order_tbl_data)
+    elements.append(Spacer(doc.width, 5*mm))
+#order items
+# Code, Product, Options, image, Size, Material, QTY, P,S,C
+    bl_options = utils.order_has_options(order_obj.order_id)
+    #product_options_addons = get_order_line_options(order_obj.or)
+    if bl_options:
+        items_tbl_data = [['Code', 'Image', 'Product','Size', 'Material','Options', 'QTY', 'P', 'S', 'C']]
+    else:
+        items_tbl_data = [['Code', 'Image', 'Product','Size', 'Material', 'Qty', 'P', 'S', 'C']]
+
+# Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+    if bl_excl_shipped:
+        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+    else:
+        order_items = order_obj.order_products.all()
+
+    for order_item_data in order_items.iterator():
+        if order_item_data.product_variant:
+            model = order_item_data.product_variant.variant_code
+        if bl_options:
+            order_item_tbl_data = [''] * 10
+        else:
+            order_item_tbl_data = [''] * 9
+
+        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+
+        if order_item_data.product_variant:
+            image_src = order_item_data.product_variant.site_variant_image_url
+            if image_src.endswith('.svg'):
+                svg_url = filename=settings.REPORT_URL + quote(image_src)
+                image_file_name = os.path.basename(quote(image_src))
+                image_file = os.path.splitext(image_file_name)
+
+                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
+                if not os.path.isfile(image_url):
+                    svg2png(url=svg_url, write_to=image_url)
+            else:
+                image_url = settings.REPORT_URL + quote(image_src)
+
+            img = Image(image_url)
+            img._restrictSize(image_max_w, image_max_h)
+
+
+        else:
+            img = ''
+
+        order_item_tbl_data[1] = img
+
+        order_item_tbl_data[2] = Paragraph(order_item_data.name, styles['table_data'])
+        order_item_tbl_data[3] = Paragraph(order_item_data.size_name, styles['table_data'])
+        order_item_tbl_data[4] = Paragraph(order_item_data.material_name, styles['table_data'])
+
+        option_col_adj = 0
+        if bl_options:
+            option_text = utils.get_order_product_line_options(order_item_data.order_product_id)
+            order_item_tbl_data[5] = Paragraph(option_text, styles['table_data_small'])
+            option_col_adj = 1
+
+        order_item_tbl_data[5+option_col_adj] = order_item_data.quantity
+        order_item_tbl_data[6+option_col_adj] = ""
+        order_item_tbl_data[7+option_col_adj] = ""
+        order_item_tbl_data[8+option_col_adj] = ""
+        items_tbl_data.append(order_item_tbl_data)
+
+    if bl_options:
+        items_tbl_cols = [20 * mm, (image_max_w ) + 5,50 * mm, 22.5 * mm, 22.5 * mm,  40 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    else:
+        items_tbl_cols = [20 * mm, (image_max_w ) + 5, 60 * mm, 35 * mm, 35 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    row_height = image_max_h + 10
+    rows = len(items_tbl_data)
+    items_tbl_rowh = [row_height] * rows
+    items_tbl_rowh[0] = 20
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('ALIGN', (5 + option_col_adj, 1), (5 + option_col_adj, -1), "CENTRE"),
+                                     ('ALIGN', (5 + option_col_adj, 0), (-1, 0), "CENTRE"),
+                                     ('ALIGN', (1, 1), (1, -1), "CENTRE"),
+                                     ('VALIGN', (0, 0), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 10),
+                                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), (colors.white, colors.whitesmoke)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5*mm))
+    order_lines = order_items.count()
+    product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
+
+#add in the totals
+    total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
+    elements.append(total_text)
+    elements.append(Spacer(doc.width, 15*mm))
+    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
+    elements.append(signed_text)
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+
+    #pdf = buffer.getvalue()
+    #uffer.close()
+    #response.write(pdf)
+    return buffer
+
+
 def gen_collection_note(order_id, bl_excl_shipped=False):
     width = 210 * mm
     height = 297 * mm
@@ -185,7 +452,7 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
     doc = SimpleDocTemplate(buffer, pagesize=A4,
                             rightMargin=3 * mm, leftMargin=3 * mm,
                             topMargin=8 * mm, bottomMargin=3 * mm,
-                            title=f'Despatch-Note_'+order_ref_number,  # exchange with your title
+                            title=f'Collection-Note_'+order_ref_number,  # exchange with your title
                             author="Safety Signs and Notices LTD",  # exchange with your authors name
                             )
 
@@ -197,8 +464,10 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
-    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=10, leading=12))
-    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
+    styles.add(ParagraphStyle(name='table_data_qty', alignment=TA_CENTER, fontSize=10, leading=12))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=10))
 
 #company logo
     comp_logo = utils.create_company_logo(order_obj.store)
@@ -232,11 +501,15 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
                                         ('ALIGN', (1, 1), (1, 1), "RIGHT")]))
     elements.append(order_tbl_data)
     elements.append(Spacer(doc.width, 5*mm))
+
+    bl_options = utils.order_has_options(order_obj.order_id)
+    # product_options_addons = get_order_line_options(order_obj.or)
+    if bl_options:
+        items_tbl_data = [['Code', 'Image', 'Product', 'Size', 'Material', 'Options', 'QTY', '']]
+    else:
+        items_tbl_data = [['Code', 'Image', 'Product', 'Size', 'Material', 'QTY', '']]
 #order items
 # Code, Product, Options, image, Size, Material, QTY, P,S,C
-    items_tbl_data = [
-        ['Code', 'Product', 'Options', 'Image', 'Size', 'Material', 'QTY', 'P', 'S', 'C']
-    ]
 
 # Now add in all the
     image_max_h = 10 * mm
@@ -250,35 +523,53 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
     for order_item_data in order_items.iterator():
         if order_item_data.product_variant:
             model = order_item_data.product_variant.variant_code
-        order_item_tbl_data = [''] * 10
+        if bl_options:
+            order_item_tbl_data = [''] * 8
+        else:
+            order_item_tbl_data = [''] * 7
+
         order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
-        order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
-        order_item_tbl_data[2] = ""
+
         if order_item_data.product_variant:
             image_src = order_item_data.product_variant.site_variant_image_url
-            # if order_item_data.product_variant.alt_image:
-            #     image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.alt_image}'
-            # else:
-            #     if order_item_data.product_variant.prod_var_core.variant_image:
-            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.variant_image}'
-            #     else:
-            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.product.image}'
+            if image_src.endswith('.svg'):
+                svg_url = filename = settings.REPORT_URL + quote(image_src)
+                image_file_name = os.path.basename(quote(image_src))
+                image_file = os.path.splitext(image_file_name)
 
-            img = Image(settings.REPORT_URL + quote(image_src))
+                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0] + '.png')
+                if not os.path.isfile(image_url):
+                    svg2png(url=svg_url, write_to=image_url)
+            else:
+                image_url = settings.REPORT_URL + quote(image_src)
+
+            img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
+
+
         else:
             img = ''
 
-        order_item_tbl_data[3] = img
-        order_item_tbl_data[4] = Paragraph(order_item_data.size_name, styles['table_data'])
-        order_item_tbl_data[5] = Paragraph(order_item_data.material_name, styles['table_data'])
-        order_item_tbl_data[6] = order_item_data.quantity
-        order_item_tbl_data[7] = ""
-        order_item_tbl_data[8] = ""
-        order_item_tbl_data[9] = ""
+        order_item_tbl_data[1] = img
+
+        order_item_tbl_data[2] = Paragraph(order_item_data.name, styles['table_data'])
+        order_item_tbl_data[3] = Paragraph(order_item_data.size_name, styles['table_data'])
+        order_item_tbl_data[4] = Paragraph(order_item_data.material_name, styles['table_data'])
+
+        option_col_adj = 0
+        if bl_options:
+            option_text = utils.get_order_product_line_options(order_item_data.order_product_id)
+            order_item_tbl_data[5] = Paragraph(option_text, styles['table_data_small'])
+            option_col_adj = 1
+
+        order_item_tbl_data[5 + option_col_adj] = Paragraph(f'  / {order_item_data.quantity}', styles['table_data_qty'])
+        order_item_tbl_data[6 + option_col_adj] = ""
         items_tbl_data.append(order_item_tbl_data)
 
-    items_tbl_cols = [20 * mm, 50 * mm, 20 * mm, (image_max_w ) + 5, 30 * mm, 30 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    if bl_options:
+        items_tbl_cols = [20 * mm, (image_max_w) + 5, 50 * mm, 22.5 * mm, 22.5 * mm, 40 * mm, 20 * mm, 5 * mm]
+    else:
+        items_tbl_cols = [20 * mm, (image_max_w) + 5, 60 * mm, 35 * mm, 35 * mm, 20 * mm, 5 * mm]
     row_height = image_max_h + 10
     rows = len(items_tbl_data)
     items_tbl_rowh = [row_height] * rows
@@ -286,16 +577,18 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
     items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
     items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
                                      ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                                     ('ALIGN', (6, 1), (6, -1), "CENTRE"),
-                                     ('ALIGN', (6, 0), (-1, 0), "CENTRE"),
-                                     ('ALIGN', (3, 1), (3, -1), "CENTRE"),
-                                     ('VALIGN', (0, 0), (-1, -1), "MIDDLE"),
+                                     ('ALIGN', (5 + option_col_adj, 1), (5 + option_col_adj, -1), "CENTRE"),
+                                     ('ALIGN', (5 + option_col_adj, 0), (-1, 0), "CENTRE"),
+                                     ('ALIGN', (1, 1), (1, -1), "CENTRE"),
+                                     ('VALIGN', (0, 0), (-1, -1), "TOP"),
+                                     ('VALIGN', (1, 1), (1, -1), "MIDDLE"),
+                                     ('VALIGN', (6, 1), (6, -1), "MIDDLE"),
                                      ('FONTSIZE', (0, 1), (-1, -1), 10),
                                      ('ROWBACKGROUNDS', (0, 1), (-1, -1), (colors.white, colors.whitesmoke)),
                                      ]))
 
     elements.append(items_table)
-    elements.append(Spacer(doc.width, 5*mm))
+    elements.append(Spacer(doc.width, 5 * mm))
     order_lines = order_items.count()
     product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
 
@@ -348,7 +641,7 @@ def gen_invoice(order_id):
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
-    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=9, leading=11))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=9, leading=13))
     styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
 
 #company logo
@@ -425,20 +718,6 @@ def gen_invoice(order_id):
         order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
         product_description = utils.create_product_desc(order_item_data)
         order_item_tbl_data[1] = Paragraph(product_description, styles['table_data'])
-        if order_item_data.product_variant:
-            image_src = order_item_data.product_variant.site_variant_image_url
-            # if order_item_data.product_variant.alt_image:
-            #     image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.alt_image}'
-            # else:
-            #     if order_item_data.product_variant.prod_var_core.variant_image:
-            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.variant_image}'
-            #     else:
-            #         image_src = f'{settings.MEDIA_URL}/image/{order_item_data.product_variant.prod_var_core.product.image}'
-
-            img = Image(settings.REPORT_URL + quote(image_src))
-            img._restrictSize(image_max_w, image_max_h)
-        else:
-            img = ''
 
         order_item_tbl_data[2] = order_item_data.quantity
         order_item_tbl_data[3] = round(order_item_data.price,2)
@@ -522,8 +801,8 @@ def gen_shipping_page(order_id):
     doc.addPageTemplates(mainPage)
 
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='address_top', alignment=TA_LEFT, fontSize=20, leading=22))
-    styles.add(ParagraphStyle(name='address_bottom', alignment=TA_LEFT, fontSize=14))
+    styles.add(ParagraphStyle(name='address_top', alignment=TA_LEFT, fontSize=20, leading=24))
+    styles.add(ParagraphStyle(name='address_bottom', alignment=TA_LEFT, fontSize=14, leading=18))
 
     shipping_address = utils.get_shipping_address(order_obj)
     shipping_address_keep = utils.shipping_address_keep(order_obj)
@@ -555,7 +834,8 @@ def gen_merged_paperwork(request, order_id):
         bl_exclude_shipped = True
 
     if 'print_picklist' in request.POST:
-        pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
+        #pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
+        pdflist.append(gen_pick_list_type2(order_id, bl_exclude_shipped))
         set_printed(request, order_id)
     if 'print_shipping' in request.POST:
         pdflist.append(gen_shipping_page(order_id))
@@ -788,10 +1068,13 @@ def set_printed(request, order_id):
 
 def _push_to_xero(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
-    if order_obj.xero_id:
-        xero_url = reverse_lazy('order-update-xero', kwargs={'pk': order_obj.order_id})
-    else:
+    if not order_obj.xero_id:
         xero_url = reverse_lazy('order-add-xero', kwargs={'pk': order_obj.order_id})
-    base_url = request.build_absolute_uri(xero_url)
-    r = requests.get(base_url)
+        base_url = request.build_absolute_uri(xero_url)
+        r = requests.get(base_url)
+
+
+
+
+
 

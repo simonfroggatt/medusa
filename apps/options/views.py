@@ -3,13 +3,13 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from apps.options.models import OcTsgOptionTypes, OcTsgOptionClassGroups, OcTsgOptionClass, OcTsgOptionValues, \
     OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues, OcOption, OcOptionDescription, \
-    OcOptionValue, OcOptionValueDescription
+    OcOptionValue, OcOptionValueDescription, OcTsgProductOptionValues, OcOptionValues
 from apps.options.forms import ClassEditForm, ValueEditForm, TypesEditForm, GroupEditForm, GroupValueEditForm, \
-    ClassValuesOrderForm, ProductOptionValueDescForm, ProductOptionValueForm, ProductOptionForm, ProductOptionDescForm
+    ClassValuesOrderForm, ProductOptionValueDescForm, ProductOptionValueForm, ProductOptionForm, ProductOptionDescForm, OptionValueForm
 from apps.products.models import OcProduct, OcTsgProductVariantCore
 from .serializers import OptionValuesSerializer, OptionGroupSerializer, OptionTypeSerializer, OptionClassSerializer, \
     OptionGroupValueSerializer, OptionClassPredefinedValuesSerializer, ProductOptionValueDescSerializer, \
-    ProductOptionsDescSerializer
+    ProductOptionsDescSerializer, ProductOptionValueSerializer
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 import json
@@ -27,11 +27,12 @@ class AllProductOptions(viewsets.ModelViewSet):
 
 
 class AllProductOptionValues(viewsets.ModelViewSet):
-    queryset = OcOptionValueDescription.objects.all()
-    serializer_class = ProductOptionValueDescSerializer
-
+    queryset = OcOptionValues.objects.all()
+#    queryset = OcOptionValueDescription.objects.all()
+#    serializer_class = ProductOptionValueDescSerializer
+    serializer_class = ProductOptionValueSerializer
     def get_queryset(self):
-        return super().get_queryset().filter(language_id=1)
+        return super().get_queryset()
 
 
 def option_class_types(request):
@@ -719,8 +720,57 @@ def productOptionsValue_create(request):
 
     return JsonResponse(data)
 
-
 def productOptionsValue_edit(request, pk):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_option_values-edit.html'
+    option_value_obj = get_object_or_404(OcOptionValues, pk=pk)
+
+    if request.method == 'POST':
+        form_values = OptionValueForm(request.POST, instance=option_value_obj)
+        if form_values.is_valid():
+            form_values.save();
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+    else:
+        data['form_is_valid'] = False
+        context['form'] = OptionValueForm(instance=option_value_obj)
+
+        context['dialog_title'] = "<strong>Edit</strong> option VALUE"
+        context['action_url'] = reverse_lazy('allproductoptions_value-edit', kwargs={'pk': pk})
+        context['form_id'] = 'form-product_options_values'
+        data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+def productOptionsValue_delete(request, pk):
+    data = dict()
+    context = dict()
+    template_name = 'options/dialogs/product_option_values-delete.html'
+    if request.method == 'POST':
+        class_option_value_obj = get_object_or_404(OcOptionValues, pk=pk)
+        class_option_value_obj.delete()
+        data['form_is_valid'] = True
+    else:
+        context['dialog_title'] = "<strong>DELETE</strong> option VALUE"
+        context['action_url'] = reverse_lazy('allproductoptions_value-delete', kwargs={'pk': pk})
+        context['form_id'] = 'form-product_options_values'
+        context['option_id'] = pk
+        data['form_is_valid'] = False
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+def productOptionsValue_edit_old(request, pk):
     data = dict()
     context = dict()
     template_name = 'options/dialogs/product_option_values-edit.html'
@@ -761,26 +811,6 @@ def productOptionsValue_edit(request, pk):
     return JsonResponse(data)
 
 
-def productOptionsValue_delete(request, pk):
-    data = dict()
-    context = dict()
-    template_name = 'options/dialogs/product_option_values-delete.html'
-    if request.method == 'POST':
-        class_option_value_obj = get_object_or_404(OcOptionValue, pk=pk)
-        class_option_value_obj.delete()
-        data['form_is_valid'] = True
-    else:
-        context['dialog_title'] = "<strong>DELETE</strong> option VALUE"
-        context['action_url'] = reverse_lazy('allproductoptions_value-delete', kwargs={'pk': pk})
-        context['form_id'] = 'form-product_options_values'
-        context['option_id'] = pk
-        data['form_is_valid'] = False
 
-    data['html_form'] = render_to_string(template_name,
-                                         context,
-                                         request=request
-                                         )
-
-    return JsonResponse(data)
 
 

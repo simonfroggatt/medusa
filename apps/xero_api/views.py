@@ -455,7 +455,7 @@ def _xero_invoice_check_rounding(order_obj, xero_order_obj):
 
     order_total_value = order_total[0].value
     if order_total_value != xero_total:
-        rounding = order_total - xero_total
+        rounding = order_total_value - xero_total
         rounding_line = {
             'quantity': 1,
             'price': rounding,

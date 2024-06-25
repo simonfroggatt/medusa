@@ -61,3 +61,4 @@ urlpatterns = [
     path('productoptions_values/<int:pk>/edit', views.productOptionsValue_edit, name='allproductoptions_value-edit'),
     path('productoptions_values/<int:pk>/delete', views.productOptionsValue_delete, name='allproductoptions_value-delete'),
     ]
+

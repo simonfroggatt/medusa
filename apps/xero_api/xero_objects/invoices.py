@@ -1,7 +1,8 @@
 from apps.xero_api.xero_objects.xero_base import XeroItem
 import apps.xero_api.config as xero_config
-from apps.orders.services import create_due_date
+from apps.orders.services import create_due_date, get_order_product_line_options
 from decimal import Decimal
+
 
 class XeroInvoice(XeroItem):
 
@@ -56,6 +57,12 @@ class XeroInvoice(XeroItem):
             lineitem['Description'] = product_line.name + '(' + product_line.model + ')' + '\n' + \
                                       'Size: ' + product_line.size_name + '\n' + \
                                       'Material: ' + product_line.material_name
+
+            #check if there are any options
+            option_text = self.__get_order_product_line_options(product_line.order_product_id)
+            if option_text:
+                lineitem['Description'] = lineitem['Description'] + '\n' + option_text
+
             lineitem['Quantity'] = product_line.quantity
             lineitem['UnitAmount'] = format(product_line.price, '.2f')
            # lineitem['LineAmount'] = format(product_line.total, '.2f')
@@ -191,5 +198,23 @@ class XeroInvoice(XeroItem):
         self.__Payments = xero_response_invoice['Payments']
         self.__DueDate = xero_response_invoice['DueDate']
         self.__Status = xero_response_invoice['Status']
+
+
+    def __get_order_product_line_options(self, order_product_id):
+        option_data = get_order_product_line_options(order_product_id)
+        options_obj = option_data['options']
+        option_text = ''
+        option_break = ''
+        for option in options_obj:
+            option_text = f'{option_text}{option_break}{option.option_name} : {option.value_name}'
+            option_break = '\n'
+
+        addon_obj = option_data['addons']
+        for addon in addon_obj:
+            option_text = f'{option_text}{option_break}{addon.class_name} : {addon.value_name}'
+            option_break = '\n'
+
+        return option_text
+
 
 

@@ -1,2 +1,36 @@
+@page {
+        size : A4 portrait;
+        margin: 20mm 10mm 20mm 10mm;
 
+       /* @frame header_frame {
+            -pdf-frame-content: header_content;
+            left: 5mm; width: 200mm; top: 5mm; height: 10mm;
+
+
+        }*/
+
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            left: 5mm; width: 200mm; top: 287mm; height: 9mm;
+            -pdf-frame-border: 1;
+        }
+
+        /*@frame col1_frame {
+            -pdf-frame-content: left_content;
+            left: 10mm; width: 80mm; top: 20mm ; height: 50mm;
+            -pdf-frame-border: 1;
+        }
+        @frame col2_frame {
+            -pdf-frame-content: right_content;
+             left: 120mm; width: 80mm; top: 20mm ; height: 50mm;
+             -pdf-frame-border: 1;
+        }*/
+
+        @frame content_frame {          /* Content Frame */
+            left: 5mm; width: 200mm; top: 100mm; height: 100mm;
+             -pdf-frame-border: 1;
+
+        }
+
+    }
 

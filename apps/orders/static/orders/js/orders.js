@@ -47,7 +47,7 @@ $(function () {
                 render: function (data, type, row) {
                     let options_text = "";
                     $.each(data, function (index, value) {
-                        options_text += index > 0 ? '<br>' + value.name + " : " + value.value : value.name + " : " + value.value;
+                        options_text += index > 0 ? '<br>' + value.option_name + " : " + value.value_name : value.option_name + " : " + value.value_name;
                     });
                     return options_text;
                 },

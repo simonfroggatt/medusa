@@ -1,7 +1,7 @@
 from django import forms
 from apps.options.models import OcTsgOptionClass, OcTsgOptionValues, OcTsgOptionTypes, OcTsgOptionClassGroups, \
     OcTsgOptionClassGroupValues, OcTsgOptionClassValues, OcOption, OcOptionValue, \
-    OcOptionValueDescription, OcOptionDescription
+    OcOptionValueDescription, OcOptionDescription, OcOptionValues
 
 from apps.products.models import OcProduct
 
@@ -120,6 +120,13 @@ class ProductOptionValueDescForm(forms.ModelForm):
 
     class Meta:
         model = OcOptionValueDescription
+
+        fields = '__all__'
+
+
+class OptionValueForm(forms.ModelForm):
+    class Meta:
+        model = OcOptionValues
 
         fields = '__all__'
 
