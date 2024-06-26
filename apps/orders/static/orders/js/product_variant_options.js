@@ -11,26 +11,47 @@ $(function(){
        //SetSingleUnitPrice(new_price, 'form-stock', true);
        // $('#new_price').html(new_price);
     })
+
 })
+
+
 
 
 function ClassChange(){
     let class_id = $(this).find(':selected').data('class')
+     let form_id = '#' + $(this).parents("form").attr('id')
         let value_id = $(this).val()
         ShowHideDynamics();
         let price_modifier = calcExtraPrice();
-        let old_price = $('#base_price').val()
+        let old_price = $(form_id + ' #base_price').val()
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
         ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#form-stock', true);
        // $('#new_price').html(new_price);
 }
 
- $(document).on('change', '.tsg_option_class', ClassChange);
+function ClassChangeBespoke(){
+    let option_extra_class_name = "_bespoke"
+    let form_id = '#' + $(this).parents("form").attr('id')
+    let class_id = $(this).find(':selected').data('class')
+        let value_id = $(this).val()
+        let price_modifier = calcExtraPrice(option_extra_class_name, true);
+        let old_price = $(form_id + ' #base_price').val()
+        let new_price = parseFloat(price_modifier) + parseFloat(old_price);
+        ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#form-quick_manual', true);
+       // $('#new_price').html(new_price);
+}
 
-function getClassArray(class_id){
+ $(document).on('change', '.tsg_option_class', ClassChange);
+ $(document).on('change', '.tsg_option_class_bespoke', ClassChangeBespoke);
+
+function getClassArray(class_id, bl_bespoke = false){
     //get the class info from the local var
     let rtn_array = [];
-    $.each(select_values, function (key, value){
+    let select_values_array = select_values;
+    if (bl_bespoke) {
+        select_values_array = select_values_bespoke;
+    }
+    $.each(select_values_array, function (key, value){
        if(value.id == class_id) {
            rtn_array = value
            return false;
@@ -39,10 +60,10 @@ function getClassArray(class_id){
     return rtn_array
 }
 
-function getOptionArray(class_id, value_id){
+function getOptionArray(class_id, value_id, bl_bespoke = false){
     //get the selection option info from the local var
     let rtn_array = [];
-    let class_values = getClassArray(class_id);
+    let class_values = getClassArray(class_id, bl_bespoke);
     $.each(class_values.values, function (key, value){
        if(value.id == value_id) {
            rtn_array = value;
@@ -140,8 +161,8 @@ function ShowDynamicSelect(select_class_id)
     alert('show select' + select_class_id);
 }
 
-function calcExtraPrice() {
-    let all_selects = $(document).find('.tsg_option_class')
+function calcExtraPrice(option_extra_class_name = '', bl_bespoke = false){
+    let all_selects = $(document).find('.tsg_option_class' + option_extra_class_name)
     let addon_price = 0.00;
     let new_addon_price = 0.00;
     let select_value_id = 0;
@@ -150,7 +171,7 @@ function calcExtraPrice() {
         select_value_id = $(value).val();
         if(select_value_id > 0) {  //this option is selected, so get the price
             class_id = $(value).data('selectclass');
-            new_addon_price = getPriceModifier(class_id, select_value_id);
+            new_addon_price = getPriceModifier(class_id, select_value_id, bl_bespoke);
             addon_price = addon_price + new_addon_price;
             console.log(addon_price);
         }
@@ -162,10 +183,10 @@ function calcExtraPrice() {
 
 
 
-function getPriceModifier(class_opt_id, selected_value_id)
+function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false)
 {
     let price_mod = 0.00;
-    class_opt_vals = getOptionArray(class_opt_id, selected_value_id)
+    class_opt_vals = getOptionArray(class_opt_id, selected_value_id, bl_bespoke)
   try{
     if (class_opt_vals === undefined) {
       price_mod = 0.00;
@@ -175,19 +196,32 @@ function getPriceModifier(class_opt_id, selected_value_id)
       price_mod = 0.00;
       let mod_type = 0;
       mod_type = parseInt(class_opt_vals['option_type']);
+      var prod_width = 0;
+      var prod_height = 0;
       switch (mod_type) {
         case 1: price_mod = class_opt_vals['price_modifier'];   //FIXED  - e.g. Drill holes
           break;
         case 2:  //PERC  - e.g. Laminate
           //var base_prod_var = prod_variants[prod_var_options[0][0]][prod_var_options[0][1]];
-          var prod_width = parseFloat(variant_info['size_width'])/1000;
-          var prod_height = parseFloat(variant_info['size_height'])/1000;
+
+            if (bl_bespoke){
+                 prod_width = $('#form-quick_manual #manualCalcWidth').val()/1000;
+                 prod_height =  $('#form-quick_manual #manualCalcHeight').val()/1000;
+            } else {
+                 prod_width = parseFloat(variant_info['size_width']) / 1000;
+                 prod_height = parseFloat(variant_info['size_height']) / 1000;
+            }
           price_mod =    parseFloat(class_opt_vals['price_modifier']) * prod_width * prod_height;//size_width, size_height
           break;
         case 3:  //width - e.g. Channel
           //var base_prod_var = prod_variants[prod_var_options[0][0]][prod_var_options[0][1]];
-          var prod_width = parseFloat(variant_info['size_width'])/1000;
-          price_mod =    parseFloat(class_opt_vals['price_modifier']) * prod_width;
+            if (bl_bespoke) {
+                prod_width = $('#form-quick_manual #manualCalcWidth').val() / 1000;
+            }
+            else {
+                prod_width = parseFloat(variant_info['size_width'])/1000;
+            }
+           price_mod =    parseFloat(class_opt_vals['price_modifier']) * prod_width;
           break;
         case 4:
             price_mod = parseFloat(class_opt_vals['price_modifier']*class_opt_vals['price']);//Product - e.g. Clips

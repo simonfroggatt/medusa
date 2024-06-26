@@ -6,7 +6,7 @@ from django.core import serializers
 from django.template.loader import render_to_string
 from apps.pricing.models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, \
     OcTsgSizeMaterialCombPrices, OcTsgMaterialSpec
-from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer
+from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer, BespokePricesSerializer
 from apps.pricing.forms import SizesForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo, StorePriceComboForm, \
     MaterialSpecForm
 from apps.sites.models import OcStore
@@ -112,7 +112,7 @@ class StorePrices(viewsets.ModelViewSet):
 
 class BespokePrices(viewsets.ModelViewSet):
     queryset = OcTsgSizeMaterialComb.objects.all()
-    serializer_class = BasePricesSerializer
+    serializer_class = BespokePricesSerializer
 
     def retrieve(self, request, pk=None):
         return

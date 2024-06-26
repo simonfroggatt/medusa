@@ -403,6 +403,7 @@ $(".switchApplyBulk").change(function () {
 
         let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
         $('#form-quick_manual #single_unit_price').val(parseFloat(newprice).toFixed(2));
+        $('#form-quick_manual #base_price').val(parseFloat(newprice).toFixed(2));
         $('#form-quick_manual #price').val(parseFloat(newprice).toFixed(2));
 
 
@@ -432,5 +433,8 @@ $(".switchApplyBulk").change(function () {
         if (newprice > 0) {
             SetPrice(true, '#form-quick_manual')
         }
+
+        $(document).find('.tsg_option_class_bespoke').trigger('change');
+
     }
 

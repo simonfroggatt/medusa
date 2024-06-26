@@ -607,6 +607,7 @@
                  $('#form-quick_manual #height').val(manual_data['calcheight'])
                 $('#form-quick_manual #manualPrice').val(manual_data['price'])
                 $('#form-quick_manual #{{ form.single_unit_price.name }}').val(manual_data['price'])
+                $('#form-quick_manual #base_price').val(manual_data['price'])
                 $('#form-quick_manual #price').val(manual_data['price'])
                 $('#form-quick_manual #quantity').val(1)
                 $('#form-quick_manual #manualMaterial').val(manual_data['material'])
@@ -614,6 +615,8 @@
                 $('#form-quick_manual #name').val(manual_data['name'])
 
                 $('#order-add-product-tabs #manual-product-tab').tab('show');
+
+                $('#form-quick_manual #quantity').trigger('change');
                 $('#form-quick_manual #manualMaterial').trigger('change');
 
 

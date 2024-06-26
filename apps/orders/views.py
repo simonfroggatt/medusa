@@ -380,7 +380,7 @@ def order_add_product(request, order_id):
         customer_discount = 0
 
     customer_discount = 0
-
+    bespoke_addon_options = get_bespoke_product_options()
     context = {
         "order_id": order_id,
         "tax_rate": order_obj.tax_rate.rate,
@@ -389,7 +389,9 @@ def order_add_product(request, order_id):
         "form_post_url": reverse_lazy('orderproductadd', kwargs={'order_id': order_id}),
         "price_for": "I",  #
         'customer_discount': customer_discount,
-        "form": form}
+        "form": form,
+        "bespoke_addons": bespoke_addon_options,
+        "bespoke_addons_count": len(bespoke_addon_options)}
 
     template_name = 'orders/dialogs/add_product_layout_dlg.html'
 
@@ -1503,6 +1505,31 @@ def add_order_product_options(product_options, order_id, order_product_id, produ
             order_product_option.value_id = product_value_data.pk
 
         order_product_option.save()
+
+
+def get_bespoke_product_options():
+    #hack for now, to add laminate, d-tape and drill holes
+    select_list_data = []
+
+    bespoke_class_ids = [1, 2, 5]
+    for class_id in bespoke_class_ids:
+        select_info = dict()
+        class_obj = get_object_or_404(OcTsgOptionClass, pk=class_id)
+        select_info['id'] = class_id
+        select_info['label'] = class_obj.label
+        select_info['order'] = class_obj.order_by
+        select_info['default'] = class_obj.default_dropdown_title
+        select_info['is_dynamic'] = False
+        option_class_values_obj = class_obj.values_option_class.all()
+        select_info['values'] = []
+        for option_class_value in option_class_values_obj:
+            select_data = create_option_values_from_list(option_class_value.option_value)
+            select_info['values'].append(select_data)
+        # now get the class values that are valid for this product_variant of this site
+        select_list_data.append(select_info)
+
+    return select_list_data
+
 
 
 def calculate_order_total(order_id, bl_discount=True, bl_recalc_shipping=True):

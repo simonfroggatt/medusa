@@ -576,7 +576,6 @@ $(function () {
             discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
             line_price = parseFloat(qty * discount_price).toFixed(2);
             $(product_price).val(discount_price);
-            alert(base_price);
 
         } else {
             line_price = (qty * $('#single_unit_price').val()).toFixed(2);
