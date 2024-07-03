@@ -8,164 +8,189 @@
 </div>
 <div class="modal-body">
     <div class="container">
-        <div class="row pb-2">
-            <div class="col-12">
-                <form method="post" action="{{ form_post_url }}"
-                        {% if price_for|upper == "I" %} class="js-product-edit-submit"
-                        {% else %}
-                      class="js-quote-product-edit-submit"
-                        {% endif %}
-                      id="js-product-edit-submit">
-                    {% csrf_token %}
-                    <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
-                           value="{{ form.tax.value|floatformat:2 }}">
-                    <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
-                           value="{{ form.total.value|floatformat:2 }}">
-                    <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
-                           value="{{ form.exclude_discount.value }}">
-                    <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}"
-                           value="{{ form.single_unit_price.value }}">
-                    <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}"
-                       value="{{ form.bulk_used.value }}">
+        <form method="post" action="{{ form_post_url }}"
+                {% if price_for|upper == "I" %} class="js-product-edit-submit"
+                {% else %}
+              class="js-quote-product-edit-submit"
+                {% endif %}
+              id="js-product-edit-submit">
+            {% csrf_token %}
+            <input type="hidden" id="{{ form.tax.name }}" name="{{ form.tax.name }}"
+                   value="{{ form.tax.value|floatformat:2 }}">
+            <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
+                   value="{{ form.total.value|floatformat:2 }}">
+            <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
+                   value="{{ form.exclude_discount.value }}">
+            <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}"
+                   value="{{ form.bulk_used.value }}">
+            <input type="hidden" id="manualCalcWidth" name="manualCalcWidth"
+                   value="{{ form.width.value }}">
+            <input type="hidden" id="manualCalcHeight" name="manualCalHeight"
+                   value="{{ form.height.value }}">
 
-                    <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
-                       value="1">
+
+
+           <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}"
+                   value="{{ form.base_unit_price.value }}">
+
+
+            <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
+                   value="1">
+            <div class="row">
+                <div class="col-6 col-md-4">
+                    <label for="label_{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
+                    <input type="text" class="form-control" id="label_{{ form.model.name }}"
+                           name="{{ form.model.name }}" value="{{ form.model.value }}">
+                </div>
+
+                <div class="col-6 {% if price_for|upper == "I" %} col-md-6 {% else %} col-md-8 {% endif %}">
+                    <label for="label_{{ form.name.name }}" class="form-label">{{ form.name.label }}</label>
+                    <input type="text" class="form-control" id="label_{{ form.name.name }}"
+                           name="{{ form.name.name }}" value="{{ form.name.value }}">
+                </div>
+                {% if price_for|upper == "I" %}
+                    <div class="col-6 col-md-2">{{ form.status|as_crispy_field }}</div>
+                {% endif %}
+            </div>
+            <div class="row pb-2">
+                <div class="col-6 col-md-2">
+                    <label for="label_{{ form.width.name }}"
+                           class="form-label">{{ form.width.label }}</label>
+                    <input type="text" class="form-control" id="label_{{ form.width.name }}"
+                           name="{{ form.width.name }}" value="{{ form.width.value }}" onchange="setSize()">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label for="label_{{ form.height.name }}"
+                           class="form-label">{{ form.height.label }}</label>
+                    <input type="text" class="form-control" id="label_{{ form.height.name }}"
+                           name="{{ form.height.name }}" value="{{ form.height.value }}" onchange="setSize()">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label for="label_{{ form.size_name.name }}"
+                           class="form-label">{{ form.size_name.label }}</label>
+                    <input type="text" class="form-control" id="label_{{ form.size_name.name }}"
+                           name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
+                </div>
+                <div class="col-6 col-md-4">
+                    <label for="label_{{ form.material_name.name }}"
+                           class="form-label">{{ form.material_name.label }}</label>
+                    <input type="text" class="form-control" id="label_{{ form.material_name.name }}"
+                           name="{{ form.material_name.name }}" value="{{ form.material_name.value }}">
+                </div>
+                <div class="col-2">
+                    <label for="label_{{ form.is_bespoke.name }}"
+                           class="form-label">{{ form.is_bespoke.label }}</label>
+                    <input type="checkbox" class="form-check" id="label_{{ form.is_bespoke.name }}"
+                           name="{{ form.is_bespoke.name }}" value="True" {% if form.is_bespoke.value  %} checked {% endif %}>
+                </div>
+            </div>
+
+            <!-- variant and options -->
+
+                {% if form.is_bespoke.value  %}
+                     <hr>
+                   <div class="row" id="bespoke_addons">
+                        {% include 'orders/dialogs/bespoke_product_addons.html' %}
+                    </div>
+                {% else %}
+                    {% include 'orders/dialogs/order_product_edit_options_variants.html' %}
+                {% endif %}
+
+            <hr>
+            <div class="row"> <!-- Bulk Discount -->
+                <div class="col-12 col-md-9">
+                    <div class="collapse show" id="collapseBulkDiscount">
+                        <div class="row">
+                            <div class="col-12" id="bulkTableDiv">
+                                <select class="form-select" id="bulk_group_select">
+                                    {% for bulk_group in bulk_info %}
+                                        <option value="{{ bulk_group.id }}" {% if default_bulk == bulk_discount %}
+                                                selected {% endif %}>{{ bulk_group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="row">
+                                    <div class="col-xs-12" id="bulk_pricing_div">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
                     <div class="row">
-                        <div class="col-6 col-md-2">
-                            <label for="label_{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
-                            <input type="text" class="form-control" id="label_{{ form.model.name }}"
-                                   name="{{ form.model.name }}" value="{{ form.model.value }}">
+                        <div class="form-check form-switch form-switch-md col-12">
+                            <label class="form-label" for="switchShowBulk">Apply Bulk</label>
+                            <input class="form-check-input" type="checkbox" id="switchApplyBulk" role="switch"
+                                    {% if form.bulk_used.value %} checked {% endif %}>
                         </div>
-
-                        <div class="col-6 {% if price_for|upper == "I" %} col-md-8 {% else %} col-md-10 {% endif %}">
-                            <label for="label_{{ form.name.name }}" class="form-label">{{ form.name.label }}</label>
-                            <input type="text" class="form-control" id="label_{{ form.name.name }}"
-                                   name="{{ form.name.name }}" value="{{ form.name.value }}">
-                        </div>
-                        {% if price_for|upper == "I" %}
-                            <div class="col-6 col-md-2">{{ form.status|as_crispy_field }}</div>
-                        {% endif %}
-                        <div class="col-6 col-md-1">
-                            <label for="label_{{ form.width.name }}"
-                                   class="form-label">{{ form.width.label }}</label>
-                            <input type="text" class="form-control" id="label_{{ form.width.name }}"
-                                   name="{{ form.width.name }}" value="{{ form.width.value }}">
-                        </div>
-                        <div class="col-6 col-md-1">
-                            <label for="label_{{ form.height.name }}"
-                                   class="form-label">{{ form.height.label }}</label>
-                            <input type="text" class="form-control" id="label_{{ form.height.name }}"
-                                   name="{{ form.height.name }}" value="{{ form.height.value }}">
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label for="label_{{ form.size_name.name }}"
-                                   class="form-label">{{ form.size_name.label }}</label>
-                            <input type="text" class="form-control" id="label_{{ form.size_name.name }}"
-                                   name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <label for="label_{{ form.material_name.name }}"
-                                   class="form-label">{{ form.material_name.label }}</label>
-                            <input type="text" class="form-control" id="label_{{ form.material_name.name }}"
-                                   name="{{ form.material_name.name }}" value="{{ form.material_name.value }}">
-                        </div>
-                        <div class="col-2">{{ form.is_bespoke|as_crispy_field }}</div>
-
-
 
                         <div class="col-12">
                             <div class="row">
-                                <div class="form-check form-switch-md form-switch col-3 ">
-                                    <div class="form-check form-switch align-content-start">
-                                        <input class="form-check-input" type="checkbox" id="switchApplyBulk" role="switch"
-                                                {% if form.bulk_used.value %} checked {% endif %}>
-                                        <label class="form-check-label" for="switchShowBulk">Apply bulk discount</label>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="row align-content-start">
-                                        <div class="col-6">
-                                            <label for="{{ form.single_unit_price.name }}" class="col-form-label">Single Unit Price</label>
-                                        </div>
-                                        <div class="col-6">
-                                            <input type="number" step="0.01" min="0.00" maxlength="3"
-                                           class="form-control two-decimals"
+                                <label for="{{ form.single_unit_price.name }}"
+                                       class="col-6 col-form-label pe-0"><strong>SINGLE</strong> Unit Price</label>
+                                <div class="col-6">
+                                    <input type="number" step="0.01" min="0.00" maxlength="3"
+                                           class="form-control two-decimals "
                                            id="{{ form.single_unit_price.name }}"
                                            value="{{ form.single_unit_price.value|floatformat:2 }}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-check-warning form-switch-md form-switch col-6">
-                                    <input class="form-check-input" type="checkbox" id="switch_exclude_discount_edit"
-                                           name="switch_exclude_discount_edit" role="switch"
-                                            {% if form.exclude_discount.value %} checked {% endif %}  }}>
-                                    <label class="form-check-label" for="switch_exclude_discount_edit">Exclude from
-                                        discount</label>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 col-md-10">
-                                    <div class="collapse show" id="collapseBulkDiscount">
-                                        <div class="row">
-                                            <div class="col-12" id="bulkTableDiv">
-                                                <select class="form-select" id="bulk_group_select">
-                                                    {% for bulk_group in bulk_info %}
-                                                        <option value="{{ bulk_group.id }}" {% if default_bulk == bulk_discount %} selected {% endif %}>{{ bulk_group.name }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                                <div class="row">
-                                                    <div class="col-xs-12" id="bulk_pricing_div">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                                <div class="col-12 col-md-2">
-                                    <div class="col-12">
-                                        <label for="label_{{ form.quantity.name }}"
-                                               class="form-label">{{ form.quantity.label }}</label>
-                                        <input type="number" min="1" step="1" class="form-control calc_line_totals"
-                                               id="label_{{ form.quantity.name }}" name="{{ form.quantity.name }}"
-                                               value="{{ form.quantity.value }}">
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="label_{{ form.price.name }}"
-                                               class="form-label">{{ form.price.label }}</label>
-                                        <input type="number" step="0.01" min="0.00" maxlength="3"
-                                               class="form-control two-decimals calc_line_totals"
-                                               id="label_{{ form.price.name }}"
-                                               name="{{ form.price.name }}"
-                                               value="{{ form.price.value|floatformat:2 }}">
-                                    </div>
-                                </div>
-                                <div class="col-12 d-md-flex justify-content-md-end">
-                                    <span class="h3">£<span
-                                            id="line_total_cal">{{ form.total.value|floatformat:2 }}</span></span>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col">
-                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end align-text-bottom">
-                                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">
-                                            Cancel
-                                        </button>
-                                        <button type="submit" id="update" class="btn {{ BUTTON_UPDATE }} pull-right">
-                                            Update
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-
+                        <div class="col-12">
+                            <div class="row">
+                                <label for="label_{{ form.quantity.name }}"
+                                       class="col-6 col-form-label">{{ form.quantity.label }}</label>
+                                <div class="col-6">
+                                    <input type="number" min="1" step="1" class="form-control calc_line_totals"
+                                           id="label_{{ form.quantity.name }}" name="{{ form.quantity.name }}"
+                                           value="{{ form.quantity.value }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="row">
+                                <label for="label_{{ form.price.name }}"
+                                       class="col-form-label col-6">{{ form.price.label }}</label>
+                                <div class="col-6">
+                                    <input type="number" step="0.01" min="0.00" maxlength="3"
+                                           class="form-control two-decimals calc_line_totals"
+                                           id="label_{{ form.price.name }}"
+                                           name="{{ form.price.name }}"
+                                           value="{{ form.price.value|floatformat:2 }}">
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div> <!-- END BULK DISCOUNT -->
+            <div class="row"> <!-- START TOTAL -->
+                <div class="col-12 d-md-flex justify-content-md-end">
+                                    <span class="h3 pt-2">Total Line Price - £<span
+                                            id="line_total_cal">{{ form.total.value|floatformat:2 }}</span></span>
+                </div>
+            </div> <!-- END TOTAL -->
+            <div class="row"> <!-- START BUTTONS -->
+                <div class="col">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end align-text-bottom">
+                        <div class="form-check-warning form-switch form-switch-lg">
+                            <input class="form-check-input" type="checkbox" id="switch_exclude_discount_edit"
+                                   name="switch_exclude_discount_edit" role="switch"
+                                    {% if form.exclude_discount.value %} checked {% endif %}>
+                            <label class="form-check-label" for="switch_exclude_discount_edit">Exclude from
+                                discount</label>
+                        </div>
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">
+                            Cancel
+                        </button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_UPDATE }} pull-right">
+                            Update
+                        </button>
+                    </div>
+                </div>
+            </div> <!-- END BUTTONS -->
 
-                </form>
-            </div>
 
-        </div>
+        </form>
     </div>
 </div>
 
@@ -175,13 +200,13 @@
     bulk_table_data = {{ bulk_info|safe }}
 
 
-        $("#switchApplyBulk").change(function () {
-            let product_price = "#label_{{ form.price.name }}";
-             let bl_bulk = $(this).is(":checked")
-            $(product_price).prop('readonly', $(this).is(":checked"))
-            $('#{{ form.bulk_used.name }}').val(bl_bulk);
+    $("#switchApplyBulk").change(function () {
+        let product_price = "#label_{{ form.price.name }}";
+        let bl_bulk = $(this).is(":checked")
+        $(product_price).prop('readonly', $(this).is(":checked"))
+        $('#{{ form.bulk_used.name }}').val(bl_bulk);
 
-        })
+    })
 
     $(".calc_line_totals").change(function () {
         let use_bulk = $('#switchApplyBulk').is(":checked");
@@ -311,15 +336,25 @@
         SetPrice()
     })
 
-    function backCalcSingle(group_id, qty, price){
+    function backCalcSingle(group_id, qty, price) {
 
     }
 
     $('#switch_exclude_discount_edit').change(function () {
-                let excluded =  $(this).is(":checked");
-                let exclude_id_str = {{ form.exclude_discount.name }}
-                $(exclude_id_str).val(excluded);
+        let excluded = $(this).is(":checked");
+        let exclude_id_str = {{ form.exclude_discount.name }}
+        $(exclude_id_str).val(excluded);
     });
+
+    function setSize(){
+        newWidth = $('#label_width').val()
+        newHeigh = $('#label_height').val()
+        //set the hidden fields
+        $('#manualCalcWidth').val(newWidth)
+        $('#manualCalcHeight').val(newHeigh)
+        //set the sizename
+        $('#label_{{ form.size_name.name }}').val(newWidth + 'mm x ' + newHeigh + 'mm')
+    }
 
 
 </script>

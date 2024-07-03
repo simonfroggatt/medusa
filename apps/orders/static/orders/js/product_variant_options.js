@@ -6,7 +6,7 @@ $(function(){
         let value_id = $(this).val()
         ShowHideDynamics();
         let price_modifier = calcExtraPrice();
-        let old_price = $('#base_price').val()
+        let old_price = $('#base_unit_price').val()
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
        //SetSingleUnitPrice(new_price, 'form-stock', true);
        // $('#new_price').html(new_price);
@@ -19,37 +19,60 @@ $(function(){
 
 function ClassChange(){
     let class_id = $(this).find(':selected').data('class')
-     let form_id = '#' + $(this).parents("form").attr('id')
+    let form_id = '#' + $(this).parents("form").attr('id')
+    form_id = '#form-stock'
         let value_id = $(this).val()
         ShowHideDynamics();
-        let price_modifier = calcExtraPrice();
-        let old_price = $(form_id + ' #base_price').val()
+        let price_modifier = calcExtraPrice('', false, form_id);
+        let old_price = $(form_id + ' #base_unit_price').val()
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
         ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#form-stock', true);
        // $('#new_price').html(new_price);
 }
+
+function ClassChangeStockEdit(){
+   let option_extra_class_name = ""
+     let form_id = '#' + $(this).parents("form").attr('id')
+
+    let class_id = $(this).find(':selected').data('class')
+        let value_id = $(this).val()
+        let price_modifier = calcExtraPrice(option_extra_class_name, false, form_id);
+        let old_price = $('#js-product-edit-submit' + ' #base_unit_price').val()
+        let new_price = parseFloat(price_modifier) + parseFloat(old_price);
+
+        ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#js-product-edit-submit', true);
+       // $('#new_price').html(new_price);
+       // $('#new_price').html(new_price);
+}
+
 
 function ClassChangeBespoke(){
     let option_extra_class_name = "_bespoke"
     let form_id = '#' + $(this).parents("form").attr('id')
     let class_id = $(this).find(':selected').data('class')
         let value_id = $(this).val()
-        let price_modifier = calcExtraPrice(option_extra_class_name, true);
-        let old_price = $(form_id + ' #base_price').val()
+        let price_modifier = calcExtraPrice(option_extra_class_name, true, form_id);
+        let old_price = $(form_id + ' #base_unit_price').val()
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
-        ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#form-quick_manual', true);
+
+        ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), form_id, true);
        // $('#new_price').html(new_price);
 }
-
- $(document).on('change', '.tsg_option_class', ClassChange);
+ $(document).on('change', '#js-product-edit-submit .tsg_option_class', ClassChangeStockEdit);
+ $(document).on('change', '#form_variant_options .tsg_option_class', ClassChange);
  $(document).on('change', '.tsg_option_class_bespoke', ClassChangeBespoke);
+
+
 
 function getClassArray(class_id, bl_bespoke = false){
     //get the class info from the local var
     let rtn_array = [];
-    let select_values_array = select_values;
+    let select_values_array =  [];
     if (bl_bespoke) {
         select_values_array = select_values_bespoke;
+    }
+    else {
+        select_values_array = select_values;
     }
     $.each(select_values_array, function (key, value){
        if(value.id == class_id) {
@@ -161,7 +184,7 @@ function ShowDynamicSelect(select_class_id)
     alert('show select' + select_class_id);
 }
 
-function calcExtraPrice(option_extra_class_name = '', bl_bespoke = false){
+function calcExtraPrice(option_extra_class_name = '', bl_bespoke = false, form_name = ''){
     let all_selects = $(document).find('.tsg_option_class' + option_extra_class_name)
     let addon_price = 0.00;
     let new_addon_price = 0.00;
@@ -171,7 +194,7 @@ function calcExtraPrice(option_extra_class_name = '', bl_bespoke = false){
         select_value_id = $(value).val();
         if(select_value_id > 0) {  //this option is selected, so get the price
             class_id = $(value).data('selectclass');
-            new_addon_price = getPriceModifier(class_id, select_value_id, bl_bespoke);
+            new_addon_price = getPriceModifier(class_id, select_value_id, bl_bespoke, form_name);
             addon_price = addon_price + new_addon_price;
             console.log(addon_price);
         }
@@ -182,8 +205,7 @@ function calcExtraPrice(option_extra_class_name = '', bl_bespoke = false){
 }
 
 
-
-function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false)
+function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false, form_name = '')
 {
     let price_mod = 0.00;
     class_opt_vals = getOptionArray(class_opt_id, selected_value_id, bl_bespoke)
@@ -205,8 +227,8 @@ function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false)
           //var base_prod_var = prod_variants[prod_var_options[0][0]][prod_var_options[0][1]];
 
             if (bl_bespoke){
-                 prod_width = $('#form-quick_manual #manualCalcWidth').val()/1000;
-                 prod_height =  $('#form-quick_manual #manualCalcHeight').val()/1000;
+                 prod_width = $(form_name +' #manualCalcWidth').val()/1000;
+                 prod_height =  $(form_name+ ' #manualCalcHeight').val()/1000;
             } else {
                  prod_width = parseFloat(variant_info['size_width']) / 1000;
                  prod_height = parseFloat(variant_info['size_height']) / 1000;
@@ -236,8 +258,7 @@ function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false)
       //var hiddenclassid = 'classtype' + selected_class_id;
       //$("input[id="+hiddenclassid+"]").val(mod_type)
      // $("input[id=classtype4"]").val(mod_type)
-
-      return parseFloat(price_mod.toFixed(2));
+      return parseFloat(Math.round(price_mod * 100) / 100);
 
     }
   }
@@ -246,4 +267,8 @@ function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false)
 
 
 
+}
+
+function preset_orderline_addons(form_name, selected_options){
+    alert('Im here');
 }

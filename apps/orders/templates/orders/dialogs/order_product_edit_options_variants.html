@@ -1,0 +1,31 @@
+<div class="row">
+        <div class="ibox-content tsg_navs">
+            <ul class="nav nav-tabs" role="tablist" id="stock_product_extra_tabs">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="add_dlg_stock_product-options" data-bs-toggle="tab"
+                       href="#tab-add_dlg_stock_product-options"
+                       role="tab">
+                        <i class="fa-solid fa-gears" id="js-tab_product_option_icon"></i> Product Options</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="add_dlg_stock_variants-options" data-bs-toggle="tab"
+                       href="#tab-add_dlg_stock_variants-options"
+                       role="tab">
+                        <i class="fa-regular fa-sliders js-tab_variant_option_icon"></i> Variant options
+                    </a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" id="tab-add_dlg_stock_product-options" class="tab-pane fade active">
+                    <div class="panel-body" id="ajax_load-product_stock_options">
+                        {%  include 'orders/dialogs/product_options_edit.html' %}
+                    </div>
+                </div>
+                <div role="tabpanel" id="tab-add_dlg_stock_variants-options" class="tab-pane fade">
+                    <div class="panel-body" id="ajax_load-product_variant_options">
+                        {%  include 'orders/dialogs/product_variant_options_edit.html' %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <!--last div -->

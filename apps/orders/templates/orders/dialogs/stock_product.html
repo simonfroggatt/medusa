@@ -15,6 +15,8 @@
 
         </div>
     </div>
+
+
     <div class="row">
         <div class="ibox-content tsg_navs">
             <ul class="nav nav-tabs" role="tablist" id="stock_product_extrea_tabs">
@@ -128,6 +130,8 @@
                 <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
                        value="1">
                 <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}"
+                       value="0.00">
+                <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}"
                        value="0.00">
 
                 <div class="row">
@@ -589,16 +593,19 @@
 
                 manual_data['width'] = core_variant['size_material']['product_size']['size_width']
                 manual_data['calcwidth'] = core_variant['size_material']['product_size']['size_width']
-                manual_data['height'] = core_variant['size_material']['product_size']['size_width']
-                manual_data['calcheight'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['height'] = core_variant['size_material']['product_size']['size_height']
+                manual_data['calcheight'] = core_variant['size_material']['product_size']['size_height']
                 manual_data['material'] = core_variant['size_material']['product_material']['material_name']
                 manual_data['code'] = data_row['variant_code']
                 manual_data['price'] = $('#form-stock #{{ form.price.name }}').val()
-
+                manual_data['size_name'] = core_variant['size_material']['product_size']['size_name']
 
             }
 
             function copy_to_manual(){
+
+                reset_orderline_options()
+
                 $('#form-quick_manual #manualWidth').val(manual_data['width'])
                 $('#form-quick_manual #manualCalcWidth').val(manual_data['calcwidth'])
                 $('#form-quick_manual #width').val(manual_data['calcwidth'])
@@ -607,17 +614,21 @@
                  $('#form-quick_manual #height').val(manual_data['calcheight'])
                 $('#form-quick_manual #manualPrice').val(manual_data['price'])
                 $('#form-quick_manual #{{ form.single_unit_price.name }}').val(manual_data['price'])
-                $('#form-quick_manual #base_price').val(manual_data['price'])
+                $('#form-quick_manual #base_unit_price').val(manual_data['price'])
+                $('#form-quick_manual #single_unit_price').val(manual_data['price'])
                 $('#form-quick_manual #price').val(manual_data['price'])
-                $('#form-quick_manual #quantity').val(1)
                 $('#form-quick_manual #manualMaterial').val(manual_data['material'])
                 $('#form-quick_manual #model').val(manual_data['code'])
                 $('#form-quick_manual #name').val(manual_data['name'])
+                $('#form-quick_manual #size_name').val(manual_data['size_name'])
 
                 $('#order-add-product-tabs #manual-product-tab').tab('show');
 
+                $('#form-quick_manual #quantity').val($('#form-stock #{{ form.quantity.name }}').val())
                 $('#form-quick_manual #quantity').trigger('change');
                 $('#form-quick_manual #manualMaterial').trigger('change');
+
+                console.log(manual_data)
 
 
             }
@@ -647,6 +658,14 @@
 
             });
 
+            function reset_orderline_options()
+            {
+                $('#form-quick_manual .tsg_option_class_bespoke').each(function(){
+                    var select_class = $(this).data('selectclass');
+                    $(this).val(0);
+                });
+            }
+
             function load_variant_options(store_id, product_variant_id){
                 let url = '/orders/'+store_id+'/product_variant/'+product_variant_id+'/ajax_load_options/';
                 $.ajax({
@@ -666,7 +685,7 @@
               {
                   let base_price = $('#form-stock #price').val();
 
-                  $('#base_price').val(base_price);
+                  $('#base_unit_price').val(base_price);
               }
 
 

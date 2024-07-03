@@ -1,7 +1,7 @@
 <div class="container">
 <form method="post" id="form-quick_manual"
       action="{{ form_post_url }}"
-        {% if price_for|upper == "I" %} class="js-product-add"
+        {% if price_for|upper == "I" %} class="js-product-add-bespoke"
         {% else %}
       class="js-quote-add"
         {% endif %}
@@ -55,10 +55,7 @@
         {% if price_for|upper == "I" or price_for|upper == "Q" %}
             <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="True">
             <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
-            <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}"
-                   value="null">
-            <input type="hidden" id="product_variant_id" name="product_variant_id"
-                   value="null">
+            <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
             <input type="hidden" class="form-control" id="{{ form.size_name.name }}"
                    name="{{ form.size_name.name }}" value="{{ form.size_name.value }}">
             <input type="hidden" class="form-control" id="{{ form.width.name }}"
@@ -94,7 +91,7 @@
      </div>
     {% csrf_token %}
     <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
-    <input type="hidden" id="base_price" name="base_price" value="0">
+    <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}" value="0">
     <input type="hidden" id="text_to_copy" name="text_to_copy" value="">
     <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
     <input id="string_to_copy_manual" name="string_to_copy_manual" class="hidden_copy" value="">
@@ -171,7 +168,7 @@
                 <div class="row">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Close</button>
-                        <button type="submit" id="submit" class="btn btn-success pull-right">Add</button>
+                        <button type="submit" id="submit" class="btn btn-success pull-right" >Add</button>
                     </div>
                 </div>
             {% else %}

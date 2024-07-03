@@ -89,7 +89,7 @@
     <div class="row">
         <div class="col-12">
             <form method="post" action="{{form_post_url}}"
-                  {% if price_for|upper == "I" %} class="js-product-add"
+                  {% if price_for|upper == "I" %} class="js-product-add-bespoke"
                   {% else %}
                   class="js-quote-add"
                   {% endif %}
@@ -104,7 +104,7 @@
                  <input type="hidden" id="material_id" name="material_id" value="0">
                 <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}"
-                       value=Null>
+                       value=''>
                 <input type="hidden" id="{{ form.orientation_name.name }}" name="{{ form.orientation_name.name }}">
                 <input type="hidden" id="{{ form.width.name }}" name="{{ form.width.name }}">
                 <input type="hidden" id="{{ form.height.name }}" name="{{ form.height.name }}">
@@ -306,7 +306,6 @@
                 $('#form-bespoke #{{ form.height.name }}').val(data_row['size_material_comb']['product_size']['size_height'])
                 $('#form-bespoke #{{ form.material_name.name }}').val(data_row['size_material_comb']['product_material']['material_name'])
                 $('#form-bespoke #{{ form.orientation_name.name }}').val(data_row['size_material_comb']['product_size']['orientation'])
-                $('#form-bespoke #{{ form.product_variant.name }}').val(null)
                 $('#form-bespoke #{{ form.model.name }}').val('BESPOKE')
                 $('#form-bespoke #{{ form.is_bespoke.name }}').val(1)
                 $('#form-bespoke #{{ form.price.name }}').val(data_row['price'])
@@ -322,8 +321,6 @@
                 manual_data_bespoke['material_id'] = data_row['size_material_comb']['product_material']['material_id']
                 manual_data_bespoke['name'] = $('#form-bespoke #name').val();
                 manual_data_bespoke['code'] = $('#form-bespoke #model').val();
-
-                console.log(manual_data_bespoke)
             }
 
             $('.js-calc_size_change').on('keyup', function(){
@@ -358,7 +355,6 @@
 
             function set_calc_details(data_row) {
                 $('#form-bespoke #{{ form.orientation_name.name }}').val(0)
-                $('#form-bespoke #{{ form.product_variant.name }}').val(null)
                 $('#form-bespoke #{{ form.model.name }}').val('BESPOKE')
                 $('#form-bespoke #{{ form.is_bespoke.name }}').val(1)
 
@@ -383,8 +379,6 @@
                 manual_data_bespoke['name'] = $('#form-bespoke #name').val();
                 manual_data_bespoke['code'] = $('#form-bespoke #model').val();
 
-                 console.log(manual_data_bespoke)
-
             }
 
             bespoke_calc_table.on('select', function (e, dt, type, indexes) {
@@ -396,13 +390,21 @@
             });
 
             function copy_to_manual_bespoke(){
+
+                //reset all the options just in case
+                reset_orderline_options();
+
                 $('#form-quick_manual #manualWidth').val(manual_data_bespoke['width'])
                 $('#form-quick_manual #manualCalcWidth').val(manual_data_bespoke['calcwidth'])
+                $('#form-quick_manual #width').val(manual_data_bespoke['calcwidth'])
+
                 $('#form-quick_manual #manualHeight').val(manual_data_bespoke['height'])
                 $('#form-quick_manual #manualCalcHeight').val(manual_data_bespoke['calcheight'])
+                $('#form-quick_manual #height').val(manual_data_bespoke['calcheight'])
+
                 $('#form-quick_manual #manualPrice').val(manual_data_bespoke['price'])
-                $('#form-quick_manual #{{ form.single_unit_price.name }}').val(manual_data_bespoke['price'])
-                $('#form-quick_manual #base_price').val(manual_data_bespoke['price'])
+                $('#form-quick_manual #{{ form.single_unit_price.name }}').val($('#form-bespoke #{{ form.single_unit_price.name }}').val())
+                $('#form-quick_manual #base_unit_price').val(manual_data_bespoke['price'])
                 $('#form-quick_manual #price').val(manual_data_bespoke['price'])
                 $('#form-quick_manual #model').val($('#form-bespoke #model').val())
                 $('#form-quick_manual #name').val($('#form-bespoke #name').val())
@@ -411,8 +413,10 @@
                 $('#form-quick_manual #quantity').val(1)
                 $('#form-quick_manual #quantity').trigger('change');
                 $('#form-quick_manual #manualMaterial').trigger('change');
-
-                console.log()
+                 $('#form-quick_manual #quantity').val($('#form-bespoke #{{ form.quantity.name }}').val())
+                 $('#form-quick_manual #{{ form.size_name.name }}').val($('#form-bespoke #{{ form.size_name.name }}').val())
+                 $('#form-quick_manual #quantity').trigger('change');
+                $('#form-quick_manual #manualMaterial').trigger('change');
 
             }
 
@@ -423,6 +427,15 @@
                 let exclude_id_str = {{ form.exclude_discount.name }}
                 $(exclude_id_str).val(excluded);
             });
+
+            //reset all the option drop downs and values
+            function reset_orderline_options()
+            {
+                $('#form-quick_manual .tsg_option_class_bespoke').each(function(){
+                    var select_class = $(this).data('selectclass');
+                    $(this).val(0);
+                });
+            }
         })
     </script>
 

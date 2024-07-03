@@ -257,12 +257,15 @@ $(function () {
         return false;
     }
 
-    let saveProductAddForm = function () {
-        var form = $(this);
-        let url = form.attr("action");
-        let data_variant_options = $('#form_variant_options').serialize()
-        let data_options = $('#form_product_options').serialize()
-        let data = form.serialize() + '&' + data_variant_options + '&' + data_options
+    let saveProductAddForm = function (form, bl_extra = false) {
+        //var form = $(this);
+        let data = form.serialize()
+        if(bl_extra) {
+             let data_variant_options = $('#form_variant_options').serialize()
+             let data_options = $('#form_product_options').serialize()
+            data += '&' + data_variant_options + '&' + data_options
+        }
+
         $.ajax({
             url: form.attr("action"),
             data: data,
@@ -273,7 +276,9 @@ $(function () {
                     updateProductTable()
                     updateTotalsTable()
                     updateOrderTotalText(form)
+                    add_toast_message('Item was added to Cart','Add Products', 'bg-success')
                 } else {
+                    add_toast_message('Opps, something went wrong','Add Products', 'bg-error')
                     $("#modal-base .modal-content").html(data.html_form);
                 }
             }
@@ -744,7 +749,17 @@ $(function () {
 
     $(document).on('click', '.js-order-product-edit', loadProductEditForm);
     $(document).on("submit", "#js-product-edit-submit", saveProductEditForm);
-    $(document).on("submit", ".js-product-add", saveProductAddForm);
+    $(document).on("submit", ".js-product-add",function ()
+    {
+        saveProductAddForm($(this), true);
+        return false;
+    });
+
+    $(document).on("submit", ".js-product-add-bespoke", function ()
+    {
+        saveProductAddForm($(this), false);
+        return false;
+    });
 
     $(document).on('click', '.js-order-address-edit', loadProductEditForm);
     $(document).on("submit", "#js-order-address-edit-submit", saveAddressEditForm);
@@ -831,7 +846,11 @@ Dropzone.options.orderDocDropzone = { // camelized version of the `id`
 
 var ORDERSNAMESPACE = {}
 ORDERSNAMESPACE.SetSingleUnitPrice = function (new_price, form_id, bl_update_pricing = false) {
+        let single_unit = $(form_id + ' #single_unit_price');
+        single_unit.val(new_price);
         let base_price = $(form_id + ' #single_unit_price').val(new_price);
+        let tmp = single_unit.val();
+        let tmp2 = $('#single_unit_price');
         if (bl_update_pricing) {
             SetPrice(true, form_id)
         }

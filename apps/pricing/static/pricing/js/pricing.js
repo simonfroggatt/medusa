@@ -288,7 +288,8 @@ $(".switchApplyBulk").change(function () {
         let product_price = form_id + " #price";
         let line_price = 0.00;
         let tax_price = 0.00;
-        let base_price = $(form_id + ' #single_unit_price').val();
+        let single_price = $(form_id + ' #single_unit_price').val();
+        let base_price = $(form_id + ' #base_unit_price').val();
         let discount_price = 0.00;
         qty = parseInt($(qty_field).val())
         bulk_group_id = $(form_id + ' .bulk_group_select').val();
@@ -324,7 +325,8 @@ $(".switchApplyBulk").change(function () {
 
 
     function drawBulkTable(bulk_group_id, form_id) {
-        let base_price = $(form_id + ' #single_unit_price').val()
+        let single_price = $(form_id + ' #single_unit_price').val()
+        let base_price = $(form_id + ' #base_unit_price').val()
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
         })[0];
@@ -403,7 +405,7 @@ $(".switchApplyBulk").change(function () {
 
         let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
         $('#form-quick_manual #single_unit_price').val(parseFloat(newprice).toFixed(2));
-        $('#form-quick_manual #base_price').val(parseFloat(newprice).toFixed(2));
+        $('#form-quick_manual #base_unit_price').val(parseFloat(newprice).toFixed(2));
         $('#form-quick_manual #price').val(parseFloat(newprice).toFixed(2));
 
 

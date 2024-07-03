@@ -528,19 +528,32 @@ def order_ship_it(request, order_id):
 def order_product_edit(request, order_id, order_product_id):
     data = dict()
     order_product = get_object_or_404(OcOrderProduct, pk=order_product_id)
+    orderline_product_addons = dict()
+    orderline_options = dict()
+    orderline_product_options = dict()
+
     if request.method == 'POST':
         form = ProductEditForm(request.POST, instance=order_product)
         if form.is_valid():
             data['form_is_valid'] = True
             order_product.save()
             calculate_order_total(order_id)
-            # - call come othere function like reloading the tablecustomer_update_detault_address(address)
+            #now see if we need to update any options / variants
+            update_product_options_and_variant_options(request.POST, order_id, order_product_id, order_product.product_id)
         else:
             data['form_is_valid'] = False
 
     else:
         form = ProductEditForm(instance=order_product)
         form.fields['order_id'] = order_id
+        #get any pre-exiting bespoke options for this product
+       #if order_product.is_bespoke:
+        orderline_product_addons = list(OcTsgOrderProductOptions.objects.filter(
+             order_product_id=order_product_id).values())  # e.g. laminate / drill holes
+        orderline_options = list(
+                OcTsgOrderOption.objects.filter(order_product_id=order_product_id).values())  # e.g. FORS ID
+        #else:
+        orderline_product_options = get_product_options_edit(order_product.product_id)
 
     template_name = 'orders/dialogs/order_product_edit.html'
     store_id = order_product.order.store_id
@@ -555,6 +568,9 @@ def order_product_edit(request, order_id, order_product_id):
     bulk_details = prod_services.create_bulk_arrays(qs_bulk)
     order_data = OcOrder.objects.filter(order_id=order_id).values('tax_rate__rate').first()
 
+    bespoke_addon_options = get_bespoke_product_options()
+    select_data = create_product_variant_select_objects(store_id, order_product.product_variant_id)
+
     context = {'order_id': order_id,
                'order_product_id': order_product_id,
                'form': form,
@@ -563,6 +579,14 @@ def order_product_edit(request, order_id, order_product_id):
                'default_bulk': default_bulk,
                "form_post_url": reverse_lazy('orderproductedit', kwargs={'order_id': order_id, 'order_product_id': order_product_id}),
                "price_for": "I",  #
+               "bespoke_addons": bespoke_addon_options,
+               "bespoke_addons_count": len(bespoke_addon_options),
+               "orderline_product_addons": orderline_product_addons,
+               "has_product_addon" : len(orderline_product_addons) > 0,
+                "orderline_options": orderline_options,
+               "has_product_option": len(orderline_options) > 0,
+               "stock_product_orderline_product_options": orderline_product_options,
+               "select_data": select_data
                }
 
     #return render(request, template_name, context)
@@ -1247,6 +1271,29 @@ def ajax_product_options(request, product_id):
     return JsonResponse(data)
     #return render(request, template_name, context)
 
+def get_product_options_edit(product_id):
+    data = dict()
+
+    product_options = OcTsgProductOption.objects.filter(product_id=product_id).order_by('sort_order')
+
+    # now step though each options and get the type etc
+    option_markup = []
+    for option_group in product_options:
+        product_option_data = dict()
+        product_option_data['option_name'] = option_group.label
+        product_option_data['option_type'] = option_group.option_type_id
+        product_option_data['id'] = option_group.pk
+
+        # now get the values for this group
+        product_option_values_obj = OcTsgProductOptionValues.objects.filter(product_option_id=option_group.pk).order_by(
+            'sort_order')
+        product_option_values = []
+        for option_value in product_option_values_obj:
+            product_option_values.append({'id': option_value.option_value_id, 'value': option_value.option_value.name})
+        product_option_data['option_values'] = product_option_values
+        option_markup.append(product_option_data)
+
+    return option_markup;
 
 def create_product_variant_select_objects(store_id, product_variant_id, follow=True):
     #given a store and a product variant create a list of select objects.
@@ -1434,6 +1481,18 @@ def set_product_options_and_variant_options(post_data, order_id, order_product_i
 
     product_class_pairs = get_product_option_pairs(post_data)
     if product_class_pairs:
+        add_order_product_options(product_class_pairs, order_id, order_product_id, product_id)
+
+def update_product_options_and_variant_options(post_data, order_id, order_product_id, product_id):
+    #get the class and value pairs from the post data
+    variant_class_pairs = get_variant_class_pairs(post_data)
+    if variant_class_pairs:
+        OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id).delete()
+        add_order_product_variant_options(variant_class_pairs, order_product_id)
+
+    product_class_pairs = get_product_option_pairs(post_data)
+    if product_class_pairs:
+        OcTsgOrderOption.objects.filter(order_product_id=order_product_id).delete()
         add_order_product_options(product_class_pairs, order_id, order_product_id, product_id)
 
 def get_variant_class_pairs(post_data):

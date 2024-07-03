@@ -355,13 +355,14 @@ class OcOrderProduct(models.Model):
     height = models.DecimalField(max_digits=10, decimal_places=0)
     orientation_name = models.CharField(max_length=255, blank=True, null=True)
     material_name = models.CharField(max_length=255, blank=True, null=True)
-    product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, related_name='order_product_variant')
+    product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True, default=None,  related_name='order_product_variant')
     is_bespoke = models.BooleanField(blank=True, null=True, default=0)
     status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING, blank=True, null=True, related_name='productstatus')
     exclude_discount = models.BooleanField(default=False)  # note - must be BooleanField
     bulk_discount = models.ForeignKey(OcTsgBulkdiscountGroups, models.DO_NOTHING, blank=True, null=True, related_name='order_product_bulkgrp')
     bulk_used = models.BooleanField(default=True)
-    single_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    single_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
+    base_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
 
     class Meta:
         managed = False
@@ -381,8 +382,11 @@ class OcOrderProduct(models.Model):
         #calc_order_totals(self.order.order_id)
 
     def save(self, *args, **kwargs):
+        if self.base_unit_price <= 0:
+            self.base_unit_price = self.single_unit_price
         super(OcOrderProduct, self).save(*args, **kwargs)
         add_order_product_history(self.order_product_id, self.old_status_id, self.status_id)
+
         return self
 
 

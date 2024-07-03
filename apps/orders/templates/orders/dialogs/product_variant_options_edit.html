@@ -1,18 +1,30 @@
+{% load static %}
+<div class="container" id="stock_options_edit">
 
-{% for select in  bespoke_addons %}
-                <div class="col-4" id="div_select_{{ select.id }}" {% if select.is_dynamic %} style="display: none" {% endif %} data-option={{ select.id }}>
-                    <label for="option_class_{{ select.id }}" class="form-label">{{ select.label }}</label>
-                        <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class=" form-select tsg_option_class_bespoke {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}" >
+    <div class="row">
+        <div class="col-12"><input type="hidden" value="{{ base_price }}" name='base_price' id="base_price"></div>
+        <div class="col">
+            {% for select in  select_data %}
+                <div class="row mb-2" id="div_select_{{ select.id }}" {% if select.is_dynamic %} style="display: none" {% endif %} data-option={{ select.id }}>
+                    <label for="option_class_{{ select.id }}" class="col-form-label col-sm-2">{{ select.label }}</label>
+                    <div class="col-sm-10">
+                        <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class=" form-select tsg_option_class {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}" >
                             <option value="0" data-class={{ select.id }} data-option=0>{{ select.default }}</option>
                             {% for class_values in select.values %}
                                 <option value="{{ class_values.id }}" data-class={{ select.id }} >{{  class_values.drop_down }}</option>
                             {% endfor %}
                         </select>
+                    </div>
                 </div>
             {% endfor %}
+        </div>
 
+    </div>
 
-{{ bespoke_addons|json_script:"select_data" }}
+</div>
+
+{{ select_data|json_script:"optionvalues" }}
+{{ variant_info|json_script:"variantvalues" }}
 {% if orderline_product_addons %}
     {{ orderline_product_addons|json_script:"order_line_selected" }}
 {% endif %}
@@ -21,9 +33,12 @@
     {{ orderline_options|json_script:"order_line_options" }}
 {% endif %}
 
+
  <script>
 
-var select_values_bespoke = JSON.parse(document.getElementById('select_data').textContent);
+var select_values = JSON.parse(document.getElementById('optionvalues').textContent);
+var variant_info = JSON.parse(document.getElementById('variantvalues').textContent);
+
 {% if orderline_product_addons %}
     var orderline_selected_values = JSON.parse(document.getElementById('order_line_selected').textContent);
     console.log(orderline_selected_values);
@@ -37,10 +52,8 @@ var select_values_bespoke = JSON.parse(document.getElementById('select_data').te
     var orderline_product_options_values = [];
 {% endif %}
 
-console.log(orderline_selected_values);
-
 $(document).ready(function(){
-    $('.tsg_option_class_bespoke').each(function(){
+    $('.tsg_option_class').each(function(){
         var select_class = $(this).data('selectclass');
         var selected_value = get_selected_value(select_class);
         if(selected_value > 0){
@@ -60,7 +73,11 @@ $(document).ready(function(){
     }
 })
 
+// console.log(select_values)
 </script>
+
+
+
 
 
 

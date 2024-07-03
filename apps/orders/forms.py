@@ -30,7 +30,8 @@ class ProductEditForm(forms.ModelForm):
             'exclude_discount',
             'bulk_discount',
             'bulk_used',
-            'single_unit_price'
+            'single_unit_price',
+            'base_unit_price'
         ]
 
         labels = {
@@ -70,7 +71,8 @@ class ProductAddForm(forms.ModelForm):
             'exclude_discount',
             'bulk_discount',
             'bulk_used',
-            'single_unit_price'
+            'single_unit_price',
+            'base_unit_price'
         ]
 
         labels = {
