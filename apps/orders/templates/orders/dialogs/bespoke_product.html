@@ -101,6 +101,7 @@
             {% else %}
                 <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
             {% endif %}
+                <input type="hidden" name="selected_option_values_frm" id="selected_option_values_frm">
                  <input type="hidden" id="material_id" name="material_id" value="0">
                 <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}"

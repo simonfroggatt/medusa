@@ -2,7 +2,7 @@
 {% for select in  bespoke_addons %}
                 <div class="col-4" id="div_select_{{ select.id }}" {% if select.is_dynamic %} style="display: none" {% endif %} data-option={{ select.id }}>
                     <label for="option_class_{{ select.id }}" class="form-label">{{ select.label }}</label>
-                        <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class=" form-select tsg_option_class_bespoke {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}" >
+                        <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class=" form-select tsg_option_class_bespoke {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}_0_0" >
                             <option value="0" data-class={{ select.id }} data-option=0>{{ select.default }}</option>
                             {% for class_values in select.values %}
                                 <option value="{{ class_values.id }}" data-class={{ select.id }} >{{  class_values.drop_down }}</option>

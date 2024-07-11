@@ -263,7 +263,11 @@ $(function () {
         if(bl_extra) {
              let data_variant_options = $('#form_variant_options').serialize()
              let data_options = $('#form_product_options').serialize()
-            data += '&' + data_variant_options + '&' + data_options
+             data += '&' + data_variant_options + '&' + data_options
+             //let data_options_values = selected_option_values
+             //if(data_options_values.length > 0) {
+             //   data += '&option_data_values='+ data_options_values
+
         }
 
         $.ajax({
@@ -846,11 +850,7 @@ Dropzone.options.orderDocDropzone = { // camelized version of the `id`
 
 var ORDERSNAMESPACE = {}
 ORDERSNAMESPACE.SetSingleUnitPrice = function (new_price, form_id, bl_update_pricing = false) {
-        let single_unit = $(form_id + ' #single_unit_price');
-        single_unit.val(new_price);
-        let base_price = $(form_id + ' #single_unit_price').val(new_price);
-        let tmp = single_unit.val();
-        let tmp2 = $('#single_unit_price');
+        $(form_id + ' #single_unit_price').val(new_price);
         if (bl_update_pricing) {
             SetPrice(true, form_id)
         }

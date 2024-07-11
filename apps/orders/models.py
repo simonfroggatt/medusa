@@ -494,6 +494,9 @@ class OcTsgOrderProductOptions(models.Model):
     class_name = models.CharField(max_length=255, blank=True, null=True)
     value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
     value_name = models.CharField(max_length=255, blank=True, null=True)
+    bl_dynamic = models.BooleanField(default=False)
+    dynamic_class_id = models.IntegerField(blank=True, null=True)
+    dynamic_value_id = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False

@@ -27,8 +27,7 @@
                    value="{{ form.width.value }}">
             <input type="hidden" id="manualCalcHeight" name="manualCalHeight"
                    value="{{ form.height.value }}">
-
-
+            <input type="hidden" name="selected_option_values_frm" id="selected_option_values_frm">
 
            <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}"
                    value="{{ form.base_unit_price.value }}">
@@ -132,6 +131,7 @@
                                     <input type="number" step="0.01" min="0.00" maxlength="3"
                                            class="form-control two-decimals "
                                            id="{{ form.single_unit_price.name }}"
+                                           name="{{ form.single_unit_price.name }}"
                                            value="{{ form.single_unit_price.value|floatformat:2 }}">
                                 </div>
                             </div>

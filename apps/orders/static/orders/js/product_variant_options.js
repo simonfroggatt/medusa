@@ -19,6 +19,7 @@ $(function(){
 
 function ClassChange(){
     let class_id = $(this).find(':selected').data('class')
+    let type_id = $(this).find(':selected').data('addontype')
     let form_id = '#' + $(this).parents("form").attr('id')
     form_id = '#form-stock'
         let value_id = $(this).val()
@@ -27,6 +28,7 @@ function ClassChange(){
         let old_price = $(form_id + ' #base_unit_price').val()
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
         ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#form-stock', true);
+        set_selected_option('#form_variant_options')
        // $('#new_price').html(new_price);
 }
 
@@ -36,13 +38,16 @@ function ClassChangeStockEdit(){
 
     let class_id = $(this).find(':selected').data('class')
         let value_id = $(this).val()
-        let price_modifier = calcExtraPrice(option_extra_class_name, false, form_id);
+        ShowHideDynamics();
+        let price_modifier = calcExtraPrice(option_extra_class_name, true, '#js-product-edit-submit');
         let old_price = $('#js-product-edit-submit' + ' #base_unit_price').val()
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
 
         ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), '#js-product-edit-submit', true);
+         set_selected_option('#js-product-edit-submit', '', false)
        // $('#new_price').html(new_price);
        // $('#new_price').html(new_price);
+    return false;
 }
 
 
@@ -56,11 +61,28 @@ function ClassChangeBespoke(){
         let new_price = parseFloat(price_modifier) + parseFloat(old_price);
 
         ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), form_id, true);
+        set_selected_option('#form-quick_manual', '_bespoke', true)
        // $('#new_price').html(new_price);
 }
+
+
+function ClassChangeBespokeEdit(){
+    let option_extra_class_name = "_bespoke"
+    let form_id = '#' + $(this).parents("form").attr('id')
+    let class_id = $(this).find(':selected').data('class')
+        let value_id = $(this).val()
+        let price_modifier = calcExtraPrice(option_extra_class_name, true, form_id);
+        let old_price = $(form_id + ' #base_unit_price').val()
+        let new_price = parseFloat(price_modifier) + parseFloat(old_price);
+
+        ORDERSNAMESPACE.SetSingleUnitPrice(new_price.toFixed(2), form_id, true);
+        set_selected_option('#js-product-edit-submit', '_bespoke', true)
+}
+
  $(document).on('change', '#js-product-edit-submit .tsg_option_class', ClassChangeStockEdit);
  $(document).on('change', '#form_variant_options .tsg_option_class', ClassChange);
- $(document).on('change', '.tsg_option_class_bespoke', ClassChangeBespoke);
+ $(document).on('change', '#js-product-edit-submit .tsg_option_class_bespoke', ClassChangeBespokeEdit);
+ $(document).on('change', '#form-quick_manual .tsg_option_class_bespoke', ClassChangeBespoke);
 
 
 
@@ -98,6 +120,7 @@ function getOptionArray(class_id, value_id, bl_bespoke = false){
 
 
 function ShowHideDynamics(){
+    let tmp = 'asa';
     let all_selects = $(document).find('.tsg_option_class')
     let class_id = 0;
     let dynamics_used = [];
@@ -114,11 +137,7 @@ function ShowHideDynamics(){
     let is_need = -1;
     // console.log('all_dynamics: '+all_dynamics);
     let dynamic_obj = null;
-    for(i = 0; i <= all_dynamics.length; i++){
-        dynamic_obj = all_dynamics[i];
-        class_id = $(dynamic_obj).data('selectclass');
-        hideDynamics(class_id, dynamics_used)
-    }
+
     $.each(all_dynamics, function(key, value){
         //see if it's on the list, otherwise reset to 0 and hide
         class_id = $(value).data('selectclass');
@@ -221,37 +240,39 @@ function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false, f
       var prod_width = 0;
       var prod_height = 0;
       switch (mod_type) {
-        case 1: price_mod = class_opt_vals['price_modifier'];   //FIXED  - e.g. Drill holes
-          break;
-        case 2:  //PERC  - e.g. Laminate
-          //var base_prod_var = prod_variants[prod_var_options[0][0]][prod_var_options[0][1]];
+          case 1:
+              price_mod = class_opt_vals['price_modifier'];   //FIXED  - e.g. Drill holes
+              break;
+          case 2:  //PERC  - e.g. Laminate
+              //var base_prod_var = prod_variants[prod_var_options[0][0]][prod_var_options[0][1]];
 
-            if (bl_bespoke){
-                 prod_width = $(form_name +' #manualCalcWidth').val()/1000;
-                 prod_height =  $(form_name+ ' #manualCalcHeight').val()/1000;
-            } else {
-                 prod_width = parseFloat(variant_info['size_width']) / 1000;
-                 prod_height = parseFloat(variant_info['size_height']) / 1000;
-            }
-          price_mod =    parseFloat(class_opt_vals['price_modifier']) * prod_width * prod_height;//size_width, size_height
-          break;
-        case 3:  //width - e.g. Channel
-          //var base_prod_var = prod_variants[prod_var_options[0][0]][prod_var_options[0][1]];
-            if (bl_bespoke) {
-                prod_width = $('#form-quick_manual #manualCalcWidth').val() / 1000;
-            }
-            else {
-                prod_width = parseFloat(variant_info['size_width'])/1000;
-            }
-           price_mod =    parseFloat(class_opt_vals['price_modifier']) * prod_width;
-          break;
-        case 4:
-            price_mod = parseFloat(class_opt_vals['price_modifier']*class_opt_vals['price']);//Product - e.g. Clips
-          break;
-        case 5: //single fixed product, so no need to show drop down of product, but do need the underyling price
-            price_mod = parseFloat(class_opt_vals['price_modifier']*class_opt_vals['price']);//variant - e.g. 600mm Stands
-            break;
-          break;
+              if (bl_bespoke) {
+                  prod_width = $(form_name + ' #manualCalcWidth').val() / 1000;
+                  prod_height = $(form_name + ' #manualCalcHeight').val() / 1000;
+              } else {
+                  prod_width = parseFloat(variant_info['size_width']) / 1000;
+                  prod_height = parseFloat(variant_info['size_height']) / 1000;
+              }
+              price_mod = parseFloat(class_opt_vals['price_modifier']) * prod_width * prod_height;//size_width, size_height
+              break;
+          case 3:  //width - e.g. Channel
+              //var base_prod_var = prod_variants[prod_var_options[0][0]][prod_var_options[0][1]];
+              if (bl_bespoke) {
+                  prod_width = $(form_name + ' #manualCalcWidth').val() / 1000;
+              } else {
+                  prod_width = parseFloat(variant_info['size_width']) / 1000;
+              }
+              price_mod = parseFloat(class_opt_vals['price_modifier']) * prod_width;
+              break;
+          case 4:
+              price_mod = parseFloat(class_opt_vals['price_modifier'] * class_opt_vals['price']);//Product - e.g. Clips
+              break;
+          case 5: //single fixed product, so no need to show drop down of product, but do need the underyling price
+              price_mod = parseFloat(class_opt_vals['price_modifier'] * class_opt_vals['price']);//variant - e.g. 600mm Stands
+              break;
+          case 6: //single fixed product, so no need to show drop down of product, but do need the underyling price
+              price_mod = parseFloat(class_opt_vals['price_modifier'] * class_opt_vals['price']);//variant - e.g. 600mm Stands
+              break;
       }
       //whilst here update classtype hidden value to the type
 
@@ -272,3 +293,35 @@ function getPriceModifier(class_opt_id, selected_value_id, bl_bespoke = false, f
 function preset_orderline_addons(form_name, selected_options){
     alert('Im here');
 }
+
+function set_selected_option(form_name = '', option_extra_class_name = '', bl_bespoke = false){
+    let all_selects = $(document).find('.tsg_option_class' + option_extra_class_name)
+    let class_id = 0;
+
+    let selected_option_values = [];
+    let selected_value = 0;
+    $.each(all_selects, function(key, value){
+        class_id = $(value).data('selectclass');
+        selected_value = $(value).val();
+        if (selected_value > 0) {
+            let new_select_used = {};
+            let sel_str = '#option_select_' + selected_value
+            let selected = $(sel_str)
+            let class_data = getClassArray(class_id, bl_bespoke);
+            let select_data = getOptionArray(class_id, selected_value, bl_bespoke);
+            new_select_used['class_id'] = class_id;
+            new_select_used['class_label'] = class_data['label'];
+            new_select_used['value_id'] = selected_value;
+            new_select_used['value_label'] = select_data['drop_down'];
+            new_select_used['is_dynamic'] = select_data['is_dynamic'];
+            new_select_used['addontype'] = selected.data('addontype');
+            selected_option_values.push(new_select_used);
+        }
+    })
+
+    $(form_name + ' #selected_option_values_frm').val(JSON.stringify(selected_option_values))
+     console.log($(form_name + ' #selected_option_values_frm').val())
+}
+
+
+

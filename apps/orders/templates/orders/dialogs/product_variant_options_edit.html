@@ -37,11 +37,12 @@
  <script>
 
 var select_values = JSON.parse(document.getElementById('optionvalues').textContent);
+console.log(select_values)
+var select_values_bespoke = select_values
 var variant_info = JSON.parse(document.getElementById('variantvalues').textContent);
 
 {% if orderline_product_addons %}
     var orderline_selected_values = JSON.parse(document.getElementById('order_line_selected').textContent);
-    console.log(orderline_selected_values);
 {% else %}
     var orderline_selected_values = [];
 {% endif %}
@@ -58,6 +59,7 @@ $(document).ready(function(){
         var selected_value = get_selected_value(select_class);
         if(selected_value > 0){
             $(this).val(selected_value);
+            $('#div_select_' + select_class).show();
         }
     });
 
@@ -66,7 +68,6 @@ $(document).ready(function(){
         $(orderline_selected_values).each(function(){
             if (this.class_field_id == select_class_id){
                 selected_value = this.value_id;
-
             }
         });
         return selected_value;

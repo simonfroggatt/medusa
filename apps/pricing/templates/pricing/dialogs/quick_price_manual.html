@@ -53,6 +53,7 @@
     </div>
     <div class="row pb-2">
         {% if price_for|upper == "I" or price_for|upper == "Q" %}
+            <input type="hidden" name="selected_option_values_frm" id="selected_option_values_frm">
             <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}" value="True">
             <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}" value="0">
             <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">

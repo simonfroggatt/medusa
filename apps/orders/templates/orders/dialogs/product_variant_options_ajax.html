@@ -2,16 +2,20 @@
 <div class="container">
 <form name="form_variant_options" id="form_variant_options">
     <div class="row">
-        <div class="col-12"><input type="hidden" value="{{ base_price }}" name='base_price' id="base_price"></div>
+        <div class="col-12">
+            <input type="hidden" value="{{ base_price }}" name='base_price' id="base_price">
+            <input type="hidden" name="selected_option_values_frm" id="selected_option_values_frm">
+        </div>
         <div class="col">
             {% for select in  select_data %}
                 <div class="row mb-2" id="div_select_{{ select.id }}" {% if select.is_dynamic %} style="display: none" {% endif %} data-option={{ select.id }}>
                     <label for="option_class_{{ select.id }}" class="col-form-label col-sm-2">{{ select.label }}</label>
                     <div class="col-sm-10">
-                        <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class=" form-select tsg_option_class {% if select.is_dynamic %} dynamic_select {% endif %}" name="option_class_{{ select.id }}" >
-                            <option value="0" data-class={{ select.id }} data-option=0>{{ select.default }}</option>
+                        <select id="option_class_{{ select.id }}" data-selectclass="{{ select.id }}" class=" form-select tsg_option_class {% if select.is_dynamic %} dynamic_select {% endif %}"
+                                name="option_class_{{ select.id }}_{{select.parent_class_id}}_{{ select.dynamic_class_id }}" >
+                            <option value="0" data-class={{ select.id }} data-addontype=0 data-option=0>{{ select.default }}</option>
                             {% for class_values in select.values %}
-                                <option value="{{ class_values.id }}" data-class={{ select.id }} >{{  class_values.drop_down }}</option>
+                                <option id="option_select_{{ class_values.id }}" value="{{ class_values.id }}" data-class={{ select.id }} data-addontype={{ class_values.option_type }} >{{  class_values.drop_down }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -29,9 +33,5 @@
 
 var select_values = JSON.parse(document.getElementById('optionvalues').textContent);
 var variant_info = JSON.parse(document.getElementById('variantvalues').textContent);
-// console.log(select_values)
 </script>
-
-
-
 
