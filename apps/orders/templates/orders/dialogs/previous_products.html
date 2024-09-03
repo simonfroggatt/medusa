@@ -43,6 +43,8 @@
                 <input type="hidden" id="{{ form.is_bespoke.name }}" name="{{ form.is_bespoke.name }}">
                 <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
                 <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}" value="{{ form.bulk_used.value }}">
+                 <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}"
+                       value="0.00">
 
                 <input type="hidden" id="{{ form.total.name }}" name="{{ form.total.name }}"
                        value="{{ form.total.value|floatformat:2 }}">
@@ -218,7 +220,7 @@
                     //$('#form-previous #switchApplyBulk').prop('checked',false)
                     let product_price =  "#form-previous #{{ form.price.name }}";
                     $(product_price).prop('readonly', false)
-                    //SetPrice(false, '#form-previous')
+                    SetPrice(false, '#form-previous')
                 }
                 else{
                     SetPrice(true, '#form-previous')
@@ -247,6 +249,7 @@
              $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
              $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['price'])
             $('#form-previous #switchApplyBulk').prop('checked', data_row['bulk_used']);
+            $('#form-previous #base_unit_price').val(data_row['base_unit_price'])
 
             console.log(data_row)
 

@@ -72,7 +72,7 @@
     bulk_table_data = {{ bulk_info|safe }};
     tax_rate = parseFloat({{ tax_rate }} / 100 ).toFixed(2);
 
-
+/*
     $(".switchApplyBulk").change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         let product_price = form_id + " #{{ form.price.name }}";
@@ -103,19 +103,19 @@
             $(form_id + ' #{{ form.single_unit_price.name }}').val(price)
         }
 
-    });
+    });*/
 
     $('#previous-product-tab').click(function () {
         //load in the previous products - do an ajax call
 
     })
 
-
+/*
     function calc_totals(price, qty) {
         return (price * qty).toFixed(2);
-    }
+    }*/
 
-    function SetPrice(getbulk = true, form_id) {
+    /*function SetPrice(getbulk = true, form_id) {
         let qty_field = form_id + " #{{ form.quantity.name }}";
         let product_price = form_id + " #{{ form.price.name }}";
         let line_price = 0.00;
@@ -151,9 +151,9 @@
         drawBulkTable(this.value, form_id)
         SetPrice(true, form_id)
     })
+*/
 
-
-    function drawBulkTable(bulk_group_id, form_id) {
+    /*function drawBulkTable(bulk_group_id, form_id) {
 
         let base_price = $(form_id + ' #{{ form.single_unit_price.name }}').val()
         var bulk_array = $.grep(bulk_table_data, function (e) {
@@ -183,9 +183,9 @@
         tbl.appendTo(form_id + ' #bulk_pricing_div');
 
 
-    }
+    }*/
 
-    function getBulkPriceDiscount(bulk_group_id, qty, form_id) {
+   /* function getBulkPriceDiscount(bulk_group_id, qty, form_id) {
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
         })[0];
@@ -206,7 +206,7 @@
         })
         setDiscountCellColour(cell_index, form_id)
         return (discount / 100).toFixed(2)
-    }
+    }*/
 
 
 

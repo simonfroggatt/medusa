@@ -29,7 +29,7 @@
                         <div class="tab-content">
                             <div role="tabpanel" id="tab-quick-product" class="tab-pane fade show active">
                                 <div class="panel-body">
-                                    {% include 'pricing/dialogs/quick_price_product.html' %}
+                                     {% include 'pricing/dialogs/quick_price_product.html' %}
                                 </div>
                             </div>
                             <div role="tabpanel" id="tab-quick-size" class="tab-pane fade">
@@ -53,6 +53,12 @@
         </div>
     </div>
 </div>
+
+<script>
+
+    bulk_table_data = {{ bulk_info|safe }};
+
+</script>
 
 
 

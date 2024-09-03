@@ -6,7 +6,7 @@
       class="js-quote-add"
         {% endif %}
 >
-    <h4>Known size and price</h4>
+    <h4>Known size and price - 2</h4>
     <div class="row pb-2">
         <div class="col-4">
             <label for="manualWidth" class="form-label">Width</label>
@@ -42,7 +42,7 @@
         <div class="col-4">
             <label for="manualMaterial" class="form-label">Material</label>
             <input class="form-control" list="datalistMaterials" id="manualMaterial" name="material_name"
-                   placeholder="Type to search..." >
+                   placeholder="Type to search..." onchange="reCalc()">
             <datalist id="datalistMaterials">
                 {% for materials in material_obj %}
                     <option value="{{ materials.material_name }}"
@@ -91,8 +91,7 @@
            {% include 'orders/dialogs/bespoke_product_addons.html' %}
      </div>
     {% csrf_token %}
-    <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
-    <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}" value="0">
+
     <input type="hidden" id="text_to_copy" name="text_to_copy" value="">
     <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
     <input id="string_to_copy_manual" name="string_to_copy_manual" class="hidden_copy" value="">
@@ -101,9 +100,16 @@
     {% if price_for|upper == "I" %}
         <input type="hidden" id="{{ form.order.name }}" name="{{ form.order.name }}" value="{{ order_id }}">
         <input type="hidden" id="{{ form.status.name }}" name="{{ form.status.name }}" value="1">
+        <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
+        <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}" value="0">
 
-    {% else %}
+    {% elif price_for|upper == "Q" %}
         <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
+         <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
+         <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}" value="0">
+    {% else %}
+         <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+         <input type="hidden" id="base_unit_price" name="base_unit_price" value="0">
     {% endif %}
 
 

@@ -547,8 +547,10 @@
 
                     let product_variant_id = row_data['prod_variant_id'];
                     //load the options here
-                    SetPrice(true, '#form-stock')
+
                     load_variant_options({{ store_id }}, product_variant_id)
+
+
                 }
             });
 
@@ -676,6 +678,7 @@
                         if (data.html_content) {
                             $("#ajax_load-product_variant_options").html(data.html_content);
                             setOptionBasePrice();
+                            SetPrice(true, '#form-stock')
                         }
                     },
                 });
@@ -684,7 +687,6 @@
               function setOptionBasePrice()
               {
                   let base_price = $('#form-stock #price').val();
-
                   $('#base_unit_price').val(base_price);
               }
 

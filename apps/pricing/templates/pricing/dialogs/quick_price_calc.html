@@ -5,7 +5,7 @@
         <input type="text" class="form-control js-calc_size_change" id="calc_width" placeholder="0">
     </div>
     <div class="col-2">
-        <label for="calc_height" class="form-label">Height (mm)</label>
+        <label for="calc_height" class="form-label">Height (mm)</label><span class="text-danger" id="m2_calc"></span>
         <input type="text" class="form-control js-calc_size_change" id="calc_height" placeholder="0">
     </div>
     <div class="col-4">
@@ -29,11 +29,11 @@
         </select>
 
     </div>
-    <div class="col">
-        <button id="calc_button_quick" role="button" type="button" class="btn btn-primary btn-lg"><i
-                class="fa-solid fa-calculator"></i> Calc
-        </button>
-    </div>
+    <div class="col-2 align-content-end" >
+                            <button id="calc_button_quick" role="button" type="button" class="btn btn-primary btn-lg"><i
+                                    class="fa-solid fa-calculator"></i> Calc
+                            </button>
+                        </div>
 
 </div>
 <div class="row">
@@ -44,6 +44,7 @@
             <tr>
                 <th class="col-6">Size</th>
                 <th class="col-6">Price</th>
+                <th class="col-2">M2</th>
             </tr>
             </thead>
         </table>
@@ -56,7 +57,8 @@
 
              {% block form_vars %}{% endblock form_vars %}
                 {% csrf_token %}
-             <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}" value="0">
+             <input type="hidden" id="single_unit_price" name="single_unit_price" value="0">
+             <input type="hidden" id="base_unit_price" name="base_unit_price" value="0">
              <input type="hidden" id="text_to_copy" name="text_to_copy"  value="">
              <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
              <input type="hidden" id="material_name" name="material_name" value="">
@@ -151,6 +153,7 @@
                 columns: [
                     {data: "product_size.size_name"},
                     {data: "price", searchable: false},
+                    {data: "square_meter_value", searchable: false},
                 ]
             });
           }
@@ -169,6 +172,8 @@
                 str_height =  $('#calc_height').val()
                 str_size = str_width+"mm x " + str_height + "mm";
                 $('#form-quick_size_calc #bespoke_size').val(str_size);
+                let m2_text = ( (str_width/1000) * (str_height/1000)).toFixed(2);
+                $('#m2_calc').text(" (M2: "+m2_text + ")")
             })
 
         $('#calc_button_quick').on('click', function(){
@@ -189,7 +194,8 @@
                 let m2_custom =  ( (str_width/1000) * (str_height/1000)) ;
                 let m2_stock_price = data_row['price'] / ( (stock_width/1000) * (stock_height/1000));
                 let customer_price = parseFloat(m2_stock_price * m2_custom).toFixed(2);
-                $('#form-quick_size_calc #{{ form.single_unit_price.name }}').val(customer_price)
+                $('#form-quick_size_calc #single_unit_price').val(customer_price)
+                $('#form-quick_size_calc #base_unit_price').val(customer_price)
 
             }
 
@@ -206,8 +212,8 @@
 
             function set_product_base_price_size(data_row){
                 let product_info = data_row['size_material_comb'];
-               $('#form-quick_size_calc #{{ form.single_unit_price.name }}').val(product_info['price'])
-
+               $('#form-quick_size_calc #single_unit_price').val(product_info['price'])
+                $('#form-quick_size_calc #base_unit_price').val(product_info['price'])
             }
 
             function set_copy_string()
@@ -218,7 +224,7 @@
 
                  text_string = size_str
                     //+ " ( " + orientation_str + " ) "
-                    + " " +material_str;
+                    + " - " +material_str;
 
                 $('#form-quick_size_calc #text_to_copy').val(text_string);
 

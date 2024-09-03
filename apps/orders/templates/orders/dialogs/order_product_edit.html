@@ -101,9 +101,9 @@
                     <div class="collapse show" id="collapseBulkDiscount">
                         <div class="row">
                             <div class="col-12" id="bulkTableDiv">
-                                <select class="form-select" id="bulk_group_select">
+                                <select class="form-select bulk_group_select" id="edit-bulk_group_select">
                                     {% for bulk_group in bulk_info %}
-                                        <option value="{{ bulk_group.id }}" {% if default_bulk == bulk_discount %}
+                                        <option value="{{ bulk_group.id }}" {% if default_bulk == bulk_group.id %}
                                                 selected {% endif %}>{{ bulk_group.name }}</option>
                                     {% endfor %}
                                 </select>
@@ -142,7 +142,7 @@
                                        class="col-6 col-form-label">{{ form.quantity.label }}</label>
                                 <div class="col-6">
                                     <input type="number" min="1" step="1" class="form-control calc_line_totals"
-                                           id="label_{{ form.quantity.name }}" name="{{ form.quantity.name }}"
+                                           id="{{ form.quantity.name }}" name="{{ form.quantity.name }}"
                                            value="{{ form.quantity.value }}">
                                 </div>
                             </div>
@@ -154,7 +154,7 @@
                                 <div class="col-6">
                                     <input type="number" step="0.01" min="0.00" maxlength="3"
                                            class="form-control two-decimals calc_line_totals"
-                                           id="label_{{ form.price.name }}"
+                                           id="{{ form.price.name }}"
                                            name="{{ form.price.name }}"
                                            value="{{ form.price.value|floatformat:2 }}">
                                 </div>
@@ -200,7 +200,7 @@
     bulk_table_data = {{ bulk_info|safe }}
 
 
-    $("#switchApplyBulk").change(function () {
+   /* $("#switchApplyBulk").change(function () {
         let product_price = "#label_{{ form.price.name }}";
         let bl_bulk = $(this).is(":checked")
         $(product_price).prop('readonly', $(this).is(":checked"))
@@ -221,16 +221,19 @@
             $('#{{ form.total.name }}').val(line_total);
         }
 
-    });
+    });*/
 
     $("#single_unit_price").change(function () {
-        SetPrice();
+        let form_id = '#' + $(this).parents("form").attr('id')
+        let single_price = $(this).val();
+        $('#{{ form.base_unit_price.name }}').val(single_price);
+        SetPrice(true, form_id);
     });
-
+/*
     function calc_totals(price, qty) {
         return (price * qty).toFixed(2);
-    }
-
+    } */
+/*
     function SetPrice(getbulk = true) {
         let qty_field = "#label_{{ form.quantity.name }}";
         let product_price = "#label_{{ form.price.name }}";
@@ -254,15 +257,15 @@
 
         $('#{{ form.total.name }}').val(parseFloat(line_price).toFixed(2));
         $('#line_total_cal').html(line_price);
-    }
+    }*/
 
-    $('#bulk_group_select').change(function () {
+  /*  $('#bulk_group_select').change(function () {
         $("#{{ form.bulk_discount.name }}").val(this.value);
         drawBulkTable(this.value)
         SetPrice()
-    })
+    })*/
 
-
+/*
     function drawBulkTable(bulk_group_id) {
 
         let base_price = $('#{{ form.single_unit_price.name }}').val()
@@ -293,8 +296,8 @@
         tbl.appendTo('#bulk_pricing_div');
 
 
-    }
-
+    }*/
+/*
     function getBulkPriceDiscount(bulk_group_id, qty) {
         var bulk_array = $.grep(bulk_table_data, function (e) {
             return e.id == bulk_group_id;
@@ -316,8 +319,8 @@
         })
         setDiscountCellColour(cell_index)
         return (discount / 100).toFixed(2)
-    }
-
+    }*/
+/*
     function setDiscountCellColour(cell_index) {
 
         var allCells = $(".bulkcell");
@@ -327,13 +330,14 @@
         cellToColour.addClass("table-success");
 
     }
-
+*/
     $(function () {
-        let product_price = "#label_{{ form.price.name }}";
+        let product_price = "#{{ form.price.name }}";
         $(product_price).prop('readonly', $('#switchApplyBulk').is(":checked"))
-        $('#bulk_group_select').val({{ default_bulk }});
-        drawBulkTable({{ default_bulk }});
-        SetPrice()
+       // $('#bulk_group_select').val({{ default_bulk }});
+        let form_id = '#js-product-edit-submit'
+       // drawBulkTable({{ default_bulk }});
+        SetPrice(true, form_id)
     })
 
     function backCalcSingle(group_id, qty, price) {

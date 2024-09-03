@@ -8,6 +8,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('all/<int:order_id>', views.gen_merged_paperwork, name='order_paperwork_pdf'),
     path('test/', views.test_pdf, name='test_pdf'),
+    path('testbarcode/', views.test_barcode, name='test_barcode'),
 
     re_path(r'^order/([-\w]+)-(?P<order_id>\d+)$', views.gen_merged_paperwork, name='order_paperwork_pdf2'),
     path('quote/<int:quote_id>', views.gen_quote_paperwork, name='quote_paperwork_pdf'),

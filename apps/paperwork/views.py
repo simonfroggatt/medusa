@@ -1,3 +1,5 @@
+import http
+
 import requests
 from django.shortcuts import render, get_object_or_404
 from apps.orders.models import OcOrder, OcOrderProduct, OcTsgOrderOption, OcTsgOrderProductOptions
@@ -15,6 +17,8 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_LEFT, TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, Frame, PageTemplate, NextPageTemplate, FrameBreak
 from reportlab_qrcode import QRCodeImage
+from reportlab.graphics.barcode import code128
+from reportlab.pdfgen import canvas
 from reportlab.graphics import renderPDF, renderPM
 from reportlab.lib import colors
 from apps.paperwork import utils
@@ -33,6 +37,11 @@ from django.template.loader import get_template
 from svglib.svglib import svg2rlg
 from io import BytesIO
 from xhtml2pdf import pisa
+
+from reportlab.pdfbase.pdfmetrics import registerFont
+from reportlab.pdfbase.ttfonts import TTFont
+registerFont(TTFont('Arial','ARIAL.ttf'))
+
 
 from wand.api import library
 import wand.color
@@ -1074,7 +1083,85 @@ def _push_to_xero(request, order_id):
         r = requests.get(base_url)
 
 
+def test_barcode(request):
+    code = 6240001
+    pages = 1
+
+    while pages < 9:
+        draw_JCBbarcode(code)
+        code += 125
+        pages += 1
+
+   # code += 301
+   # draw_JCBbarcode(code)
+
+
+def draw_JCBbarcode(code):
+
+    c = canvas.Canvas(f"{code}.pdf")
+    page_width = 1040*mm  # page width
+    page_height = 1000*mm  # page height
+    c.setPageSize((page_width, page_height))
+
+    max_width = 5
+    icount = 125
+    ix = 0
+    iy = 0
+    for i in range(icount):
+        x_origin = (210 * mm) * ix
+        y_origin = (40 * mm) * iy
+        draw_barcode(c, x_origin, y_origin, code+i)
+        ix += 1
+        if ix == max_width:
+            ix = 0
+            iy += 1
+
+    c.save()  # save pdf
+    return
 
 
 
+def draw_barcode(c, x_origin, y_origin, barcode_number):
+    page_width = 200 * mm  # page width
+    page_height = 30 * mm  # page height
 
+    margin_y = 10  # top/bottom margin
+
+    bar_height = 15 * mm  # barcode line height
+
+    #bar_width = page_width / (11 * len(str(barcode_number)) + 55)  # barcode individual width has the formula
+    bar_width = 2.75
+    #bar_width = 2
+    # page width / (11*string_length) + 55   ##(I also saw +35 but in my test it was not working)
+
+    humanReadable = False  # with or without text
+    barcode = code128.Code128(barcode_number,
+                              barHeight=bar_height,
+                              barWidth=bar_width,
+                              humanReadable=humanReadable)
+
+    drawon_x = x_origin + 95*mm  # x value for drawing already has a margin (not like Y) bar with formula account for that
+    y_offset = 5 * mm
+    if humanReadable:
+        drawon_y = page_height - margin_y - bar_height - y_offset  # if text reduce bar height to hace the correct value
+    else:
+        drawon_y = page_height - bar_height - y_offset  # set draw point to the top of the page - the height of the drawn barcode
+
+    drawon_y += y_origin
+
+    barcode.drawOn(c, drawon_x, drawon_y)  # do the drawing
+
+    c.rect(x_origin, y_origin, page_width, page_height, stroke=1, fill=0)
+
+    #textobject = c.beginText()
+    textline = f'{barcode_number}'
+    #textobject.textLine(text=textline)
+    #textobject.setTextOrigin(x_origin + (150*mm), y_origin + (200*mm))
+    c.setFont("Helvetica", 53)
+   # c.drawText(textobject)
+    c.drawString(x_origin + (5*mm), y_origin + (9*mm), "403/H5316")
+    c.setFont("Helvetica", 18)
+    c.drawCentredString(x_origin + (151 * mm), y_origin + (3 * mm), textline)
+
+
+    return http.HTTPStatus(200)

@@ -120,6 +120,8 @@
 
                 <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}" value="{{ form.bulk_used.value }}">
                  <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}" value="1">
+                <input type="hidden" id="{{ form.base_unit_price.name }}" name="{{ form.base_unit_price.name }}"
+                       value="0.00">
                 <div class="row">
                     <div class="col-3">
                         <label for="{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
@@ -311,6 +313,11 @@
                 $('#form-bespoke #{{ form.is_bespoke.name }}').val(1)
                 $('#form-bespoke #{{ form.price.name }}').val(data_row['price'])
                 $('#form-bespoke #{{ form.single_unit_price.name }}').val(data_row['price'])
+                $('#form-bespoke #{{ form.base_unit_price.name }}').val(data_row['price'])
+
+                console.log("data row price: " + data_row['price']);
+                console.log('#form-bespoke #{{ form.base_unit_price.name }}' +$('#form-bespoke #{{ form.base_unit_price.name }}').val());
+
 
 
                 manual_data_bespoke['width'] = data_row['size_material_comb']['product_size']['size_width']
@@ -354,6 +361,13 @@
                 bespoke_calc_table.ajax.url( strurl ).load();
             })
 
+
+            $(document).on('change', '#form-bespoke #single_unit_price', function () {
+                let single_unit_price = $(this).val();
+                $('#form-bespoke #{{ form.base_unit_price.name }}').val(single_unit_price);
+                SetPrice(true, '#form-bespoke')
+            });
+
             function set_calc_details(data_row) {
                 $('#form-bespoke #{{ form.orientation_name.name }}').val(0)
                 $('#form-bespoke #{{ form.model.name }}').val('BESPOKE')
@@ -369,6 +383,11 @@
                 let customer_price = parseFloat(m2_stock_price * m2_custom).toFixed(2);
                 $('#form-bespoke #{{ form.price.name }}').val(customer_price)
                 $('#form-bespoke #{{ form.single_unit_price.name }}').val(customer_price)
+                 $('#form-bespoke #{{ form.base_unit_price.name }}').val(customer_price)
+
+                console.log("data row price: " + data_row['price']);
+                console.log('#form-bespoke #{{ form.base_unit_price.name }}' +$('#form-bespoke #{{ form.base_unit_price.name }}').val());
+
 
                 manual_data_bespoke['width'] = data_row['product_size']['size_width'];
                 manual_data_bespoke['calcwidth'] = $('#calc_width').val();

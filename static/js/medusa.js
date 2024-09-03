@@ -81,6 +81,7 @@ $(".two-decimals").change(function(){
  });
 
 $('#topmenu_quickcalc').on('click', function () {
+    tax_rate = 0.20;
     $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
     $("#modal-base #modal-outer").addClass('modal-xl')
     //$("#modal-base .modal-content").html(data.html_form);

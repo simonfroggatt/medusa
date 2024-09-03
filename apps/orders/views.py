@@ -1520,7 +1520,8 @@ def set_product_options_and_variant_options(post_data, order_id, order_product_i
     variant_class_pairs = get_variant_class_pairs(post_data)
     selected_option_values = []
     if 'selected_option_values_frm' in post_data:
-        selected_option_values = json.loads(post_data['selected_option_values_frm'])
+        if len(post_data['selected_option_values_frm']) > 1:
+            selected_option_values = json.loads(post_data['selected_option_values_frm'])
 
     if selected_option_values:
         add_order_product_variant_options_2(selected_option_values, order_product_id)
@@ -1537,7 +1538,8 @@ def update_product_options_and_variant_options(post_data, order_id, order_produc
     #variant_class_pairs = get_variant_class_pairs(post_data)
     selected_option_values = []
     if 'selected_option_values_frm' in post_data:
-        selected_option_values = json.loads(post_data['selected_option_values_frm'])
+        if len(post_data['selected_option_values_frm']) > 1:
+            selected_option_values = json.loads(post_data['selected_option_values_frm'])
 
     if selected_option_values:
         add_order_product_variant_options_2(selected_option_values, order_product_id)

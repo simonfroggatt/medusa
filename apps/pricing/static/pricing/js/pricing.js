@@ -1,29 +1,29 @@
-$(function(){
+$(function () {
 
-        var base_prices_table = $('#base_prices_table').DataTable( {
+    var base_prices_table = $('#base_prices_table').DataTable({
         "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
-        "processing" : true,
-        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing": true,
+        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         "pageLength": 25,
         "autoWidth": true,
         "select": 'single',
         "responsive": false,
         "ajax": {
-                 "processing": true,
-                 "url": "/pricing/api/prices/?format=datatables",
+            "processing": true,
+            "url": "/pricing/api/prices/?format=datatables",
 
-             },
+        },
         "deferRender": false,
 
-         "search": {
+        "search": {
             "regex": true
         },
-        columns :[
+        columns: [
 
             {data: "product_size.size_name", defaultContent: ""},
-            {data: "product_size.size_width",defaultContent: ""},
+            {data: "product_size.size_width", defaultContent: ""},
             {data: "product_size.size_height", defaultContent: ""},
             {data: "product_material.material_name", defaultContent: ""},
             {data: "price", defaultContent: 0.00},
@@ -32,44 +32,46 @@ $(function(){
                 data: "id",
                 sortable: false,
                 className: 'text-end',
-                render: function ( data, type, row ) {
-                let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="' +data+ '/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                let delete_icon = '<a class="btn '+ button_context['BUTTON_DELeTE'] +' btn-tsg-row" role="button" href="delete/' + data + '"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
-                let add_icon = '<a class="btn '+ button_context['BUTTON_ADD'] +' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/create"><i class="fa-solid fa-globe fa-sm"></i></a>';
-                return delete_icon + "  " + edit_icon + " " +add_icon
+                render: function (data, type, row) {
+                    let edit_icon = '<a class="btn ' + button_context['BUTTON_EDIT'] + ' btn-tsg-row" role="button" href="' + data + '/edit"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
+                    let delete_icon = '<a class="btn ' + button_context['BUTTON_DELeTE'] + ' btn-tsg-row" role="button" href="delete/' + data + '"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>';
+                    let add_icon = '<a class="btn ' + button_context['BUTTON_ADD'] + ' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/' + data + '/store/create"><i class="fa-solid fa-globe fa-sm"></i></a>';
+                    return delete_icon + "  " + edit_icon + " " + add_icon
                 }
             },
             {data: "product_size.size_width", "visible": false, searchable: true},
-             {data: "product_size.size_height", "visible": false, searchable: true},
+            {data: "product_size.size_height", "visible": false, searchable: true},
 
         ]
-    } );
+    });
 
-         var store_prices_table = $('#store_prices_table').DataTable({
+    var store_prices_table = $('#store_prices_table').DataTable({
         "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
-        "processing" : true,
-        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing": true,
+        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         "pageLength": 25,
         "autoWidth": false,
         "select": 'single',
         "responsive": false,
         "ajax": {
-                 "processing": true,
-                 "url": "/pricing/api/storeprices/1?format=datatables"
-             },
+            "processing": true,
+            "url": "/pricing/api/storeprices/1?format=datatables"
+        },
         "deferRender": false,
-         "search": {
+        "search": {
             "regex": true
         },
-        columns :[
-            {data: "store.thumb",
-            render: function ( data, type, row ) {
+        columns: [
+            {
+                data: "store.thumb",
+                render: function (data, type, row) {
 
-                    let image_src =  media_url + 'stores/branding/logos/' + data;
+                    let image_src = media_url + 'stores/branding/logos/' + data;
                     return '<img height="15px" src="' + image_src + '">'
-                 }},
+                }
+            },
             {data: "size_material_comb.product_size.size_name", defaultContent: ""},
             {data: "size_material_comb.product_size.size_width", defaultContent: ""},
             {data: "size_material_comb.product_size.size_height", defaultContent: ""},
@@ -80,26 +82,25 @@ $(function(){
                 data: "id",
                 sortable: false,
                 className: 'text-end',
-                render: function ( data, type, row ) {
+                render: function (data, type, row) {
                     let store_id = row['store']['store_id'];
                     let size_material_id = row['size_material_comb']['id'];
-                let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/edit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/'+data+'/store/delete"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
-                return delete_icon + "  " + edit_icon;
+                    let edit_icon = '<a class="btn ' + button_context['BUTTON_EDIT'] + ' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/' + data + '/store/edit"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
+                    let delete_icon = '<a class="btn ' + button_context['BUTTON_DELETE'] + ' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/' + data + '/store/delete"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
+                    return delete_icon + "  " + edit_icon;
                 }
             }
 
         ]
-    } );
+    });
 
-    $('#select_prices_by_store_id').on('change', function() {
+    $('#select_prices_by_store_id').on('change', function () {
         let newval = $(this).val()
-        let ajax_url = "/pricing/api/storeprices/"+newval+"?format=datatables"
+        let ajax_url = "/pricing/api/storeprices/" + newval + "?format=datatables"
         store_prices_table.ajax.url(ajax_url).load();
     });
 
-    function saveStoreComboPriceSave()
-    {
+    function saveStoreComboPriceSave() {
         var form = $(this);
         $.ajax({
             url: form.attr("action"),
@@ -118,8 +119,7 @@ $(function(){
         return false;
     }
 
-    function deletePriceSize()
-    {
+    function deletePriceSize() {
         var form = $(this);
         $.ajax({
             url: form.attr("action"),
@@ -139,8 +139,7 @@ $(function(){
         return false;
     }
 
-    function deletePriceMaterial()
-    {
+    function deletePriceMaterial() {
         var form = $(this);
         $.ajax({
             url: form.attr("action"),
@@ -176,89 +175,67 @@ $(function(){
     /* - manual calc stuff */
 
     function set_copy_price(form_id) {
-            let price_string = "";
-            let price_str = $(form_id + ' #price').val();
-            let qty_str = $(form_id + ' #quantity').val();
+        let price_string = "";
+        let price_str = $(form_id + ' #price').val();
+        let qty_str = $(form_id + ' #quantity').val();
 
-            price_string = " @ £" + price_str + " each for " + qty_str + " off";
-            $(form_id + ' #price_to_copy').val(price_string);
+        price_string = " @ £" + price_str + " each for " + qty_str + " off";
+        $(form_id + ' #price_to_copy').val(price_string);
 
-        }
+    }
 
-        function set_copy_material() {
-            let width = $('#manualCalcWidth').val() ? $('#manualCalcWidth').val() : 0;
-            let height = $('#manualCalcHeight').val() ? $('#manualCalcHeight').val() : 0;
-            $('#form-quick_manual #text_to_copy').val(width + 'mm x ' + height + 'mm ' + $('#form-quick_manual #manualMaterial').val());
-        }
+    function set_copy_material() {
+        let width = $('#manualCalcWidth').val() ? $('#manualCalcWidth').val() : 0;
+        let height = $('#manualCalcHeight').val() ? $('#manualCalcHeight').val() : 0;
+        $('#form-quick_manual #text_to_copy').val(width + 'mm x ' + height + 'mm - ' + $('#form-quick_manual #manualMaterial').val());
+    }
 
-        $('#form-quick_manual #line_total_cal').change(function () {
-            set_copy_price('#form-quick_manual');
-            set_copy_material();
-            let final_copy_str = $('#form-quick_manual #text_to_copy').val() + $('#form-quick_manual #price_to_copy').val()
-            $('#string_to_copy_manual').val(final_copy_str);
-        });
-
-        $(document).on('focusin', '#manualCalcHeight', function () {
-            $(this).data('val', $(this).val() ? $(this).val() : 0);
-        });
-
-        $(document).on('change', '#manualCalcHeight', function () {
-            var prev = $(this).data('val')
-            var current = $(this).val();
-
-            var keep_aspect = $('#switchScale').is(':checked');
-            if (keep_aspect) {
-                let oldwidth = $('#manualCalcWidth').val()
-                let aspect = oldwidth / prev;
-                let newwidth = Math.round(aspect * current)
-                $('#manualCalcWidth').val(newwidth)
-            }
-            reCalc()
-        });
-
-        $(document).on('focusin', '#manualCalcWidth', function () {
-            $(this).data('val', $(this).val() ? $(this).val() : 0);
-        });
-
-        $(document).on('change', '#manualCalcWidth', function () {
-            var prev = $(this).data('val')
-            var current = $(this).val();
-
-            var keep_aspect = $('#switchScale').is(':checked');
-            if (keep_aspect) {
-                let oldwidth = $('#manualCalcHeight').val()
-                let aspect = oldwidth / prev;
-                let newwidth = Math.round(aspect * current)
-                $('#manualCalcHeight').val(newwidth)
-            }
-            reCalc()
-        });
-
-        $('#switch_exclude_discount_manual').change(function () {
-                let excluded =  $(this).is(":checked");
-                let exclude_id_str = '#exclude_discount';
-                $(exclude_id_str).val(excluded);
-            });
-
-
-
-});
-
-
-
-$(".switchApplyBulk").change(function () {
-        alert('bulk pricing')
-        let form_id = '#' + $(this).parents("form").attr('id')
-        let product_price = form_id + " #price";
-        $(product_price).prop('readonly', $(this).is(":checked"))
-        let bl_bulk = $(this).is(":checked")
-        let hidden_bulk = form_id + " #bulk_used";
-        $(hidden_bulk).val(bl_bulk);
+    $(document).on('change', '#form-quick_manual #line_total_cal', function () {
+        set_copy_price('#form-quick_manual');
+        set_copy_material();
+        let final_copy_str = $('#form-quick_manual #text_to_copy').val() + $('#form-quick_manual #price_to_copy').val()
+        $('#form-quick_manual #string_to_copy_manual').val(final_copy_str);
+        console.log("string_to_copy_manual: " + $('#form-quick_manual #string_to_copy_manual').val());
     })
 
 
-    $(".calc_line_totals").change(function (element) {
-        alert('pricing')
+    $(document).on('focusin', '#manualCalcHeight', function () {
+        $(this).data('val', $(this).val() ? $(this).val() : 0);
+    });
+
+    $(document).on('change', '#manualCalcHeight', function () {
+        var prev = $(this).data('val')
+        var current = $(this).val();
+
+        var keep_aspect = $('#switchScale').is(':checked');
+        if (keep_aspect) {
+            let oldwidth = $('#manualCalcWidth').val()
+            let aspect = oldwidth / prev;
+            let newwidth = Math.round(aspect * current)
+            $('#manualCalcWidth').val(newwidth)
+        }
+        reCalc()
+    });
+
+    $(document).on('focusin', '#manualCalcWidth', function () {
+        $(this).data('val', $(this).val() ? $(this).val() : 0);
+    });
+
+    $(document).on('change', '#manualCalcWidth', function () {
+        var prev = $(this).data('val')
+        var current = $(this).val();
+
+        var keep_aspect = $('#switchScale').is(':checked');
+        if (keep_aspect) {
+            let oldwidth = $('#manualCalcHeight').val()
+            let aspect = oldwidth / prev;
+            let newwidth = Math.round(aspect * current)
+            $('#manualCalcHeight').val(newwidth)
+        }
+        reCalc()
+    });
+
+    $(document).on('change', '.calc_line_totals', function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         let tax_price = 0.00;
         let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
@@ -269,52 +246,18 @@ $(".switchApplyBulk").change(function () {
             let price = $(form_id + ' #price').val();
             let line_total = calc_totals(price, qty);
             tax_price = parseFloat(line_total * tax_rate).toFixed(2);
-            $(form_id + ' #0.00').val(line_total);
+            //$(form_id + ' #0.00').val(line_total);
             $(form_id + ' #line_total_cal').html(line_total);
+
             $(form_id + ' #line_total_cal').trigger('change');
+
             $(form_id + ' #total').val(line_total);
             $(form_id + ' #tax').val(tax_price)
         }
 
     });
 
-
-    function calc_totals(price, qty) {
-        return (price * qty).toFixed(2);
-    }
-
-    function SetPrice(getbulk = true, form_id) {
-        let qty_field = form_id + " #quantity";
-        let product_price = form_id + " #price";
-        let line_price = 0.00;
-        let tax_price = 0.00;
-        let single_price = $(form_id + ' #single_unit_price').val();
-        let base_price = $(form_id + ' #base_unit_price').val();
-        let discount_price = 0.00;
-        qty = parseInt($(qty_field).val())
-        bulk_group_id = $(form_id + ' .bulk_group_select').val();
-
-        drawBulkTable(bulk_group_id, form_id);
-
-        if (getbulk) {
-            discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
-            discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
-            line_price = parseFloat(qty * discount_price).toFixed(2);
-            $(product_price).val(discount_price);
-
-        } else {
-            line_price = (qty * $('#single_unit_price').val()).toFixed(2);
-        }
-
-        tax_price = parseFloat(line_price * tax_rate).toFixed(2);
-
-        $(form_id + ' #total').val(parseFloat(line_price).toFixed(2));
-        $(form_id + ' #tax').val(tax_price)
-        $(form_id + ' #line_total_cal').html(line_price);
-        $(form_id + ' #line_total_cal').trigger('change');
-    }
-
-    $('.bulk_group_select').change(function () {
+    $(document).on('change', '.bulk_group_select', function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         let hidden_group = form_id + " #bulk_discount";
         $(hidden_group).val(this.value)
@@ -323,120 +266,210 @@ $(".switchApplyBulk").change(function () {
         SetPrice(true, form_id)
     })
 
-
-    function drawBulkTable(bulk_group_id, form_id) {
-        let single_price = $(form_id + ' #single_unit_price').val()
-        let base_price = $(form_id + ' #base_unit_price').val()
-        var bulk_array = $.grep(bulk_table_data, function (e) {
-            return e.id == bulk_group_id;
-        })[0];
-        var tbl = $('<table class="table table-hover table-striped align-middle table-sm"></table>').attr({id: "bulk_pricing_tbl"});
-        var header = $('<thead></thead>').appendTo(tbl);
-        var headerrow = $('<tr></tr>').appendTo(header);
-        var body = $('<tbody></tbody>').appendTo(tbl);
-        var row = $('<tr></tr>').appendTo(body);
-
-        $(form_id + ' #bulk_pricing_div').empty();
-
-        $.each(bulk_array['breaks'], function (index, value) {
-            if (index == 0) {
-                $('<th data-variant-headerid="'+index+'"></th>').text(value['qty_range_min']).appendTo(headerrow);
-            } else if (index == bulk_array['breaks'].length - 1) {
-                $('<th data-variant-headerid="'+index+'"></th>').text(value['qty_range_min'] + "+").appendTo(headerrow);
-            } else {
-                var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min'] - 1;
-
-                $('<th data-variant-headerid="'+index+'"></th>').text(value['qty_range_min'] + "-" + nextbreak).appendTo(headerrow);
-            }
-            let bulkprice = base_price * ((100 - value['discount_percent']) / 100)
-            $('<td class="bulkcell" data-variant-cellid="' + index + '"></td>').text(parseFloat(bulkprice).toFixed(2)).appendTo(row);
-        })
-        tbl.appendTo(form_id + ' #bulk_pricing_div');
+    $(document).on('change', '.switchApplyBulk', function () {
+    let form_id = '#' + $(this).parents("form").attr('id')
+    let product_price = form_id + " #price";
+    $(product_price).prop('readonly', $(this).is(":checked"))
+    let bl_bulk = $(this).is(":checked")
+    let hidden_bulk = form_id + " #bulk_used";
+    $(hidden_bulk).val(bl_bulk);
+    if(bl_bulk)
+    {
+        SetPrice(true, form_id)
     }
 
-    function getBulkPriceDiscount(bulk_group_id, qty, form_id) {
-        var bulk_array = $.grep(bulk_table_data, function (e) {
-            return e.id == bulk_group_id;
-        })[0];
-        let discount = 1;
-        let cell_index = 1;
-        $.each(bulk_array['breaks'], function (index, value) {
-            if (index >= bulk_array['breaks'].length - 1) {
-                discount = 100 - value['discount_percent'];
-                cell_index = index;
-                return false;
-            }
-            var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min']
-            if ((value['qty_range_min'] <= qty) && qty < nextbreak) {
-                discount = 100 - value['discount_percent'];
-                cell_index = index;
-                return false;
-            }
-        })
-        setDiscountCellColour(cell_index, form_id)
-        return (discount / 100).toFixed(2)
+})
+
+    $(document).on('change', '.calc_line_totals', function () {
+    let form_id = '#' + $(this).parents("form").attr('id')
+    let tax_price = 0.00;
+    let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
+    if (use_bulk)
+        SetPrice(true, form_id);
+    else {
+        let qty = $(form_id + ' #quantity').val();
+        let price = $(form_id + ' #price').val();
+        let line_total = calc_totals(price, qty);
+        tax_price = parseFloat(line_total * tax_rate).toFixed(2);
+        $(form_id + ' #total').val(line_total);
+        $(form_id + ' #line_total_cal').html(line_total);
+        $(form_id + ' #line_total_cal').trigger('change');
+        $(form_id + ' #tax').val(tax_price)
+        $(form_id + ' #single_unit_price').val(price)
     }
 
-    function setDiscountCellColour(cell_index, form_id) {
+});
 
-        var allCells = $(form_id + " .bulkcell");
-        allCells.removeClass("table-success");
 
-        var cellToColour = $(form_id + ' [data-variant-cellid="' + cell_index + '"]');
-        cellToColour.addClass("table-success");
 
+    $('#switch_exclude_discount_manual').change(function () {
+        let excluded = $(this).is(":checked");
+        let exclude_id_str = '#exclude_discount';
+        $(exclude_id_str).val(excluded);
+    });
+
+
+});
+
+
+
+
+
+
+
+
+function calc_totals(price, qty) {
+    return (price * qty).toFixed(2);
+}
+
+function SetPrice(getbulk = true, form_id) {
+    let qty_field = form_id + " #quantity";
+    let product_price = form_id + " #price";
+    let line_price = 0.00;
+    let tax_price = 0.00;
+    let base_price = $(form_id + ' #single_unit_price').val();
+    let discount_price = 0.00;
+    qty = parseInt($(qty_field).val())
+    bulk_group_id = $(form_id + ' .bulk_group_select').val();
+    //let single_price = $(form_id + ' #single_unit_price').val();
+    //let base_price = $(form_id + ' #base_unit_price').val();
+
+    drawBulkTable(bulk_group_id, form_id);
+
+    if (getbulk) {
+        discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
+        discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
+        line_price = parseFloat(qty * discount_price).toFixed(2);
+        $(product_price).val(discount_price);
+
+    } else {
+        line_price = (qty * $('#single_unit_price').val()).toFixed(2);
     }
 
+    tax_price = parseFloat(line_price * tax_rate).toFixed(2);
 
-    function reCalc() {
-        let width = $('#manualWidth').val() ? $('#manualWidth').val() : 0;
-        let height = $('#manualHeight').val() ? $('#manualHeight').val() : 0;
-        let price = $('#manualPrice').val() ? $('#manualPrice').val() : 0;
-
-        let calc_width = $('#manualCalcWidth').val()
-        let calc_height = $('#manualCalcHeight').val()
+    $(form_id + ' #total').val(parseFloat(line_price).toFixed(2));
+    $(form_id + ' #tax').val(tax_price)
+    $(form_id + ' #line_total_cal').html(line_price);
+    $(form_id + ' #line_total_cal').trigger('change');
+}
 
 
-        let m2 = (width / 1000) * (height / 1000)
-        let cpstperm2 = 0
-        if (m2 > 0) {
-            cpstperm2 = price / m2
+function drawBulkTable(bulk_group_id, form_id) {
+    let single_price = $(form_id + ' #single_unit_price').val()
+    let base_price = $(form_id + ' #base_unit_price').val()
+    var bulk_array = $.grep(bulk_table_data, function (e) {
+        return e.id == bulk_group_id;
+    })[0];
+    var tbl = $('<table class="table table-hover table-striped align-middle table-sm"></table>').attr({id: "bulk_pricing_tbl"});
+    var header = $('<thead></thead>').appendTo(tbl);
+    var headerrow = $('<tr></tr>').appendTo(header);
+    var body = $('<tbody></tbody>').appendTo(tbl);
+    var row = $('<tr></tr>').appendTo(body);
+
+    $(form_id + ' #bulk_pricing_div').empty();
+
+    $.each(bulk_array['breaks'], function (index, value) {
+        if (index == 0) {
+            $('<th data-variant-headerid="' + index + '"></th>').text(value['qty_range_min']).appendTo(headerrow);
+        } else if (index == bulk_array['breaks'].length - 1) {
+            $('<th data-variant-headerid="' + index + '"></th>').text(value['qty_range_min'] + "+").appendTo(headerrow);
+        } else {
+            var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min'] - 1;
+
+            $('<th data-variant-headerid="' + index + '"></th>').text(value['qty_range_min'] + "-" + nextbreak).appendTo(headerrow);
         }
+        let bulkprice = base_price * ((100 - value['discount_percent']) / 100)
+        $('<td class="bulkcell" data-variant-cellid="' + index + '"></td>').text(parseFloat(bulkprice).toFixed(2)).appendTo(row);
+    })
+    tbl.appendTo(form_id + ' #bulk_pricing_div');
+}
 
-        let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
-        $('#form-quick_manual #single_unit_price').val(parseFloat(newprice).toFixed(2));
-        $('#form-quick_manual #base_unit_price').val(parseFloat(newprice).toFixed(2));
-        $('#form-quick_manual #price').val(parseFloat(newprice).toFixed(2));
-
-
-        let size_name = calc_width + 'mm x ' + calc_height + 'mm ' + $('#form-quick_manual #manualMaterial').val()
-        $('#form-quick_manual #text_to_copy').val(size_name);
-
-        if($('#form-quick_manual #size_name').length) {
-            $('#form-quick_manual #size_name').val(calc_width + 'mm x ' + calc_height + 'mm ')
+function getBulkPriceDiscount(bulk_group_id, qty, form_id) {
+    var bulk_array = $.grep(bulk_table_data, function (e) {
+        return e.id == bulk_group_id;
+    })[0];
+    let discount = 1;
+    let cell_index = 1;
+    $.each(bulk_array['breaks'], function (index, value) {
+        if (index >= bulk_array['breaks'].length - 1) {
+            discount = 100 - value['discount_percent'];
+            cell_index = index;
+            return false;
         }
-
-        if($('#form-quick_manual #width').length) {
-            $('#form-quick_manual #width').val(calc_width)
+        var nextbreak = bulk_array['breaks'][index + 1]['qty_range_min']
+        if ((value['qty_range_min'] <= qty) && qty < nextbreak) {
+            discount = 100 - value['discount_percent'];
+            cell_index = index;
+            return false;
         }
+    })
+    setDiscountCellColour(cell_index, form_id)
+    return (discount / 100).toFixed(2)
+}
 
-        if($('#form-quick_manual #height').length) {
-            $('#form-quick_manual #height').val(calc_height)
-        }
+function setDiscountCellColour(cell_index, form_id) {
 
-        if($('#form-quick_manual #product_variant').length) {
-            $('#form-quick_manual #product_variant').val(null)
-        }
+    var allCells = $(form_id + " .bulkcell");
+    allCells.removeClass("table-success");
 
-        if($('#form-quick_manual #material_name').length) {
-            $('#form-quick_manual #material_name').val($('#form-quick_manual #manualMaterial').val())
-        }
+    var cellToColour = $(form_id + ' [data-variant-cellid="' + cell_index + '"]');
+    cellToColour.addClass("table-success");
 
-        if (newprice > 0) {
-            SetPrice(true, '#form-quick_manual')
-        }
+}
 
-        $(document).find('.tsg_option_class_bespoke').trigger('change');
 
+function reCalc() {
+    let width = $('#manualWidth').val() ? $('#manualWidth').val() : 0;
+    let height = $('#manualHeight').val() ? $('#manualHeight').val() : 0;
+    let price = $('#manualPrice').val() ? $('#manualPrice').val() : 0;
+
+    let calc_width = $('#manualCalcWidth').val()
+    let calc_height = $('#manualCalcHeight').val()
+
+
+    let m2 = (width / 1000) * (height / 1000)
+    let cpstperm2 = 0
+    if (m2 > 0) {
+        cpstperm2 = price / m2
     }
+
+    let newprice = (calc_width / 1000) * (calc_height / 1000) * cpstperm2
+    $('#form-quick_manual #single_unit_price').val(parseFloat(newprice).toFixed(2));
+    $('#form-quick_manual #base_unit_price').val(parseFloat(newprice).toFixed(2));
+    $('#form-quick_manual #price').val(parseFloat(newprice).toFixed(2));
+
+
+    let size_name = calc_width + 'mm x ' + calc_height + 'mm - ' + $('#form-quick_manual #manualMaterial').val()
+    $('#form-quick_manual #text_to_copy').val(size_name);
+
+    if ($('#form-quick_manual #size_name').length) {
+        $('#form-quick_manual #size_name').val(calc_width + 'mm x ' + calc_height + 'mm ')
+    }
+
+    if ($('#form-quick_manual #width').length) {
+        $('#form-quick_manual #width').val(calc_width)
+    }
+
+    if ($('#form-quick_manual #height').length) {
+        $('#form-quick_manual #height').val(calc_height)
+    }
+
+    if ($('#form-quick_manual #product_variant').length) {
+        $('#form-quick_manual #product_variant').val(null)
+    }
+
+    if ($('#form-quick_manual #material_name').length) {
+        $('#form-quick_manual #material_name').val($('#form-quick_manual #manualMaterial').val())
+    }
+
+    if (newprice > 0) {
+        SetPrice(true, '#form-quick_manual')
+    }
+
+    console.log("text_to_copy" + $('#form-quick_manual #text_to_copy').val());
+
+    $(document).find('.tsg_option_class_bespoke').trigger('change');
+
+}
 

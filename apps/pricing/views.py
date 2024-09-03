@@ -65,6 +65,10 @@ def quick_prices(request):
     context['bulk_info'] = bulk_details
     context['material_obj'] = OcTsgProductMaterial.objects.all()
     context['price_for'] = "P"
+    context['store_id'] = "1"
+    context['customer_discount'] = 0
+    bespoke_addon_options = []
+
     OcTsgProductMaterial.objects.all()
 
     return render(request, template_name, context)
