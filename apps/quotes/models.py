@@ -3,7 +3,7 @@ from medusa.models import OcTaxRate, OcTsgCountryIso
 from apps.shipping.models import OcTsgShippingMethod
 from apps.sites.models import OcStore, OcCurrency
 from apps.customer.models import OcCustomer
-from apps.products.models import OcTsgProductVariants
+from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 import datetime as dt
 
 
@@ -36,6 +36,7 @@ class OcTsgQuote(models.Model):
     discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
 
+
     def valid_until(self):
         ordered = dt.datetime(self.date_added.year, self.date_added.month, self.date_added.day)
         delta = ordered + dt.timedelta(days=self.days_valid)
@@ -60,15 +61,25 @@ class OcTsgQuoteProduct(models.Model):
     model = models.CharField(max_length=64)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=4)
+    discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    discount_type = models.IntegerField(db_column='discount_Type', blank=True, null=True)  # Field name made lowercase.
     total = models.DecimalField(max_digits=15, decimal_places=4)
     tax = models.DecimalField(max_digits=15, decimal_places=4)
+    tax_rate_desc = models.CharField(max_length=10, blank=True, null=True)
     size_name = models.CharField(max_length=256, blank=True, null=True)
+    width = models.DecimalField(max_digits=10, decimal_places=0, blank=True, null=True)
+    height = models.DecimalField(max_digits=10, decimal_places=0, blank=True, null=True)
     orientation_name = models.CharField(max_length=255, blank=True, null=True)
     material_name = models.CharField(max_length=255, blank=True, null=True)
     product_variant = models.ForeignKey(OcTsgProductVariants, models.DO_NOTHING, blank=True, null=True,
                                         related_name='quote_product_variant')
-    is_bespoke = models.BooleanField(blank=True, null=True, default=0)
+    is_bespoke =  models.BooleanField(default=False)
     line_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    exclude_discount = models.BooleanField(default=False)
+    bulk_discount = models.ForeignKey(OcTsgBulkdiscountGroups, models.DO_NOTHING, blank=True, null=True)
+    bulk_used =  models.BooleanField(default=True)
+    single_unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    base_unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     class Meta:
         managed = False

@@ -1,0 +1,5 @@
+{{ size_name_material }}
+{% for bulk_data_row in bulk_data %}
+{{ size_name_material }} - £{{ bulk_data_row.price }} for {{ bulk_data_row.qty }} off{% endfor %}
+
+All prices exclude VAT at the current rate.

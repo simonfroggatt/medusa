@@ -1,0 +1,5 @@
+{{ product_name }}
+{% for material_data_row in material_data %}
+{{ material_data_row.size_name }} - {{ material_data_row.material_name }} - £{{ material_data_row.price }} for {{ qty }} off{% endfor %}
+
+All prices exclude VAT at the current rate.

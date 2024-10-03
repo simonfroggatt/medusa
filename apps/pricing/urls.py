@@ -41,5 +41,8 @@ urlpatterns = [
     path('material/spec/<pk>/download', views.material_spec_download, name='material_spec-download'),
     path('material/spec/<pk>/delete', views.material_spec_delete, name='material_spec-delete'),
 
-
+    #pricing text for emails
+    path('api/pricetext/product/bulk', views.pricing_text_product_bulk, name='pricing_text_product_bulk'),
+    path('api/pricetext/product/materials', views.pricing_text_product_materials, name='pricing_text_product_materials'),
+    path('api/pricetext/manual/bulk', views.pricing_text_manual_bulk, name='pricing_text_manual_bulk'),
     ]

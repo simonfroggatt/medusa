@@ -8,9 +8,75 @@
 {% block form_buttons %}
     <div class="row">
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-success pull-right btncopy" data-clipboard-target="#string_to_copy">Copy Price</button>
-        </div>
+            <button type="button" id="js-quick-copy-to-manual-stock" class="btn btn-primary ">Use with <i class="fa-regular fa-hand"></i></button>
+
+            <div class="btn-group dropen">
+          <button type="button" class="btn btn-success btncopy" id="js-copy_price_stock" data-clipboard-target="#string_to_copy">Copy</button>
+          <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Copy</span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="quick_price_product_copy">Price</a></li>
+            <li><a class="dropdown-item" data-url="{% url 'pricing_text_product_bulk' %}" href="#" id="quick_price_product_copy_bulk">Bulk</a></li>
+            <li><a class="dropdown-item" data-url="{% url 'pricing_text_product_materials' %}" href="#" id="quick_price_product_copy_material">Materials</a></li>
+
+          </ul>
+            </div>
+</div>
+
     </div>
+
 {% endblock form_buttons %}
+
+{% block javascript %}
+<script>
+    $(document).ready(function() {
+
+         $('#js-quick-copy-to-manual-stock').click(copy_to_manual)
+
+        function copy_to_manual(){
+
+             //get the row we are on.
+              var tableToQuery = $("#core_variants_table").DataTable();
+              var selectedRow = $("#core_variants_table tr.selected");
+              var datarow = tableToQuery.row(selectedRow).data();
+              var core_variant = datarow['prod_var_core']
+
+              let manual_data = []
+              manual_data['width'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['calcwidth'] = core_variant['size_material']['product_size']['size_width']
+                manual_data['height'] = core_variant['size_material']['product_size']['size_height']
+                manual_data['calcheight'] = core_variant['size_material']['product_size']['size_height']
+                manual_data['material'] = core_variant['size_material']['product_material']['material_name']
+                manual_data['price'] = $('#form-stock #single_unit_price').val()
+                manual_data['size_name'] = core_variant['size_material']['product_size']['size_name']
+
+
+                $('#form-quick_manual #manualWidth').val(manual_data['width'])
+                $('#form-quick_manual #manualCalcWidth').val(manual_data['calcwidth'])
+                $('#form-quick_manual #width').val(manual_data['calcwidth'])
+                $('#form-quick_manual #manualHeight').val(manual_data['height'])
+                $('#form-quick_manual #manualCalcHeight').val(manual_data['calcheight'])
+                 $('#form-quick_manual #height').val(manual_data['calcheight'])
+                $('#form-quick_manual #manualPrice').val(manual_data['price'])
+                $('#form-quick_manual #base_unit_price').val(manual_data['price'])
+                $('#form-quick_manual #single_unit_price').val(manual_data['price'])
+                $('#form-quick_manual #price').val(manual_data['price'])
+                $('#form-quick_manual #manualMaterial').val(manual_data['material'])
+                $('#form-quick_manual #size_name').val(manual_data['size_name'])
+
+                $('#quick-price-tabs #quick-manual-tab').tab('show');
+
+                $('#form-quick_manual #quantity').val($('#form-stock #quantity').val())
+                $('#form-quick_manual #quantity').trigger('change');
+                $('#form-quick_manual #manualMaterial').trigger('change');
+
+                console.log(manual_data)
+
+
+            }
+    })
+</script>
+{% endblock javascript %}
 
 

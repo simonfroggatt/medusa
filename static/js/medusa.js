@@ -305,3 +305,10 @@ var XeroApiCallDlg = function(){
         });
     }
 
+var ORDERSNAMESPACE = {}
+ORDERSNAMESPACE.SetSingleUnitPrice = function (new_price, form_id, bl_update_pricing = false) {
+        $(form_id + ' #single_unit_price').val(new_price);
+        if (bl_update_pricing) {
+            SetPrice(true, form_id)
+        }
+    }

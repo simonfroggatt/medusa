@@ -380,7 +380,6 @@ def order_add_product(request, order_id):
     else:
         customer_discount = 0
 
-    customer_discount = 0
     bespoke_addon_options = get_bespoke_product_options()
     context = {
         "order_id": order_id,

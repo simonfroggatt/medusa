@@ -26,10 +26,10 @@ $(function () {
                     "sortable": false,
                     "defaultContent": 'no-image.png',
                     render: function (data, type, row) {
-                        if (data === undefined) {
-                            return '<img height="30px" class="rounded mx-auto d-block" src="http://safetysigns/image/no-image.png">'
+                        if (data === undefined || data === null) {
+                            return '<img height="30px" class="rounded mx-auto d-block" src="'+ media_url+'stores/no-image.png">'
                         } else {
-                            let image_src = 'http://safetysigns/image/' + data;
+                            let image_src =  data;
                             return '<a href="' + image_src + '" data-lightbox="image"><img height="30px" class="rounded mx-auto d-block" src="' + image_src + '">';
                         }
 

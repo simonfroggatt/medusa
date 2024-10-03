@@ -44,7 +44,10 @@
              <input type="hidden" id="base_unit_price" name="base_unit_price" value="0">
              <input type="hidden" id="text_to_copy" name="text_to_copy"  value="">
              <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
-             <input id="string_to_copy" name="string_to_copy" class="hidden_copy"  value="">
+                 <input type="hidden" id="product_id" name="product_id" value="">
+                 <input type="hidden" id="product_variant_id" name="product_variant_id" value="">
+
+             <textarea id="string_to_copy" name="string_to_copy" class="hidden_copy"  value=""></textarea>
              <input id="string_to_copy_bulk" name="string_to_copy_bulk" class="hidden_copy"  value="">
 
                 <div class="row">
@@ -238,6 +241,7 @@
             product_table.on('select', function (e, dt, type, indexes) {
                 if (type === 'row') {
                     let product_id = product_table.row(indexes).id()
+                     $('#form-stock #product_id').val(product_id)
                     set_variant_url(product_id)
                   //  set_product_details(product_table.row(indexes).data())
 
@@ -260,7 +264,7 @@
                 "deferRender": false,
                 "scroller": true,
                 scrollY: 200,
-                "rowId": 'prod_variant_core_id',
+                "rowId": 'prod_variant_id',
                 "ajax": {
                     "processing": true,
                     "url": "/products/api/storevariants/" + 1 + "/1?format=datatables",
@@ -306,6 +310,8 @@
             core_vars_tbl.on('select', function (e, dt, type, indexes) {
                 if (type === 'row') {
                     let product_variant_id = core_vars_tbl.row(indexes).id()
+
+                    $('#form-stock #product_variant_id').val(product_variant_id)
                     set_product_base_price(core_vars_tbl.row(indexes).data())
                     set_copy_string(core_vars_tbl.row(indexes).data());
                   //  set_copy_bulk_string(core_vars_tbl.row(indexes).data());

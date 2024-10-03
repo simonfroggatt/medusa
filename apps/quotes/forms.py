@@ -51,12 +51,19 @@ class ProductAddForm(forms.ModelForm):
             'total',
             'tax',
             'size_name',
+            'width',
+            'height',
             'material_name',
             'orientation_name',
             'is_bespoke',
             'product_id',
             'product_variant',
             'quote',
+            'exclude_discount',
+            'bulk_discount',
+            'bulk_used',
+            'single_unit_price',
+            'base_unit_price',
             'line_discount'
         ]
 
@@ -68,6 +75,7 @@ class ProductAddForm(forms.ModelForm):
 
         widgets = {
             'is_bespoke': forms.CheckboxInput(),
+            'exclude_discount': forms.CheckboxInput(),
          }
 
 
@@ -83,9 +91,16 @@ class ProductEditForm(forms.ModelForm):
             'total',
             'tax',
             'size_name',
+            'width',
+            'height',
             'material_name',
             'orientation_name',
             'is_bespoke',
+            'exclude_discount',
+            'bulk_discount',
+            'bulk_used',
+            'single_unit_price',
+            'base_unit_price'
         ]
 
         labels = {
@@ -97,6 +112,7 @@ class ProductEditForm(forms.ModelForm):
 
         widgets = {
             'is_bespoke': forms.CheckboxInput(),
+            'exclude_discount': forms.CheckboxInput(),
          }
 
 

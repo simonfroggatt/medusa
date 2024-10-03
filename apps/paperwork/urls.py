@@ -9,6 +9,10 @@ urlpatterns = [
     path('all/<int:order_id>', views.gen_merged_paperwork, name='order_paperwork_pdf'),
     path('test/', views.test_pdf, name='test_pdf'),
     path('testbarcode/', views.test_barcode, name='test_barcode'),
+    path('cambarcode/', views.cam_barcode, name='cam_barcode'),
+    path('cablebarcode/', views.cable_barcode, name='cable_barcode'),
+    path('boxbarcode/', views.box_barcode, name='box_barcode'),
+    path('boxsupbarcode/', views.boxsup_barcode, name='boxsup_barcode'),
 
     re_path(r'^order/([-\w]+)-(?P<order_id>\d+)$', views.gen_merged_paperwork, name='order_paperwork_pdf2'),
     path('quote/<int:quote_id>', views.gen_quote_paperwork, name='quote_paperwork_pdf'),

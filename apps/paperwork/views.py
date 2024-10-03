@@ -966,21 +966,24 @@ def gen_quote_pdf(quote_id, bl_total=True):
             model = quote_item_data.product_variant.variant_code
         quote_item_tbl_data = [''] * 5
         quote_item_tbl_data[0] = Paragraph(quote_item_data.model, styles['table_data'])
-        product_description = utils.create_product_desc(quote_item_data,False)
+        product_description = utils.create_product_desc(quote_item_data,False, True)
         quote_item_tbl_data[1] = Paragraph(product_description, styles['table_data'])
-        if quote_item_data.product_variant:
-            if quote_item_data.product_variant.alt_image:
-                image_src = f'{settings.MEDIA_URL}/image/{quote_item_data.product_variant.alt_image}'
-            else:
-                if quote_item_data.product_variant.prod_var_core.variant_image:
-                    image_src = f'{settings.MEDIA_URL}/image/{quote_item_data.product_variant.prod_var_core.variant_image}'
-                else:
-                    image_src = f'{settings.MEDIA_URL}/image/{quote_item_data.product_variant.prod_var_core.product.image}'
 
-            img = Image(image_src)
+        if quote_item_data.product_variant:
+            image_src = quote_item_data.product_variant.site_variant_image_url
+            if image_src.endswith('.svg'):
+                svg_url = filename=settings.REPORT_URL + quote(image_src)
+                image_file_name = os.path.basename(quote(image_src))
+                image_file = os.path.splitext(image_file_name)
+
+                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
+                if not os.path.isfile(image_url):
+                    svg2png(url=svg_url, write_to=image_url)
+            else:
+                image_url = settings.REPORT_URL + quote(image_src)
+
+            img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
-        else:
-            img = ''
 
         quote_item_tbl_data[2] = quote_item_data.quantity
         quote_item_tbl_data[3] = round(quote_item_data.price, 2)
@@ -1095,6 +1098,169 @@ def test_barcode(request):
    # code += 301
    # draw_JCBbarcode(code)
 
+def cam_barcode(request):
+    code = 8240001
+    jcbcode = "403/G0843"
+    pages = 1
+
+    while pages < 2:
+        make_cambarcodepage(code, jcbcode)  #makes a page
+        code += 125
+        pages += 1
+
+
+def cable_barcode(request):
+    code = 8253001
+    jcbcode= "721/H6791"
+    pages = 1
+
+    while pages < 2:
+        make_cablebarcodepage(code, jcbcode)
+        code += 125
+        pages += 1
+
+def box_barcode_old(request):
+    code = 6240001
+    pages = 1
+
+    while pages < 9:
+        draw_JCBbarcode(code)
+        code += 125
+        pages += 1
+
+def boxsup_barcode(request):
+    code = 8248001
+    jcbcode = "403/H5316"
+    pages = 1
+
+    while pages < 5:
+        make_box_sub_barcodepage(code, jcbcode)
+        code += 250
+        pages += 1
+
+
+def box_barcode(request):
+    jcbcode = "403/H5316"
+    pages = 1
+
+    while pages < 2:
+        make_box_barcodepage(jcbcode)
+        pages += 1
+
+
+def make_cambarcodepage(code, jcbcode):
+
+    c = canvas.Canvas(f"cam_{code}.pdf")
+    #page_width = 1040*mm  # page width
+    #page_height = 1000*mm  # page height
+
+    page_width = 1000*mm  # page width
+    page_height = 400*mm  # page height
+
+    c.setPageSize((page_width, page_height))
+
+    max_width = 40
+    icount = 1000
+    ix = 0
+    iy = 0
+    for i in range(icount):
+        x_origin = (25 * mm) * ix
+        y_origin = (15 * mm) * iy
+        draw_cam_barcode(c, x_origin, y_origin, code+i, jcbcode)
+        ix += 1
+        if ix == max_width:
+            ix = 0
+            iy += 1
+
+    c.save()  # save pdf
+    return
+
+
+def make_cablebarcodepage(code, jcbcode):
+
+    c = canvas.Canvas(f"cable_{code}.pdf")
+    #page_width = 1040*mm  # page width
+    #page_height = 1000*mm  # page height
+
+    page_width = 1000*mm  # page width
+    page_height = 1100*mm  # page height
+
+    c.setPageSize((page_width, page_height))
+
+    max_width = 34
+    icount = 1000
+    ix = 0
+    iy = 0
+    for i in range(icount):
+        x_origin = (30 * mm) * ix
+        y_origin = (30 * mm) * iy
+        draw_cable_barcode(c, x_origin, y_origin, code+i, jcbcode)
+        ix += 1
+        if ix == max_width:
+            ix = 0
+            iy += 1
+
+    c.save()  # save pdf
+    return
+
+def make_box_sub_barcodepage(code, jcbcode):
+
+    c = canvas.Canvas(f"box_sup_{code}.pdf")
+    #page_width = 1040*mm  # page width
+    #page_height = 1000*mm  # page height
+
+    page_width = 1000*mm  # page width
+    page_height = 630*mm  # page height
+
+    c.setPageSize((page_width, page_height))
+
+    max_width = 10
+    icount = 250
+    ix = 0
+    iy = 0
+    for i in range(icount):
+        x_origin = (100 * mm) * ix
+        y_origin = (25 * mm) * iy
+        draw_box_sup_barcode(c, x_origin, y_origin, code+i, jcbcode)
+        ix += 1
+        if ix == max_width:
+            ix = 0
+            iy += 1
+
+    c.save()  # save pdf
+    return
+
+
+def make_box_barcodepage(jcbcode):
+
+    c = canvas.Canvas(f"box_black.pdf")
+    #page_width = 1040*mm  # page width
+    #page_height = 1000*mm  # page height
+
+    page_width = 1000*mm  # page width
+    page_height = 1000*mm  # page height
+
+    c.setPageSize((page_width, page_height))
+
+    max_width = 5
+    icount = 100
+    ix = 0
+    iy = 0
+    for i in range(icount):
+        x_origin = (190 * mm) * ix
+        y_origin = (35 * mm) * iy
+        draw_box_barcode(c, x_origin, y_origin, jcbcode)
+        ix += 1
+        if ix == max_width:
+            ix = 0
+            iy += 1
+
+    c.save()  # save pdf
+    return
+
+
+
+
 
 def draw_JCBbarcode(code):
 
@@ -1162,6 +1328,148 @@ def draw_barcode(c, x_origin, y_origin, barcode_number):
     c.drawString(x_origin + (5*mm), y_origin + (9*mm), "403/H5316")
     c.setFont("Helvetica", 18)
     c.drawCentredString(x_origin + (151 * mm), y_origin + (3 * mm), textline)
+
+
+    return http.HTTPStatus(200)
+
+
+def draw_cam_barcode(c, x_origin, y_origin, barcode_number, jcbcode):
+    page_width = 20 * mm  # page width
+    page_height = 10 * mm  # page height
+
+    margin_y = 1  # top/bottom margin
+
+    bar_height = 4 * mm  # barcode line height
+
+    #bar_width = page_width / (11 * len(str(barcode_number)) + 55)  # barcode individual width has the formula
+    bar_width = 0.5
+
+    humanReadable = False  # with or without text
+    barcode = code128.Code128(barcode_number,
+                              barHeight=bar_height,
+                              barWidth=bar_width,
+                              humanReadable=humanReadable)
+
+    drawon_x = x_origin - 4.1*mm  # x value for drawing already has a margin (not like Y) bar with formula account for that
+    y_offset = 3 * mm
+    drawon_y = page_height - bar_height - y_offset  # set draw point to the top of the page - the height of the drawn barcode
+
+    drawon_y += y_origin
+
+    barcode.drawOn(c, drawon_x, drawon_y)  # do the drawing
+
+    c.rect(x_origin, y_origin, page_width, page_height, stroke=1, fill=0)
+
+    #textobject = c.beginText()
+
+    c.setFont("Helvetica", 6)
+    c.drawCentredString(x_origin + (10*mm), y_origin + (7.8*mm), jcbcode)
+
+    textline = f'{barcode_number}'
+    c.setFont("Helvetica", 6)
+    c.drawCentredString(x_origin + (10 * mm), y_origin + (0.8 * mm), textline)
+
+
+    return http.HTTPStatus(200)
+
+
+def draw_cable_barcode(c, x_origin, y_origin, barcode_number, jcbcode):
+    page_width = 25 * mm  # page width
+    page_height = 25 * mm  # page height
+
+    margin_y = 1  # top/bottom margin
+
+    bar_height = 6 * mm  # barcode line height
+
+    #bar_width = page_width / (11 * len(str(barcode_number)) + 55)  # barcode individual width has the formula
+    bar_width = 0.6
+
+    humanReadable = False  # with or without text
+    barcode = code128.Code128(barcode_number,
+                              barHeight=bar_height,
+                              barWidth=bar_width,
+                              humanReadable=humanReadable)
+
+    drawon_x = x_origin - 3.5*mm  # x value for drawing already has a margin (not like Y) bar with formula account for that
+    y_offset = 2.8 * mm
+    drawon_y = page_height - bar_height - y_offset  # set draw point to the top of the page - the height of the drawn barcode
+
+    drawon_y += y_origin
+
+    barcode.drawOn(c, drawon_x, drawon_y)  # do the drawing
+
+    c.rect(x_origin, y_origin, page_width, page_height, stroke=1, fill=0)
+
+    #textobject = c.beginText()
+
+    c.setFont("Helvetica", 6)
+    c.drawCentredString(x_origin + (12.5*mm), y_origin + (22.8*mm), jcbcode)
+
+    textline = f'{barcode_number}'
+    c.setFont("Helvetica", 6)
+    c.drawCentredString(x_origin + (12.5 * mm), y_origin + (14 * mm), textline)
+
+
+    return http.HTTPStatus(200)
+
+
+def draw_box_sup_barcode(c, x_origin, y_origin, barcode_number, jcbcode):
+    draw_box_double_barcode(c, x_origin, y_origin, barcode_number, jcbcode)
+    draw_box_double_barcode(c, x_origin + 45*mm, y_origin, barcode_number, jcbcode)
+
+def draw_box_double_barcode(c, x_origin, y_origin, barcode_number, jcbcode):
+    page_width = 40 * mm  # page width
+    page_height = 20 * mm  # page height
+
+    margin_y = 1  # top/bottom margin
+
+    bar_height = 8 * mm  # barcode line height
+
+    #bar_width = page_width / (11 * len(str(barcode_number)) + 55)  # barcode individual width has the formula
+    bar_width = 1
+
+    humanReadable = False  # with or without text
+    barcode = code128.Code128(barcode_number,
+                              barHeight=bar_height,
+                              barWidth=bar_width,
+                              humanReadable=humanReadable)
+
+
+
+    drawon_x = x_origin - 2.3*mm  # x value for drawing already has a margin (not like Y) bar with formula account for that
+    y_offset = 6 * mm
+    drawon_y = page_height - bar_height - y_offset  # set draw point to the top of the page - the height of the drawn barcode
+
+    drawon_y += y_origin
+
+    barcode.drawOn(c, drawon_x, drawon_y)  # do the drawing
+
+    c.rect(x_origin, y_origin, page_width, page_height, stroke=1, fill=0)
+
+    #textobject = c.beginText()
+
+
+    c.setFont("Helvetica", 12)
+    c.drawCentredString(x_origin + (20*mm), y_origin + (15.3*mm), jcbcode)
+
+    textline = f'{barcode_number}'
+    c.setFont("Helvetica", 12)
+    c.drawCentredString(x_origin + (20* mm), y_origin + (1.5 * mm), textline)
+
+
+    return http.HTTPStatus(200)
+
+
+def draw_box_barcode(c, x_origin, y_origin, barcode_number):
+    page_width = 180 * mm  # page width
+    page_height = 28 * mm  # page height
+
+    c.setFillColorRGB(0, 0, 0)
+    c.rect(x_origin, y_origin, page_width, page_height, stroke=1, fill=1)
+    c.setFont("Helvetica", 57)
+    c.setFillColorRGB(255, 255, 255)
+    c.drawString(x_origin + (5*mm), y_origin + (7.5*mm), "403/H5316")
+    c.rect(x_origin + page_width - ((5 + 38)*mm), y_origin + 5*mm, 38*mm, 18*mm, stroke=0, fill=1)
 
 
     return http.HTTPStatus(200)

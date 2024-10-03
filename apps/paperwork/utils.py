@@ -186,7 +186,7 @@ def order_payment_details_simple(order_obj, currency_symbol):
     return order_payment_str
 
 
-def create_product_desc(order_line, bl_orientation=True):
+def create_product_desc(order_line, bl_orientation=True, bl_quote = False):
     product_desc = ''
     product_desc += order_line.name + "<BR/>"
     product_desc += f'{order_line.size_name} - '
@@ -195,11 +195,14 @@ def create_product_desc(order_line, bl_orientation=True):
     else:
         product_orientaion = ''
     product_desc += f'{order_line.material_name} {product_orientaion}'
-
-    options_text = get_order_product_line_options(order_line.order_product_id)
+    if bl_quote:
+        options_text = get_order_product_line_options(order_line.product_id)
+    else:
+        options_text = get_order_product_line_options(order_line.order_product_id)
     product_desc = f'{product_desc}<BR/>{options_text}'
 
     return product_desc
+
 
 def quote_shipping(quote_obj):
     shipping_str = '<b>Address:</b><BR/>'

@@ -10,11 +10,11 @@
     <div class="row pb-2">
         <div class="col-4">
             <label for="manualWidth" class="form-label">Width</label>
-            <input type="number" class="form-control" id="manualWidth" min="0" placeholder="0" onchange="reCalc()">
+            <input type="number" class="form-control" id="manualWidth" name="manual_width" min="0" placeholder="0" onchange="reCalc()">
         </div>
         <div class="col-4">
             <label for="manualHeight" class="form-label">Height</label>
-            <input type="number" class="form-control" id="manualHeight" min="0" placeholder="0" onchange="reCalc()">
+            <input type="number" class="form-control" id="manualHeight" name="manual_height" min="0" placeholder="0" onchange="reCalc()">
         </div>
         <div class="col-4">
             <label for="manualPrice" class="form-label">Price</label>
@@ -94,7 +94,7 @@
 
     <input type="hidden" id="text_to_copy" name="text_to_copy" value="">
     <input type="hidden" id="price_to_copy" name="price_to_copy" value="">
-    <input id="string_to_copy_manual" name="string_to_copy_manual" class="hidden_copy" value="">
+    <textarea id="string_to_copy_manual" name="string_to_copy_manual" class="hidden_copy"  value=""></textarea>
 
     {% csrf_token %}
     {% if price_for|upper == "I" %}
@@ -179,18 +179,28 @@
                     </div>
                 </div>
             {% else %}
-                <div class="row">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div class="row">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <div class="btn-group dropen">
+          <button type="button" class="btn btn-success btncopy" id="js-copy_price_manual" data-clipboard-target="#string_to_copy_manual">Copy</button>
+          <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Copy</span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="quick_price_manual_copy">Price</a></li>
+            <li><a class="dropdown-item" data-url="{% url 'pricing_text_manual_bulk' %}" href="#" id="quick_price_manual_copy_bulk">Bulk</a></li>
 
-                        <button type="button" class="btn btn-success pull-right btncopy"
-                                data-clipboard-target="#string_to_copy_manual">Copy Price
-                        </button>
-                    </div>
-                </div>
+          </ul>
+            </div>
+</div>
+
+    </div>
             {% endif %}
         </div>
     </div>
 
 </form>
 </div>
+
+
 

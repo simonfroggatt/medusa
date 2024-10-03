@@ -120,14 +120,28 @@ def quote_add_product(request, quote_id):
             data['form_is_valid'] = False
 
     form = ProductAddForm()
-    order_data = OcTsgQuote.objects.filter(quote_id=quote_id).values('tax_rate__rate', 'customer_id').first()
+
+    quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
+    if quote_obj.customer.parent_company:
+        customer_discount = quote_obj.customer.parent_company.discount
+    else:
+        customer_discount = 0
+
+   # bespoke_addon_options = get_bespoke_product_options()
+    #quote_data = OcTsgQuote.objects.filter(quote_id=quote_id).values('tax_rate__rate', 'customer_id', 'store_id').first()
     context = {
         "quote_id": quote_id,
-        "tax_rate": order_data['tax_rate__rate'],
-        "customer_id": order_data['customer_id'],
+        "tax_rate": quote_obj.tax_rate.rate,
+        "customer_id": quote_obj.customer_id,
+        "store_id": quote_obj.store_id,
+       # "tax_rate": quote_data['tax_rate__rate'],
+       # "customer_id": quote_data['customer_id'],
         "form_post_url" : reverse_lazy('quoteproductadd', kwargs={'quote_id': quote_id}),
         "price_for": "Q", #
-        "form" : form}
+        'customer_discount': customer_discount,
+        "form" : form,
+        #"store_id": order_data['store_id']
+    }
     template_name = 'orders/dialogs/add_product_layout_dlg.html'
 
     qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
@@ -179,7 +193,12 @@ def get_quote_totals(quote_id, tax_rate):
         discount = quote_obj.discount
         data['subtotal'] = Decimal(subtotal.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         data['discount'] = discount
-        subtotal_net = subtotal - discount + quote_obj.shipping_rate
+        if quote_obj.shipping_rate:
+            dml_shipping_rate = Decimal(quote_obj.shipping_rate.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        else:
+            dml_shipping_rate = Decimal(quote_obj.shipping_type.price.quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+
+        subtotal_net = subtotal - discount + dml_shipping_rate
         data['tax_value'] = Decimal((subtotal_net*(tax_rate/100)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
         data['total'] = Decimal((subtotal_net + data['tax_value']).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
     else:
@@ -399,6 +418,10 @@ def create_quote_customer(request, customer_id):
         new_quote_obj.days_valid = 30
         new_quote_obj.sent = False
         new_quote_obj.shipping_type_id = 1
+
+        obj_shipping = get_object_or_404(OcTsgShippingMethod, pk=1)
+        new_quote_obj.shipping_rate = obj_shipping.price
+
 
         address_book = get_default_address(customer_obj)
 

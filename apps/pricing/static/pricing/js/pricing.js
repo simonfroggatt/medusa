@@ -159,6 +159,128 @@ $(function () {
         return false;
     }
 
+    function createProductPriceText(){
+        let core_vars_tbl = $('#core_variants_table').DataTable()
+
+        var tableToQuery = $("#core_variants_table").DataTable();
+        var selectedRow = $("#core_variants_table tr.selected");
+        var data_row = tableToQuery.row(selectedRow).data();
+
+        let core_variant = data_row['prod_var_core'];
+        let text_string = "";
+        let size_str = core_variant['size_material']['product_size']['size_name'];
+        let material_str = core_variant['size_material']['product_material']['material_name'];
+        let orientation_str = core_variant['size_material']['product_size']['orientation']['orientation_name'];
+        let model_str = data_row['variant_code'];
+
+        text_string = model_str + " - " + size_str
+            //+ " ( " + orientation_str + " ) "
+            + " - " + material_str;
+
+        let price_string = "";
+        let form_id = '#form-stock'
+        let price_str = $(form_id + ' #price').val();
+        let qty_str = $(form_id + ' #quantity').val();
+
+        price_string = " @ £" + price_str + " each for " + qty_str + " off";
+        let footer_string = "\n\nAll prices exclude VAT at the current rate."
+        $('#form-stock #string_to_copy').val(text_string + price_string + footer_string)
+        $('#form-stock #js-copy_price_stock').trigger('click')
+        add_toast_message('Saved to clipboard','Create Prices', 'bg-success')
+    }
+
+    function createProductBulkText(){
+        var btn = $(this);
+        let api_url = btn.data('url');
+        let form = $('#form-stock');
+        let post_data = {};
+        post_data['product_id'] = form.find('#product_id').val()
+        post_data['product_variant_id'] = form.find('#product_variant_id').val()
+        post_data['bulk_id'] = form.find('#stock-bulk_group_select').val()
+        post_data['unit_price'] = form.find('#single_unit_price').val()
+        $.ajax({
+            url: api_url,
+            data: post_data,
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                let text_to_copy = data.html_form
+                $('#form-stock #string_to_copy').val(text_to_copy)
+                $('#form-stock #js-copy_price_stock').trigger('click')
+                add_toast_message('Saved to clipboard','Create Prices', 'bg-success')
+
+            }
+        });
+    }
+
+
+    function createManualPriceText(){
+
+        let width = $('#form-quick_manual #manualWidth').val()
+        let height = $('#form-quick_manual #manualHeight').val()
+        let price = $('#form-quick_manual #price').val()
+        let qty = $('#form-quick_manual #quantity').val()
+        let material = $('#form-quick_manual #manualMaterial').val()
+
+        text_string = width + 'mm x ' + height + 'mm - ' + material + ' @ £' + price + ' each for ' + qty + ' off'
+
+        let footer_string = "\n\nAll prices exclude VAT at the current rate."
+        $('#form-quick_manual #string_to_copy_manual').val(text_string + footer_string)
+        $('#form-quick_manual #js-copy_price_manual').trigger('click')
+        add_toast_message('Saved to clipboard','Create Prices', 'bg-success')
+    }
+
+
+    function createManualBulkText(){
+        var btn = $(this);
+        let api_url = btn.data('url');
+        let form = $('#form-quick_manual');
+        let post_data = {};
+        post_data['bulk_id'] = form.find('#stock-bulk_group_select').val()
+        post_data['unit_price'] = form.find('#single_unit_price').val()
+        post_data['material_name'] = form.find('#manualMaterial').val()
+        post_data['manual_width'] = form.find('#manualCalcWidth').val()
+        post_data['manual_height'] = form.find('#manualCalcHeight').val()
+        $.ajax({
+            url: api_url,
+            data: post_data,
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                let text_to_copy = data.html_form
+                $('#form-quick_manual #string_to_copy_manual').val(text_to_copy)
+                $('#form-quick_manual #js-copy_price_manual').trigger('click')
+                 add_toast_message('Saved to clipboard','Create Prices', 'bg-success')
+
+            }
+        });
+    }
+
+    function createProductMaterialText(){
+        var btn = $(this);
+        let api_url = btn.data('url');
+        let form = $('#form-stock');
+        let post_data = {};
+        post_data['product_id'] = form.find('#product_id').val()
+        post_data['product_variant_id'] = form.find('#product_variant_id').val()
+        post_data['bulk_id'] = form.find('#stock-bulk_group_select').val()
+        post_data['unit_price'] = form.find('#single_unit_price').val()
+        post_data['qty'] = form.find('#quantity').val()
+        $.ajax({
+            url: api_url,
+            data: post_data,
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                let text_to_copy = data.html_form
+                $('#form-stock #string_to_copy').val(text_to_copy)
+                $('#form-stock #js-copy_price_stock').trigger('click')
+                add_toast_message('Saved to clipboard','Create Prices', 'bg-success')
+
+            }
+        });
+    }
+
     $(document).on('click', '.js-pricing-edit', loadForm);
     $(document).on('submit', '#form-store_price-edit', saveStoreComboPriceSave);
     $(document).on('submit', '#form-store_price-create', saveStoreComboPriceSave);
@@ -170,6 +292,16 @@ $(function () {
     $(document).on("submit", "#form_material_spec", DocumentUpload);
     $(document).on("click", ".js-company_document-delete", loadForm);
     $(document).on("submit", "#form-material_spec-delete", DocumentUpload);
+
+    //pricing bulks
+    $(document).on('click', '#quick_price_product_copy', createProductPriceText);
+    $(document).on('click', '#quick_price_product_copy_bulk', createProductBulkText);
+    $(document).on('click', '#quick_price_product_copy_material', createProductMaterialText);
+
+    $(document).on('click', '#quick_price_manual_copy', createManualPriceText);
+    $(document).on('click', '#quick_price_manual_copy_bulk', createManualBulkText);
+
+
 
 
     /* - manual calc stuff */
@@ -329,15 +461,14 @@ function SetPrice(getbulk = true, form_id) {
     let tax_price = 0.00;
     let base_price = $(form_id + ' #single_unit_price').val();
     let discount_price = 0.00;
-    qty = parseInt($(qty_field).val())
-    bulk_group_id = $(form_id + ' .bulk_group_select').val();
-    //let single_price = $(form_id + ' #single_unit_price').val();
-    //let base_price = $(form_id + ' #base_unit_price').val();
+    let qty = parseInt($(qty_field).val())
+    let bulk_group_id = $(form_id + ' .bulk_group_select').val();
 
     drawBulkTable(bulk_group_id, form_id);
+    $(form_id + ' #single_unit_price').val(base_price)
 
     if (getbulk) {
-        discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
+        let discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
         discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
         line_price = parseFloat(qty * discount_price).toFixed(2);
         $(product_price).val(discount_price);

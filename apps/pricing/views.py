@@ -10,10 +10,11 @@ from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BaseP
 from apps.pricing.forms import SizesForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo, StorePriceComboForm, \
     MaterialSpecForm
 from apps.sites.models import OcStore
+from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants, OcProductToStore
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
-from apps.products.models import OcTsgBulkdiscountGroups
+from apps.products.models import OcTsgBulkdiscountGroups, OcTsgBulkdiscountGroupBreaks
 from apps.products import services as prod_services
 import json
 from django.db import connection
@@ -22,6 +23,10 @@ from medusa import services
 from django.conf import settings
 import os
 
+from decimal import Decimal, ROUND_HALF_UP
+
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 
 def all_sizes(request):
     template_name = 'pricing/sizes/sizes-list.html';
@@ -569,6 +574,148 @@ def material_spec_delete(request, pk):
                                                      request=request
                                                      )
 
+    return JsonResponse(data)
+
+
+@csrf_protect
+@csrf_exempt
+def pricing_text_product_bulk(request):
+    data = dict()
+    template_name = 'pricing/dialogs/product_bulk_template.html'
+    context = dict()
+
+    if request.method == 'POST':
+        product_variant_id = request.POST.get('product_variant_id')
+        bulk_id = request.POST.get('bulk_id')
+        unit_price = request.POST.get('unit_price')
+
+        product_var_obj = get_object_or_404(OcTsgProductVariants, pk=product_variant_id, store_id=1)
+
+        bulk_obj = get_object_or_404(OcTsgBulkdiscountGroups, pk=bulk_id)
+        bulk_breaks = bulk_obj.discountgroup.all().order_by('qty_range_min')
+
+        i = 0
+        bulk_data = []
+        while i < bulk_breaks.count():
+            bulk_row = dict()
+            if i == 0:
+                bulk_row['qty'] = bulk_breaks[i].qty_range_min
+            else:
+                if i < bulk_breaks.count()-1:
+                    bulk_row['qty'] = str(bulk_breaks[i].qty_range_min) + '-' + str((bulk_breaks[i+1].qty_range_min - 1))
+                else:
+                    bulk_row['qty'] = str(bulk_breaks[i].qty_range_min) + '+'
+            tmp_price = float(1-(bulk_breaks[i].discount_percent / 100)) * float(unit_price)
+            price_rounded = Decimal(tmp_price).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            bulk_row['price'] = price_rounded
+            bulk_data.append(bulk_row)
+            i += 1
+
+
+        context['product_code'] =  product_var_obj.variant_code
+        context['product_name'] = product_var_obj.prod_var_core.product.productdescbase.name
+        context['size_name_material'] = product_var_obj.prod_var_core.size_material.product_size.size_name + " - " + product_var_obj.prod_var_core.size_material.product_material.material_name
+        context['bulk_data'] = bulk_data
+
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+@csrf_protect
+@csrf_exempt
+def pricing_text_manual_bulk(request):
+    data = dict()
+    template_name = 'pricing/dialogs/product_bulk_manual_template.html'
+    context = dict()
+
+    if request.method == 'POST':
+        bulk_id = request.POST.get('bulk_id')
+        unit_price = request.POST.get('unit_price')
+        material_name = request.POST.get('material_name')
+        size_name = request.POST.get('manual_width')+"mm x "+request.POST.get('manual_height')+"mm"
+
+        bulk_obj = get_object_or_404(OcTsgBulkdiscountGroups, pk=bulk_id)
+        bulk_breaks = bulk_obj.discountgroup.all().order_by('qty_range_min')
+
+        i = 0
+        bulk_data = []
+        while i < bulk_breaks.count():
+            bulk_row = dict()
+            if i == 0:
+                bulk_row['qty'] = bulk_breaks[i].qty_range_min
+            else:
+                if i < bulk_breaks.count()-1:
+                    bulk_row['qty'] = str(bulk_breaks[i].qty_range_min) + '-' + str((bulk_breaks[i+1].qty_range_min - 1))
+                else:
+                    bulk_row['qty'] = str(bulk_breaks[i].qty_range_min) + '+'
+            tmp_price = float(1-(bulk_breaks[i].discount_percent / 100)) * float(unit_price)
+            price_rounded = Decimal(tmp_price).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            bulk_row['price'] = price_rounded
+            bulk_data.append(bulk_row)
+            i += 1
+
+        context['size_name_material'] = size_name + " - " + material_name
+        context['bulk_data'] = bulk_data
+
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return JsonResponse(data)
+
+
+@csrf_protect
+@csrf_exempt
+def pricing_text_product_materials(request):
+    data = dict()
+    template_name = 'pricing/dialogs/product_material_template.html'
+    context = dict()
+
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        product_variant_id = request.POST.get('product_variant_id')
+        qty = request.POST.get('qty')
+        bulk_id = request.POST.get('bulk_id')
+
+        bulk_obj = get_object_or_404(OcTsgBulkdiscountGroups, pk=bulk_id)
+        bulk_breaks = bulk_obj.discountgroup.filter(qty_range_min__lte=qty).order_by('-qty_range_min').first()
+
+        product_var_obj = get_object_or_404(OcTsgProductVariants, pk=product_variant_id, store_id=1)
+        size_id = product_var_obj.prod_var_core.size_material.product_size.size_id
+
+        product_store_variant_qs = OcTsgProductVariants.objects.filter(store_id=1,
+                                                                       prod_var_core__product__product_id=product_id,
+                                                                       prod_var_core__size_material__product_size__size_id=size_id,
+                                                                       prod_var_core__bl_live=True,
+                                                                       isdeleted=False).order_by('prod_var_core__size_material__product_size__size_id',)
+
+        material_data = []
+
+        for obj in product_store_variant_qs:
+            material_row = {}
+            obj.price = obj.prod_var_core.size_material.price
+            material_row['size_name'] = obj.prod_var_core.size_material.product_size.size_name
+            material_row['material_name'] = obj.prod_var_core.size_material.product_material.material_name
+            tmp_price = float(1-(bulk_breaks.discount_percent / 100)) * float(obj.price)
+            price_rounded = Decimal(tmp_price).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            material_row['price'] = price_rounded
+            material_data.append(material_row)
+
+        context['product_name'] = product_var_obj.prod_var_core.product.productdescbase.name
+        context['material_data'] = material_data
+        context['qty'] = qty
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
     return JsonResponse(data)
 
 
