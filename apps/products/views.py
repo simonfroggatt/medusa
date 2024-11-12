@@ -5,19 +5,17 @@ from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore
     OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
     OcProductImage, OcStoreProductImages, OcTsgProductDocuments
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
-from .serializers import ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
+from .serializers import (ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
     ProductSiteVariantOptionsSerializer, ProductCoreVariantOptionsSerializer, RelatedBaseDescriptionSerializer, \
-    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer, \
-    OptionValueExtSerialiszer, ProductOptionsValueSerializer, ProductOptionsCurrentSerializer, ProductOptionValuesSerializer
+    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer, ProductOptionsValueSerializer, ProductOptionsCurrentSerializer, ProductOptionValuesSerializer)
 
 from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
 from apps.symbols.serializers import SymbolSerializer
 from apps.orders.models import OcTsgProductOption
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups, \
-    OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues, OcProductOption, OcProductOptionValue, \
-    OcOptionValue, OcOptionValueDescription, OcTsgProductOptionValues, OcOptionValues
+    OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionClassValues, OcTsgProductOptionValues, OcOptionValues
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from django.core import serializers
 from django.template.loader import render_to_string
@@ -380,18 +378,40 @@ class ProductSiteUpdate(UpdateView):
 
 def product_store_add_text_dlg(request, pk):
     data = dict()
-    template = 'products/dialogs/product_add_store_text.html'
-    site_product_defined = OcProductToStore.objects.filter(product_id=pk).values_list('store_id')
-    store_cat_list = list(chain(*site_product_defined))
 
-    store_obj = OcStore.objects.exclude(store_id__in=store_cat_list).exclude(store_id=0)
+    if request.method == 'POST':
+        if request.POST['product_id']:
+            product_id = request.POST['product_id']
+            store_id = request.POST['store_id']
+            product_desc_obj = OcProductToCategory()
+            product_desc_obj.store_id = store_id
+            product_desc_obj.product_id = product_id
+            product_desc_obj.save(force_insert=True)
+            success_url = reverse_lazy('product_store_details_edit', kwargs={'pk': product_desc_obj.pk})
+            return HttpResponseRedirect(success_url)
 
-    context = {'store_obj': store_obj, 'product_id': pk}
-    data['html_form'] = render_to_string(template,
-                                         context,
-                                         request=request
-                                         )
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        data['form_is_valid'] = False
+        template = 'products/dialogs/product_add_store_text.html'
+        site_product_defined = OcProductToStore.objects.filter(product_id=pk).values_list('store_id')
+        store_cat_list = list(chain(*site_product_defined))
+
+        store_obj = OcStore.objects.exclude(store_id__in=store_cat_list).exclude(store_id=0)
+
+        context = {'store_obj': store_obj, 'product_id': pk}
+        data['html_form'] = render_to_string(template,
+                                             context,
+                                             request=request
+                                             )
+
+    data = dict()
+
     return JsonResponse(data)
+
 
 
 def product_store_add_text(request):
@@ -430,8 +450,10 @@ def product_category_edit(request, pk):
             instance = form_product.save(commit=False)
             instance.category_store_id = request.POST.get('store_category_id')
             instance.save()
-            return HttpResponseRedirect(data['refresh_url'])
+            data['form_is_valid'] = True
+           # return HttpResponseRedirect(data['refresh_url'])
     else:
+        data['form_is_valid'] = False
         form_product = ProductCategoryForm(instance=product_obj)
 
     store_obj = OcProductToStore.objects.filter(product_id=product_obj.product.product_id)
@@ -444,22 +466,30 @@ def product_category_edit(request, pk):
 
 
 def product_category_create(request, pk):
-    template_name = 'products/dialogs/product_category-edit.html'
+    template_name = 'products/dialogs/product_category-create.html'
     context = dict()
     data = dict()
-    product_obj = get_object_or_404(OcProductToCategory, pk=pk)
+    product_obj = get_object_or_404(OcProduct, pk=pk)
+    form_product = ProductCategoryForm(instance=product_obj)
 
     if request.method == 'POST':
-        form_product = ProductCategoryForm(request.POST, instance=product_obj)
-        if form_product.is_valid():
-            instance = form_product.save(commit=False)
-            instance.category_store_id = request.POST.get('store_category_id')
-            instance.save()
-            return HttpResponseRedirect(data['refresh_url'])
+        product_cat_obj = OcProductToCategory()
+        product_cat_obj.product_id = pk
+        product_cat_obj.category_store_id = request.POST.get('store_category_id')
+        if request.POST.get('status'):
+            product_cat_obj.status = True
+        else:
+            product_cat_obj.status = False
+        product_cat_obj.save()
+        if product_cat_obj.pk > 0:
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
     else:
+        data['form_is_valid'] = False
         form_product = ProductCategoryForm(instance=product_obj)
 
-    store_obj = OcProductToStore.objects.filter(product_id=product_obj.product.product_id)
+    store_obj = OcProductToStore.objects.filter(product_id=product_obj.product_id)
     context = {'store_obj': store_obj, 'form': form_product, 'pk': pk}
     data['html_form'] = render_to_string(template_name,
                                          context,
@@ -467,6 +497,24 @@ def product_category_create(request, pk):
                                          )
     return JsonResponse(data)
 
+def product_category_delete(request, pk):
+    data = dict()
+    context = {'product_category_id': pk}
+
+    if request.method == 'POST':
+        #product_category_id = request.POST.get('product_category_id')
+        variant_option_core_obj = get_object_or_404(OcProductToCategory, id=pk)
+        variant_option_core_obj.delete()
+        data['form_is_valid'] = True
+    else:
+        data['form_is_valid'] = False
+        context['product_category_id'] = pk
+        template_name = 'products/dialogs/product_category_delete.html/'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
 
 def add_product_symbol(request, product_id, symbol_id):
     data = dict()

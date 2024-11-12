@@ -87,7 +87,11 @@
                  render: function ( data, type, row ) {
                     let url = '/orders/' + data;
                     let website_prefix = row['store']['prefix']+'-';
-                    return '<a href="' + url + '">'+ data + '</a>';
+                    let order_number = data;
+                    if(row['customer_order_ref']){
+                        order_number += ' | ' + row['customer_order_ref'];
+                    }
+                    return '<a href="' + url + '">'+ order_number + '</a>';
                  }
             },
             {

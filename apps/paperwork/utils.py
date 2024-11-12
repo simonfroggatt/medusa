@@ -3,10 +3,19 @@ from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 import pathlib
 from svglib.svglib import svg2rlg
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q
 from decimal import Decimal, ROUND_HALF_UP
+from itertools import chain
 from django.urls import path, include
-from apps.orders.models import OcTsgOrderOption, OcTsgOrderProductOptions
+from apps.orders.models import OcTsgOrderOption, OcTsgOrderProductOptions, OcOrderProduct, OcTsgOptionTypes
+from apps.products.models import OcTsgProductVariants, OcTsgProductVariants, OcTsgProductVariantCore, OcProduct
+from apps.options.models import OcTsgProductOption, OcTsgOptionValues
+from django.conf import settings
+from urllib.parse import quote
+import os
+from cairosvg import svg2png
+from django.shortcuts import render, get_object_or_404
+from reportlab_qrcode import QRCodeImage
 
 def create_company_logo(company_obj):
     maxW = 90 * mm
@@ -81,7 +90,7 @@ def shipping_address_keep(order_obj):
 
 
 def order_billing(order_obj):
-    billing_str = '<b>Shipping Address:</b><BR/>'
+    billing_str = '<b>Billing Address:</b><BR/>'
     billing_str += order_obj.payment_fullname + "<BR/>"
     if order_obj.payment_company:
         billing_str += order_obj.payment_company + "<BR/>"
@@ -97,7 +106,7 @@ def order_billing(order_obj):
 
 
 def order_shipping(order_obj):
-    shipping_str = '<b>Billing Address:</b><BR/>'
+    shipping_str = '<b>Shipping Address:</b><BR/>'
     shipping_str += order_obj.shipping_fullname + "<BR/>"
     if order_obj.shipping_company:
         shipping_str += order_obj.shipping_company + "<BR/>"
@@ -170,7 +179,7 @@ def order_payment_details(order_obj, currency_symbol):
                 order_payment_str += ' at ' + order_obj.date_due.strftime('%d/%m/%Y')
             order_payment_str += '<BR/>' + order_history_obj.comment
     else:
-        order_payment_str = 'Payment Type:' + order_obj.payment_status.name
+        order_payment_str = 'Payment Type ss:' + order_obj.payment_status.name
         order_payment_str += '<BR/>Due Date:' + order_obj.date_added.strftime('%d/%m/%Y')
     return order_payment_str
 
@@ -180,9 +189,12 @@ def order_payment_details_simple(order_obj, currency_symbol):
     if order_obj.payment_status_id == 2:
         order_payment_str = 'Paid with thanks'
         order_payment_str +='<br/>Paid via ' + order_obj.payment_method.method_name
+    elif order_obj.payment_status_id == 3:
+        order_payment_str = 'Paid on account'
+        order_payment_str += '<BR/>Due Date : ' + order_obj.date_due.strftime('%d/%m/%Y')
     else:
         order_payment_str = 'Payment Type : ' + order_obj.payment_status.name
-        order_payment_str += '<BR/>Due Date : ' + order_obj.date_added.strftime('%d/%m/%Y')
+        order_payment_str += '<BR/>Due Date : ' + order_obj.date_due.strftime('%d/%m/%Y')
     return order_payment_str
 
 
@@ -335,3 +347,83 @@ def get_order_product_line_options(order_product_id):
         option_break = '<BR/>'
 
     return option_text
+
+def order_has_product_options(order_id):
+    extra_items = OcTsgOptionTypes.objects.filter( Q(extra_product=True) | Q(extra_variant=True) ).values_list('option_type_id')
+    options_to_check = list(chain(*extra_items))
+    #not see if any of these are in the order_prodcts
+    order_products = OcTsgOrderProductOptions.objects.filter(order_product__order_id=order_id).filter(class_type_id__in=options_to_check)
+    if order_products:
+        test_order_id = order_products[0].order_product_id
+        return True
+    else:
+        return False
+
+def get_order_product_line_add(order_product_id, bl_options = False, style = [], store_id=1, qty = 0):
+    #see if this order line has options that are extra products / variants
+    extra_items = OcTsgOptionTypes.objects.filter(Q(extra_product=True) | Q(extra_variant=True)).values_list(
+        'option_type_id')
+    options_to_check = list(chain(*extra_items))
+    product_obj = []
+    order_products = OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id).filter(class_type_id__in=options_to_check)
+    for order_item_data in order_products.iterator():
+        product_table_line = dict()
+        #these options are products...create table rows
+        product_variant_id = order_item_data.value_id
+        #product_obj_variant = OcTsgProductVariantCore.objects.filter(prod_variant_core_id=product_variant_id).first()
+        product_table_line['table'] = _create_addon_data_for_table(product_variant_id, bl_options, style, store_id, qty)
+        product_table_line['qty_added'] = qty
+        #then we have a product with options that are add products
+        product_obj.append(product_table_line)
+        return product_obj
+    else:
+        return product_obj
+
+def _create_addon_data_for_table(product_variant_id, bl_options = False, styles = [], store_id = 1, qty = 0):
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+    #get the variant
+    variant_obj = get_object_or_404(OcTsgProductVariants, pk=product_variant_id)
+    #variant_obj = OcTsgProductVariantCore.objects.filter(prod_variant_core_id=product_variant_id).first()
+
+    order_item_data = variant_obj
+    if bl_options:
+        order_item_tbl_data = [''] * 10
+    else:
+        order_item_tbl_data = [''] * 9
+    order_item_tbl_data[0] = Paragraph(order_item_data.variant_code, styles['table_data'])
+
+    image_src = order_item_data.site_variant_image_url
+    if image_src.endswith('.svg'):
+        svg_url = filename = settings.REPORT_URL + quote(image_src)
+        image_file_name = os.path.basename(quote(image_src))
+        image_file = os.path.splitext(image_file_name)
+
+        image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0] + '.png')
+        if not os.path.isfile(image_url):
+            svg2png(url=svg_url, write_to=image_url)
+    else:
+        image_url = settings.REPORT_URL + quote(image_src)
+
+    img = Image(image_url)
+    img._restrictSize(image_max_w, image_max_h)
+
+    order_item_tbl_data[1] = img
+    core_variant = order_item_data.prod_var_core
+    base_product = order_item_data.prod_var_core.product
+    order_item_tbl_data[2] = Paragraph(base_product.productdescbase.title, styles['table_data'])
+    order_item_tbl_data[3] = Paragraph(core_variant.size_material.product_size.size_name, styles['table_data'])
+    order_item_tbl_data[4] = Paragraph(core_variant.size_material.product_material.material_name, styles['table_data'])
+
+    option_col_adj = 0
+    if bl_options:
+        #option_text = get_order_product_line_options(order_item_data.order_product_id)
+        order_item_tbl_data[5] = '' #Paragraph(option_text, styles['table_data_small'])
+        option_col_adj = 1
+
+    order_item_tbl_data[5 + option_col_adj] = qty
+    order_item_tbl_data[6 + option_col_adj] = ""
+    order_item_tbl_data[7 + option_col_adj] = ""
+    order_item_tbl_data[8 + option_col_adj] = ""
+
+    return order_item_tbl_data

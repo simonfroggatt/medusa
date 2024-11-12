@@ -191,6 +191,21 @@ class XeroInvoice(XeroItem):
     def get_payments(self):
         return self.__Payments
 
+    def get_order_contact_id(self, invoice_id):
+        endpoint = 'Invoices'
+        if self.xero_api.get_from_xero(endpoint, invoice_id):
+            xero_response = self.xero_api.get_xero_response()
+            if xero_response['Invoices']:
+                xero_response_invoice = xero_response['Invoices'][0]
+                contact_id = xero_response_invoice['Contact']['ContactID']
+            else:
+                contact_id = None
+        else:
+            contact_id = None
+
+        return contact_id
+
+
     def __save_invoice_to_object(self, xero_response_invoice):
         self.__InvoiceID = xero_response_invoice['InvoiceID']
         self.__Total = Decimal(str(xero_response_invoice['Total']))

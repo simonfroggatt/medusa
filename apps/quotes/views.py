@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from apps.quotes.forms import QuoteDetailsEditForm, ProductAddForm, ProductEditForm
-from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts
+from apps.products.models import OcTsgBulkdiscountGroups
 from apps.pricing.models import OcTsgProductMaterial
 from django.urls import reverse_lazy
 from apps.products import services as prod_services
@@ -122,10 +122,13 @@ def quote_add_product(request, quote_id):
     form = ProductAddForm()
 
     quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
-    if quote_obj.customer.parent_company:
-        customer_discount = quote_obj.customer.parent_company.discount
-    else:
-        customer_discount = 0
+
+    customer_discount = 0
+    if quote_obj.customer:
+        if quote_obj.customer.parent_company:
+            customer_discount = quote_obj.customer.parent_company.discount
+        else:
+            customer_discount = 0
 
    # bespoke_addon_options = get_bespoke_product_options()
     #quote_data = OcTsgQuote.objects.filter(quote_id=quote_id).values('tax_rate__rate', 'customer_id', 'store_id').first()
@@ -251,13 +254,14 @@ def quote_product_edit(request, quote_id, quote_product_id):
     template_name = 'orders/dialogs/order_product_edit.html'
     store_id = quote_product.quote.store_id
 
-    if quote_product.product_id > 0:
-        qs_product_bulk = OcTsgProductToBulkDiscounts.objects.get(product__product_id=quote_product.product_id, store_id=store_id)
-        default_bulk = qs_product_bulk.bulk_discount_group.bulk_group_id
-        qs_bulk = OcTsgBulkdiscountGroups.objects.filter(bulk_group_id=qs_product_bulk.bulk_discount_group.bulk_group_id)
-    else:
-        qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
-        default_bulk = 1
+  #  if quote_product.product_id > 0:
+        #TODO - use correct bulk
+  #      qs_product_bulk = dict; #OcTsgProductToBulkDiscounts.objects.get(product__product_id=quote_product.product_id, store_id=store_id)
+  #      default_bulk = qs_product_bulk.bulk_discount_group.bulk_group_id
+  #      qs_bulk = OcTsgBulkdiscountGroups.objects.filter(bulk_group_id=qs_product_bulk.bulk_discount_group.bulk_group_id)
+  #  else:
+    qs_bulk = OcTsgBulkdiscountGroups.objects.filter(is_active=1)
+    default_bulk = 1
 
     bulk_details = prod_services.create_bulk_arrays(qs_bulk)
     quote_data = OcTsgQuote.objects.filter(quote_id=quote_id).values('tax_rate__rate').first()

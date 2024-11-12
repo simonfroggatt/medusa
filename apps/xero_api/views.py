@@ -26,7 +26,9 @@ import hashlib
 import datetime
 import os
 from apps.xero_api.xero_auth_manager import XeroAuthManager
+import base64
 
+from collections import namedtuple
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
@@ -106,6 +108,20 @@ def xero_customer_add(request, contact_id, encrypted):
         return JsonResponse(data)
 
     contact_obj = get_object_or_404(OcCustomer, pk=contact_id)
+    #check if the customer has had any orders that have been pushed to xero
+    orders_obj = OcOrder.objects.filter(customer_id=contact_id)
+    xero_order_id = ''
+    if orders_obj:
+        for order in orders_obj:
+            if order.xero_id:
+                data['xero_call_type'] = 'CUSTOMER'
+                xero_contact_data = _get_order_contact_id(order)
+                if xero_contact_data['status'] == 'OK':
+                    data['status'] = 'OK'
+                    data['contactID'] = xero_contact_data['contactID']
+                    return JsonResponse(data)
+
+
     #if this contact belongs to a company then we need to be adding the company and not the contact
     if contact_obj.parent_company:
         company_obj = contact_obj.parent_company
@@ -274,17 +290,28 @@ def xero_company_account(request, company_id, encrypted):
 
 #############################################   ORDER   ########################################################
 
-
+@csrf_exempt
 def xero_order_add(request, order_id, encrypted):
     data = {}
-    f = Fernet(settings.XERO_TOKEN_FERNET)
-    decrypted = f.decrypt(encrypted).decode()
-    if decrypted != str(order_id):
+
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+
+    #don't do the encryption for now
+    #TODO - make this more secure
+    #f = Fernet(settings.XERO_TOKEN_FERNET)
+    #decrypted = f.decrypt(encrypted).decode()
+    #if decrypted != str(order_id):
+    #    data['error'] = 'API TSG decryption failed'
+    #    return JsonResponse(data)
+
+
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    if order_obj.order_hash != encrypted:
         data['error'] = 'API TSG decryption failed'
         return JsonResponse(data)
 
-    order_obj = get_object_or_404(OcOrder, pk=order_id)
-    customer_obj = order_obj.customer
+    #need to do several checks and tests
+
     xero_customer_data = _get_order_contact_id(order_obj)
     if xero_customer_data['status'] == 'OK':
         xero_customer_id = xero_customer_data['contactID']
@@ -367,6 +394,29 @@ def xero_order_link(request, order_id, encrypted):
     return JsonResponse(data)
 
 
+def xero_get_order_customer(request, xero_id, encrypted):
+    data = {}
+    context= {}
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    decrypted = f.decrypt(encrypted).decode()
+    if decrypted != str(xero_id):
+        data['error'] = 'API TSG decryption failed'
+        return JsonResponse(data)
+
+    xero_order_obj = XeroInvoice()
+    xero_contact_id = xero_order_obj.get_order_contact_id(xero_id)
+    errors = xero_order_obj.xero_api.get_error()
+    if not errors:
+        data['status'] = 'OK'
+        data['customer_ref'] = xero_contact_id
+    else:
+        data['status'] = 'ERROR'
+        context['errors'] = errors
+
+    data['xero_call_type'] = 'ORDER'
+    return data
+
+
 #############################################   PRIVATE  -   ORDER   ########################################################
 
 def _create_new_order(order_obj, customer_id, xero_id = None):
@@ -386,13 +436,14 @@ def _create_new_order(order_obj, customer_id, xero_id = None):
     # add the discount
     discount_data = order_totals_obj.filter(code='discount')
     if discount_data:
-        discount_line = {
-            'quantity': 1,
-            'price': discount_data[0].value * -1,
-            'description': 'Discount',
-            'account_code': xero_config.ACCOUNT_CODE_SALES
-        }
-        xero_order_obj.add_line(discount_line)
+        if discount_data[0].value > 0:
+            discount_line = {
+                'quantity': 1,
+                'price': discount_data[0].value * -1,
+                'description': 'Discount',
+                'account_code': xero_config.ACCOUNT_CODE_SALES
+            }
+            xero_order_obj.add_line(discount_line)
 
     shipping_data = order_totals_obj.filter(code='shipping')
     if shipping_data:
@@ -417,6 +468,14 @@ def _create_new_order(order_obj, customer_id, xero_id = None):
         data['status'] = 'OK'
         data['orderID'] = new_xero_invoice_id
 
+#fix and rounding errors between wedbiste and xero
+        bl_fixed = _xero_invoice_check_rounding(order_obj, xero_order_obj)
+        if bl_fixed['status'] == 'OK':
+            data['status'] = 'OK'
+        else:
+            data['status'] = 'ERROR'
+            data['error'] = bl_fixed['errors']
+
         if order_obj.payment_status_id == 2:
             xero_order_obj.add_invoice_payment(order_obj)
             payment_id = xero_order_obj.create_payment()
@@ -427,12 +486,7 @@ def _create_new_order(order_obj, customer_id, xero_id = None):
             else:
                 data['paymentID'] = payment_id
 
-        bl_fixed = _xero_invoice_check_rounding(order_obj, xero_order_obj)
-        if bl_fixed['status'] == 'OK':
-            data['status'] = 'OK'
-        else:
-            data['status'] = 'ERROR'
-            data['error'] = bl_fixed['errors']
+
 
     else:
         data['status'] = 'ERROR'
@@ -479,35 +533,62 @@ def _get_order_contact_id(order_obj):
     data['status'] = 'OK'
     contact_id = None
     data['contactID'] = None
-    if order_obj.customer.xero_id:
-        contact_id = order_obj.customer.xero_id
-    else:
-        if order_obj.customer.parent_company:
-            if order_obj.customer.parent_company.xero_id:
-                contact_id = order_obj.customer.parent_company.xero_id
+
+    #does this order have a customer or is it a guest checkout
+    if order_obj.customer:
+        if order_obj.customer.xero_id:
+            contact_id = order_obj.customer.xero_id
+        else:
+            if order_obj.customer.parent_company:
+                if order_obj.customer.parent_company.xero_id:
+                    contact_id = order_obj.customer.parent_company.xero_id
+                else:
+                    return_contact = _create_new_company(order_obj.customer.parent_company)
+                    if return_contact['status'] == 'OK':
+                        contact_id = return_contact['contactID']
+                        data['status'] = 'OK'
+                    else:
+                        data['status'] = return_contact['status']
+                        data['error'] = return_contact['error']
             else:
-                return_contact = _create_new_company(order_obj.customer.parent_company)
+                return_contact = _create_new_contact(order_obj.customer)
                 if return_contact['status'] == 'OK':
                     contact_id = return_contact['contactID']
                     data['status'] = 'OK'
                 else:
                     data['status'] = return_contact['status']
                     data['error'] = return_contact['error']
+    else:
+        #there is no customer associated with this order
+        customer_details_obj = namedtuple('customer_detail', 'company firstname lastname email fullname')
+        customer_address_obj = namedtuple('customer_address', 'address_1 city region postcode country')
+        customer_details_obj.fullname = order_obj.payment_fullname
+        customer_details_obj.company = order_obj.payment_company
+        customer_details_obj.firstname = order_obj.payment_firstname
+        customer_details_obj.lastname = order_obj.payment_lastname
+        customer_details_obj.email = order_obj.payment_email
+        customer_details_obj.telephone = order_obj.payment_telephone
+        customer_address_obj.address_1 = order_obj.payment_address_1
+        customer_address_obj.city = order_obj.payment_city
+        customer_address_obj.region = order_obj.payment_area
+        customer_address_obj.postcode = order_obj.payment_postcode
+        customer_address_obj.country = order_obj.payment_country
+
+
+        return_contact = _create_new_contact(customer_details_obj, None, customer_address_obj, True)
+        if return_contact['status'] == 'OK':
+            contact_id = return_contact['contactID']
+            data['status'] = 'OK'
         else:
-            return_contact = _create_new_contact(order_obj.customer)
-            if return_contact['status'] == 'OK':
-                contact_id = return_contact['contactID']
-                data['status'] = 'OK'
-            else:
-                data['status'] = return_contact['status']
-                data['error'] = return_contact['error']
+            data['status'] = return_contact['status']
+            data['error'] = return_contact['error']
 
     data['contactID'] = contact_id
     return data
 
 #############################################   PRIVATE  -   CONTACT   ########################################################
 
-def _create_new_contact(customer_obj, xero_id = None):
+def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = None, guestCustoemr = False):
     contact_id = ''
     data = {}
     data['status'] = 'OK'
@@ -529,16 +610,20 @@ def _create_new_contact(customer_obj, xero_id = None):
     xero_contact_obj.add_contact_details(customer_contact)
     xero_contact_obj.add_telephone(customer_obj.telephone)
 
-    def_billing = customer_obj.address_customer.filter(default_billing=1).order_by('address_id').first()
-    if def_billing is None:
-        billing_address = customer_obj.address_customer.order_by('address_id').first()
+    if guestCustoemr:
+        billing_address = billing_address_guest
     else:
-        billing_address = def_billing
+        if customer_obj.address_customer:
+            def_billing = customer_obj.address_customer.filter(default_billing=1).order_by('address_id').first()
+            if def_billing is None:
+                billing_address = customer_obj.address_customer.order_by('address_id').first()
+            else:
+                billing_address = def_billing
 
     customer_address = {
         'address_1': billing_address.address_1,
         'city': billing_address.city,
-        'region': billing_address.area,
+        'region': billing_address.region,
         'postcode': billing_address.postcode,
         'country' : billing_address.country
     }
@@ -548,11 +633,12 @@ def _create_new_contact(customer_obj, xero_id = None):
     payment_type = xero_config.CONTACT_PAYMENT_TERMS_TYPE
     payment_days = xero_config.CONTACT_PAYMENT_TERMS_DAYS
 
-    if customer_obj.parent_company:
-        company = customer_obj.parent_company
-        if company.account_type_id == 3:
-            payment_type = company.payment_terms.shortcode
-            payment_days = company.payment_days
+    if not guestCustoemr:
+        if customer_obj.parent_company:
+            company = customer_obj.parent_company
+            if company.account_type_id == 3:
+                payment_type = company.payment_terms.shortcode
+                payment_days = company.payment_days
 
     xero_contact_obj.add_payment_terms(payment_type, payment_days)
 
@@ -561,18 +647,26 @@ def _create_new_contact(customer_obj, xero_id = None):
 
     contact_id = xero_contact_obj.save_contact()
     errors = xero_contact_obj.xero_api.get_error()
-    if not errors:
-        customer_obj.xero_id = contact_id
-        customer_obj.save()
-        if customer_obj.parent_company:
-            customer_obj.parent_company.xero_id = contact_id
-            customer_obj.parent_company.save()
-        data['status'] = 'OK'
-        data['contactID'] = contact_id
-    else:
-        data['status'] = 'ERROR'
-        data['error'] = errors
 
+    if not guestCustoemr:
+        if not errors:
+            customer_obj.xero_id = contact_id
+            customer_obj.save()
+            if customer_obj.parent_company:
+                customer_obj.parent_company.xero_id = contact_id
+                customer_obj.parent_company.save()
+            data['status'] = 'OK'
+            data['contactID'] = contact_id
+        else:
+            data['status'] = 'ERROR'
+            data['error'] = errors
+    else:
+        if not errors:
+            data['status'] = 'OK'
+            data['contactID'] = contact_id
+        else:
+            data['status'] = 'ERROR'
+            data['error'] = errors
     return data
 
 def _update_contact(customer_obj):
@@ -699,3 +793,4 @@ def _xero_webhook_invoice_update(invoice_id):
             order_obj.payment_date = payment_details['Date']
             order_obj.save()
     return True
+

@@ -97,9 +97,13 @@ urlpatterns = [
     path('additional_images_base/<int:pk>/edit', views.product_addional_image_edit, name='product_additional_images-edit'),
 
     #category and general
+    path('<int:pk>/categoryset', views.product_category_create, name='productcatgoryset'),
+    path('<int:pk>/categorydelete', views.product_category_delete, name='productcatgory_delete'),
+
     path('<int:pk>/categoryedit', views.product_category_edit, name='productcatgoryedit'),
     path('<int:pk>/storeedit', views.ProductSiteUpdate.as_view(), name='product_store_details_edit'),
     path('<int:pk>/storeadddlg', views.product_store_add_text_dlg, name='productstoreadd_dlg'),
+
 
     #product docuements
     path('document/upload', views.product_document_upload, name='product_document-upload'),

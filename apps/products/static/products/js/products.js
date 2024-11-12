@@ -130,7 +130,7 @@ $(function () {
                        className: 'text-md-end text-start',
                        render: function (data, type, row) {
                            let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categoryedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
-                           let delete_icon = '<a  class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categorydeletedlg"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
+                           let delete_icon = '<a  class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categorydelete"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                            return edit_icon + " " + delete_icon;
 
                        }
@@ -1104,6 +1104,15 @@ $(function () {
 
 
     $(document).on("submit", "#form_product_image_add", AddAdditionalProductImage);
+
+    //CATEGORYS
+   // $(document).on("submit", "#form-product-category-edit", loadForm);
+   // $(document).on("submit", "#form-product-category-edit", loadForm);
+
+    $(document).on('submit', '#form-product-category-edit', function () {
+         SaveDialogUpdateTable('product_category_table', $(this));
+         return false;
+     });
 
 
 

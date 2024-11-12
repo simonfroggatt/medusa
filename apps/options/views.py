@@ -2,14 +2,12 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from apps.options.models import OcTsgOptionTypes, OcTsgOptionClassGroups, OcTsgOptionClass, OcTsgOptionValues, \
-    OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues, OcOption, OcOptionDescription, \
-    OcOptionValue, OcOptionValueDescription, OcTsgProductOptionValues, OcOptionValues
+    OcTsgOptionClassGroupValues, OcTsgOptionValues, OcTsgOptionClassValues,  OcTsgProductOptionValues, OcOptionValues
 from apps.options.forms import ClassEditForm, ValueEditForm, TypesEditForm, GroupEditForm, GroupValueEditForm, \
-    ClassValuesOrderForm, ProductOptionValueDescForm, ProductOptionValueForm, ProductOptionForm, ProductOptionDescForm, OptionValueForm
+    ClassValuesOrderForm,  OptionValueForm
 from apps.products.models import OcProduct, OcTsgProductVariantCore
 from .serializers import OptionValuesSerializer, OptionGroupSerializer, OptionTypeSerializer, OptionClassSerializer, \
-    OptionGroupValueSerializer, OptionClassPredefinedValuesSerializer, ProductOptionValueDescSerializer, \
-    ProductOptionsDescSerializer, ProductOptionValueSerializer
+    OptionGroupValueSerializer, OptionClassPredefinedValuesSerializer, ProductOptionValueSerializer
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 import json
@@ -18,12 +16,7 @@ from django.template.loader import render_to_string
 from itertools import chain
 
 
-class AllProductOptions(viewsets.ModelViewSet):
-    queryset = OcOptionDescription.objects.all()
-    serializer_class = ProductOptionsDescSerializer
 
-    def get_queryset(self):
-        return super().get_queryset().filter(language_id=1)
 
 
 class AllProductOptionValues(viewsets.ModelViewSet):

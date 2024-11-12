@@ -9,7 +9,6 @@ router.register(r'groups', views.OptionGroups)
 router.register(r'group_values', views.OptionGroupsValues)
 router.register(r'types', views.OptionTypes)
 router.register(r'class', views.OptionClass)
-router.register(r'product_options', views.AllProductOptions)
 router.register(r'product_option_values', views.AllProductOptionValues)
 
 urlpatterns = [

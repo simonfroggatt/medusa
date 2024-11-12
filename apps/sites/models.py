@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+from medusa.models import OcTaxRate
 
 class OcCurrency(models.Model):
     currency_id = models.AutoField(primary_key=True)
@@ -45,6 +45,7 @@ class OcStore(models.Model):
     logo_paperwork = models.CharField(max_length=255, blank=True, null=True)
     status = models.BooleanField(blank=True)
     product_code = models.CharField(max_length=255, blank=True, null=True)
+    tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False

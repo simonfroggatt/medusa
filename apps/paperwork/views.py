@@ -9,6 +9,7 @@ from apps.quotes.serializers import QuoteProductListSerializer
 from django.template.loader import get_template
 from django.http import HttpResponse
 import os
+import json
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -32,14 +33,17 @@ from medusa.settings import TSG_PRODUCT_STATUS_SHIPPING
 from django.conf import settings
 from urllib.parse import quote
 from django.urls import path, include, reverse_lazy
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import get_template
 from svglib.svglib import svg2rlg
 from io import BytesIO
 from xhtml2pdf import pisa
 
+
 from reportlab.pdfbase.pdfmetrics import registerFont
 from reportlab.pdfbase.ttfonts import TTFont
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 registerFont(TTFont('Arial','ARIAL.ttf'))
 
 
@@ -125,23 +129,6 @@ def test_pdf(request):
     if pdf.err:
         return HttpResponse("Invalid PDF", status_code=400, content_type='text/plain')
     return HttpResponse(result.getvalue(), content_type='application/pdf')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -287,11 +274,12 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     return buffer
 
 
-def gen_pick_list_type2(order_id, bl_excl_shipped=False):
+def gen_dispatch_note(order_id, bl_excl_shipped=False):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
 
     buffer = BytesIO()
+
     doc = SimpleDocTemplate(buffer, pagesize=A4,
                             rightMargin=3 * mm, leftMargin=3 * mm,
                             topMargin=8 * mm, bottomMargin=3 * mm,
@@ -329,7 +317,7 @@ def gen_pick_list_type2(order_id, bl_excl_shipped=False):
 
 
 # Title
-    elements.append(Paragraph("Despatch Note Type 2", styles['title']))
+    elements.append(Paragraph("Despatch Note", styles['title']))
 
 # order details
     contacts_str = utils.contact_details(order_obj)
@@ -432,6 +420,181 @@ def gen_pick_list_type2(order_id, bl_excl_shipped=False):
     elements.append(Spacer(doc.width, 5*mm))
     order_lines = order_items.count()
     product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
+
+#add in the totals
+    total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
+    elements.append(total_text)
+    elements.append(Spacer(doc.width, 15*mm))
+    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
+    elements.append(signed_text)
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+
+    #pdf = buffer.getvalue()
+    #uffer.close()
+    #response.write(pdf)
+    return buffer
+
+def gen_options_pick_list(order_id, bl_excl_shipped=False):
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+    qty_items = 0
+    qty_lines = 0
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Despatch-Note_'+order_ref_number,  # exchange with your title
+                            author="Total Safety Group Ltd",  # exchange with your authors name
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=10))
+
+#company logo
+    comp_logo = utils.create_company_logo(order_obj.store)
+
+#company contact & order details
+    header_address = utils.create_address(order_obj.store)
+
+# create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1),'MIDDLE'),
+                                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                                    ]))
+    elements.append(header_tbl)
+
+
+# Title
+    elements.append(Paragraph("Pick Note", styles['title']))
+
+# order details
+    contacts_str = utils.contact_details(order_obj)
+    order_str = utils.order_details(order_obj)
+    order_tbl_data = [
+        [Paragraph(contacts_str, styles['header_main']), Paragraph(order_str, styles['header_main'])]
+    ]
+    order_col_width = 40 * mm
+    order_tbl_data = Table(order_tbl_data, colWidths=[doc.width - order_col_width, order_col_width])
+    order_tbl_data.setStyle(TableStyle([
+                                        ('ALIGN', (1, 1), (1, 1), "RIGHT")]))
+    elements.append(order_tbl_data)
+    elements.append(Spacer(doc.width, 5*mm))
+#order items
+# Code, Product, Options, image, Size, Material, QTY, P,S,C
+    bl_options = utils.order_has_options(order_obj.order_id)
+    #product_options_addons = get_order_line_options(order_obj.or)
+    if bl_options:
+        items_tbl_data = [['Code', 'Image', 'Product','Size', 'Material','Options', 'QTY', 'P', 'S', 'C']]
+    else:
+        items_tbl_data = [['Code', 'Image', 'Product','Size', 'Material', 'Qty', 'P', 'S', 'C']]
+
+# Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+    if bl_excl_shipped:
+        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+    else:
+        order_items = order_obj.order_products.all()
+
+    for order_item_data in order_items.iterator():
+        if order_item_data.product_variant:
+            model = order_item_data.product_variant.variant_code
+        if bl_options:
+            order_item_tbl_data = [''] * 10
+        else:
+            order_item_tbl_data = [''] * 9
+
+        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+
+        if order_item_data.product_variant:
+            image_src = order_item_data.product_variant.site_variant_image_url
+            if image_src.endswith('.svg'):
+                svg_url = filename=settings.REPORT_URL + quote(image_src)
+                image_file_name = os.path.basename(quote(image_src))
+                image_file = os.path.splitext(image_file_name)
+
+                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
+                if not os.path.isfile(image_url):
+                    svg2png(url=svg_url, write_to=image_url)
+            else:
+                image_url = settings.REPORT_URL + quote(image_src)
+
+            img = Image(image_url)
+            img._restrictSize(image_max_w, image_max_h)
+
+
+        else:
+            img = ''
+
+        order_item_tbl_data[1] = img
+
+        order_item_tbl_data[2] = Paragraph(order_item_data.name, styles['table_data'])
+        order_item_tbl_data[3] = Paragraph(order_item_data.size_name, styles['table_data'])
+        order_item_tbl_data[4] = Paragraph(order_item_data.material_name, styles['table_data'])
+
+        option_col_adj = 0
+        if bl_options:
+            option_text = utils.get_order_product_line_options(order_item_data.order_product_id)
+            order_item_tbl_data[5] = Paragraph(option_text, styles['table_data_small'])
+            option_col_adj = 1
+
+        order_item_tbl_data[5+option_col_adj] = order_item_data.quantity
+        order_item_tbl_data[6+option_col_adj] = ""
+        order_item_tbl_data[7+option_col_adj] = ""
+        order_item_tbl_data[8+option_col_adj] = ""
+        items_tbl_data.append(order_item_tbl_data)
+
+        addon_product = utils.get_order_product_line_add(order_item_data.order_product_id, bl_options, styles, order_obj.store_id, order_item_data.quantity)
+        if addon_product:
+            for addon in addon_product:
+                qty_items += addon['qty_added']
+                qty_lines += 1
+                items_tbl_data.append(addon['table'])
+
+        #this is where we need to see if this order line has additional products to add
+
+
+    if bl_options:
+        items_tbl_cols = [20 * mm, (image_max_w ) + 5,50 * mm, 22.5 * mm, 22.5 * mm,  40 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    else:
+        items_tbl_cols = [20 * mm, (image_max_w ) + 5, 60 * mm, 35 * mm, 35 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    row_height = image_max_h + 10
+    rows = len(items_tbl_data)
+    items_tbl_rowh = [row_height] * rows
+    items_tbl_rowh[0] = 20
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('ALIGN', (5 + option_col_adj, 1), (5 + option_col_adj, -1), "CENTRE"),
+                                     ('ALIGN', (5 + option_col_adj, 0), (-1, 0), "CENTRE"),
+                                     ('ALIGN', (1, 1), (1, -1), "CENTRE"),
+                                     ('VALIGN', (0, 0), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 10),
+                                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), (colors.white, colors.whitesmoke)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5*mm))
+    order_lines = order_items.count()
+    product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
+    product_count += qty_items
+    order_lines += qty_lines
 
 #add in the totals
     total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
@@ -692,8 +855,8 @@ def gen_invoice(order_id):
                                  ('TOPPADDING', (0, 0), (-1, -1), 0)]))
 
     order_tbl_info = [
-        [Paragraph(shipping_address, styles['header_main']),
-         Paragraph(billing_address, styles['header_main']),
+        [Paragraph(billing_address, styles['header_main']),
+         Paragraph(shipping_address, styles['header_main']),
          order_details_table]
     ]
 
@@ -823,7 +986,7 @@ def gen_shipping_page(order_id):
     elements.append(heading2)
 
     qr = QRCodeImage(f'http://www.totalsafetygroup.co.uk/paperwork/shipping/{order_id}', size=30 * mm)
-    elements.append(Spacer(doc.width, 5*mm))
+   # elements.append(Spacer(doc.width, 5*mm))
     elements.append(qr)
 
     doc.build(elements)
@@ -844,7 +1007,12 @@ def gen_merged_paperwork(request, order_id):
 
     if 'print_picklist' in request.POST:
         #pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
-        pdflist.append(gen_pick_list_type2(order_id, bl_exclude_shipped))
+        #we need to see if there are tsg varoant options. If so, we create a different picklist and dispatch note
+        if utils.order_has_product_options(order_id):
+            pdflist.append(gen_options_pick_list(order_id, bl_exclude_shipped))
+            pdflist.append(gen_dispatch_note(order_id, bl_exclude_shipped))
+        else:
+            pdflist.append(gen_dispatch_note(order_id, bl_exclude_shipped))
         set_printed(request, order_id)
     if 'print_shipping' in request.POST:
         pdflist.append(gen_shipping_page(order_id))
@@ -864,7 +1032,9 @@ def gen_merged_paperwork(request, order_id):
 
     merger.write(buffer)
     pdf = buffer.getvalue()
+   # response['Content-Disposition'] = f'attachment; filename="order_{order_id}.pdf"'
     response.write(pdf)
+    merger.close()
     return response
 
 
@@ -1085,6 +1255,65 @@ def _push_to_xero(request, order_id):
         base_url = request.build_absolute_uri(xero_url)
         r = requests.get(base_url)
 
+
+
+
+
+
+#this function is used by webstores to generate an invoice
+#don't require a POST CSRF token
+@csrf_exempt
+def gen_invoice_for_webstore_download(request, order_id, order_hash):
+    #return a pdf invoice for the order
+    data = dict()
+    response = HttpResponse(content_type='application/pdf')
+    #catch any errors
+    try:
+        order_obj = get_object_or_404(OcOrder, pk=order_id)
+        #check the hash
+        if order_hash != order_obj.order_hash:
+            raise Exception('Invalid order hash')
+        #generate the invoice
+        pdf = gen_invoice(order_id)
+        #set the response headers
+        response['Content-Disposition'] = f'attachment; filename="invoice_{order_id}.pdf"'
+        response.write(pdf.getvalue())
+        pdf.close()
+    except Exception as e:
+        data['error'] = str(e)
+        response.write(json.dumps(data))
+    return response
+
+@csrf_exempt
+def gen_invoice_for_webstore(request, order_id, order_hash):
+        # return a pdf invoice for the order
+        data = dict()
+        response = HttpResponse(content_type='application/pdf')
+        # catch any errors
+        try:
+            order_obj = get_object_or_404(OcOrder, pk=order_id)
+            # check the hash
+            if order_hash != order_obj.order_hash:
+                raise Exception('Invalid order hash')
+            # generate the invoice
+            pdflist = []
+            pdf = gen_invoice(order_id)
+            pdflist.append(pdf)
+            merger = PdfFileMerger()
+            for pdf_buffer in pdflist:
+                merger.append(PdfFileReader(stream=pdf_buffer))
+                pdf_buffer.close()
+            buffer = BytesIO()
+
+            merger.write(buffer)
+            pdf = buffer.getvalue()
+            # response['Content-Disposition'] = f'attachment; filename="order_{order_id}.pdf"'
+            response.write(pdf)
+            merger.close()
+        except Exception as e:
+            data['error'] = str(e)
+            response.write(json.dumps(data))
+        return response
 
 def test_barcode(request):
     code = 6240001

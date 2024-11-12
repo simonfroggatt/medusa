@@ -65,7 +65,7 @@
                     <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
                         <li><a class="dropdown-item" href="#">E-Mail</a></li>
                         {% if not order_obj.customer %}
-                             <li><a class="dropdown-item" href="#">Convert to Customer</a></li>
+                             <li><a class="dropdown-item" href="{% url 'create_customer_from_guest' order_obj.order_id %}">Convert to Customer</a></li>
                         {% else %}
                             <li><a class="dropdown-item js-order-customer-create" role="button" data-url="{% url 'api_createorder'  order_obj.customer.pk  %}" data-dlgsize="modal-sm">New Order</a></li>
                             <li>

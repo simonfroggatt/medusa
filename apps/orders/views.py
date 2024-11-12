@@ -4,13 +4,13 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
-     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, OcTsgOrderOption #,calc_order_totals, recalc_order_product_tax
-from apps.products.models import OcTsgBulkdiscountGroups, OcTsgProductToBulkDiscounts, OcProduct, \
+     OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, \
+     OcTsgOrderOption, OcOrderHistory, OcTsgPaymentHistory#,calc_order_totals, recalc_order_product_tax
+from apps.products.models import OcTsgBulkdiscountGroups, OcProduct, \
      OcTsgProductVariantCore, OcTsgProductVariants
 from apps.pricing.models import OcTsgProductMaterial
 from apps.options.models import (OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
-    OcTsgOptionValueDynamics, OcProductOption, OcProductOptionValue, OcOption, OcOptionDescription, OcOptionValue,
-                                 OcOptionValueDescription, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues)
+    OcTsgOptionValueDynamics, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues)
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
@@ -33,6 +33,8 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Sum
 from medusa import services
 import operator
+import hashlib
+import uuid
 
 from apps.customer.serializers import AddressSerializer
 
@@ -220,7 +222,7 @@ def order_details(request, order_id):
     context['heading'] = 'order details'
 
 
-    if order_obj.customer_id > 0:
+    if order_obj.customer:
         context["addressItem"] = order_obj.customer.address_customer.all().order_by('postcode')
     else:
         context["addressItem"] = []
@@ -295,6 +297,9 @@ def order_details(request, order_id):
     order_docs_obj = OcTsgOrderDocuments.objects.filter(order_id=order_id)
     context['order_docs_obj'] = order_docs_obj
     context['thumbnail_cache'] = settings.THUMBNAIL_CACHE
+
+    context['order_history'] = OcOrderHistory.objects.filter(order_id=order_id).order_by('-date_added')
+    context['payment_history'] = OcTsgPaymentHistory.objects.filter(order_id=order_id).order_by('-date_added')
 
 
 
@@ -375,10 +380,12 @@ def order_add_product(request, order_id):
     order_obj = get_object_or_404(OcOrder, order_id=order_id)
 
 #find out if this orders customer is a company with a discount
-    if order_obj.customer.parent_company:
-        customer_discount = order_obj.customer.parent_company.discount
-    else:
-        customer_discount = 0
+    customer_discount = 0
+    if order_obj.customer:
+        if order_obj.customer.parent_company:
+            customer_discount = order_obj.customer.parent_company.discount
+        else:
+            customer_discount = 0
 
     bespoke_addon_options = get_bespoke_product_options()
     context = {
@@ -967,8 +974,16 @@ def order_duplicate(request):
         order_obj.order_type_id = 1
         order_obj.payment_method_id = 8
         order_obj.customer_order_ref = ''
-        order_obj.save()
+
         new_order_id = order_obj.order_id
+
+        unique_id = uuid.uuid4().hex  # Generates a random UUID and gets the hex representation
+        # Hash the unique identifier with MD5
+        order_hash = hashlib.md5(unique_id.encode()).hexdigest()
+        order_obj.order_hash = order_hash
+
+        order_obj.save()
+
 
 #products
         for order_prod in order_products:
@@ -1194,45 +1209,45 @@ def ajax_product_variant_options_test(request, store_id, product_variant_id):
     return render(request, template_name, context)
 
 ####### - New option is in
-def ajax_product_options_old(request, product_id):
-    #given a product the options
-    select_data = []
-    #get the option class
-    data = dict()
-    options_unique = OcProductOption.objects.filter(product_id=product_id, isdeleted=0).values('option_id', 'required').distinct()
-
-    #now step though each options and get the type etc
-    option_markup = []
-    for option in options_unique:
-        product_option_data = dict()
-        bl_required = False
-        option_obj = OcOptionDescription.objects.filter(option_id=option['option_id'], language_id=1).first() #not dealing with multi languages at the moment
-        product_option_data['option_type'] = option_obj.option.type_id
-        product_option_data['option_name'] = option_obj.name
-        product_option_data['option_id'] = option['option_id']
-        if option['required'] == 1:
-            bl_required = True
-        option_data = OcProductOptionValue.objects.filter(option_id=option['option_id'], product_id=product_id)
-        #now set through each of these
-        product_option_values = []
-        for option_value in option_data:
-            product_option_values.append({'id': option_value.option_value.option_value_id, 'value' : option_value.option_value.option_value_desc})
-        product_option_data['option_values'] = product_option_values
-        product_option_data['option_required'] = bl_required
-        option_markup.append(product_option_data)
-
-
-    template_name = 'orders/dialogs/product_options_ajax.html'
-
-    context = {'product_id': product_id}
-    context['options_markup'] = option_markup
-    data['html_content'] = render_to_string(template_name,
-                                         context,
-                                         request=request
-                                         )
-
-    return JsonResponse(data)
-    #return render(request, template_name, context)
+# def ajax_product_options_old(request, product_id):
+#     #given a product the options
+#     select_data = []
+#     #get the option class
+#     data = dict()
+#    # options_unique = OcProductOption.objects.filter(product_id=product_id, isdeleted=0).values('option_id', 'required').distinct()
+#
+#     #now step though each options and get the type etc
+#     option_markup = []
+#     for option in options_unique:
+#         product_option_data = dict()
+#         bl_required = False
+#         option_obj = OcOptionDescription.objects.filter(option_id=option['option_id'], language_id=1).first() #not dealing with multi languages at the moment
+#         product_option_data['option_type'] = option_obj.option.type_id
+#         product_option_data['option_name'] = option_obj.name
+#         product_option_data['option_id'] = option['option_id']
+#         if option['required'] == 1:
+#             bl_required = True
+#         option_data = OcProductOptionValue.objects.filter(option_id=option['option_id'], product_id=product_id)
+#         #now set through each of these
+#         product_option_values = []
+#         for option_value in option_data:
+#             product_option_values.append({'id': option_value.option_value.option_value_id, 'value' : option_value.option_value.option_value_desc})
+#         product_option_data['option_values'] = product_option_values
+#         product_option_data['option_required'] = bl_required
+#         option_markup.append(product_option_data)
+#
+#
+#     template_name = 'orders/dialogs/product_options_ajax.html'
+#
+#     context = {'product_id': product_id}
+#     context['options_markup'] = option_markup
+#     data['html_content'] = render_to_string(template_name,
+#                                          context,
+#                                          request=request
+#                                          )
+#
+#     return JsonResponse(data)
+#     #return render(request, template_name, context)
 
 def ajax_product_options(request, product_id):
     #given a product the options
@@ -1414,6 +1429,9 @@ def create_option_values_from_variant(store_id, parent_class):
     variant = OcTsgProductVariants.objects.select_related('prod_var_core__size_material').filter(
         prod_variant_id=parent_class.product_id).filter(store_id=store_id).first()
 
+    variant_all = OcTsgProductVariants.objects.select_related('prod_var_core__size_material').filter(
+        prod_variant_id=parent_class.product_id).filter(store_id=store_id)
+
     variant_data = dict()
     variant_data['id'] = variant.prod_var_core.prod_variant_core_id
     variant_data['drop_down'] = variant.prod_var_core.size_material.product_size.size_name
@@ -1453,6 +1471,7 @@ def create_option_values_from_product(store_id, parent_class):
 #get the size for the drop down
         store_size_material_price = OcTsgSizeMaterialCombPrices.objects.filter(
             size_material_comb_id=variant.prod_var_core.size_material_id).filter(store_id=store_id).first()
+
 
         price = store_size_material_price.price
         alt_price = variant.variant_overide_price
@@ -1826,11 +1845,13 @@ def calc_update_product_subtotal(order_id):
     qs_order = OcOrder.objects.filter(pk=order_id).first()
     sub_total_lines_discount = Decimal(0.0)
 
-    if qs_order.customer.parent_company:
-        decimal_calc = Decimal(qs_order.customer.parent_company.discount / 100)
-        customer_discount = decimal_calc.quantize(Decimal('0.00'))
-    else:
-        customer_discount = Decimal(0.00)
+    customer_discount = 0
+    if qs_order.customer:
+        if qs_order.customer.parent_company:
+            decimal_calc = Decimal(qs_order.customer.parent_company.discount / 100)
+            customer_discount = decimal_calc.quantize(Decimal('0.00'))
+        else:
+            customer_discount = Decimal(0.00)
 
     for product in qs_products.iterator():
         if not product.exclude_discount:
@@ -1838,11 +1859,20 @@ def calc_update_product_subtotal(order_id):
             sub_total_lines_discount += discount_amount.quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
 
     qs_totals = OcOrderTotal.objects.filter(order_id=order_id)
-
-    if qs_totals.filter(code='discount').exists:
-        qs_discount = qs_totals.get(code='discount')
+    qs_totals_discount = qs_totals.filter(code='discount')
+    if qs_totals_discount.exists():
+        qs_discount = qs_totals_discount.first()
         qs_discount.value = sub_total_lines_discount
         qs_discount.save()
+    else:
+        order_discount = OcOrderTotal()
+        order_discount.order_id = order_id
+        order_discount.code = 'discount'
+        order_discount.title = 'Discount'
+        order_discount.value = 0
+        order_discount.sort_order = 2
+
+        order_discount.save()
 
 
 
@@ -1954,10 +1984,22 @@ def order_xero_update(request, pk):
 
 def order_xero_add(request, pk):
     #simply encrpyt the order id and pass this, and then decrypt to check they match
+    #TODO - make this secure again
+
     f = Fernet(settings.XERO_TOKEN_FERNET)
     encrypted_order_num = f.encrypt(str(pk).encode()).decode()
+
+    order_obj = get_object_or_404(OcOrder, pk=pk)
+    order_hash = order_obj.order_hash
+    if order_hash == '':
+        unique_id = uuid.uuid4().hex  # Generates a random UUID and gets the hex representation
+        # Hash the unique identifier with MD5
+        order_hash = hashlib.md5(unique_id.encode()).hexdigest()
+        order_obj.order_hash = order_hash
+        order_obj.save()
+
     #convert this to a str
-    return_url = reverse_lazy('xero_order_add', kwargs={'order_id': pk, 'encrypted': encrypted_order_num })
+    return_url = reverse_lazy('xero_order_add', kwargs={'order_id': pk, 'encrypted': order_hash })
     return HttpResponseRedirect(return_url)
 
 

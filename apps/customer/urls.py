@@ -30,6 +30,7 @@ urlpatterns = [
 
     path('details/<int:customer_id>/password/edit', views.customers_edit_password, name='customereditpassword'),
     path('create', views.contact_create, name='create_customer'),
+    path('fromguest/<int:order_id>', views.contact_create_from_guest, name='create_customer_from_guest'),
 
     path('api/customer/<int:customer_id>/update_notes', views.customer_update_notes, name='api_customer_update_notes'),
 

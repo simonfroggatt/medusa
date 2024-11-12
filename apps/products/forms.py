@@ -3,7 +3,7 @@ from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductT
     OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage, \
     OcTsgProductDocuments, OcProductRelated
 
-from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions, OcProductOption, OcOptionValue, OcTsgProductOption, OcTsgProductOptionValues
+from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions,  OcTsgProductOption, OcTsgProductOptionValues
 
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
@@ -102,6 +102,7 @@ class ProductCategoryForm(forms.ModelForm):
         widgets = {
             'product': forms.HiddenInput,
             'category_store': forms.HiddenInput,
+            'status': forms.CheckboxInput,
 
         }
 
@@ -282,13 +283,6 @@ class ProductOptionEditForm(forms.ModelForm):
     class Meta:
         model = OcTsgProductOption
         fields = '__all__'
-
-
-class OptionValueEditForm(forms.ModelForm):
-
-    class Meta:
-        model = OcOptionValue
-        fields = ['sort_order']
 
 
 class ProductOptionSortEditForm(forms.ModelForm):

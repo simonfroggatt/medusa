@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
-from apps.options.models import OcTsgProductVariantOptions, OcProductOption, OcProductOptionValue, OcTsgProductOption, OcTsgProductOptionValues
+from apps.options.models import OcTsgProductVariantOptions, OcTsgProductOption, OcTsgProductOptionValues
 from apps.category.models import OcCategoryToStore
 from apps.pricing.models import OcTsgSizeMaterialCombPrices
 from django.conf import settings
 from apps.symbols.models import OcTsgProductSymbols
-from apps.options.models import OcTsgProductVariantCoreOptions, OcOptionValue, OcOptionValueDescription, OcOptionValues
+from apps.options.models import OcTsgProductVariantCoreOptions, OcOptionValues
 import os
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -283,28 +283,6 @@ class ProductSupplierListSerializer(serializers.ModelSerializer):
         depth = 2
 
 
-class ProductOptionValueExtSerialiszer(serializers.ModelSerializer):
-    option_value_desc = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = OcOptionValue
-        fields = [field.name for field in model._meta.fields]
-        fields.extend(['option_value_desc'])
-
-    def get_option_value_desc(self, obj):
-        return obj.option_value_desc
-
-
-class ProductOptionsSerializer(serializers.ModelSerializer):
-    option_desc = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = OcProductOption
-        fields = ['product_option_id', 'option', 'option_desc', 'value', 'required']
-        depth = 2
-
-    def get_option_desc(self, obj):
-        return obj.option.option_desc
 
 
 class ProductOptionsValueSerializer(serializers.ModelSerializer):
@@ -315,17 +293,6 @@ class ProductOptionsValueSerializer(serializers.ModelSerializer):
         depth = 2
 
 
-
-
-class OptionValueExtSerialiszer(serializers.ModelSerializer):
-    option_desc = serializers.SerializerMethodField(read_only=True)
-    option_value_desc = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = OcOptionValue
-        fields = [field.name for field in model._meta.fields]
-        fields.extend(['option_desc', 'option_value_desc'])
-        depth = 2
 
     def get_option_desc(self, obj):
         return obj.option.option_desc

@@ -2,20 +2,19 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title"> Edit Product Category</h4>
+    <h4 class="modal-title"> Add Product Category</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
     <div class="container">
         <div class="row pb-2">
             <div class="col-12">
-                <form method="post" action="{% url 'productcatgoryedit' pk %}"
+                <form method="post" action="{% url 'productcatgoryset' pk %}"
                       id="form-product-category-edit">
 
                     <input type="hidden" id="static_media_url" value="{% get_media_prefix %}">
                     <input type="hidden" id="store_category_id" name="store_category_id" value="">
                     {{ form.product|as_crispy_field }}
-                    {{ form.category_store|as_crispy_field }}
 
                     {% csrf_token %}
                     <div class="row">
@@ -49,7 +48,7 @@
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
-                        <button type="submit" id="delete" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
+                        <button type="submit" id="add" class="btn {{ BUTTON_UPDATE }} pull-right">Add</button>
                     </div>
                 </div>
                 </form>

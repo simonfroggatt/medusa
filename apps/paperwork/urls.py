@@ -13,6 +13,8 @@ urlpatterns = [
     path('cablebarcode/', views.cable_barcode, name='cable_barcode'),
     path('boxbarcode/', views.box_barcode, name='box_barcode'),
     path('boxsupbarcode/', views.boxsup_barcode, name='boxsup_barcode'),
+    path('webstore_pdf/<int:order_id>/<str:order_hash>', views.gen_invoice_for_webstore_download, name='website_invoice_pdf'),
+    path('webstore_pdf_view/<int:order_id>/<str:order_hash>', views.gen_invoice_for_webstore, name='website_invoice_pdf_view'),
 
     re_path(r'^order/([-\w]+)-(?P<order_id>\d+)$', views.gen_merged_paperwork, name='order_paperwork_pdf2'),
     path('quote/<int:quote_id>', views.gen_quote_paperwork, name='quote_paperwork_pdf'),

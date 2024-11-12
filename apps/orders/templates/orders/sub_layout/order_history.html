@@ -3,8 +3,48 @@
     <div class="col">
         <div class="ibox-content">
             <h5>Payment History</h5>
+            <table class="table table-striped table-condensed">
+                <thead>
+                <tr class="table-secondary">
+                    <th scope="col">Date</th>
+                    <th scope="col">Method</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Comment</th>
+                </tr>
+                </thead>
+                <tbody>
 
-            <h5>Order History</h5>
+                {% for payment_history_data in payment_history %}
+                    <tr>
+                        <td>{{ payment_history_data.date_added }}</td>
+                        <td>{{ payment_history_data.payment_method }}</td>
+                        <td>{{ payment_history_data.payment_status }}</td>
+                        <td>{{ payment_history_data.comment | safe}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        <hr>
+        <h5>Order History</h5>
+            <table class="table table-striped table-condensed">
+                <thead>
+                <tr class="table-secondary">
+                    <th scope="col">Date</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {% for order_history_data in order_history %}
+                    <tr>
+                        <td>{{ order_history_data.date_added }}</td>
+                        <td>{{ order_history_data.order_status}}</td>
+                        <td>{{ order_history_data.comment | safe}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

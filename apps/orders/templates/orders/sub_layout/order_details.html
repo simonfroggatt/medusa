@@ -34,7 +34,7 @@
                          {% if order_obj.company %}
                               <dt class="col-3">Company</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer_id %}">{{ order_obj.company }}</a></dd>
                          {% endif %}
-                          <dt class="col-3">Contact</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer_id %}">{{ order_obj.fullname }}</a></dd>
+                          <dt class="col-3">Contact</dt><dd class="col-9">{{ order_obj.fullname }}</dd>
                      {% endif %}
 
                      <dt class="col-3">Order No:</dt>

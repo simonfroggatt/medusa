@@ -5,13 +5,16 @@ import datetime as dt
 from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from apps.shipping.models import OcTsgCourier
-from apps.options.models import OcProductOption, OcProductOptionValue, OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption
+from apps.options.models import  OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption, OcTsgOptionTypes
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
 from django.core.validators import FileExtensionValidator
 from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 import os
+
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 class OcOrderQuerySet(models.QuerySet):
     def successful(self):
@@ -228,7 +231,7 @@ class OcOrder(models.Model):
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate', blank=True, null=True)
     printed = models.BooleanField(default=False)  #note - must be BooleanField
     plain_label = models.BooleanField(default=False)
-
+    order_hash = models.CharField(max_length=256, blank=True, null=True)
     @property
     def is_order(self):
         #return self.order_status.order_status_id == 15
@@ -265,6 +268,10 @@ class OcOrder(models.Model):
 
         if self.payment_status_id == 2:
             self.payment_date = dt.datetime.now()
+
+        #update the status
+        add_order_status_history(self.order_id, self.order_status_id)
+        add_payment_status_history(self.order_id, self.payment_method_id, self.payment_status_id)
         super(OcOrder, self).save(*args, **kwargs)
 
     class Meta:
@@ -414,10 +421,10 @@ class OcOrderTotal(models.Model):
 class OcOrderHistory(models.Model):
     order_history_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(OcOrder, models.DO_NOTHING, related_name='order_history')
-    order_status = models.CharField(max_length=128, blank=True, null=True)
+    order_status = models.ForeignKey(OcOrderStatus, models.DO_NOTHING, blank=True, null=True)
     notify = models.IntegerField()
     comment = models.TextField()
-    date_added = models.DateTimeField()
+    date_added = models.DateTimeField(blank=True, null=True, auto_now_add=True)
 
     class Meta:
         managed = False
@@ -427,10 +434,12 @@ class OcOrderHistory(models.Model):
 class OcTsgPaymentHistory(models.Model):
     payment_history_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True, related_name='payment_history')
-    payment_status = models.CharField(max_length=128, blank=True, null=True)
-    payment_method = models.CharField(max_length=128, blank=True, null=True)
+    payment_status = models.ForeignKey(OcTsgPaymentStatus, models.DO_NOTHING, db_column='payment_status', blank=True,
+                                       null=True)
+    payment_method = models.ForeignKey(OcTsgPaymentMethod, models.DO_NOTHING, db_column='payment_method', blank=True,
+                                       null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
-    date_added = models.DateTimeField(blank=True, null=True)
+    date_added = models.DateTimeField(blank=True, null=True, auto_now_add=True)
 
     class Meta:
         managed = False
@@ -457,7 +466,7 @@ class OcTsgOrderArtwork(models.Model):
     version = models.CharField(max_length=255, blank=True, null=True)
     approved = models.BooleanField(default=False)
     approved_by = models.CharField(max_length=255, blank=True, null=True)
-    added_date = models.DateTimeField(blank=True, null=True)
+    added_date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     approved_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -497,6 +506,7 @@ class OcTsgOrderProductOptions(models.Model):
     bl_dynamic = models.BooleanField(default=False)
     dynamic_class_id = models.IntegerField(blank=True, null=True)
     dynamic_value_id = models.IntegerField(blank=True, null=True)
+    class_type = models.ForeignKey(OcTsgOptionTypes, models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -526,5 +536,30 @@ def add_order_product_history(order_product_id, old_id, new_id):
         new_history_obj.save()
 
 
+def add_order_status_history(order_id, new_id):
+    last_history = OcOrderHistory.objects.filter(order_id=order_id).order_by('-date_added').first()
+    old_id = 0
+    if last_history:
+        old_id = last_history.order_status_id
 
+    if old_id != new_id:
+        new_history_obj = OcOrderHistory()
+        new_history_obj.order_id = order_id
+        new_history_obj.order_status_id = new_id
+        new_history_obj.notify = False
+        new_history_obj.save()
 
+def add_payment_status_history(order_id, new_method_id, new_status_id):
+    last_history = OcTsgPaymentHistory.objects.filter(order_id=order_id).order_by('-date_added').first()
+    old_method_id = 0
+    old_status_id = 0
+    if last_history:
+        old_method_id = last_history.payment_method_id
+        old_status_id = last_history.payment_status_id
+
+    if (old_method_id != new_method_id) or (old_status_id != new_status_id):
+        new_history_obj = OcTsgPaymentHistory()
+        new_history_obj.order_id = order_id
+        new_history_obj.payment_method_id = new_method_id
+        new_history_obj.payment_status_id = new_status_id
+        new_history_obj.save()

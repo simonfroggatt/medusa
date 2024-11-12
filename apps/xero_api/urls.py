@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/order/add/<int:order_id>/<str:encrypted>', views.xero_order_add, name='xero_order_add'),
     path('api/order/update/<int:order_id>/<str:encrypted>', views.xero_order_update, name='xero_order_update'),
     path('api/order/link/<int:order_id>/<str:encrypted>', views.xero_order_link, name='xero_order_link'),
+    path('api/order/customer/<int:xero_id>/<str:encrypted>', views.xero_get_order_customer, name='xero_get_order_customer'),
 
     path('api/webhooks', views.xero_web_hook, name='xero_web_hook'),
     path('api/webhooks_test', views.xero_web_hook_test, name='xero_web_hook_test'),

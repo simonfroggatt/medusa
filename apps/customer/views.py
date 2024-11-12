@@ -13,12 +13,16 @@ from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView
 from django.urls import reverse_lazy
 import json
 import hashlib
+import uuid
 from django.utils.crypto import get_random_string
 from django.contrib import messages
 from medusa import services
 from django.conf import settings
 import os
 from cryptography.fernet import Fernet
+import requests
+
+from apps.xero_api.views import xero_get_order_customer
 
 
 def customers_list(request):
@@ -337,6 +341,11 @@ def order_customer_create(request, customer_id):
         new_order_obj.shipping_country_name_id = address_book['shipping'].country_id
         new_order_obj.shipping_country = address_book['shipping'].country
 
+        unique_id = uuid.uuid4().hex  # Generates a random UUID and gets the hex representation
+        # Hash the unique identifier with MD5
+        order_hash = hashlib.md5(unique_id.encode()).hexdigest()
+        new_order_obj.order_hash = order_hash
+
         new_order_obj.save()
 
         new_order_obj.order_totals.create(code='sub_total', sort_order=1, title='Sub-Total', value=0)
@@ -475,6 +484,86 @@ def contact_create(request):
                                          )
 
     return JsonResponse(data)
+
+def contact_create_from_guest(request, order_id):
+    initial_data = {
+        'language_id': 1,
+        'status': 1,
+        'ip': '0.0.0.0',
+        'account_type': 1,
+        'safe': 1,
+        'customer_group': 1,
+        'store': 1,
+        'country': 826,
+    }
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    customer_obj = OcCustomer()
+    customer_obj.store_id = order_obj.store_id
+    customer_obj.language_id = 1
+    customer_obj.customer_group_id = 1
+    customer_obj.status = 1
+    customer_obj.safe = 1
+    customer_obj.account_type_id = 1
+    customer_obj.ip = '0.0.0.0'
+    customer_obj.country_id = 826
+    customer_obj.fullname = order_obj.fullname
+    customer_obj.email = order_obj.email
+    customer_obj.telephone = order_obj.telephone
+    customer_obj.company = order_obj.company
+    customer_obj.save()
+    address_obj = OcAddress()
+    address_obj.customer = customer_obj
+    address_obj.fullname = order_obj.payment_fullname
+    address_obj.company = order_obj.payment_company
+    address_obj.address_1 = order_obj.payment_address_1
+    address_obj.city = order_obj.payment_city
+    address_obj.area = order_obj.payment_area
+    address_obj.postcode = order_obj.payment_postcode
+    address_obj.country_id = order_obj.payment_country_name_id
+    address_obj.telephone = order_obj.payment_telephone
+    address_obj.email = order_obj.payment_email
+    address_obj.default_billing = 1
+    address_obj.default_shipping = 0
+    address_obj.save()
+
+    #check if the billing and shipping are the same
+    #create 2 arrays and compare them
+    shipping_address = [order_obj.shipping_fullname, order_obj.shipping_company, order_obj.shipping_address_1, order_obj.shipping_city, order_obj.shipping_area, order_obj.shipping_postcode, order_obj.shipping_country_name_id, order_obj.shipping_telephone, order_obj.shipping_email]
+    payment_address = [order_obj.payment_fullname, order_obj.payment_company, order_obj.payment_address_1, order_obj.payment_city, order_obj.payment_area, order_obj.payment_postcode, order_obj.payment_country_name_id, order_obj.payment_telephone, order_obj.payment_email]
+    #compare the arrays
+    if shipping_address == payment_address:
+        address_obj.default_shipping = 1
+        address_obj.save()
+    else:
+        address_obj_shipping = OcAddress()
+        address_obj_shipping.customer = customer_obj
+        address_obj_shipping.fullname = order_obj.shipping_fullname
+        address_obj_shipping.company = order_obj.shipping_company
+        address_obj_shipping.address_1 = order_obj.shipping_address_1
+        address_obj_shipping.city = order_obj.shipping_city
+        address_obj_shipping.area = order_obj.shipping_area
+        address_obj_shipping.postcode = order_obj.shipping_postcode
+        address_obj_shipping.country_id = order_obj.shipping_country_name_id
+        address_obj_shipping.telephone = order_obj.shipping_telephone
+        address_obj_shipping.email = order_obj.shipping_email
+        address_obj_shipping.default_billing = 0
+        address_obj_shipping.default_shipping = 1
+        address_obj_shipping.save()
+
+    order_obj.customer_id = customer_obj.customer_id
+    order_obj.save()
+
+    #if this order has been pushed to Xero, then the order will have a customer ref.  Get this and assign it to the customer
+    if order_obj.xero_id:
+        customer_ref = customer_get_xero_ref(order_obj.xero_id)
+        if customer_get_xero_ref:
+            customer_obj.xero_id = customer_ref
+            customer_obj.save()
+
+    success_url = reverse_lazy('customerdetails', kwargs={'customer_id': customer_obj.customer_id})
+    return HttpResponseRedirect(success_url)
+
+
 
 
 def customer_update_notes(request, customer_id):
@@ -720,6 +809,17 @@ def customer_xero_update(request, customer_id):
     encrypted_order_num = f.encrypt(str(customer_id).encode()).decode()
     return_url = reverse_lazy('xero_customer_update', kwargs={'contact_id': customer_id, 'encrypted': encrypted_order_num})
     return HttpResponseRedirect(return_url)
+
+
+def customer_get_xero_ref(xero_ref):
+    f = Fernet(settings.XERO_TOKEN_FERNET)
+    encrypted_order_num = f.encrypt(str(xero_ref).encode()).decode()
+
+    data = xero_get_order_customer(None, xero_ref, encrypted_order_num)
+    if data['status'] == 'OK':
+        return data['customer_ref']
+    else:
+        return None
 
 
 
