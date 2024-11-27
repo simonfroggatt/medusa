@@ -2,3 +2,4 @@
 /venv/
 .env
 /apps/dashboard/migrations/
+/medusa/settings.py

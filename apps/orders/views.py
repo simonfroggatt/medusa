@@ -14,7 +14,6 @@ from apps.options.models import (OcTsgProductVariantOptions, OcTsgOptionClass, O
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
-from pyreportjasper import PyReportJasper
 from django.conf import settings
 import os
 import json

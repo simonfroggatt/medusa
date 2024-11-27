@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import environ
 from django.contrib import messages
+from decouple import config
 
 env = environ.Env(
     # set casting, default value
@@ -75,7 +76,6 @@ INSTALLED_APPS = [
     'rest_framework_datatables',
     'bootstrap_modal_forms',
     'tinymce',
-    'pyreportjasper',
 
 ]
 
@@ -175,7 +175,9 @@ USE_TZ = False
 
 
 STATIC_ROOT = '/static_cdn/'
+
 STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     #os.path.join(BASE_DIR, 'apps/templating/static/templating'),
                     os.path.join(BASE_DIR, 'apps/authentication/static/authentication'),
@@ -201,7 +203,9 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     ]
 
 MEDIA_ROOT = '/Users/simonfroggatt/Sites/tsg_storage/'
-MEDIA_URL = '/media/'
+
+#MEDIA_URL = '/media/'
+MEDIA_URL = f'https://cdn.totalsafetygroup.com/'
 
 #custom paths for files
 WEBSITE_ROOT = os.path.join(MEDIA_ROOT, 'stores')

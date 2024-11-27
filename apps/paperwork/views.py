@@ -1249,6 +1249,8 @@ def set_printed(request, order_id):
 
 
 def _push_to_xero(request, order_id):
+    return
+
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     if not order_obj.xero_id:
         xero_url = reverse_lazy('order-add-xero', kwargs={'pk': order_obj.order_id})

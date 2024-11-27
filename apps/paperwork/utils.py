@@ -375,9 +375,8 @@ def get_order_product_line_add(order_product_id, bl_options = False, style = [],
         product_table_line['qty_added'] = qty
         #then we have a product with options that are add products
         product_obj.append(product_table_line)
-        return product_obj
-    else:
-        return product_obj
+
+    return product_obj
 
 def _create_addon_data_for_table(product_variant_id, bl_options = False, styles = [], store_id = 1, qty = 0):
     image_max_h = 10 * mm

@@ -37,8 +37,9 @@
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="orders-tab" data-bs-toggle="tab" href="#tab-orders"
                                    role="tab">
-                                    <i class="fa-solid fa-list"></i> Orders</a>
+                                    <i class="fa-solid fa-shopping-cart"></i> Orders</a>
                             </li>
+
                             <li>
                                 <a class="nav-link" id="contacts-tab" data-bs-toggle="tab" href="#tab-contacts"
                                    role="tab">
@@ -48,6 +49,11 @@
                                 <a class="nav-link" id="addressbook-tab" data-bs-toggle="tab" href="#tab-addressbook"
                                    role="tab">
                                     <i class="fa-solid fa-map-marker-alt"></i> Address Book</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="quotes-tab" data-bs-toggle="tab" href="#tab-quotes"
+                                   role="tab">
+                                    <i class="fa-regular fa-handshake"></i> Quotes</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="art-tab" data-bs-toggle="tab" href="#tab-art" role="tab"><i
@@ -59,9 +65,17 @@
                                    role="tab"><i
                                         class="fa-solid fa-folder-open"></i> Documents</a>
                             </li>
+                            <li>
+                        <a class="nav-link" id="prices-tab" data-bs-toggle="tab" href="#tab-prices" role="tab"><i class="fa-regular fa-tag"></i> Prices</a>
+                    </li>
                         </ul>
                         <div class="tab-content">
                             <div role="tabpanel" id="tab-orders" class="tab-pane fade show active">
+                                <div class="panel-body">
+                                    Quotes in here
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-quotes" class="tab-pane fade">
                                 <div class="panel-body">
                                     {% include 'company/sub_layout/orders_list.html' %}
                                 </div>
@@ -86,6 +100,11 @@
                                 {% include 'company/sub_layout/company_documents.html' %}
                             </div>
                         </div>
+                            <div role="tabpanel" id="tab-prices" class="tab-pane fade">
+                        <div class="panel-body">
+                            company prices
+                        </div>
+                    </div>
                         </div>
                     </div>
                 </div>
