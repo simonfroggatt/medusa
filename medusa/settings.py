@@ -174,32 +174,32 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 
-STATIC_ROOT = '/static_cdn/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     #os.path.join(BASE_DIR, 'apps/templating/static/templating'),
                     os.path.join(BASE_DIR, 'apps/authentication/static/authentication'),
-                    os.path.join(BASE_DIR, 'apps/orders/static/orders'),
-                    os.path.join(BASE_DIR, 'apps/customer/static/customer'),
-                    os.path.join(BASE_DIR, 'apps/products/static/products'),
-                    os.path.join(BASE_DIR, 'apps/pricing/static/pricing'),
-                    os.path.join(BASE_DIR, 'apps/company/static/company'),
-                    os.path.join(BASE_DIR, 'apps/emails/static/emails'),
-                    os.path.join(BASE_DIR, 'apps/paperwork/static/paperwork'),
-                    os.path.join(BASE_DIR, 'apps/pages/static/pages'),
-                    os.path.join(BASE_DIR, 'apps/sites/static/sites'),
-                    os.path.join(BASE_DIR, 'apps/quotes/static/quotes'),
-                    os.path.join(BASE_DIR, 'apps/category/static/category'),
-                    os.path.join(BASE_DIR, 'apps/options/static/options'),
                     os.path.join(BASE_DIR, 'apps/bulk/static/bulk'),
-                    os.path.join(BASE_DIR, 'apps/shipping/static/shipping'),
-                    os.path.join(BASE_DIR, 'apps/suppliers/static/suppliers'),
+                    os.path.join(BASE_DIR, 'apps/category/static/category'),
+                    os.path.join(BASE_DIR, 'apps/company/static/company'),
+                    os.path.join(BASE_DIR, 'apps/customer/static/customer'),
                     os.path.join(BASE_DIR, 'apps/dashboard/static/dashboard'),
+                    os.path.join(BASE_DIR, 'apps/orders/static/orders'),
+                    os.path.join(BASE_DIR, 'apps/emails/static/emails'),
+                    os.path.join(BASE_DIR, 'apps/options/static/options'),
+                    os.path.join(BASE_DIR, 'apps/pages/static/pages'),
+                    os.path.join(BASE_DIR, 'apps/paperwork/static/paperwork'),
+                    os.path.join(BASE_DIR, 'apps/pricing/static/pricing'),
+                    os.path.join(BASE_DIR, 'apps/products/static/products'),
+                    os.path.join(BASE_DIR, 'apps/quotes/static/quotes'),
+                    os.path.join(BASE_DIR, 'apps/shipping/static/shipping'),
+                    os.path.join(BASE_DIR, 'apps/sites/static/sites'),
+                    os.path.join(BASE_DIR, 'apps/suppliers/static/suppliers'),
+                    os.path.join(BASE_DIR, 'apps/symbols/static/symbols'),
+                    os.path.join(BASE_DIR, 'apps/templating/static/templating'),
                     os.path.join(BASE_DIR, 'apps/xero_api/static/xero_api'),
-
-
                     ]
 
 MEDIA_ROOT = '/Users/simonfroggatt/Sites/tsg_storage/'

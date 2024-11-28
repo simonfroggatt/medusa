@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+
+import apps.authentication.views
 from medusa import views
 
 urlpatterns = [
@@ -39,7 +41,7 @@ urlpatterns = [
     path('suppliers/', include('apps.suppliers.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     path('xero_api/', include('apps.xero_api.urls')),
-    path('', views.StarterPageView.as_view(), name='apps-pages-starter'),
+    path('', apps.authentication.views.do_login, name='apps-pages-starter'),
     path('admin/', admin.site.urls),
     path('tinymce/', include('tinymce.urls')),
 

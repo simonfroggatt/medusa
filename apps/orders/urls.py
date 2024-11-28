@@ -93,5 +93,7 @@ urlpatterns = [
     path('api/<int:pk>/xero/link', views.order_xero_link, name = 'order-xero-link'),
     path('api/<int:pk>/xero/marksent', views.order_xero_marksent, name = 'order-xero-marksent'),
 
+    path('', views.live_order_list, name = 'order-home'),
+
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

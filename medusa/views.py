@@ -9,3 +9,4 @@ class StarterPageView(View):
         greeting['heading'] = "Starter Page"
         greeting['pageview'] = "Pages"
         return render(request, 'pages-starter.html',greeting)
+
