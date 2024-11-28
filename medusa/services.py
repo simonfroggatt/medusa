@@ -5,7 +5,7 @@ from django.conf import settings
 
 
 def createUploadThumbnail(filename):
-    cache_path = os.path.join(settings.MEDIA_ROOT, 'preview_cache')
+    cache_path = os.path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_CACHE_ROOT)
     preview_path = filename
     manager = PreviewManager(cache_path, create_folder=True)
     path_to_preview_image = manager.get_jpeg_preview(preview_path)

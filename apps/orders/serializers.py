@@ -75,6 +75,7 @@ class OrderListSerializer(serializers.ModelSerializer):
 
 class OrderProductListSerializer(serializers.ModelSerializer):
 
+
     class Meta:
         model = OcOrderProduct
         #fields = ['order_id','order_product_id', 'product_id', 'name', 'model', 'quantity', 'price', 'total', 'tax', 'product_variant']
