@@ -18,7 +18,7 @@ class Symbols(viewsets.ModelViewSet):
         return OcTsgSymbols.objects.all()
 
     def post(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+        return self.list(request, *args)
 
 #class Symbols(generics.ListAPIView):
 #    queryset = OcTsgSymbols.objects.all()

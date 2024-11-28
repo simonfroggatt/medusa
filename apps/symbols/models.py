@@ -13,6 +13,10 @@ class OcTsgProductSymbols(models.Model):
         db_table = 'oc_tsg_product_symbols'
         unique_together = (('product', 'symbol'),)
 
+    @property
+    def symbol_image_url(self):
+        return self.symbol.symbol_image_url
+
 
 class OcTsgSymbolCategory(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
@@ -44,7 +48,7 @@ class OcTsgSymbolStandards(models.Model):
 
 
 class OcTsgSymbols(models.Model):
-    image_path = models.ImageField(upload_to='symbols/thumbs/', blank=True, null=True)
+    image_path = models.ImageField(upload_to='symbols/thumbs/', blank=True, null=True, )
     refenceno = models.CharField(max_length=48, blank=True, null=True)
     referent = models.CharField(max_length=255, blank=True, null=True)
     function = models.CharField(max_length=1024, blank=True, null=True)

@@ -182,7 +182,10 @@ class CategorySerializer(serializers.ModelSerializer):
 class ProductSymbolSerialzer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgProductSymbols
-        fields = '__all__'
+        fields = [field.name for field in model._meta.fields]
+        fields.extend(['symbol_image_url'])
+
+
 
         depth = 1
 

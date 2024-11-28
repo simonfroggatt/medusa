@@ -84,6 +84,7 @@
             },
             {
                 data: "order_id",
+                responsivePriority: 1,
                  render: function ( data, type, row ) {
                     let url = '/orders/' + data;
                     let website_prefix = row['store']['prefix']+'-';
@@ -96,6 +97,7 @@
             },
             {
                 data: "short_date",
+                responsivePriority: 2,
                 searchable: false
             },
 
@@ -180,6 +182,7 @@
             {
                 data: "total",
                 class: "text-end",
+                responsivePriority: 3,
                 render: function ( data, type, row ) {
                     return parseFloat(data).toFixed(2);
                  }

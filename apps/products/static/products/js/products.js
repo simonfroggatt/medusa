@@ -478,7 +478,7 @@ $(function () {
                 "regex": true
             },
             columns: [
-                {data: "symbol.svg_path", defaultContent: "no-image.png",
+                {data: "symbol_image_url", defaultContent: "no-image.png",
                     render: function ( data, type, row ) {
                     if(data == null ){
                         img_path = media_url + "no-image.png"
@@ -536,7 +536,7 @@ $(function () {
                         return add_icon
                     },
                     },
-                {data: "svg_path", defaultContent: "no-image.png",
+                {data: "symbol_image_url", defaultContent: "no-image.png",
                     render: function ( data, type, row ) {
                     if(data == null ){
                         img_path = media_url + "no-image.png"

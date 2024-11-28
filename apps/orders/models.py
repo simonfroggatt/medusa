@@ -375,6 +375,15 @@ class OcOrderProduct(models.Model):
         managed = False
         db_table = 'oc_order_product'
 
+    @property
+    def product_image_url(self):
+        if self.product_variant.alt_image_url:
+            return self.product_variant.alt_image_url
+        else:
+            return ''
+
+
+
    # def save(self, *args, **kwargs):
         #do the total stuff in here
     #    super(OcOrderProduct, self).save(*args, **kwargs)
@@ -383,6 +392,8 @@ class OcOrderProduct(models.Model):
     def __init__(self, *args, **kwargs):
         super(OcOrderProduct, self).__init__(*args, **kwargs)
         self.old_status_id = self.status_id
+
+
 
     def delete(self, using=None, keep_parents=False):
         super(OcOrderProduct, self).delete(using, keep_parents)

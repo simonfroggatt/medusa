@@ -15,6 +15,8 @@ import os
 import environ
 from django.contrib import messages
 from decouple import config
+from storages.backends.s3boto3 import S3Boto3Storage
+#from custom_storages import MediaStorage
 
 env = environ.Env(
     # set casting, default value
@@ -35,6 +37,7 @@ SECRET_KEY = 'django-insecure-0%g862#abjugdfjbz1i3y3oc0)ifrdds-!t_m&-^c(4#!d8y#%
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -76,6 +79,7 @@ INSTALLED_APPS = [
     'rest_framework_datatables',
     'bootstrap_modal_forms',
     'tinymce',
+    'storages',
 
 ]
 
@@ -173,11 +177,6 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
-
-STATIC_URL = '/static/'
-
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     #os.path.join(BASE_DIR, 'apps/templating/static/templating'),
                     os.path.join(BASE_DIR, 'apps/authentication/static/authentication'),
@@ -202,23 +201,9 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'apps/xero_api/static/xero_api'),
                     ]
 
-MEDIA_ROOT = '/Users/simonfroggatt/Sites/tsg_storage/'
 
-#MEDIA_URL = '/media/'
-MEDIA_URL = f'https://cdn.totalsafetygroup.com/'
 
-#custom paths for files
-WEBSITE_ROOT = os.path.join(MEDIA_ROOT, 'stores')
-MEDUSA_ROOT = os.path.join(MEDIA_ROOT, 'medusa')
 
-MEDUSA_DOCS = os.path.join(MEDIA_ROOT, 'medusa/documents')
-MEDUSA_ARTWORK = os.path.join(MEDIA_ROOT, 'medusa/artwork')
-
-WEBSITE_CATEGORY = os.path.join(WEBSITE_ROOT, 'stores/category')
-WEBSITE_PRODUCTS = os.path.join(WEBSITE_ROOT, 'stores/products')
-WEBSITE_SYMBOL_SVG = os.path.join(WEBSITE_ROOT, 'stores/symbols/svg')
-
-THUMBNAIL_CACHE = 'preview_cache'
 
 
 # Default primary key field type
@@ -253,6 +238,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
 
     'PAGE_SIZE': 1000,
+
+    'UPLOADED_FILES_USE_URL': False
 }
 
 
@@ -262,10 +249,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-REPORT_PATH = os.path.join(BASE_DIR, "static/reports")
-REPORT_URL = 'http://127.0.0.1:8000'
 
-TINYMCE_JS_URL = os.path.join(STATIC_URL, "libs/tinymce/tinymce.min.js")
 
 TINYMCE_DEFAULT_CONFIG = {
     "menubar": "false",
@@ -313,6 +297,106 @@ EMAIL_HOST_PASSWORD = '$me11yb0nes' # Replace with your Google Workspace email p
 XERO_CLIENT_ID = 'CF09696A2AA3439A8C196E0951704336'
 XERO_CLIENT_SECRET = 'yblgaWg93p_kMZKCrztUT5T4gn2sbG4megdNqlz0gVSvds-t'
 XERO_TOKEN_FERNET = b'Z4mVj1JlAM5CxyKfHbvs0f8q9X4wsBqHZUD6FdmsHDk='
+
+
+
+
+
+#AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+
+
+
+
+# Static and media file configuration
+#STATIC_URL = f'{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/static/'
+#STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+CDN = True
+
+# For serving static files directly from S3
+AWS_S3_URL_PROTOCOL = 'https'
+AWS_S3_USE_SSL = True
+AWS_S3_VERIFY = True
+AWS_ACCESS_KEY_ID = 'AKIATG6MGICYXOUN5GKE'
+AWS_SECRET_ACCESS_KEY = '9dd89wllEJCFlqyodi5dvn2KzgOvepRLfVbgYaBP'
+AWS_S3_REGION_NAME = 'eu-west-2'  # e.g., us-east-1
+AWS_STORAGE_BUCKET_NAME = 'amzn-s3-totalsafetygroup-bucket-v1'
+AWS_S3_CUSTOM_DOMAIN = f'cdn.totalsafetygroup.com'
+USE_S3_MEDIA = True
+AWS_LOCATION = ''
+
+
+
+
+#always server our statics from local
+STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
+STATIC_URL = '/static/'
+
+MEDIAFILES_LOCATION = ''
+
+
+if CDN:
+    #MEDIA_URL = f'{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/'
+     STORAGES = {
+    #     "old": {
+    #         "BACKEND": "django.core.files.storage.FileSystemStorage",
+    #     },
+         "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            },
+         "default": {
+             "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    #         #"BACKEND": "custom_storages.MediaStorage",
+             "LOCATION": "/",
+             "DEFAULT_ACL": "public-read",
+             "AWS_S3_REGION_NAME": AWS_S3_REGION_NAME,
+             "AWS_ACCESS_KEY_ID": AWS_ACCESS_KEY_ID,
+             "AWS_SECRET_ACCESS_KEY": AWS_SECRET_ACCESS_KEY,
+             "AWS_STORAGE_BUCKET_NAME": AWS_STORAGE_BUCKET_NAME,
+             "AWS_S3_CUSTOM_DOMAIN": AWS_S3_CUSTOM_DOMAIN,
+             "AWS_S3_FILE_OVERWRITE": False,
+             "AWS_DEFAULT_ACL": None,
+             "AWS_S3_OBJECT_PARAMETERS": {
+                 "CacheControl": "max-age=86400",
+             },
+             "AWS_QUERYSTRING_AUTH": False,
+             "AWS_S3_VERIFY": AWS_S3_VERIFY,
+             "AWS_S3_USE_SSL": AWS_S3_USE_SSL,
+
+         },
+
+     }
+     MEDIA_URL = f'{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/'
+     MEDIA_DIRECTORY = 'media'
+   # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+   # MEDIAFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+else:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join('/Users/simonfroggatt/Sites/tsg_storage')
+
+
+#DEFAULT_FILE_STORAGE = 'custom_storages.MediaStorage'
+
+TSG_MEDIA_ROOT = ''
+
+#custom paths for files
+WEBSITE_ROOT = os.path.join(TSG_MEDIA_ROOT, 'stores')
+MEDUSA_ROOT = os.path.join(TSG_MEDIA_ROOT, 'medusa')
+
+MEDUSA_DOCS = os.path.join(TSG_MEDIA_ROOT, 'medusa/documents')
+MEDUSA_ARTWORK = os.path.join(TSG_MEDIA_ROOT, 'medusa/artwork')
+
+WEBSITE_CATEGORY = os.path.join(WEBSITE_ROOT, '/category')
+WEBSITE_PRODUCTS = os.path.join(WEBSITE_ROOT, '/products')
+WEBSITE_SYMBOL_SVG = os.path.join(WEBSITE_ROOT, '/symbols/svg')
+
+THUMBNAIL_CACHE_ROOT = 'medusa/preview_cache'
+THUMBNAIL_CACHE = os.path.join(TSG_MEDIA_ROOT, THUMBNAIL_CACHE_ROOT)
+
+REPORT_PATH = os.path.join(BASE_DIR, "static/reports")
+REPORT_URL = 'http://127.0.0.1:8000'
+
+TINYMCE_JS_URL = os.path.join(STATIC_URL, "libs/tinymce/tinymce.min.js")
 
 
 

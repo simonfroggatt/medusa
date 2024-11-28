@@ -20,7 +20,7 @@ $(function () {
             },
             {
 
-                "data": "product_variant.prod_var_core.product.image",
+                "data": "product_image_url",
                 "className": "center",
                 "searchable": false,
                 "sortable": false,
