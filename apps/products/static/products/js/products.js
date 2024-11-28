@@ -484,7 +484,7 @@ $(function () {
                         img_path = media_url + "no-image.png"
                     }
                     else{
-                        img_path =  data
+                        img_path = data
                     }
                      return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';
                     },

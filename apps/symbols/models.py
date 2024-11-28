@@ -51,7 +51,7 @@ class OcTsgSymbols(models.Model):
     content = models.CharField(max_length=1024, blank=True, null=True)
     hazard = models.CharField(max_length=1024, blank=True, null=True)
     humanbehav = models.CharField(max_length=1024, blank=True, null=True)
-    svg_path = models.ImageField(upload_to='symbols/svg/', width_field='image_width', height_field='image_height')
+    svg_path = models.ImageField(upload_to='symbols/svg/', width_field='image_width', height_field='image_height', blank=True)
     category = models.ForeignKey(OcTsgCategoryTypes, models.DO_NOTHING, db_column='category', blank=True, null=True, related_name='symbolcats')
     standard = models.ForeignKey(OcTsgSymbolStandards, models.DO_NOTHING, blank=True, null=True, related_name='symbolstandards')
     image_width = models.IntegerField(blank=True, null=True)
@@ -66,6 +66,6 @@ class OcTsgSymbols(models.Model):
     @property
     def symbol_image_url(self):
         if self.image_path:
-            return f"{settings.MEDIA_URL}{self.image_path}"
+            return f"{settings.MEDIA_URL}{self.svg_path}"
         else:
             return f"{settings.MEDIA_URL}no-image.png"

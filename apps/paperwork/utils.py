@@ -21,7 +21,7 @@ def create_company_logo(company_obj):
     maxW = 90 * mm
     maxH = 20 * mm
 
-    img_src = 'apps/paperwork/static/paperwork/images/' + company_obj.logo_paperwork
+    img_src = settings.STATIC_ROOT +'/paperwork/images/' + company_obj.logo_paperwork
     image_type = pathlib.Path(img_src).suffix
     if image_type.lower() == '.svg':
         comp_logo = svg2rlg(img_src)
