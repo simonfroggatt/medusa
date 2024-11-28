@@ -18,6 +18,7 @@ $(function () {
                 "data": "model",
                 responsivePriority: 1
             },
+
             {
 
                 "data": "product_image_url",
