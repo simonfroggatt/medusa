@@ -52,6 +52,7 @@ class OcTsgSymbols(models.Model):
     hazard = models.CharField(max_length=1024, blank=True, null=True)
     humanbehav = models.CharField(max_length=1024, blank=True, null=True)
     svg_path = models.ImageField(upload_to='symbols/svg/', width_field='image_width', height_field='image_height', blank=True)
+    #svg_path = models.ImageField(upload_to='symbols/svg/',blank=True)
     category = models.ForeignKey(OcTsgCategoryTypes, models.DO_NOTHING, db_column='category', blank=True, null=True, related_name='symbolcats')
     standard = models.ForeignKey(OcTsgSymbolStandards, models.DO_NOTHING, blank=True, null=True, related_name='symbolstandards')
     image_width = models.IntegerField(blank=True, null=True)

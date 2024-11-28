@@ -2,6 +2,8 @@ from django.urls import path
 from apps.symbols import views
 from rest_framework import routers
 from django.urls import include
+from django.conf import settings
+from django.conf.urls.static import static
 
 router = routers.SimpleRouter()
 router.register(r'symbols', views.Symbols)
@@ -16,5 +18,6 @@ urlpatterns = [
     path('<int:pk>/delete', views.Symboldelete.as_view(), name='symboldelete'),
     path('<int:symbol_id>/deletedlg', views.symbol_delete_dlg, name='symboldelete-dlg'),
     path('', views.all_symbols, name='allsymbols'),
-    ]
+    ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
+              + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
