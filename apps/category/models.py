@@ -40,9 +40,13 @@ class OcCategory(models.Model):
         db_table = 'oc_category'
 
     @property
+    def category_image_url_old(self):
+        return self.categorybasedesc.image
+
+    @property
     def category_image_url(self):
-        if self.image:
-            return f"{settings.MEDIA_URL}{self.image}"
+        if self.categorybasedesc.image:
+            return f"{settings.MEDIA_URL}{self.categorybasedesc.image}"
         else:
             return f"{settings.MEDIA_URL}no-image.png"
 
@@ -53,10 +57,9 @@ class OcCategory(models.Model):
 class OcCategoryDescriptionBase(models.Model):
     category = models.OneToOneField(OcCategory, models.DO_NOTHING, primary_key=True, related_name='categorybasedesc')
     language = models.ForeignKey(OcLanguage, models.DO_NOTHING, blank=True, null=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,  blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
-    #image = models.CharField(max_length=255, blank=True, null=True)
     image = models.ImageField(upload_to='stores/category/', blank=True, null=True)
     meta_title = models.CharField(max_length=255)
     meta_description = models.CharField(max_length=1024)
@@ -68,7 +71,9 @@ class OcCategoryDescriptionBase(models.Model):
         managed = False
         db_table = 'oc_category_description_base'
 
-    def category_image_url(self):
+
+    @property
+    def base_category_image_url(self):
         if self.image:
             return f"{settings.MEDIA_URL}{self.image}"
         else:
@@ -92,6 +97,7 @@ class OcCategoryDescription(models.Model):
     adwords_name = models.CharField(max_length=255, blank=True, null=True)
     clean_url = models.CharField(max_length=255, blank=True, null=True)
 
+    @property
     def category_image_url(self):
         if self.image:
             return f"{settings.MEDIA_URL}{self.image}"
@@ -126,7 +132,7 @@ class OcCategoryToStore(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    image = models.CharField(max_length=255, blank=True, null=True)
+    image = models.ImageField(upload_to='stores/category/', blank=True, null=True)
     meta_title = models.CharField(max_length=255, blank=True, null=True)
     meta_description = models.CharField(max_length=1024, blank=True, null=True)
     meta_keywords = models.CharField(max_length=512, blank=True, null=True)
@@ -138,7 +144,7 @@ class OcCategoryToStore(models.Model):
         if self.image:
             return f"{settings.MEDIA_URL}{self.image}"
         else:
-            return f"{settings.MEDIA_URL}no-image.png"
+            return self.category.category_image_url
 
     class Meta:
         managed = False

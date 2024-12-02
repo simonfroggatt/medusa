@@ -1,7 +1,7 @@
 {% load static %}
 <div class="row pb-2">
     <div class="col-12 col-sm-2 pe-0">
-        <img src="{{ category_obj.category_image_url }}" alt="{{ category_obj.name }} category image" class="img-fluid img-thumbnail">
+        <img src="{{ category_obj.base_category_image_url }}" alt="{{ category_obj.name }} category image" class="img-fluid img-thumbnail">
     </div>
     <div class="col-12 col-sm-5 pe-0" id="card_category_base_desc">
         <div class="card h-100 mb-0">
@@ -12,7 +12,7 @@
                         <div class="float-end">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
                                 <a type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
-                                        href="{% url 'categorybaseedit' category_obj.category_id %}"
+                                        href="{% url 'categorybaseedit' category_obj.pk %}"
                                         data-dlgsize="modal-xl"
                                 ><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                             </div>

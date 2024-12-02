@@ -1,6 +1,8 @@
 from django import forms
 from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryDescriptionBase, OcCategoryToStore, OcTsgCategoryStoreParent
 from tinymce.widgets import TinyMCE
+from django_svg_image_form_field import SvgAndImageFormField
+from django.conf import settings
 
 
 class CategoryEditForm(forms.ModelForm):
@@ -77,6 +79,11 @@ class CategoryStoreParentForm(forms.ModelForm):
         labels = {
             'status': 'live'
         }
+
+        field_classes = {
+            'image': SvgAndImageFormField,
+        }
+
 
 
 

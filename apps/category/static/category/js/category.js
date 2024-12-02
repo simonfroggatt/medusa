@@ -87,7 +87,7 @@
                  }
             },
              {
-                 data: "category_store.name",
+                 data: "category_store.category.name",
              },
             {data: "parent.category.name"},
             {
