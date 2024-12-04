@@ -1,6 +1,11 @@
 from django.shortcuts import render
 from apps.dashboard import services as sv
+from django.contrib.auth.decorators import permission_required
+
+
+
 # Create your views here.
+@permission_required('group.sales')
 def dashboard(request):
     template_name = 'dashboard/dashboard_main.html'
     context = {'heading': "Dashboard"}

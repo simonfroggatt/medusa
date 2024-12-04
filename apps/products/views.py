@@ -33,6 +33,9 @@ import os
 
 from django.core.mail import send_mail
 
+from django.contrib.auth.decorators import login_required, user_passes_test
+from medusa.decorators import group_required
+
 
 class ProductSite(viewsets.ModelViewSet):
     queryset = OcProductToStore.objects.all()
@@ -172,6 +175,9 @@ class ProductSiteVariantOption(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+
+#@login_required
+@group_required('superuser')
 def product_list(request):
     template_name = 'products/products_list.html'
     context = {'heading': 'All products'}

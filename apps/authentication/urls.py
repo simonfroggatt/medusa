@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import (
-    do_login
-)
+from apps.authentication import views
 
 urlpatterns = [
-    path('login', do_login),
+    path('login', views.do_login, name="medusalogin"),
+    path('logout', views.do_logout, name="medusalogout"),
 ]
