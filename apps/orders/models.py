@@ -507,6 +507,10 @@ class OcTsgOrderDocuments(models.Model):
     def short_name(self):
         return os.path.basename(self.filename.name)
 
+    @property
+    def cdn_name(self):
+        return f"{settings.MEDIA_URL}{self.filename.name}"
+
 
 class OcTsgOrderProductOptions(models.Model):
     order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_variant_options')

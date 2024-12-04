@@ -1934,7 +1934,7 @@ def order_document_upload(request):
 
 def order_document_download(request, pk):
     doc_obj = get_object_or_404(OcTsgOrderDocuments, pk=pk)
-    response = FileResponse(doc_obj.filename, as_attachment=True)
+    response = FileResponse(doc_obj.cdn_name, as_attachment=True)
     return response
 
 
