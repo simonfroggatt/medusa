@@ -62,16 +62,16 @@ $(function()
 
      new ClipboardJS('.btncopy');
 
-     const myModalEl = document.getElementById('modal-base')
+   //  const myModalEl = document.getElementById('modal-base')
 
-     myModalEl.addEventListener('hidden.bs.modal', function(event) {
+   /*  myModalEl.addEventListener('hidden.bs.modal', function(event) {
          var onclose = $(this).attr('data-onclose')
          switch(onclose) {
              case "site_variant": UpdateSiteVarientTable(); break;
              default: console.log(onclose);
          }
 
-    });
+    });*/
 
 
 });

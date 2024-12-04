@@ -119,7 +119,12 @@
                 {% include 'partials/footer.html' %}
             {% endblock footer %}
 
-        
+        <div class="modal fade" id="modal-base" role="dialog" data-onclose="">
+            <div class="modal-dialog modal-dialog-centered modal-xl" role="document" id="modal-outer">
+                <div class="modal-content">
+                </div>
+            </div>
+        </div>
     
         <div aria-live="polite" aria-atomic="true" class="position-relative">
             <div class="toast-container position-fixed top-0 end-0 p-3" id="toastStackDiv">
