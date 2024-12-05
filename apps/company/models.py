@@ -1,6 +1,7 @@
 from django.db import models
 from medusa.models import OcTaxRate, OcTsgPaymentTerms, OcTsgCountryIso, OcTsgAccountType, OcTsgFileTypes
 from apps.sites.models import OcStore, OcCurrency
+from django.conf import settings
 
 class OcTsgCustomerStatus(models.Model):
     status_id = models.AutoField(primary_key=True)
@@ -72,6 +73,11 @@ class OcTsgCompanyDocuments(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_company_documents'
+
+    @property
+    def cdn_name(self):
+        return f"{settings.MEDIA_URL}{self.filename.name}"
+
 
     def __str__(self):
         return self.title

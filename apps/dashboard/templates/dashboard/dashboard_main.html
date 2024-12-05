@@ -5,14 +5,35 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-md-6">
-                <div id="daily_chart" class=""></div>
+            <div class="col-12 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        Daily
+                    </div>
+                    <div class="card-body">
+                        <div id="daily_chart" class=""></div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">
-                <div id="weekly_chart" class="a"></div>
+            <div class="col-12 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        Weekly
+                    </div>
+                    <div class="card-body">
+                        <div id="weekly_chart" class=""></div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-12">
-                <div id="monthly_chart" class=""></div>
+            <div class="col-md-12 g-4">
+                <div class="card">
+                    <div class="card-header">
+                        Monthly
+                    </div>
+                    <div class="card-body">
+                        <div id="monthly_chart" class=""></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -99,7 +120,12 @@
           }
         }],
         plotOptions: {
-          bar: {
+              pie: {
+        donut: {
+          size: '65%'
+        }
+      },
+         /* bar: {
             horizontal: false,
             borderRadius: 10,
             borderRadiusApplication: 'end', // 'around', 'end'
@@ -113,7 +139,7 @@
                 }
               }
             }
-          },
+          },*/
         },
         legend: {
           position: 'right',

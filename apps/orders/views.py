@@ -1918,9 +1918,10 @@ def order_document_upload(request):
             form.save()
             form_instance = form.instance
             order_doc_obj = get_object_or_404(OcTsgOrderDocuments, pk=form_instance.pk)
-            cached_thumb = services.createUploadThumbnail(order_doc_obj.filename.file.name)
-            order_doc_obj.cache_path = cached_thumb
-            order_doc_obj.save()
+
+            #cached_thumb = services.createUploadThumbnail(order_doc_obj.filename.file.name)
+            #order_doc_obj.cache_path = cached_thumb
+            #order_doc_obj.save()
             data['success_post'] = True
             data['document_ajax_url'] = reverse_lazy('fetch_order_documents', kwargs={'order_id': order_doc_obj.order_id})
             data['divUpdate'] = ['div-order_documents', 'html_content']

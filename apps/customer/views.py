@@ -743,8 +743,8 @@ def customer_document_upload(request):
             form.save()
             form_instance = form.instance
             customer_doc_obj = get_object_or_404(OcTsgContactDocuments, pk=form_instance.pk)
-            cached_thumb = services.createUploadThumbnail(customer_doc_obj.filename.file.name)
-            customer_doc_obj.cache_path = cached_thumb
+            # cached_thumb = services.createUploadThumbnail(customer_doc_obj.filename.file.name)
+            # customer_doc_obj.cache_path = cached_thumb
             customer_doc_obj.save()
             data['success_post'] = True
             data['document_ajax_url'] = reverse_lazy('fetch_customer_documents', kwargs={'customer_id': customer_doc_obj.contact_id})

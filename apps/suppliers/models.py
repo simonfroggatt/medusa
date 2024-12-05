@@ -1,6 +1,6 @@
 from django.db import models
 from medusa.models import OcTsgCountryIso, OcTsgPaymentTerms, OcTsgAccountType, OcTsgFileTypes
-
+from django.conf import settings
 
 class OcSupplier(models.Model):
     code = models.CharField(max_length=20, blank=True, null=True)
@@ -42,6 +42,10 @@ class OcTsgSupplierDocuments(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_supplier_documents'
+
+    @property
+    def cdn_name(self):
+        return f"{settings.MEDIA_URL}{self.filename.name}"
 
     def __str__(self):
         return self.title

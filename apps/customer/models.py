@@ -2,6 +2,7 @@ from django.db import models
 from medusa.models import OcTaxRate, OcTsgAccountType, OcTsgFileTypes
 from apps.sites.models import OcStore
 from apps.company.models import OcTsgCompany, OcTsgCountryIso
+from django.conf import settings
 
 
 class OcTsgPaymentTerms(models.Model):
@@ -107,6 +108,10 @@ class OcTsgContactDocuments(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_contact_documents'
+
+    @property
+    def cdn_name(self):
+        return f"{settings.MEDIA_URL}{self.filename.name}"
 
 
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class OcTaxClass(models.Model):
@@ -144,3 +145,19 @@ class OcTsgFileTypes(models.Model):
 
     def __str__(self):
         return self.name
+
+class OcTsgFiletypeImages(models.Model):
+    extension = models.CharField(max_length=255, blank=True, null=True)
+    image = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_filetype_images'
+
+    @property
+    def image_url(self):
+        return f"{settings.STATIC_URL}images/filetypes/{self.image}"
+
+
+    def __str__(self):
+        return self.image

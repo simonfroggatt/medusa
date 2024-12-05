@@ -134,8 +134,8 @@ def supplier_document_upload(request):
             form.save()
             form_instance = form.instance
             supplier_doc_obj = get_object_or_404(OcTsgSupplierDocuments, pk=form_instance.pk)
-            cached_thumb = services.createUploadThumbnail(supplier_doc_obj.filename.file.name)
-            supplier_doc_obj.cache_path = cached_thumb
+           # cached_thumb = services.createUploadThumbnail(supplier_doc_obj.filename.file.name)
+           # supplier_doc_obj.cache_path = cached_thumb
             supplier_doc_obj.save()
             data['success_post'] = True
             data['document_ajax_url'] = reverse_lazy('fetch_supplier_documents', kwargs={'supplier_id': supplier_doc_obj.supplier_id})

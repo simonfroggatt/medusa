@@ -522,8 +522,8 @@ def material_spec_upload(request):
             form.save()
             form_instance = form.instance
             material_doc_obj = get_object_or_404(OcTsgMaterialSpec, pk=form_instance.pk)
-            cached_thumb = services.createUploadThumbnail(material_doc_obj.filename.file.name)
-            material_doc_obj.cache_path = cached_thumb
+            # cached_thumb = services.createUploadThumbnail(material_doc_obj.filename.file.name)
+            # material_doc_obj.cache_path = cached_thumb
             material_doc_obj.save()
             data['success_post'] = True
             data['document_ajax_url'] = reverse_lazy('fetch_material_spec', kwargs={'material_id': material_doc_obj.material_id})

@@ -14,6 +14,7 @@ from medusa import services
 from django.conf import settings
 import os
 from cryptography.fernet import Fernet
+from django.core.files.storage import default_storage as storage
 
 
 
@@ -314,8 +315,8 @@ def company_document_upload(request):
             form.save()
             form_instance = form.instance
             company_doc_obj = get_object_or_404(OcTsgCompanyDocuments, pk=form_instance.pk)
-            cached_thumb = services.createUploadThumbnail(company_doc_obj.filename.file.name)
-            company_doc_obj.cache_path = cached_thumb
+            #cached_thumb = services.createUploadThumbnail(company_doc_obj.filename.file.name)
+            #company_doc_obj.cache_path = cached_thumb
             company_doc_obj.save()
             data['success_post'] = True
             data['document_ajax_url'] = reverse_lazy('fetch_company_documents', kwargs={'company_id': company_doc_obj.company_id})
@@ -330,8 +331,20 @@ def company_document_upload(request):
 
 def company_document_download(request, pk):
     doc_obj = get_object_or_404(OcTsgCompanyDocuments, pk=pk)
-    response = FileResponse(doc_obj.filename, as_attachment=True)
-    return response
+    response_headers = {
+        'response-content-type': 'application/force-download',
+        'response-content-disposition': 'attachment;filename="%s"' % doc_obj.filename.name
+    }
+    url = storage.url(doc_obj.filename.name)
+    #response = FileResponse(open(url), as_attachment=True)
+    return HttpResponse(
+        open(doc_obj.cdn_name, 'rb'),
+        content_type='text/plain',  # it's a download, mime type doesn't matter
+        headers={
+            'Content-Disposition': f"attachment; filename={doc_obj.filename.name}",
+            'Cache-Control': 'no-cache'  # files are dynamic, prevent caching
+        }
+    )
 
 
 def company_document_delete(request, pk):

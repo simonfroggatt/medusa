@@ -1614,8 +1614,8 @@ def product_document_upload(request):
             form.save()
             form_instance = form.instance
             product_doc_obj = get_object_or_404(OcTsgProductDocuments, pk=form_instance.pk)
-            cached_thumb = services.createUploadThumbnail(product_doc_obj.filename.file.name)
-            product_doc_obj.cache_path = cached_thumb
+            #cached_thumb = services.createUploadThumbnail(product_doc_obj.filename.file.name)
+            #product_doc_obj.cache_path = cached_thumb
             product_doc_obj.save()
             data['success_post'] = True
             data['document_ajax_url'] = reverse_lazy('fetch_product_documents',

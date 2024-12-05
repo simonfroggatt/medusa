@@ -378,5 +378,9 @@ class OcTsgProductDocuments(models.Model):
         managed = False
         db_table = 'oc_tsg_product_documents'
 
+    @property
+    def cdn_name(self):
+        return f"{settings.MEDIA_URL}{self.filename.name}"
+
     def __str__(self):
         return self.title
