@@ -92,7 +92,7 @@ var TSGAddressLookup = function (inputFieldName, outputSelectName, fieldsToMatch
     }
 
     let findAddress = function (inputVal, container = '') {
-        let Key = "HF22-WD36-EJ36-XZ61",
+        let Key = "MD98-EM44-MP79-FC29",
             IsMiddleware = true,
             Countries = "GB, IE",
             Limit = "10",
@@ -153,7 +153,7 @@ var TSGAddressLookup = function (inputFieldName, outputSelectName, fieldsToMatch
     };
 
     let getAddress = function (addressID) {
-        let Key = "HF22-WD36-EJ36-XZ61",
+        let Key = "MD98-EM44-MP79-FC29",
             url = 'https://api.addressy.com/Capture/Interactive/Retrieve/v1.2/json3.ws';
 
         $.ajax({
