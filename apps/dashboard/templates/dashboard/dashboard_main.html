@@ -6,12 +6,26 @@
     <div class="container">
         <div class="row">
             <div class="col-12 col-md-6">
-                <div class="card h-100">
+                <div class="card h-100" id="daily_chart">
                     <div class="card-header">
-                        Daily
+                        <div class="row">
+                            <div class="col-6">
+                                Daily
+                            </div>
+                            <div class="col-6 text-end">
+                                <!-- add a calendar here -->
+                                <input type="date" id="daily_date" name="daily_date" value="{{ daily_today }}">
+                            </div>
+                        </div>
+
                     </div>
                     <div class="card-body">
                         <div id="daily_chart" class=""></div>
+                        <div id="daily_values">
+                            <ul>
+
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

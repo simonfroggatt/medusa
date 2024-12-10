@@ -10,6 +10,11 @@ def order_highlight_code(order_obj):
         h_code = 2
     if order_obj.payment_status_id == 2:  #Paid
         h_code = 1
+    if order_obj.order_status_id == 7:
+        h_code = 3
+    if order_obj.order_status_id == 4:
+        h_code = 3
+
     return h_code
 
 def create_due_date(order_obj):

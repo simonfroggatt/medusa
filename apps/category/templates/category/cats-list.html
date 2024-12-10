@@ -53,6 +53,7 @@
         "pageLength": 25,
         "autoWidth": true,
         "responsive": true,
+        "serverSide": true,
         "ajax": {
                  "processing": true,
                  "url": "/category/api/category/?format=datatables"
@@ -88,6 +89,7 @@
                 data: 'category_id',
                 sortable: false,
                 className: 'text-end',
+                searchable: false,
                 render: function ( data, type, row ) {
 
                 let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" href="' + data + '"><i class="{{ ICON_EDIT }} fa-sm"></i></a>';

@@ -56,19 +56,22 @@
         "pageLength": 25,
         "autoWidth": false,
         "responsive": true,
+        "serverSide": true,
         "ajax": {
                  "processing": true,
-                 "url": "/customer/api/customerslist/?format=datatables"
+                 "url": "/customer/api/customerslist/?format=datatables",
+                 "type" : "GET"
              },
         "deferRender": true,
         "order": [[ 6, "desc" ]],
          "search": {
-            "regex": true
-        },
+                 "smart": true
+             },
         columns :[
             {
                 data: "store",
                 sortable: false,
+                searchable: false,
                 render: function ( data, type, row ) {
                     let image_src = '{% get_media_prefix %}' + 'stores/branding/logos/' + data.thumb;
                     return '<img height="20px" src="' + image_src + '">'
@@ -91,7 +94,18 @@
                 data: "date_added",
                 "visible": false
             },
-            {data: "core_postcodes", visible: false}
+            {data: "address_customer",
+                visible: false,
+                searchable: true,
+                name: "address_customer__postcode",
+
+            },
+            {data: "address_customer",
+                visible: false,
+                searchable: true,
+                name: "address_customer__fullname",
+
+            },
 
         ]
     } );

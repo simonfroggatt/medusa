@@ -211,16 +211,7 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
         order_item_tbl_data[2] = ""
         if order_item_data.product_variant:
             image_src = order_item_data.product_variant.site_variant_image_url
-            if image_src.endswith('.svg'):
-                svg_url = filename=settings.REPORT_URL + quote(image_src)
-                image_file_name = os.path.basename(quote(image_src))
-                image_file = os.path.splitext(image_file_name)
-
-                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
-                if not os.path.isfile(image_url):
-                    svg2png(url=svg_url, write_to=image_url)
-            else:
-                image_url = settings.REPORT_URL + quote(image_src)
+            image_url = utils._create_image_url(order_item_data.product_variant.site_variant_image_url)
 
             img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
@@ -361,16 +352,7 @@ def gen_dispatch_note(order_id, bl_excl_shipped=False):
 
         if order_item_data.product_variant:
             image_src = order_item_data.product_variant.site_variant_image_url
-            if image_src.endswith('.svg'):
-                svg_url = filename=settings.REPORT_URL + quote(image_src)
-                image_file_name = os.path.basename(quote(image_src))
-                image_file = os.path.splitext(image_file_name)
-
-                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
-                if not os.path.isfile(image_url):
-                    svg2png(url=svg_url, write_to=image_url)
-            else:
-                image_url = settings.REPORT_URL + quote(image_src)
+            image_url = utils._create_image_url(order_item_data.product_variant.site_variant_image_url)
 
             img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
@@ -524,16 +506,7 @@ def gen_options_pick_list(order_id, bl_excl_shipped=False):
 
         if order_item_data.product_variant:
             image_src = order_item_data.product_variant.site_variant_image_url
-            if image_src.endswith('.svg'):
-                svg_url = filename=settings.REPORT_URL + quote(image_src)
-                image_file_name = os.path.basename(quote(image_src))
-                image_file = os.path.splitext(image_file_name)
-
-                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
-                if not os.path.isfile(image_url):
-                    svg2png(url=svg_url, write_to=image_url)
-            else:
-                image_url = settings.REPORT_URL + quote(image_src)
+            image_url = utils._create_image_url(order_item_data.product_variant.site_variant_image_url)
 
             img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
@@ -704,17 +677,7 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
 
         if order_item_data.product_variant:
             image_src = order_item_data.product_variant.site_variant_image_url
-            if image_src.endswith('.svg'):
-                svg_url = filename = settings.REPORT_URL + quote(image_src)
-                image_file_name = os.path.basename(quote(image_src))
-                image_file = os.path.splitext(image_file_name)
-
-                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0] + '.png')
-                if not os.path.isfile(image_url):
-                    svg2png(url=svg_url, write_to=image_url)
-            else:
-                image_url = settings.REPORT_URL + quote(image_src)
-
+            image_url = utils._create_image_url(order_item_data.product_variant.site_variant_image_url)
             img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
 
@@ -1141,16 +1104,7 @@ def gen_quote_pdf(quote_id, bl_total=True):
 
         if quote_item_data.product_variant:
             image_src = quote_item_data.product_variant.site_variant_image_url
-            if image_src.endswith('.svg'):
-                svg_url = filename=settings.REPORT_URL + quote(image_src)
-                image_file_name = os.path.basename(quote(image_src))
-                image_file = os.path.splitext(image_file_name)
-
-                image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
-                if not os.path.isfile(image_url):
-                    svg2png(url=svg_url, write_to=image_url)
-            else:
-                image_url = settings.REPORT_URL + quote(image_src)
+            image_url = utils._create_image_url(quote_item_data.product_variant.site_variant_image_url)
 
             img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
@@ -1255,10 +1209,6 @@ def _push_to_xero(request, order_id):
         xero_url = reverse_lazy('order-add-xero', kwargs={'pk': order_obj.order_id})
         base_url = request.build_absolute_uri(xero_url)
         r = requests.get(base_url)
-
-
-
-
 
 
 #this function is used by webstores to generate an invoice

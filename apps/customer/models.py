@@ -64,6 +64,10 @@ class OcCustomer(models.Model):
         db_table = 'oc_customer'
         ordering = ['-date_added']
 
+    @property
+    def full_name_legacy(self):
+        return f"{self.firstname} {self.lastname}"
+
 
 class OcAddress(models.Model):
     address_id = models.AutoField(primary_key=True)

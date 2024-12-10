@@ -21,7 +21,12 @@ def create_company_logo(company_obj):
     maxW = 90 * mm
     maxH = 20 * mm
 
-    img_src = settings.STATIC_ROOT +'/paperwork/images/' + company_obj.logo_paperwork
+    if settings.STATIC_ROOT:
+        img_src = settings.STATIC_ROOT + '/paperwork/images/' + company_obj.logo_paperwork
+    else:
+        img_src = settings.STATIC_URL + '/paperwork/images/'  + company_obj.logo_paperwork
+    #img_src = settings.STATIC_ROOT +'/paperwork/images/' + company_obj.logo_paperwork
+
     image_type = pathlib.Path(img_src).suffix
     if image_type.lower() == '.svg':
         comp_logo = svg2rlg(img_src)
@@ -393,16 +398,7 @@ def _create_addon_data_for_table(product_variant_id, bl_options = False, styles 
     order_item_tbl_data[0] = Paragraph(order_item_data.variant_code, styles['table_data'])
 
     image_src = order_item_data.site_variant_image_url
-    if image_src.endswith('.svg'):
-        svg_url = filename = settings.REPORT_URL + quote(image_src)
-        image_file_name = os.path.basename(quote(image_src))
-        image_file = os.path.splitext(image_file_name)
-
-        image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0] + '.png')
-        if not os.path.isfile(image_url):
-            svg2png(url=svg_url, write_to=image_url)
-    else:
-        image_url = settings.REPORT_URL + quote(image_src)
+    image_url = _create_image_url(image_src)
 
     img = Image(image_url)
     img._restrictSize(image_max_w, image_max_h)
@@ -426,3 +422,25 @@ def _create_addon_data_for_table(product_variant_id, bl_options = False, styles 
     order_item_tbl_data[8 + option_col_adj] = ""
 
     return order_item_tbl_data
+
+
+def _create_image_url(image_src):
+    if image_src.endswith('.svg'):
+        if settings.CDN:
+            svg_url = image_src
+        else:
+            svg_url = filename = settings.REPORT_URL + quote(image_src)
+        image_file_name = os.path.basename(quote(image_src))
+        image_file = os.path.splitext(image_file_name)
+
+        # image_url = os.path.join(settings.MEDIA_ROOT, 'preview_cache', image_file[0]+'.png')
+        image_url = os.path.join(settings.REPORT_PATH_CACHE, image_file[0] + '.png')
+        if not os.path.isfile(image_url):
+            svg2png(url=svg_url, write_to=image_url)
+    else:
+        if settings.CDN:
+            image_url = image_src
+        else:
+            image_url = settings.REPORT_URL + quote(image_src)
+
+    return image_url

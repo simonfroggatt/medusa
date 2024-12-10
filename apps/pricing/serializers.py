@@ -5,9 +5,18 @@ from apps.sites.models import OcStore
 
 class SizesSerializer(serializers.ModelSerializer):
 
+
+    fullsize_name = serializers.SerializerMethodField()
+
+    def get_fullsize_name(self, obj):
+        return f'{obj.size_width} {obj.size_height}'
+
     class Meta:
         model = OcTsgProductSizes
-        fields = '__all__'
+
+        fields = [field.name for field in model._meta.fields]
+        fields.extend(['fullsize_name'])
+
         depth = 2
 
 

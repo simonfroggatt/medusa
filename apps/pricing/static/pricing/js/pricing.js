@@ -9,23 +9,25 @@ $(function () {
         "pageLength": 25,
         "autoWidth": true,
         "select": 'single',
-        "responsive": false,
+        "responsive": true,
+        "serverSide": true,
         "ajax": {
             "processing": true,
             "url": "/pricing/api/prices/?format=datatables",
 
+
         },
-        "deferRender": false,
+        "deferRender": true,
 
         "search": {
-            "regex": true
+            "smart": true
         },
         columns: [
 
             {data: "product_size.size_name", defaultContent: ""},
-            {data: "product_size.size_width", defaultContent: ""},
-            {data: "product_size.size_height", defaultContent: ""},
-            {data: "product_material.material_name", defaultContent: ""},
+            {data: "product_size.size_width", defaultContent: "", searchable: true},
+            {data: "product_size.size_height", defaultContent: "", searchable: true},
+            {data: "product_material.material_name", defaultContent: "", searchable: true},
             {data: "price", defaultContent: 0.00},
             {data: "weight", defaultContent: 0.00},
             {
@@ -39,8 +41,8 @@ $(function () {
                     return delete_icon + "  " + edit_icon + " " + add_icon
                 }
             },
-            {data: "product_size.size_width", "visible": false, searchable: true},
-            {data: "product_size.size_height", "visible": false, searchable: true},
+           /* {data: "product_size.size_width", "visible": false, searchable: true},
+            {data: "product_size.size_height", "visible": false, searchable: true},*/
 
         ]
     });

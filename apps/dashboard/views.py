@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from apps.dashboard import services as sv
 from django.contrib.auth.decorators import permission_required
+import datetime
 
 
 
@@ -16,6 +17,10 @@ def dashboard(request):
     context['weekly_by_method'] = weekly
     context['monthly_by_method'] = monthly_data['datapoint']
     context['monthly_range'] = monthly_data['range']
+
+    context['daily_today'] = datetime.datetime.now().strftime('%Y-%m-%d')
+
+
     #sv.range_stats('D')
     #sv.range_stats('W')
     #sv.range_stats('M')

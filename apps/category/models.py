@@ -63,7 +63,7 @@ class OcCategoryDescriptionBase(models.Model):
     image = models.ImageField(upload_to='stores/category/', blank=True, null=True)
     meta_title = models.CharField(max_length=255)
     meta_description = models.CharField(max_length=1024)
-    meta_keyword = models.CharField(max_length=512)
+    meta_keyword = models.CharField(max_length=1024)
     adwords_name = models.CharField(max_length=255, blank=True, null=True)
     clean_url = models.CharField(max_length=255, blank=True, null=True)
 

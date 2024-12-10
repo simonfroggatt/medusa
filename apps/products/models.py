@@ -51,8 +51,8 @@ class OcProductDescriptionBase(models.Model):
     description = models.TextField()
     tag = models.TextField(blank=True, null=True)
     meta_title = models.CharField(max_length=255)
-    meta_description = models.CharField(max_length=255)
-    meta_keyword = models.CharField(max_length=255)
+    meta_description = models.CharField(max_length=1024)
+    meta_keyword = models.CharField(max_length=1024)
     long_description = models.TextField(blank=True, null=True)
     sign_reads = models.TextField(blank=True, null=True)
 

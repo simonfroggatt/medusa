@@ -24,7 +24,7 @@ class OcOrderQuerySet(models.QuerySet):
 
     def live(self):
         valid_status = [2, 3, 8]
-        order_status_excl = [99, 1]
+        order_status_excl = [99, 1, 7]
         return self.exclude(order_status_id__in=order_status_excl).filter(payment_status_id__in=valid_status)
 
     def new(self):
@@ -170,7 +170,7 @@ class OcOrder(models.Model):
     payment_lastname = models.CharField(max_length=32, blank=True, null=True)
     payment_email = models.CharField(max_length=512, blank=True, null=True)
     payment_telephone = models.CharField(max_length=50, blank=True, null=True)
-    payment_company = models.CharField(max_length=60, blank=True, null=True)
+    payment_company = models.CharField(max_length=255, blank=True, null=True)
     payment_address_1 = models.CharField(max_length=512, blank=True, null=True)
     payment_address_2 = models.CharField(max_length=128, blank=True, null=True)
     payment_city = models.CharField(max_length=128, blank=True, null=True)
@@ -189,7 +189,7 @@ class OcOrder(models.Model):
     shipping_lastname = models.CharField(max_length=32, blank=True, null=True)
     shipping_email = models.CharField(max_length=512, blank=True, null=True)
     shipping_telephone = models.CharField(max_length=50, blank=True, null=True)
-    shipping_company = models.CharField(max_length=40, blank=True, null=True)
+    shipping_company = models.CharField(max_length=255, blank=True, null=True)
     shipping_address_1 = models.CharField(max_length=512, blank=True, null=True)
     shipping_address_2 = models.CharField(max_length=128, blank=True, null=True)
     shipping_city = models.CharField(max_length=128, blank=True, null=True)
@@ -252,14 +252,18 @@ class OcOrder(models.Model):
     def get_order_status(self):
         status = ''
         payment_status = [2, 3, 8]; # 2 = paid, 3 = processing, 8 = shipped
-        order_status_excl = [4,5, 99, 1] # 4 = cancelled, 5 = refunded, 99 = deleted, 1 = pending
+        order_status_excl = [4, 5, 99, 1] # 4 = cancelled, 5 = refunded, 99 = complete, 1 = pending
         order_status_live = [99, 1] #
+        legacy_order_id = [7]
         if self.payment_status_id in payment_status:
             if self.order_status_id not in order_status_excl:
                 status = 'LIVE'
             else:
                 status = 'NEW'
         else:
+            status = 'FAILED'
+
+        if self.order_status_id in legacy_order_id:
             status = 'FAILED'
 
         return status
