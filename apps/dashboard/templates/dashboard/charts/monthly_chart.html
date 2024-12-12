@@ -1,0 +1,40 @@
+<div class="card-header">
+    <div class="row">
+        <div class="col-6">
+            Monthly
+        </div>
+        <div class="col-6 text-end">
+            <div class="row">
+                <div class="col">
+                    <select class="form-select" name="monthly_chart_month" id="monthly_chart_month">
+                        {% for month_value in months %}
+                            <option value="{{ month_value.month }}" {% if month_value.month == current_month_int %}
+                                    selected {% endif %}>{{ month_value.month_name }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+                <div class="col">
+                    <select class="form-select" name="monthly_chart_year" id="monthly_chart_year">
+                        {% for year_value in years %}
+                            <option value="{{ year_value }}">{{ year_value }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </div>
+            <!-- add a calendar here -->
+
+
+        </div>
+    </div>
+
+</div>
+<div class="card-body">
+    <canvas id="monthly_sales_chart"></canvas>
+    <div id="monthly_values">
+        <ul>
+
+        </ul>
+    </div>
+</div>

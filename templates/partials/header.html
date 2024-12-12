@@ -73,11 +73,11 @@
                 </div>
 
                 <div class="d-grid gap-1 d-md-flex justify-content-md-end">
-                    <button type="button" class="btn header-item" id="topmenu_contact">
-                                        <a href="{% url 'allcustomers' %}">
+                    <button type="button" class="btn header-item" id="topmenu_contact" data-toggle="tooltip" data-placement="bottom" title="All contacts">
+                                        <a href="{% url 'allcustomers' %}" >
                                         <i class="fa-solid fa-user-friends"></i></a>
                     </button>
-                    <button type="button" class="btn header-item" id="topmenu_liveorder">
+                    <button type="button" class="btn header-item" id="topmenu_liveorder" data-toggle="tooltip" data-placement="bottom" title="All Orders">
                         <a href="{% url 'allorders' %}">
                         <i class="fa-solid fa-chart-line-up"></i></a>
                     </button>
@@ -86,13 +86,13 @@
                     </button>
                     <button type="button" class="btn header-item" id="topmenu_quickquote"
                                     data-url="{% url 'quotequick' %}"
-                                        data-dlgsize="modal-lg">
+                                        data-dlgsize="modal-lg" data-toggle="tooltip" data-placement="bottom" title="Quick quote">
                         <i class="fa-solid fa-file-invoice"></i>
                     </button>
-                    <button type="button" class="btn header-item" id="topmenu_quickcalc">
+                    <button type="button" class="btn header-item" id="topmenu_quickcalc" data-toggle="tooltip" data-placement="bottom" title="Quick price">
                         <i class="fa-solid fa-calculator"></i>
                     </button>
-                    <button  type="button" class="btn header-item" data-toggle="logout" id="topmenu_logout">
+                    <button  type="button" class="btn header-item"  id="topmenu_logout" data-toggle="tooltip" data-placement="left" title="Logout">
                         <a href="/authentication/logout"><i class="fa-solid fa-right-from-bracket"></i></a>
                     </button>
                 </div>

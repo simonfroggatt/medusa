@@ -91,6 +91,7 @@ class OcTsgPaymentMethod(models.Model):
     method_name = models.CharField(max_length=255, blank=True, null=True)
     payment_method_icon = models.CharField(max_length=255, blank=True, null=True)
     order_by = models.IntegerField(blank=True, null=True)
+    chart_colour = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False

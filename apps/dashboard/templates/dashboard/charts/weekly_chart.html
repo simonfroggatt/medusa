@@ -1,0 +1,27 @@
+<div class="card-header">
+                        <div class="row">
+                            <div class="col-6">
+                                Weekly
+                            </div>
+                            <div class="col-6 text-end">
+                                <!-- add a calendar here -->
+                                <input class="form-select" type="date" id="weekly_chart_date" name="weekly_chart_date" value="{{ daily_today }}">
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-body">
+                         <canvas id="weekly_sales_chart"></canvas>
+                        <div id="weekly_values">
+                            <div class="row pt-2">
+                                <div class="col-md-6 text-start">
+                                    <h4>Total Revenue: £<span id="weekly_total_revenue"></span><br><span id="weekly_total_orders"></span> orders</h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="chart_ul" id="weekly_chart_summary">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
