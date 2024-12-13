@@ -12,7 +12,7 @@ import pandas as pd
 
 
 # Create your views here.
-@permission_required('group.sales')
+#@permission_required('group.sales')
 def dashboard(request):
     template_name = 'dashboard/dashboard_main.html'
     context = {'heading': "Dashboard"}
