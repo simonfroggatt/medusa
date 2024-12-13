@@ -17,7 +17,7 @@ $(function () {
                     },
                 legend: {
                     display: true,
-                    position: 'right',
+                    position: 'top',
             },
 
                 },
@@ -252,6 +252,27 @@ $(function () {
        // monthly_sales_chart.options.scales.x.max = date_range['end']
         monthly_sales_chart.update();
 
+        _draw_monthly_stats(data['summary']);
+
+    }
+
+    function _draw_monthly_stats(data) {
+        $('#monthly_total_revenue').text(data['total_value']);
+        $('#monthly_total_orders').text(data['total_orders']);
+
+        let payment_types = data['payment_totals_by_type'];
+        let payment_summary_str = '';
+        for (let i = 0; i < payment_types.length; i++) {
+            let payment_type = payment_types[i];
+            let payment_type_method_name = payment_type['payment_method'];
+            let payment_type_total = payment_type['total'];
+            let payment_type_count = payment_type['count'];
+            let payment_type_total_element_str =  '<li>' + payment_type_method_name + ' &pound;'+ payment_type_total + ' (' + payment_type_count + ')</li>';
+            payment_summary_str += payment_type_total_element_str;
+
+        }
+        let payment_type_total_element = $('#monthly_chart_summary');
+        payment_type_total_element.html(payment_summary_str);
     }
 
 

@@ -46,6 +46,7 @@ def get_monthly_sales_by_method(start_date):
     data['month_range']['start'] = chart_data['range']['start']
     data['month_range']['end'] = chart_data['range']['end']
     data['data_set'] = chart_data['data_set']
+    data['summary'] = chart_data['summary']
     return data
 
 
@@ -200,6 +201,7 @@ def create_monthly_payment_method_data_old(pd_data_in, date_range):
 
 def create_monthly_payment_method_data(pd_data_in, date_range):
     chart_data = []
+    summary_data = {}
 
     if len(pd_data_in) <= 0:
         chart_data[dt.datetime.strftime(date_range['start'], "%Y-%m-%d")] = 0
@@ -232,7 +234,37 @@ def create_monthly_payment_method_data(pd_data_in, date_range):
             new_data_point = {'x': dt.datetime.strftime(total_type, "%Y-%m-%d"), 'y': total_qty}
             chart_data.append(new_data_point)
 
-    return {'data_set': chart_data, 'range': {'start': dt.datetime.strftime(date_range['start'], "%Y-%m-%d"), 'end': dt.datetime.strftime(date_range['end'] -  dt.timedelta(days=1), "%Y-%m-%d")}}
+
+        count_df = df2.groupby(['payment_method_id', 'payment_method'])[['total']].count()
+        count_df['total'] = count_df['total'].apply(pd.to_numeric, errors='coerce')
+
+        month_totals_df = df2.groupby(['payment_method_id', 'payment_method'])[['total']].sum()
+        month_totals_df['total'] = month_totals_df['total'].apply(pd.to_numeric, errors='coerce')
+
+        month_totals = month_totals_df.T.to_dict('index')
+        month_total_values = month_totals.get('total')
+
+        counts = count_df.T.to_dict('index')
+        count_values = counts.get('total')
+        payment_type_summary = []
+
+        total_value = round(month_totals_df['total'].sum(), 2)
+        total_orders = 0
+
+        for count_type, count_qty in count_values.items():
+            payment_method = count_type[1]
+            payment_method_count = count_qty
+            payment_method_total = round(month_total_values.get(count_type), 2)
+            payment_summary_data_point = {'payment_method': payment_method, 'count': payment_method_count,
+                                          'total': payment_method_total}
+            payment_type_summary.append(payment_summary_data_point)
+            total_orders += payment_method_count
+
+        summary_data = {'total_value': total_value, 'total_orders': total_orders,
+                        'payment_totals_by_type': payment_type_summary}
+        return_data = {'data_set': chart_data, 'summary': summary_data}
+
+    return {'data_set': chart_data, 'summary': summary_data, 'range': {'start': dt.datetime.strftime(date_range['start'], "%Y-%m-%d"), 'end': dt.datetime.strftime(date_range['end'] -  dt.timedelta(days=1), "%Y-%m-%d")}}
 
 
 
