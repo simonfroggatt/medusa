@@ -16,6 +16,7 @@ import os
 from cairosvg import svg2png
 from django.shortcuts import render, get_object_or_404
 from reportlab_qrcode import QRCodeImage
+from apps.orders.services import create_due_date
 
 def create_company_logo(company_obj):
     maxW = 90 * mm
@@ -191,6 +192,7 @@ def order_payment_details(order_obj, currency_symbol):
 
 def order_payment_details_simple(order_obj, currency_symbol):
     order_payment_str = ''
+    create_due_date(order_obj)
     if order_obj.payment_status_id == 2:
         order_payment_str = 'Paid with thanks'
         order_payment_str +='<br/>Paid via ' + order_obj.payment_method.method_name

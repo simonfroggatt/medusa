@@ -43,7 +43,7 @@ def create_due_date(order_obj):
     else:
         due_date = order_date + dt.timedelta(days=7) #grace period
 
-    order_obj.due_date = due_date
+    order_obj.date_due = due_date
     order_obj.save()
     return due_date
 
