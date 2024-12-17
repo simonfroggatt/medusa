@@ -55,6 +55,7 @@ class OcProductDescriptionBase(models.Model):
     meta_keyword = models.CharField(max_length=1024)
     long_description = models.TextField(blank=True, null=True)
     sign_reads = models.TextField(blank=True, null=True)
+    clean_url = models.CharField(max_length=255, blank=True, null=True, default='')
 
     class Meta:
         managed = False
@@ -83,6 +84,7 @@ class OcProductToStore(models.Model):
     sign_reads = models.TextField(blank=True, null=True)
     tag = models.CharField(max_length=512, blank=True, null=True)
     bulk_group = models.ForeignKey('OcTsgBulkdiscountGroups', models.DO_NOTHING, blank=True, null=True, related_name='store_product_bulkgroup')
+    clean_url = models.CharField(max_length=255,blank=True, null=True, default='')
 
     @property
     def image_url(self):

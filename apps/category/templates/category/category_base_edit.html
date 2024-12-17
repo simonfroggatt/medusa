@@ -34,6 +34,7 @@
                             </div>
                             <div class="col-12">{{ form.category|as_crispy_field }}</div>
                             <div class="col-12">{{ form.name|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.clean_url|as_crispy_field }}</div>
                             <div class="col-12">{{ form.meta_title|as_crispy_field }}</div>
                             <div class="col-12">{{ form.meta_description|as_crispy_field }}</div>
                             <div class="col-12">{{ form.meta_keyword|as_crispy_field }}</div>
@@ -70,6 +71,13 @@
         var t1 = tinymce.init({
             selector: 'textarea#editor',
         })
+
+        $('#id_{{ form.name.name }}').on('change', function () {
+            var title = $(this).val();
+            var slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+            $('#id_{{ form.clean_url.name }}').val(slug);
+        });
+
 
     </script>
 

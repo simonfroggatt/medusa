@@ -3,4 +3,5 @@
 .env
 /apps/dashboard/migrations/
 /medusa/settings.py
-requirements.txt
+requirements.txt!/medusa/settings.py
+!/medusa/settings.py

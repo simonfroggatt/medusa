@@ -32,6 +32,8 @@
                             <dd class="col-9">{{ category_obj.language }}</dd>
                             <dt class="col-3">Type</dt>
                             <dd class="col-9">{{ category_obj.category.category_type }}</dd>
+                            <dt class="col-3">Clean URL</dt>
+                            <dd class="col-9">{{ category_obj.clean_url }}</dd>
                             <dt class="col-3">Status</dt>
                             <dd class="col-9">{% if category_obj.category.status %}
                                 <span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>

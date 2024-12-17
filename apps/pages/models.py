@@ -9,7 +9,7 @@ class OcTsgBlogs(models.Model):
     title = models.CharField(max_length=255)
     sub_title = models.CharField(max_length=1024)
     blog_text = models.TextField()
-    image = models.CharField(max_length=255, blank=True, null=True)
+    image = models.ImageField( upload_to='stores/blogs/', null=True, blank=True)
     status = models.BooleanField(blank=True, null=True)
     date_added = models.DateTimeField(auto_now=True)
     language = models.ForeignKey(OcLanguage, models.DO_NOTHING)
@@ -19,6 +19,7 @@ class OcTsgBlogs(models.Model):
     meta_title = models.CharField(max_length=255, blank=True, null=True)
     meta_description = models.CharField(max_length=512, blank=True, null=True)
     meta_keywords = models.CharField(max_length=512, blank=True, null=True)
+    clean_url = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -34,12 +35,13 @@ class OcInformationDescription(models.Model):
     store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
     title = models.CharField(max_length=64)
     description = models.TextField()
-    meta_title = models.CharField(max_length=255)
-    meta_description = models.CharField(max_length=255)
-    meta_keyword = models.CharField(max_length=255)
+    meta_title = models.CharField(max_length=255,blank=True, null=True)
+    meta_description = models.CharField(max_length=255,blank=True, null=True)
+    meta_keyword = models.CharField(max_length=255,blank=True, null=True)
     sort_order = models.IntegerField(blank=True, null=True)
     bottom = models.BooleanField(blank=True)
     status = models.BooleanField(blank=True)
+    clean_url = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
