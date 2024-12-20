@@ -28,7 +28,7 @@ class CategoryBaseDescriptionSerializer(serializers.ModelSerializer):
 
         class Meta:
             model = OcCategoryDescriptionBase
-            fields = ['name', 'description', 'base_category_image_url','category_id']
+            fields = ['name', 'description', 'base_category_image_url','category_id', 'clean_url']
             depth = 1
 
 

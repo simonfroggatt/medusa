@@ -33,6 +33,7 @@ urlpatterns = [
     path('<int:product_id>', views.product_details, name='product_details'),
     path('<int:product_id>/edit', views.product_edit_base, name='product_base_details_edit'),
     path('api/storeadd', views.product_store_add_text, name='productstoreadd'),
+    path('create', views.product_create, name='product_create'),
 
     #variants and core variants
     path('api/corevariants/<int:product_id>', views.BaseVariantListView.as_view({'get': 'list'}), name='corevariant'),

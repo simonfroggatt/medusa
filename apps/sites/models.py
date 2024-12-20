@@ -46,6 +46,8 @@ class OcStore(models.Model):
     status = models.BooleanField(blank=True)
     product_code = models.CharField(max_length=255, blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
+    email_header_logo = models.CharField(max_length=255, blank=True, null=True)
+    email_foot_logo = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False

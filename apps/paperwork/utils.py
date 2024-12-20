@@ -200,7 +200,8 @@ def order_payment_details_simple(order_obj, currency_symbol):
         order_payment_str = 'Paid on account'
         order_payment_str += '<BR/>Due Date : ' + order_obj.date_due.strftime('%d/%m/%Y')
     else:
-        order_payment_str = 'Payment Type : ' + order_obj.payment_status.name
+        order_payment_str = 'Payment Method : ' + order_obj.payment_method.method_name + '<BR/>'
+        order_payment_str += 'Payment Status : ' + order_obj.payment_status.name
         order_payment_str += '<BR/>Due Date : ' + order_obj.date_due.strftime('%d/%m/%Y')
     return order_payment_str
 

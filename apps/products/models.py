@@ -18,8 +18,8 @@ class PublicMediaStorage(S3Boto3Storage):
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     model = models.CharField(max_length=64)
-    location = models.CharField(max_length=128)
-    image = models.ImageField( upload_to='stores/products/')
+    location = models.CharField(max_length=128, blank=True, null=True,)
+    image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
     manufacturer_id = models.IntegerField()
     tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING)
     sort_order = models.IntegerField()

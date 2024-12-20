@@ -103,7 +103,7 @@ $(function()
         "pageLength": 25,
         "autoWidth": true,
         "responsive": true,
-        "serverSide": false,
+        "serverSide": true,
         "rowId" : 'order_id',
         "ajax": {
                  "processing": true,

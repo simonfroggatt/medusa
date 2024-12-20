@@ -216,6 +216,32 @@ class ProductsListView(generics.ListAPIView):
         return queryset.order_by('product_id')
 
 
+def product_create(request):
+    #creae a new product
+    new_product_obj = OcProduct()
+    new_product_obj.model = "new model"
+    new_product_obj.manufacturer_id = 1
+    new_product_obj.tax_class_id = 9
+    new_product_obj.sort_order = 0
+    new_product_obj.status = 0
+    new_product_obj.viewed = 0
+    new_product_obj.mib_logo = 1
+    new_product_obj.bulk_group_id = 1
+    new_product_obj.save()
+    new_product_obj.productdescbase = OcProductDescriptionBase()
+    new_product_obj.productdescbase.product_id = new_product_obj.product_id
+    new_product_obj.productdescbase.title = "New Product"
+    new_product_obj.productdescbase.name = "New Product"
+    new_product_obj.productdescbase.description = "New Product"
+    new_product_obj.productdescbase.long_description = "New Product"
+    new_product_obj.productdescbase.sign_reads = "New Product"
+    new_product_obj.productdescbase.meta_title = "New Product"
+    new_product_obj.productdescbase.meta_description = "New Product"
+    new_product_obj.productdescbase.meta_keyword = "New Product"
+    new_product_obj.productdescbase.save()
+
+    return HttpResponseRedirect(reverse_lazy('product_base_details_edit', kwargs={'product_id': new_product_obj.product_id}))
+
 
 def product_details(request, product_id):
     product_obj = get_object_or_404(OcProduct, pk=product_id)
@@ -1850,3 +1876,5 @@ def product_option_list_delete(request, product_id, pk):
                                                 request=request
                                                 )
     return JsonResponse(data)
+
+

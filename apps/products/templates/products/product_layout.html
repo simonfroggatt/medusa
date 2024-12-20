@@ -8,12 +8,13 @@
 
 {% block content %}
     <div class="wrapper wrapper-content layout-details">
-        <div class="row">
+
+        <div class="row top_bar">
             <div class="col-6">
                 <h2>{{ product_obj.productdescbase.name }}</h2>
             </div>
             <div class="col-6">
-                {% include 'products/sub_layout/product-base-topbar.html' %}
+                {% include 'products/sub_layout/product_details_topnav.html' %}
             </div>
         </div>
         <div class="row pb-2">
