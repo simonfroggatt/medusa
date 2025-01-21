@@ -41,6 +41,7 @@ urlpatterns = [
     path('suppliers/', include('apps.suppliers.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     path('xero_api/', include('apps.xero_api.urls')),
+    path('bespoke/', include('apps.bespoke.urls')),
     path('', apps.authentication.views.do_login, name='apps-pages-starter'),
     path('admin/', admin.site.urls),
     path('tinymce/', include('tinymce.urls')),

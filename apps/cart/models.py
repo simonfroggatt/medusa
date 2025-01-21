@@ -17,6 +17,14 @@ class OcCart(models.Model):
     tsg_options = models.TextField(blank=True, null=True)
     date_added = models.DateTimeField(auto_now_add=True)
     store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
+    admin_pin = models.CharField(max_length=32, blank=True, null=True)
+    tsg_option_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    is_bespoke = models.IntegerField(blank=True, null=True)
+    svg_raw = models.TextField(blank=True, null=True)
+    svg_json = models.TextField(blank=True, null=True)
+    svg_export = models.TextField(blank=True, null=True)
+    svg_images = models.CharField(max_length=64, blank=True, null=True)
+    svg_texts = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False

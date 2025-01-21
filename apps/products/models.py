@@ -14,6 +14,17 @@ class PublicMediaStorage(S3Boto3Storage):
     file_overwrite = False
     custom_domain = False
 
+class OcTsgBespokeTemplates(models.Model):
+    title = models.CharField(max_length=255, blank=True, null=True)
+    path = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_bespoke_templates'
+
+    def __str__(self):
+        return self.title
+
 
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
@@ -30,6 +41,10 @@ class OcProduct(models.Model):
     mib_logo = models.BooleanField()
     supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True, related_name='productsupplier')
     bulk_group = models.ForeignKey('OcTsgBulkdiscountGroups', models.DO_NOTHING, blank=True, null=True, related_name='product_bulkgroup')
+    is_bespoke = models.BooleanField(default=False)
+    template = models.ForeignKey(OcTsgBespokeTemplates, models.DO_NOTHING, related_name='standard_template_set', blank=True, null=True)
+    bespoke_template = models.ForeignKey(OcTsgBespokeTemplates, models.DO_NOTHING,
+                                         related_name='bespoke_template_set', blank=True, null=True)
 
     @property
     def image_url(self):

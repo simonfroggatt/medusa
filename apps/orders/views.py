@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
      OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, \
-     OcTsgOrderOption, OcOrderHistory, OcTsgPaymentHistory#,calc_order_totals, recalc_order_product_tax
+     OcTsgOrderOption, OcOrderHistory, OcTsgPaymentHistory, OcTsgOrderBespokeImage#,calc_order_totals, recalc_order_product_tax
 from apps.products.models import OcTsgBulkdiscountGroups, OcProduct, \
      OcTsgProductVariantCore, OcTsgProductVariants
 from apps.pricing.models import OcTsgProductMaterial
@@ -41,6 +41,8 @@ from collections import OrderedDict
 from itertools import chain
 from cryptography.fernet import Fernet
 import re
+
+from ..symbols.models import OcTsgSymbols
 
 
 class Orders2(viewsets.ViewSet):
@@ -2020,3 +2022,31 @@ def order_xero_marksent(request, pk):
     data = dict()
     return_url = reverse_lazy('xero_order_link', kwargs={'order_id': pk, 'encrypted': encrypted_order_num})
     return HttpResponseRedirect(return_url)
+
+
+
+def bespoke_order_product(request, order_id, bespoke_order_product_id):
+#def bespoke_order_product(request, order_id, order_product_id):
+    data = dict()
+    template_name = 'orders/order_bespoke_product.html'
+    context = dict()
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    context['order_id'] = order_obj.order_id
+
+    bespoke_order_product_obj = get_object_or_404(OcTsgOrderBespokeImage, order_product_id=bespoke_order_product_id)
+    context['bespoke_product'] = bespoke_order_product_obj
+
+    tmp = json.loads(bespoke_order_product_obj.svg_export)
+    context['svg_export'] = json.loads(bespoke_order_product_obj.svg_export)
+    context['text_line'] = json.loads(bespoke_order_product_obj.svg_texts)
+
+    images_tmp = json.loads( bespoke_order_product_obj.svg_images)
+    images_split = images_tmp.split(',')
+    symbol_obj = OcTsgSymbols.objects.filter(pk__in=images_split).values()
+    context['images'] = symbol_obj
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+
+    return render(request, template_name, context)

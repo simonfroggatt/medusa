@@ -35,8 +35,10 @@
                             <dd class="col-9">{{ product_obj.productdescbase.title }}</dd>
                              <dt class="col-3">Clean URL</dt>
                             <dd class="col-9">{{ product_obj.productdescbase.clean_url }}</dd>
-                            <dt class="col-3">Description</dt>
-                            <dd class="col-9">{{ product_obj.productdescbase.description|truncatechars:100 }}</dd>
+                            <dt class="col-3">Standard Template</dt>
+                            <dd class="col-9">{{ product_obj.template }}</dd>
+                            <dt class="col-3">Bespoke Template</dt>
+                            <dd class="col-9">{{ product_obj.bespoke_template }}</dd>
                             <dt class="col-3">Bulk Pricing</dt>
                             <dd class="col-9">{{ product_obj.bulk_group }}</dd>
                         </dl>

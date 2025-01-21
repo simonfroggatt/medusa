@@ -1,0 +1,68 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+   <!-- old datatables css -->
+
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="wrapper wrapper-content layout-details">
+        <div class="row top_bar align-middle">
+            <a href="https://drive.google.com/uc?export=download&id={{ bespoke_product.google_id }}"><h2>{{ bespoke_product.order_product_id }}-{{ bespoke_product.pk }}</h2></a>
+        </div>
+        <div class="row" id="bespoke-order-product">
+            <div class="col">
+                <div class="ibox">
+                    <div class="row">
+                        <div class="col-3">
+                            <h3>SVG output <small>(version {{ bespoke_product.version }})</small></h3><h5></h5>
+                            {{ svg_export|safe}}
+                            <button name="download_svg" id="download_svg" class="btn btn-primary">Download SVG</button>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col">
+                                    <h3>Images used</h3>
+                                {% for symbols in images %}
+                                    <img src="{% get_media_prefix %}{{ symbols.svg_path }}" height="100"><br>
+                                    {{ symbols.svg_path }}
+                                {% endfor %}
+                                </div>
+                            </div>
+                            <div class="row pt-4">
+                                <div class="col">
+                                <h3>Text used</h3>
+                                {% for textused in text_line %}
+                                    <p>{{ textused }}</p>
+                                {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+    <script>
+        //setup up the product ID so that products.js can get the value
+        const current_order_id = {{ order_obj.order_id }} ;
+        const currency_symbol = '{{ order_obj.store.currency.symbol_left }}' ;
+        let tax_rate = 0.00;
+        let bulk_table_data = [];
+        const media_url = "{% get_media_prefix %}";
+
+    </script>
+    <script type="text/javascript" src="{% static 'js/orders.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/product_variant_options.js' %}"></script>
+
+{% endblock javascript %}
+
+
+

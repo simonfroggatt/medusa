@@ -30,6 +30,7 @@ $(function () {
                     if (data === undefined || data === null) {
                         return '<img height="30px" class="rounded mx-auto d-block" src="'+ media_url+'stores/no-image.png">'
                     } else {
+
                         let image_src =  data;
                         return '<a href="' + image_src + '" data-lightbox="image"><img height="30px" class="rounded mx-auto d-block" src="' + image_src + '">';
                     }
@@ -105,10 +106,24 @@ $(function () {
 
                     let edit_icon = '<a class="btn '+button_context['BUTTON_EDIT']+' btn-tsg-row js-order-product-edit" role="button" data-url="' + current_order_id + '/product/edit/' + data + '" data-dlgsize="modal-xl"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
                     let delete_icon = '<a class="btn '+button_context['BUTTON_DELETE']+' btn-tsg-row js-order-product-edit" role="button" data-url="' + current_order_id + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
-                    return delete_icon + "  " + edit_icon;
+
+                     let is_bespoke = row['is_bespoke']
+                    let bespoke_icon = ''
+                        if(is_bespoke) {
+                            bespoke_icon = '<a class="btn '+button_context['BUTTON_EXTRA']+' btn-tsg-row" role="button"  href="'+current_order_id + '/bespokeproduct/' + data + '"><i class="fa-regular fa-folder-gear fm-sm"></i></a>' + " "
+                        }
+
+
+
+                    return bespoke_icon + delete_icon + "  " + edit_icon;
 
                 },
             },
+            {
+                data: "is_bespoke",
+                "visible": false,
+
+            }
 
 
         ],

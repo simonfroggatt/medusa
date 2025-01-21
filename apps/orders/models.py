@@ -12,6 +12,7 @@ from django.core.validators import FileExtensionValidator
 from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 import os
+import json
 
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -376,6 +377,7 @@ class OcOrderProduct(models.Model):
     single_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
     base_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
 
+
     class Meta:
         managed = False
         db_table = 'oc_order_product'
@@ -545,6 +547,28 @@ class OcTsgOrderOption(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_order_option'
+
+
+class OcTsgOrderBespokeImage(models.Model):
+    order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_bespoke_image')
+    bespoke_category_id = models.IntegerField(blank=True, null=True)
+    svg_json = models.TextField(blank=True, null=True)
+    #svg_export = models.TextField(blank=True, null=True)
+    svg_export = models.BinaryField(blank=True, null=True)
+    png_url = models.CharField(max_length=255, blank=True, null=True)
+    svg_texts = models.TextField(blank=True, null=True)
+    svg_images = models.CharField(max_length=255, blank=True, null=True)
+    google_id = models.CharField(max_length=255, blank=True, null=True)
+    version = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_bespoke_image'
+
+  #  def save(self, *args, **kwargs):
+  #      self.svg_export = json.dumps(self.svg_export)
+  #      super(OcTsgOrderBespokeImage, self).save(*args, **kwargs)
+
 
 
 def add_order_product_history(order_product_id, old_id, new_id):

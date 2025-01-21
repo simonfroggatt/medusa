@@ -657,3 +657,8 @@ ul.chart_ul li {
   display: block;
   margin-right: 10px;
 }
+
+#bespoke-order-product svg {
+  width: 100%;
+  height: 100%;
+}
