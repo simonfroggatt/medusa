@@ -7,12 +7,6 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('all/<int:order_id>', views.gen_merged_paperwork, name='order_paperwork_pdf'),
-    path('test/', views.test_pdf, name='test_pdf'),
-    path('testbarcode/', views.test_barcode, name='test_barcode'),
-    path('cambarcode/', views.cam_barcode, name='cam_barcode'),
-    path('cablebarcode/', views.cable_barcode, name='cable_barcode'),
-    path('boxbarcode/', views.box_barcode, name='box_barcode'),
-    path('boxsupbarcode/', views.boxsup_barcode, name='boxsup_barcode'),
     path('webstore_pdf/<int:order_id>/<str:order_hash>', views.gen_invoice_for_webstore_download, name='website_invoice_pdf'),
     path('webstore_pdf_view/<int:order_id>/<str:order_hash>', views.gen_invoice_for_webstore, name='website_invoice_pdf_view'),
 

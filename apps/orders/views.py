@@ -240,22 +240,18 @@ def order_details(request, order_id):
     if order_type == 'LIVE':
         context['order_status'] = 'LIVE'
         order_obj_status = OcOrder.objects.live()
-        breadcrumbs.append({'name': 'Orders'})
         breadcrumbs.append({'name': 'LIVE Orders', 'url': reverse_lazy('liveorders')})
     elif order_type == 'NEW':
-        breadcrumbs.append({'name': 'Orders'})
         context['order_status'] = 'NEW'
         order_obj_status = OcOrder.objects.new()
         breadcrumbs.append({'name': 'NEW Orders', 'url': reverse_lazy('neworders')})
     elif order_type == 'FAILED':
         breadcrumbs.append({'name': 'Orders'})
         context['order_status'] = 'FAILED'
-        order_obj_status = OcOrder.objects.failed()
         breadcrumbs.append({'name': 'FAILED Orders', 'url': reverse_lazy('failedorders')})
     else:
         context['order_status'] = 'ALL'
         order_obj_status = OcOrder.objects.all()
-        breadcrumbs.append({'name': 'Orders'})
         breadcrumbs.append({'name': 'ALL Orders', 'url': reverse_lazy('allorders')})
 
     try:
@@ -2033,6 +2029,7 @@ def bespoke_order_product(request, order_id, bespoke_order_product_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     context['order_id'] = order_obj.order_id
 
+
     bespoke_order_product_obj = get_object_or_404(OcTsgOrderBespokeImage, order_product_id=bespoke_order_product_id)
     context['bespoke_product'] = bespoke_order_product_obj
 
@@ -2041,9 +2038,23 @@ def bespoke_order_product(request, order_id, bespoke_order_product_id):
     context['text_line'] = json.loads(bespoke_order_product_obj.svg_texts)
 
     images_tmp = json.loads( bespoke_order_product_obj.svg_images)
-    images_split = images_tmp.split(',')
-    symbol_obj = OcTsgSymbols.objects.filter(pk__in=images_split).values()
-    context['images'] = symbol_obj
+    if images_tmp:
+        images_split = images_tmp.split(',')
+        symbol_obj = OcTsgSymbols.objects.filter(pk__in=images_split).values()
+        context['images'] = symbol_obj
+    else:
+        context['images'] = []
+
+    #create some breadcrumbs
+
+
+    context['heading'] = 'Bespoke Product Details'
+    breadcrumbs = []
+    breadcrumbs.append({'name': 'Orders', 'url': reverse_lazy('allorders')})
+    breadcrumbs.append({'name': 'Order details', 'url': reverse_lazy('order_details', kwargs={'order_id': order_id})})
+    context['breadcrumbs'] = breadcrumbs
+
+
     data['html_form'] = render_to_string(template_name,
                                          context,
                                          request=request

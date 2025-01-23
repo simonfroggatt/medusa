@@ -17,6 +17,7 @@ from cairosvg import svg2png
 from django.shortcuts import render, get_object_or_404
 from reportlab_qrcode import QRCodeImage
 from apps.orders.services import create_due_date
+import json
 
 def create_company_logo(company_obj):
     maxW = 90 * mm
@@ -447,3 +448,17 @@ def _create_image_url(image_src):
             image_url = settings.REPORT_URL + quote(image_src)
 
     return image_url
+
+def _create_bespoke_image_png(bespoke_print_obj):
+    #create a tmp file
+    bespoke_id = bespoke_print_obj.id
+    png_filename = f'bespoke_image-{bespoke_id}.png'
+    tmp_filename = os.path.join(settings.BESPOKE_TMP_PATH, png_filename)
+    svg_string = json.loads(bespoke_print_obj.svg_export)
+    svg2png(bytestring=svg_string, write_to=tmp_filename)
+    # tmp = json.dumps(svg_bytes)
+    # now check the file exists
+    if os.path.exists(tmp_filename):
+        return tmp_filename
+    else:
+        return None
