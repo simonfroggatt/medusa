@@ -3,8 +3,10 @@ from medusa.models import OcTsgCategoryTypes, OcLanguage
 from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
-from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes
+from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus
 from apps.category.models import OcCategoryToStore
+
+
 
 from storages.backends.s3boto3 import S3Boto3Storage
 
@@ -42,9 +44,13 @@ class OcProduct(models.Model):
     supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True, related_name='productsupplier')
     bulk_group = models.ForeignKey('OcTsgBulkdiscountGroups', models.DO_NOTHING, blank=True, null=True, related_name='product_bulkgroup')
     is_bespoke = models.BooleanField(default=False)
-    template = models.ForeignKey(OcTsgBespokeTemplates, models.DO_NOTHING, related_name='standard_template_set', blank=True, null=True)
+    template = models.ForeignKey(OcTsgBespokeTemplates, models.DO_NOTHING, related_name='standard_template_set', blank=True, null=True, default=1)
     bespoke_template = models.ForeignKey(OcTsgBespokeTemplates, models.DO_NOTHING,
-                                         related_name='bespoke_template_set', blank=True, null=True)
+                                         related_name='bespoke_template_set', blank=True, null=True, default=2)
+
+    exclude_bespoke = models.BooleanField( default=False)
+    default_order_status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING,
+                                             db_column='default_order_status', blank=True, null=True, default=1)
 
     @property
     def image_url(self):
@@ -337,7 +343,7 @@ class OcTsgBulkdiscountGroupBreaks(models.Model):
 
 
 class OcProductToCategory(models.Model):
-    product = models.ForeignKey(OcProduct, models.DO_NOTHING)
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='product_category')
     category_store = models.ForeignKey(OcCategoryToStore, models.DO_NOTHING)
     status = models.BooleanField(default=True)
 

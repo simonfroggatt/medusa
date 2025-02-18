@@ -1,0 +1,67 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="row top_bar">
+        <div class="col-3 col-lg-2">
+
+        </div>
+        <div class="col-3 col-lg-4">
+
+        </div>
+        <div class="col-6 col-lg-6">
+            {% include 'symbols/sub_layout/symbol_list_navbar.html' %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <table id="product_no_symbol_table" class="table table-hover table-striped align-middle table-sm"
+                           style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-8">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-5 pe-2">
+                            {% include 'symbols/sub_layout/product-missing-symbols-active.html' %}
+                        </div>
+                        <div class="col-1">
+
+                        </div>
+                        <div class="col-6">
+                            {% include 'symbols/sub_layout/product-missing-symbols-available.html' %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+    <script type="text/javascript" src="{% static 'js/symbols.js' %}"></script>
+
+
+
+{% endblock javascript %}

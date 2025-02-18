@@ -8,6 +8,7 @@ from apps.shipping.models import OcTsgCourier
 from apps.options.models import  OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption, OcTsgOptionTypes
 from decimal import Decimal
 from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
+from medusa.models import OcTsgOrderProductStatus
 from django.core.validators import FileExtensionValidator
 from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
@@ -71,6 +72,22 @@ class OcOrderManager(models.Manager):
             return self.get_queryset().order_range(start_date, end_date)
 
 
+
+class OcTsgFlags(models.Model):
+    flag_id = models.AutoField(primary_key=True)
+    flag_name = models.CharField(max_length=255, blank=True, null=True)
+    flag_description = models.CharField(max_length=255, blank=True, null=True)
+    flag_icon = models.CharField(max_length=255, blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_flags'
+
+    def __str__(self):
+        return self.flag_name
+
+
 class OcOrderStatus(models.Model):
     order_status_id = models.AutoField(primary_key=True)
     language_id = models.IntegerField()
@@ -132,22 +149,6 @@ class OcTsgPaymentStatus(models.Model):
     def __str__(self):
         return self.name
 
-
-class OcTsgOrderProductStatus(models.Model):
-    status_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    icon_path = models.CharField(max_length=255, blank=True, null=True)
-    order_by = models.IntegerField(blank=True, null=True)
-    is_flag = models.IntegerField(blank=True, null=True)
-    order_by = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_order_product_status'
-        ordering = ['order_by']
-
-    def __str__(self):
-        return self.name
 
 
 class OcOrder(models.Model):
@@ -234,7 +235,9 @@ class OcOrder(models.Model):
     printed = models.BooleanField(default=False)  #note - must be BooleanField
     plain_label = models.BooleanField(default=False)
     order_hash = models.CharField(max_length=256, blank=True, null=True)
+    order_flag = models.ForeignKey(OcTsgFlags, models.DO_NOTHING, blank=True, null=True)
     @property
+
     def is_order(self):
         #return self.order_status.order_status_id == 15
         return self.successful
@@ -253,8 +256,10 @@ class OcOrder(models.Model):
 
     def get_order_status(self):
         status = ''
-        payment_status = [2, 3, 8]; # 2 = paid, 3 = processing, 8 = shipped
-        order_status_excl = [4, 5, 99, 1] # 4 = cancelled, 5 = refunded, 99 = complete, 1 = pending
+        payment_status = [2, 3, 8];
+        # 2 = paid, 3 = processing, 8 = shipped
+        order_status_excl = [4, 5, 99, 1]
+        # 4 = cancelled, 5 = refunded, 99 = complete, 1 = pending
         order_status_live = [99, 1] #
         legacy_order_id = [7]
         if self.payment_status_id in payment_status:
@@ -276,8 +281,9 @@ class OcOrder(models.Model):
             self.payment_date = dt.datetime.now()
 
         #update the status
-        add_order_status_history(self.order_id, self.order_status_id)
-        add_payment_status_history(self.order_id, self.payment_method_id, self.payment_status_id)
+        if self.order_id:
+            add_order_status_history(self.order_id, self.order_status_id)
+            add_payment_status_history(self.order_id, self.payment_method_id, self.payment_status_id)
         super(OcOrder, self).save(*args, **kwargs)
 
     class Meta:
@@ -314,19 +320,7 @@ class OcTsgOrderShipment(models.Model):
         db_table = 'oc_tsg_order_shipment'
 
 
-class OcTsgFlags(models.Model):
-    flag_id = models.AutoField(primary_key=True)
-    flag_name = models.CharField(max_length=255, blank=True, null=True)
-    flag_description = models.CharField(max_length=255, blank=True, null=True)
-    flag_icon = models.CharField(max_length=255, blank=True, null=True)
-    sort_order = models.IntegerField(blank=True, null=True)
 
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_flags'
-
-    def __str__(self):
-        return self.flag_name
 
 
 class OcOrderFlags(models.Model):
@@ -553,7 +547,6 @@ class OcTsgOrderBespokeImage(models.Model):
     order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_bespoke_image')
     bespoke_category_id = models.IntegerField(blank=True, null=True)
     svg_json = models.TextField(blank=True, null=True)
-    #svg_export = models.TextField(blank=True, null=True)
     svg_export = models.BinaryField(blank=True, null=True)
     png_url = models.CharField(max_length=255, blank=True, null=True)
     svg_texts = models.TextField(blank=True, null=True)

@@ -1,5 +1,6 @@
 from django import forms
-from .models import OcOrderProduct, OcTsgOrderProductStatus, OcOrder, OcOrderTotal, OcTsgOrderShipment, OcTsgOrderDocuments
+from .models import OcOrderProduct, OcOrder, OcOrderTotal, OcTsgOrderShipment, OcTsgOrderDocuments
+from medusa.models import OcTsgOrderProductStatus
 from apps.shipping.models import OcTsgShippingMethod
 from apps.sites.models import OcStore
 from crispy_forms.helper import FormHelper
@@ -168,6 +169,7 @@ class OrderDetailsEditForm(forms.ModelForm):
         self.fields['payment_method'].empty_label = None
         self.fields['order_type'].empty_label = None
         self.fields['store'].empty_label = None
+        self.fields['order_flag'].empty_label = None
         self.fields['store'].queryset = OcStore.objects.filter(store_id__gt=0)
 
     class Meta:
@@ -181,18 +183,22 @@ class OrderDetailsEditForm(forms.ModelForm):
                   'payment_method',
                   'comment',
                   'printed',
-                  'store'
+                  'store',
+                  'plain_label',
+                  'order_flag'
                   ]
 
         labels = {
             'payment_method': 'Payment Method',
             'order_type': 'Order Source',
+            'order_flag': 'Flag'
         }
 
 
         widgets = {
             'comment': forms.Textarea(attrs={'rows': 2}),
             'printed': forms.CheckboxInput,
+            'plain_label': forms.CheckboxInput,
         }
 
 

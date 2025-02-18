@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from django.template.loader import render_to_string
+
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
      OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, \
      OcTsgOrderOption, OcOrderHistory, OcTsgPaymentHistory, OcTsgOrderBespokeImage#,calc_order_totals, recalc_order_product_tax
@@ -13,7 +14,8 @@ from apps.options.models import (OcTsgProductVariantOptions, OcTsgOptionClass, O
     OcTsgOptionValueDynamics, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues)
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
-    OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer
+    OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer, \
+    CustomerPreviousOrdersSerializer
 from django.conf import settings
 import os
 import json
@@ -34,6 +36,8 @@ from medusa import services
 import operator
 import hashlib
 import uuid
+
+from apps.returns.models import OcTsgReturnOrder
 
 from apps.customer.serializers import AddressSerializer
 
@@ -103,11 +107,7 @@ class Orders_asJSON(viewsets.ModelViewSet):
     serializer_class = OrderListSerializer
     model = serializer_class.Meta.model
 
-    def retrieve(self, request, pk=None):
-        status = str(self.request.query_params.get('status', 'ALL'))
-        order_products = OcOrder.objects.filter(store_id=pk)
-        serializer = self.get_serializer(order_products, many=True)
-        return Response(serializer.data)
+
 
     def get_queryset(self):
         valid_status = [2, 3]
@@ -123,27 +123,25 @@ class Orders_asJSON(viewsets.ModelViewSet):
         return queryset
 
 
-
 class Orders_Company(viewsets.ModelViewSet):
-    queryset = OcOrder.objects.all().order_by('-order_id')
-    serializer_class = OrderListSerializer
+    queryset = OcOrder.objects.all()
+    serializer_class = CustomerPreviousOrdersSerializer
+    model = serializer_class.Meta.model
 
-    def retrieve(self, request, pk=None):
-        #companyobj = OcTsgCompany.objects.filter(company_id=pk)
-        order_list = OcOrder.objects.filter(customer__parent_company__company_id=pk).order_by('-order_id')
-        #order_list = OcOrder.objects.filter(=pk).order_by('-order_id')
-        serializer = self.get_serializer(order_list, many=True)
-        return Response(serializer.data)
+    def get_queryset(self, *args, **kwargs):
+        company_id = self.request.GET.get('company_id')
+        return self.model.objects.filter(customer__parent_company__company_id=company_id).order_by('-order_id')
+
 
 
 class Orders_Customer(viewsets.ModelViewSet):
     queryset = OcOrder.objects.all()
-    serializer_class = OrderListSerializer
+    serializer_class = CustomerPreviousOrdersSerializer
+    model = serializer_class.Meta.model
 
-    def retrieve(self, request, pk=None):
-        order_products = OcOrder.objects.filter(customer_id=pk).order_by('-order_id')
-        serializer = self.get_serializer(order_products, many=True)
-        return Response(serializer.data)
+    def get_queryset(self, *args, **kwargs):
+        customer_id = self.request.GET.get('customer_id')
+        return self.model.objects.filter(customer_id=customer_id).order_by('-order_id')
 
 
 
@@ -214,6 +212,21 @@ class OrderProductHistory(viewsets.ModelViewSet):
         history_obj = OcTsgOrderProductStatusHistory.objects.filter(order_product_id=pk)
         serializer = self.get_serializer(history_obj, many=True)
         return Response(serializer.data)
+
+
+class customer_orders(viewsets.ModelViewSet):
+
+    queryset = OcOrder.objects.all().order_by('-order_id');
+    serializer_class = CustomerPreviousOrdersSerializer
+
+    def list(self, request, *args, **kwargs):
+        customer_id = kwargs['customer_id']
+        if customer_id is not None:
+            queryset = OcOrder.objects.filter(customer_id=customer_id)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            return Response([])
 
 
 def order_details(request, order_id):
@@ -808,7 +821,6 @@ def order_delete_dlg(request, order_id):
                                              )
         return JsonResponse(data)
 
-
 def order_delete(request):
     data = dict()
     data['form_is_valid'] = False
@@ -820,6 +832,37 @@ def order_delete(request):
         data['redirect_url'] = reverse_lazy('allorders')
         data['form_is_valid'] = True
 
+    return JsonResponse(data)
+
+def order_return_dlg(request, order_id):
+    data = dict()
+    data['form_is_valid'] = False
+
+    if request.method == 'POST':
+        order_obj = get_object_or_404(OcOrder, pk=order_id)
+        #now create a new return
+        new_return_obj = order_obj.returnorder.create()
+        new_return_obj.store = order_obj.store
+        new_return_obj.contact_name = order_obj.shipping_fullname
+        new_return_obj.contact_email = order_obj.shipping_email
+        new_return_obj.contact_telephone = order_obj.shipping_telephone
+        new_return_obj.status_id = 1
+        new_return_obj.action_id = 1
+        new_return_obj.save()
+        return_id = new_return_obj.id
+        if return_id:
+            data['redirect_url'] = f"/returns/{return_id}"
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+    template_name = 'orders/dialogs/return_order.html'
+    context = {'order_id': order_id}
+
+    data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
     return JsonResponse(data)
 
 def tax_change_dlg(request, order_id):

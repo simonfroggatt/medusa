@@ -39,12 +39,13 @@
     $('#js-variant-add-store_id').on('change', function(){
                 let store_id = $(this).val();
                 let newAvailableURL = "/products/api/corevariants/{{ product_id }}/exclude/"+store_id+"?format=datatables"
+
                 let dtAvailable = $('#product_variant_table_available').DataTable();
-                dtAvailable.ajax.url(newAvailableURL ).load();
+                dtAvailable.ajax.url(newAvailableURL).load();
 
                 let newURL = "/products/api/storevariants/{{ product_id }}/"+store_id+"?format=datatables"
                 let dt = $('#product_variant_active_table').DataTable();
-                dt.ajax.url(newURL ).load();
+                dt.ajax.url(newURL).load();
             })
 
 </script>

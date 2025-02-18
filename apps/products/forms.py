@@ -20,11 +20,12 @@ class ProductForm(forms.ModelForm):
         self.fields['bulk_group'].empty_label = None
         self.fields['template'].empty_label = None
         self.fields['bespoke_template'].empty_label = None
+        self.fields['default_order_status'].empty_label = None
 
     class Meta:
         model = OcProduct
 
-        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class', 'bulk_group', 'image', 'template', 'bespoke_template']
+        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class', 'bulk_group', 'image', 'template', 'bespoke_template', 'exclude_bespoke', 'default_order_status']
 
         labels = {
             'mib_logo': 'Made in Britain',

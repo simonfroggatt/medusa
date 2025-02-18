@@ -108,22 +108,19 @@ $(function()
         "ajax": {
                  "processing": true,
                  //"url": "/orders/api/orders?format=datatables",
-                "url": '/orders/api/customer/'+customer_id+'?format=datatables',
-                "type" : "GET",
-            "beforeSend": function(xhr) {
-                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
-            }
+                "url": '/orders/api/customer?format=datatables'+'&customer_id='+customer_id,
+
             },
-        "deferRender": false,
-        "order": [[ 2, "desc" ]],
+        "deferRender": true,
+        "order": [[ 1, "desc" ]],
 
         columns :[
 
             {
-                data: "store",
+                data: "storeshort",
+                name: "storeshort.name",
                 sortable: false,
                 searchable: false,
-                name: "store.name",
                 render: function ( data, type, row ) {
                     let image_src =  media_url + 'stores/branding/logos/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
@@ -146,10 +143,6 @@ $(function()
 
             {
                 data: "dow",
-                 render: function ( data, type, row ) {
-                    let text = data + ' (' + row.days_since_order + ')'
-                     return text
-                 },
                 searchable: false
 
             },
@@ -195,12 +188,11 @@ $(function()
                     return btn_grp + shipping_icon + printed_icon + edit_icon + '</div>'
                 }
             },
-           {data: "days_since_order", "visible": false, searchable: false },
-            {data: "store.store_id", "visible": false },
+            {data: "storeshort.store_id", "visible": false, searchable: false },
             {data: "printed", "visible": false, searchable: false},
             {data: "shipping_flag", "visible": false, searchable: false},
-             {data: "product_flags", "visible": false, searchable: false },
-           {data: "highlight_code", "visible": false, searchable: false },
+            {data: "highlight_code", "visible": false, searchable: false },
+
         ],
         "createdRow": function( row, data, dataIndex ) {
            /* if ( data.order_status.order_status_id != 15 ) {

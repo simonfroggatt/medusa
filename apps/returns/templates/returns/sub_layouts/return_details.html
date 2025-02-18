@@ -1,0 +1,39 @@
+{% load static %}
+<div class="card h-100 mb-0">
+    <div class="card-header order_details btn-toolbar align-items-center justify-content-between">
+        <div>
+            Return Details
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+            <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-details-edit"
+                    data-url="{% url 'return_change_status' return_obj.id %}"
+                    data-dlgsize="modal-lg"
+                    id="js-return-edit"
+            ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+        </div>
+    </div>
+             <div class="card-body">
+                 <dl class="row text-nowrap" id="return_{{ return_obj.id }}">
+                     <dt class="col-3">Return No:</dt>
+                     <dd class="col-9">{{ return_obj.id }}</dd>
+                     <dt class="col-3">Return Raised:</dt>
+                     <dd class="col-9">{{ return_obj.date_created }} ({{ days_since_order }} days)</dd>
+                     <dt class="col-3">Contact Requested:</dt>
+                     <dd class="col-9">{{ return_obj.contact_requested }}</dd>
+                     <dt class="col-3">Contact Name:</dt>
+                     <dd class="col-9">{{ return_obj.contact_name }}</dd>
+                     {% if return_obj.contact_email %}
+                     <dt class="col-3">Contact Email:</dt>
+                     <dd class="col-9">{{ return_obj.contact_email }}</dd>
+                     {% endif %}
+                     {% if return_obj.contact_telephone %}
+                     <dt class="col-3">Contact Telephone:</dt>
+                     <dd class="col-9">{{ return_obj.contact_telephone }}</dd>
+                     {% endif %}
+                     <dt class="col-3">Status:</dt>
+                     <dd class="col-9">{{ return_obj.status.title }} </dd>
+                     <dt class="col-3">Action:</dt>
+                     <dd class="col-9">{{ return_obj.action.title }}</dd>
+                 </dl>
+             </div>
+         </div>

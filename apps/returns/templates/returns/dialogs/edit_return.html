@@ -1,0 +1,43 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+
+<div class="modal-header">
+    <h4 class="modal-title"> <strong>Edit</strong> Return</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'return_change_status' return_order.id %}"
+                      id="js-return-edit-form">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-4">
+                            {{ form.contact_name|as_crispy_field  }}
+                        </div>
+                        <div class="col-4">
+                            {{ form.contact_email|as_crispy_field  }}
+                        </div>
+                        <div class="col-4">
+                            {{ form.contact_telephone|as_crispy_field  }}
+                        </div>
+                        <div class="col-6">
+                            {{ form.status|as_crispy_field  }}
+                        </div>
+                        <div class="col-6">
+                            {{ form.action|as_crispy_field  }}
+                        </div>
+                    </div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="delete" class="btn {{ BUTTON_DELETE }} pull-right">Update</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

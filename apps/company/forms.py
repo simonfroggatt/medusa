@@ -11,6 +11,7 @@ class CompanyEditForm(forms.ModelForm):
         self.fields['store'].empty_label = None
         self.fields['company_type'].empty_label = None
         self.fields['country'].empty_label = None
+        self.fields['accounts_country'].empty_label = None
         self.fields['tax_rate'].empty_label = None
 
 
@@ -20,13 +21,15 @@ class CompanyEditForm(forms.ModelForm):
 
         labels = {
             'fullname': 'Main contact',
-            'payment_days': 'Day(s)'
+            'payment_days': 'Day(s)',
+            'accounts_contact_name': 'Accounts contact',
         }
 
         widgets = {
             'email': forms.EmailInput,
             'company_name': forms.TextInput(attrs={'autofocus': True}),
             'address': forms.Textarea(attrs={'rows': 4}),
+            'accounts_address': forms.Textarea(attrs={'rows': 4}),
         }
 
 

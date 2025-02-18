@@ -1,0 +1,115 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+    <!-- old datatables css -->
+
+{% endblock extra_css %}
+
+{% block content %}
+    <div class="wrapper wrapper-content layout-details">
+        <div class="row top_bar align-middle">
+            <div class="col-6 col-md-6">
+                <h3>Return {{ return_obj.store.prefix }}-R-{{ return_obj.id }}</h3>
+            </div>
+            <div class="col-6 col-md-6">
+                {% include 'returns/return_layout_navbar.html' %}
+            </div>
+        </div>
+        <div class="row pb-2">
+            <div class="col-md-6 pe-0">
+                {% include 'returns/sub_layouts/return_details.html' %}
+            </div>
+            <div class="col-md-6 pe-0">
+                {% include 'returns/sub_layouts/order_details.html' with order_obj=return_obj.order %}
+            </div>
+        </div>
+        <div class="row" id="return-details-tabs">
+            <div class="col">
+                <div class="ibox">
+                    <div class="ibox-content tsg_navs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="products-tab" data-bs-toggle="tab" href="#tab-products"
+                                   role="tab">
+                                    <i class="fa-solid fa-list"></i> Products</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#tab-history"
+                                   role="tab">
+                                    <i class="fa-solid fa-history"></i> History</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" id="tab-products" class="tab-pane fade show active">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-12" id="order_products_table">
+                                            {% include 'returns/sub_layouts/return_products.html' %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-history" class="tab-pane fade">
+                                <div class="panel-body">
+                                    {% include 'orders/sub_layout/order_history.html' %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3>Customer Comments</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <span>{{ return_obj.comment }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3>Our Notes <btn class="btn btn-warning btn-tsg-row" role="button" data-url=""><i class="fa-regular fa-floppy-disk"></i></btn> </h3>
+
+                                </div>
+                                <div class="panel-body">
+                                    <textarea id="return_notes" name="return_notes" class="form-control" rows="5">{{ return_obj.notes }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
+
+{% block javascript %}
+    <script>
+        let notes_orig = "{{ return_obj.notes }}";
+        const static_const = {% get_static_prefix %};
+        const media_url = "{% get_media_prefix %}";
+        const current_return_id = {{ return_obj.id }};
+    </script>
+
+    <script type="text/javascript" src="{% static 'js/returns_products.js' %}"></script>
+
+{% endblock javascript %}
+
+
+

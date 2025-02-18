@@ -411,6 +411,13 @@ $(function () {
     {
         SetPrice(true, form_id)
     }
+    else{
+        //get the sinlge unit price
+        let single_price = $(form_id + ' #single_unit_price').val();
+        $(product_price).val(single_price)
+        SetPrice(false, form_id)
+        alert(single_price)
+    }
 
 })
 

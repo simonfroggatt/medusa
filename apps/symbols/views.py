@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from apps.symbols.models import OcTsgSymbols
+from apps.products.models import OcProduct
 from .serializers import SymbolSerializer, SymbolShortSerializer
 from .forms import SymbolsForm
 from django.urls import reverse_lazy
@@ -8,8 +9,8 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
-
-
+from apps.products.serializers import ProductBasicSerializer
+from rest_framework.response import Response
 
 class Symbols(viewsets.ModelViewSet):
     queryset = OcTsgSymbols.objects.all()
@@ -136,6 +137,18 @@ def symbol_delete_dlg(request, symbol_id):
                                          request=request
                                          )
     return JsonResponse(data)
+
+
+class ProductWithMissingSymbols(viewsets.ModelViewSet):
+    queryset =  OcProduct.objects.filter(productsymbols__isnull=True)
+    serializer_class = ProductBasicSerializer
+
+
+def no_symbols_list(request):
+    template_name = 'symbols/product-missing-symbols.html';
+    context = {'heading': 'Products without symbols'}
+
+    return render(request, template_name, context)
 
 
 
