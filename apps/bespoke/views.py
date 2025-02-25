@@ -113,11 +113,8 @@ def _googledrive_upload(filename):
     try:
         # create drive api client
         service = _google_auth()
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-        pdf_filename = os.path.join(project_root, settings.BESPOKE_TMP_PATH, filename)
-
+        pdf_filename = os.path.join(settings.REPORT_PATH_CACHE, filename)
         file_metadata = {"name": filename, "mimeType": "application/pdf", "parents": [settings.GDRIVE_BESPOKE_FOLDER]}
-        #file_metadata = {"name": filename, "mimeType": "application/pdf"}
 
         media = MediaFileUpload(pdf_filename, mimetype="application/pdf")
         # pylint: disable=maybe-no-member
@@ -140,8 +137,9 @@ def _googledrive_upload(filename):
 
 def _convert_svg_to_pdf(svg_bytes, pdf_filename):
     #add the tmp path to the filename
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    tmp_filename = os.path.join(project_root, settings.BESPOKE_TMP_PATH, pdf_filename)
+
+    tmp_filename = os.path.join(settings.REPORT_PATH_CACHE, pdf_filename)
+
     svg_string = json.loads(svg_bytes)
     svg2pdf(bytestring=svg_string, write_to=tmp_filename)
    # tmp = json.dumps(svg_bytes)
@@ -189,8 +187,7 @@ def test_write_permission(directory):
             os.remove(test_file_path)
 
 def test_write(request):
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    directory_to_test = os.path.join(project_root, settings.BESPOKE_TMP_PATH)
+    directory_to_test = settings.REPORT_PATH_CACHE
     #directory_to_test = '/path/to/your/tmp_directory'  # Update this path
     if test_write_permission(directory_to_test):
         return JsonResponse({'message': 'Write permission is granted.', 'directory': directory_to_test})
