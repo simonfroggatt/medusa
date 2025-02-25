@@ -1,0 +1,29 @@
+{% load static %}
+<nav class="navbar navbar-expand-md navbar-light pe-0" id="navbar-orders">
+    <div class="container-fluid justify-content-end pe-0">
+        <button class="navbar-toggler " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <div class="btn-group">
+                    <div class="dropdown dropstart">
+                        <button class="btn {{ BUTTON_EXTRA }} " type="button" id="dropdownOrderOptions"
+                                data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fa-solid fa-cog"></i>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
+                            <li><a class="dropdown-item" href="#">E-Mail</a></li>
+                            <li><a class="dropdown-item" id="js-add-return-product-link" role="button"
+                               data-url="{% url 'return_add_product' return_obj.id %}" data-dlgsize="modal-lg"- >Add Product</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+
+

@@ -101,6 +101,10 @@
                         {% endif %}
                         <hr>
                         <li class="list-group-item-danger">
+                            <a class="dropdown-item js-order-product-edit" role="button"
+                               data-url="{% url 'orderreturndlg' order_obj.order_id %}" data-dlgsize="modal-sm">Create Return</a>
+                           </li>
+                        <li class="list-group-item-danger">
                             <a class="dropdown-item js-order-product-edit text-danger" role="button"
                                data-url="{% url 'orderdeletedlg' order_obj.order_id %}" data-dlgsize="modal-sm">Delete</a>
                            </li>

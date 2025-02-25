@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import OcCustomer, OcAddress
+from apps.orders.serializers import CustomerPreviousOrdersSerializer
 
 
 
@@ -50,3 +51,11 @@ class CustomerListWithAddressSerializer(serializers.ModelSerializer):
         model = OcCustomer
         fields = '__all__'
         depth = 2
+
+
+class CustomerPreviousOrdersSerializer(serializers.ModelSerializer):
+    customer_past_orders = CustomerPreviousOrdersSerializer(source='customer_orders',many=True, read_only=True)
+    class Meta:
+        model = OcCustomer
+        fields = ['customer_id', 'customer_past_orders']
+        depth = 1

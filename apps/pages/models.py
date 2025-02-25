@@ -19,7 +19,6 @@ class OcTsgBlogs(models.Model):
     meta_title = models.CharField(max_length=255, blank=True, null=True)
     meta_description = models.CharField(max_length=512, blank=True, null=True)
     meta_keywords = models.CharField(max_length=512, blank=True, null=True)
-    clean_url = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False

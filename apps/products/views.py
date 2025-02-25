@@ -195,8 +195,6 @@ class base_product_list_asJSON(viewsets.ModelViewSet):
     serializer_class = ProductListSerializer
 
 
-
-
 class ProductsListView(generics.ListAPIView):
     serializer_class = ProductListSerializer
     model = serializer_class.Meta.model
@@ -414,6 +412,7 @@ def product_store_add_text_dlg(request, pk):
     if request.method == 'POST':
         if request.POST['product_id']:
             product_id = request.POST['product_id']
+
             store_id = request.POST['store_id']
             product_desc_obj = OcProductToCategory()
             product_desc_obj.store_id = store_id
@@ -440,8 +439,6 @@ def product_store_add_text_dlg(request, pk):
                                              request=request
                                              )
 
-    data = dict()
-
     return JsonResponse(data)
 
 
@@ -456,6 +453,9 @@ def product_store_add_text(request):
             product_desc_obj = OcProductToStore()
             product_desc_obj.store_id = store_id
             product_desc_obj.product_id = product_id
+            product_obj = get_object_or_404(OcProduct, pk=product_id)
+            bulkid = product_obj.bulk_group_id
+            product_desc_obj.bulk_group_id = bulkid
             product_desc_obj.save(force_insert=True)
             success_url = reverse_lazy('product_store_details_edit', kwargs={'pk': product_desc_obj.pk})
             return HttpResponseRedirect(success_url)
@@ -552,11 +552,19 @@ def add_product_symbol(request, product_id, symbol_id):
     data = dict()
 
     if request.method == 'POST':
-        product_symbol_obj = OcTsgProductSymbols()
-        product_symbol_obj.product_id = product_id
-        product_symbol_obj.symbol_id = symbol_id
-        bl_saved = product_symbol_obj.save(force_insert=True)
-        data['is_saved'] = True
+        #check the product symbol does not already exist
+        product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_id=symbol_id)
+        if not product_symbol_obj:
+            product_symbol_obj = OcTsgProductSymbols()
+            product_symbol_obj.product_id = product_id
+            product_symbol_obj.symbol_id = symbol_id
+            product_symbol_obj.save(force_insert=True)
+            #now test it got added:
+            product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_id=symbol_id)
+            data['is_saved'] = product_symbol_obj.exists()
+        else:
+            data['is_saved'] = False
+
     else:
         data['is_saved'] = False
 
@@ -845,7 +853,10 @@ def product_variant_site_add_dlg(request, pk):
     product_obj = get_object_or_404(OcProduct, product_id=pk)
     context = {'product_obj': product_obj}
     template_name = 'products/dialogs/product_variant_site_add.html'
-    store_obj = OcStore.objects.exclude(store_id=0)
+    #only get the stores that have a store text for this product
+    store_obj_with_text = OcProductToStore.objects.filter(product_id=pk).exclude(store_id=0)
+    #now only show these
+    store_obj = OcStore.objects.filter(store_id__in=store_obj_with_text.values_list('store_id')).exclude(store_id=0)
     context['store_obj'] = store_obj
 
     context['first_store_id'] = store_obj.first().store_id
@@ -876,11 +887,29 @@ def product_variant_site_add(request, core_variant_id, store_id):
 
         #it's never been a variant for this site so add it in
         else:
-            obj_product_variants = OcTsgProductVariants()   #create a new variant
+            #get the store details
+            store_obj = get_object_or_404(OcStore, store_id=store_id)
+            code_template = store_obj.product_code_template
+
+            # get the core variant details
             obj_product_variant_core = get_object_or_404(OcTsgProductVariantCore, prod_variant_core_id=core_variant_id)
+            template_tags = {'{size_id}': obj_product_variant_core.size_material.product_size.size_id,
+                             '{material_id}': obj_product_variant_core.size_material.product_material.material_id,
+                             '{material_code}': obj_product_variant_core.size_material.product_material.code,
+                             '{variant_code}': obj_product_variant_core.prod_variant_core_id,
+                             '{product_id}': obj_product_variant_core.product.product_id,
+                             '{store_id}': store_id,
+                             '{supplier_code}': obj_product_variant_core.supplier_code}
+
+            #now step through the template and replace
+            for key, value in template_tags.items():
+                code_template = code_template.replace(key, str(value))
+
+
+            obj_product_variants = OcTsgProductVariants()   #create a new variant
             obj_product_variants.prod_var_core_id = core_variant_id
             obj_product_variants.store_id = store_id
-            obj_product_variants.variant_code = obj_product_variant_core.supplier_code
+            obj_product_variants.variant_code = code_template
             obj_product_variants.variant_overide_price = 0.00
             obj_product_variants.isdeleted = False
             obj_product_variants.save()
@@ -1182,7 +1211,7 @@ class RelatedItemByStore(viewsets.ModelViewSet):
             related_obj = OcProductRelated.objects.filter(product__product_id=product_id, product__store_id=store_id).order_by('order')
             serializer = self.get_serializer(related_obj, many=True)
         else:
-            related_obj = OcProductRelated.objects.all().order_by('order')
+            related_obj = OcProductRelated.objects.filter(product__product_id=product_id).order_by('order')
             serializer = self.get_serializer(related_obj, many=True)
 
         return Response(serializer.data)

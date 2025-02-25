@@ -39,7 +39,7 @@ class OcTsgCompany(models.Model):
     address = models.CharField(max_length=512)
     city = models.CharField(max_length=255)
     area = models.CharField(max_length=255)
-    postcode = models.CharField(max_length=255)
+    postcode = models.CharField(max_length=10)
     xero_id = models.CharField(max_length=255, blank=True, null=True)
     payment_terms = models.ForeignKey(OcTsgPaymentTerms, models.DO_NOTHING, db_column='payment_terms', blank=True, null=True)
     payment_days = models.IntegerField(blank=True, null=True)
@@ -52,6 +52,14 @@ class OcTsgCompany(models.Model):
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
     country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING)
     notes = models.CharField(max_length=2048, blank=True, null=True)
+    accounts_contact_name = models.CharField(max_length=255)
+    accounts_email = models.CharField(max_length=255)
+    accounts_telephone = models.CharField(max_length=40)
+    accounts_address = models.CharField(max_length=512)
+    accounts_city = models.CharField(max_length=255)
+    accounts_area = models.CharField(max_length=255)
+    accounts_postcode = models.CharField(max_length=10)
+    accounts_country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, related_name='accounts_country')
 
     class Meta:
         managed = False

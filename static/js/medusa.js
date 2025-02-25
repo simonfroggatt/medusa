@@ -312,3 +312,12 @@ ORDERSNAMESPACE.SetSingleUnitPrice = function (new_price, form_id, bl_update_pri
             SetPrice(true, form_id)
         }
     }
+
+  //add a global catch for the modal dialog closing
+    $(document).on('hidden.bs.modal', function (e) {
+        var onclose = $(e.target).attr('data-onclose')
+        switch(onclose) {
+            case "site_variant": UpdateSiteVarientTable(); break;
+            default: console.log(onclose);
+        }
+    });

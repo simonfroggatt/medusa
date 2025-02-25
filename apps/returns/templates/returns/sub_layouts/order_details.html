@@ -1,0 +1,57 @@
+{% load static %}
+<div class="card h-100 mb-0">
+    <div class="card-header order_details">
+        Order Details: {{ return_obj.store.prefix }}-{{ return_obj.order.order_id }} <i class="{{ return_obj.status.status_image}}"></i>
+                    <img src="{% get_media_prefix %}stores/branding/logos/{{ return_obj.store.thumb }}" class="img-responsive tsg-thumbnail"
+                         alt="{{ return_order.store.name }}">
+                    {% if return_obj.order.xero_id %}
+                        <a href="https://go.xero.com/app/invoicing/view/{{return_obj.order.xero_id}}" target="_blank"><img src="{% get_media_prefix %}stores/3rdpartylogo/Xero_logo.svg" class="img-responsive tsg-thumbnail"
+                                        alt="Xero"></a>
+                    {% endif %}
+    </div>
+             <div class="card-body">
+                 <dl class="row text-nowrap" id="order_{{ order_obj.order_id }}">
+                     {% if order_obj.customer %}
+                         <dt class="col-3">Company</dt>
+                         {% if order_obj.customer.company %}
+                              <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id %}">{{ order_obj.customer.company }}</a>
+                             {% if order_obj.customer.parent_company %}
+                                 - ( works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a> )
+                             {% endif %}
+                              </dd>
+                         {% else %}
+                             {% if order_obj.customer.parent_company %}
+                                <dd class="col-9">works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a>
+                             {% else %}
+                                 <dd class="col-9"></dd>
+                             {% endif %}
+
+                         {% endif %}
+                             <dt class="col-3">Contact</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.fullname }}</a></dd>
+                     {% else %}
+                         {% if order_obj.company %}
+                              <dt class="col-3">Company</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer_id %}">{{ order_obj.company }}</a></dd>
+                         {% endif %}
+                          <dt class="col-3">Contact</dt><dd class="col-9">{{ order_obj.fullname }}</dd>
+                     {% endif %}
+
+                     <dt class="col-3">Order No:</dt>
+                     <dd class="col-9"><a href="{% url 'order_details' order_obj.order_id %}" target="_blank">{{ order_obj.order_id }}</a></dd>
+                    {% if order_obj.customer_order_ref %}
+                     <dt class="col-3">Purchase Ref:</dt>
+                     <dd class="col-9">{{ order_obj.customer_order_ref|default:"&nbsp;" }}</dd>
+                    {% endif %}
+                     <dt class="col-3">Date:</dt>
+                     <dd class="col-9">{{ order_obj.date_added }}</dd>
+                    {% if order_obj.date_due %}
+                        <dt class="col-3">Due Date:</dt>
+                        <dd class="col-9">{{ order_obj.due_date }}</dd>
+                    {% endif %}
+
+                     <dt class="col-3">Status:</dt>
+                     <dd class="col-9">{{ order_obj.order_status.name }}</dd>
+                     <dt class="col-3">Payment:</dt>
+                     <dd class="col-9">{{order_obj.payment_method.method_name }} - {{order_obj.payment_status.name }}</dd>
+                 </dl>
+             </div>
+         </div>

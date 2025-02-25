@@ -161,3 +161,20 @@ class OcTsgFiletypeImages(models.Model):
 
     def __str__(self):
         return self.image
+
+
+class OcTsgOrderProductStatus(models.Model):
+    status_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    icon_path = models.CharField(max_length=255, blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
+    is_flag = models.IntegerField(blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_product_status'
+        ordering = ['order_by']
+
+    def __str__(self):
+        return self.name

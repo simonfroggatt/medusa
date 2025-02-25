@@ -30,6 +30,7 @@ urlpatterns = [
 
     path('<int:order_id>', views.order_details, name='order_details'),
     path('<int:order_id>/delete/', views.order_delete_dlg, name='orderdeletedlg'),
+    path('<int:order_id>/return/', views.order_return_dlg, name='orderreturndlg'),
     path('<int:order_id>/duplicate/', views.order_duplicate_dlg, name='orderduplicatedlg'),
     path('<int:order_id>/details/edit/', views.order_details_edit,
          name='orderdetailsedit'),

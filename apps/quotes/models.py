@@ -1,11 +1,14 @@
 from django.db import models
-from medusa.models import OcTaxRate, OcTsgCountryIso
+from medusa.models import OcTaxRate, OcTsgCountryIso, OcTsgFileTypes
 from apps.shipping.models import OcTsgShippingMethod
 from apps.sites.models import OcStore, OcCurrency
 from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
+from apps.options.models import OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption, OcTsgOptionTypes
 import datetime as dt
-
+from decimal import Decimal, ROUND_HALF_UP
+from django.conf import settings
+import os
 
 class OcTsgQuote(models.Model):
     quote_id = models.AutoField(primary_key=True)
@@ -30,12 +33,10 @@ class OcTsgQuote(models.Model):
     days_valid = models.IntegerField(blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, db_column='tax_rate')
     sent = models.BooleanField(blank=True, null=True)
-    shipping_type = models.ForeignKey(OcTsgShippingMethod, models.DO_NOTHING, blank=True, null=True)
-    shipping_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     date_sent = models.DateTimeField(blank=True, null=True)
     discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-
-
+    shipping_type = models.ForeignKey(OcTsgShippingMethod, models.DO_NOTHING, blank=True, null=True)
+    shipping_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
     def valid_until(self):
         ordered = dt.datetime(self.date_added.year, self.date_added.month, self.date_added.day)
@@ -62,7 +63,7 @@ class OcTsgQuoteProduct(models.Model):
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=4)
     discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
-    discount_type = models.IntegerField(db_column='discount_Type', blank=True, null=True)  # Field name made lowercase.
+    discount_type = models.IntegerField(db_column='discount_Type', blank=True, null=True)  
     total = models.DecimalField(max_digits=15, decimal_places=4)
     tax = models.DecimalField(max_digits=15, decimal_places=4)
     tax_rate_desc = models.CharField(max_length=10, blank=True, null=True)
@@ -86,4 +87,69 @@ class OcTsgQuoteProduct(models.Model):
         db_table = 'oc_tsg_quote_product'
 
 
+class OcTsgQuoteStatus(models.Model):
+    quote_status_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=32)
+    order_by = models.IntegerField(blank=True, null=True)
 
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_quote_status'
+        ordering = ['order_by']
+
+    def __str__(self):
+        return self.name
+
+
+class OcTsgQuoteHistory(models.Model):
+    quote_history_id = models.AutoField(primary_key=True)
+    quote = models.ForeignKey(OcTsgQuote, models.DO_NOTHING, related_name='quote_history')
+    status = models.ForeignKey(OcTsgQuoteStatus, models.DO_NOTHING, blank=True, null=True)
+    notify = models.BooleanField(default=False)
+    comment = models.TextField(blank=True, null=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_quote_history'
+
+
+class OcTsgQuoteDocuments(models.Model):
+    quote = models.ForeignKey(OcTsgQuote, models.DO_NOTHING, related_name='quote_documents')
+    type = models.ForeignKey(OcTsgFileTypes, models.DO_NOTHING)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.FileField(upload_to='medusa/quote/documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    cache_path = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.quote.quote_ref} - {self.title}"
+
+    def short_name(self):
+        return os.path.basename(self.filename.name) if self.filename else ''
+
+    def cdn_name(self):
+        if self.cache_path:
+            return f"{settings.CDN_URL}/{self.cache_path}"
+        return None
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_quote_documents'
+
+
+class OcTsgQuoteProductOptions(models.Model):
+    quote_product = models.ForeignKey(OcTsgQuoteProduct, models.DO_NOTHING, related_name='quote_product_options')
+    class_field = models.ForeignKey(OcTsgOptionClass, models.DO_NOTHING, db_column='class_id', blank=True, null=True)
+    class_name = models.CharField(max_length=255, blank=True, null=True)
+    value = models.ForeignKey(OcTsgOptionValues, models.DO_NOTHING, blank=True, null=True)
+    value_name = models.CharField(max_length=255, blank=True, null=True)
+    bl_dynamic = models.BooleanField(default=False)
+    dynamic_class_id = models.IntegerField(blank=True, null=True)
+    dynamic_value_id = models.IntegerField(blank=True, null=True)
+    class_type = models.ForeignKey(OcTsgOptionTypes, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_quote_product_options'

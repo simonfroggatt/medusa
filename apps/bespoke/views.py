@@ -21,17 +21,24 @@ def _google_auth():
     SCOPES = ["https://www.googleapis.com/auth/drive.file"]
     creds = None
 
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    # Get the project's root directory
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+    # Construct the path to client_secret.json
+    client_secret_path = os.path.join(project_root, 'client_secret.json')
+    token_path = os.path.join(project_root, 'token.json')
+
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
 
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(client_secret_path, SCOPES)
             creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
+        with open(token_path, 'w') as token:
             token.write(creds.to_json())
 
     return creds

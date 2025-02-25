@@ -317,3 +317,11 @@ class ProductOptionValuesSerializer(serializers.ModelSerializer):
         model = OcOptionValues
         fields = '__all__'
         depth = 2
+
+class ProductBasicSerializer(serializers.ModelSerializer):
+    productdescbase = ProductDescriptionBase(read_only=True)
+
+    class Meta:
+        model = OcProduct
+        fields = ['product_id', 'model', 'status', 'image_url', 'productdescbase']
+        depth = 2

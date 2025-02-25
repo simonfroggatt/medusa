@@ -29,6 +29,8 @@
                                     <li><a href="{% url 'neworders' %}" >NEW Orders</a></li>
                                     <li><a href="{% url 'allorders' %}">All Orders</a></li>
                                     <li><a href="{% url 'failedorders' %}">Failed Orders</a></li>
+                                    
+                                    <li><a href="{% url 'allreturns' %}">Returns</a></li>
                                 </ul>
                             </li>
                             <li>
@@ -155,12 +157,13 @@
                             </li>
                                 
                                 <li class="menu-title mt-3">TODO Tools</li>
-                            <li>
-                                <a href="{% url 'alltemplates' %}" class="waves-effect">
+                                <li>
+                                <a href="{% url 'nosymbols' %}" class="waves-effect">
                                     <i class="fa-solid fa-ban-smoking"></i>
-                                    <span key="t-product-symbols">Symbols</span>
+                                    <span key="t-product-symbols">Product Symbols</span>
                                 </a>
                             </li>
+
                             {% endif %}
 
                         </ul>

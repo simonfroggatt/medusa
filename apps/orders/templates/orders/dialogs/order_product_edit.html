@@ -21,8 +21,7 @@
                    value="{{ form.total.value|floatformat:2 }}">
             <input type="hidden" id="{{ form.exclude_discount.name }}" name="{{ form.exclude_discount.name }}"
                    value="{{ form.exclude_discount.value }}">
-            <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}"
-                   value="{{ form.bulk_used.value }}">
+
             <input type="hidden" id="manualCalcWidth" name="manualCalcWidth"
                    value="{{ form.width.value }}">
             <input type="hidden" id="manualCalcHeight" name="manualCalHeight"
@@ -119,7 +118,7 @@
                     <div class="row">
                         <div class="form-check form-switch form-switch-md col-12">
                             <label class="form-label" for="switchShowBulk">Apply Bulk</label>
-                            <input class="form-check-input" type="checkbox" id="switchApplyBulk" role="switch"
+                            <input class="form-check-input" type="checkbox" id="switchApplyBulk" name="{{ form.bulk_used.name }}" role="switch"
                                     {% if form.bulk_used.value %} checked {% endif %}>
                         </div>
 

@@ -1,0 +1,111 @@
+{% load static %}
+
+
+<div class="modal-header">
+    <h4 class="modal-title"> <strong>Edit</strong> Return</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <h3>Available products to return</h3>
+        <div class="row pb-2">
+             <table id="return_product_avail_list" class="table table-hover table-striped align-middle table-sm"
+        style="width:100%">
+         <thead>
+         <tr>
+             <th>Code</th>
+             <th width="100px">Image</th>
+             <th>Name</th>
+             <th>Size</th>
+             <th>Material</th>
+         </tr>
+         </thead>
+ </table>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Close</button>
+                        <button type="button" id="add_product" class="btn {{ BUTTON_EDIT }} pull-right">Add Selected</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+
+        if ($.fn.dataTable.isDataTable('#return_product_avail_list')) {
+            let return_product_avail_list = $('#return_product_avail_list').DataTable();
+        } else {
+            let return_product_avail_list = $('#return_product_avail_list').DataTable({
+                "lengthChange": false,
+                "responsive": true,
+                "autoWidth": false,
+                'serverSide': false,
+                'order': [[0, 'desc']],
+                'searching': false,
+                "paging": false,
+                "processing": true,
+                "select": true,
+                "info": false,
+                "ajax": {
+                    "url": "/returns/api/availableproducts/{{ return_order.id }}/?format=datatables",
+                    "type": "GET",
+                },
+                "rowId": 'order_product_id',
+                "columns": [
+                    {"data": "model"},
+                    {"data": "product_image_url",
+                    render: function (data, type, row) {
+                         if (data === undefined || data === null) {
+                             return '<img height="30px" class="rounded mx-auto d-block" src="' + media_url + 'stores/no-image.png">'
+                         } else {
+
+                             let image_src = data;
+                             return '<a href="' + image_src + '" data-lightbox="image"><img height="30px" class="rounded mx-auto d-block" src="' + image_src + '">';
+                         }
+
+                     }
+                     },
+                    {"data": "name"},
+                    {"data": "size_name"},
+                    {"data": "material_name"},
+                ],
+
+            });
+        }
+
+        $('#add_product').on('click', function () {
+            var tableToQuery = $("#return_product_avail_list").DataTable();
+            var selectedRow = $("#return_product_avail_list tr.selected");
+            var data_row = tableToQuery.row(selectedRow).data();
+            let product_id = data_row['order_product_id'];
+            let return_id = {{ return_order.id }};
+            let url = '/returns/api/addproduct/' + return_id + '/' + product_id
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                success: function (data) {
+                    if(data['success'])
+                    {
+                        let dttable = $('#return_product_list').DataTable();
+                        dttable.ajax.reload();
+
+                        let tableToQuery = $('#return_product_avail_list').DataTable();
+                        tableToQuery.ajax.reload();
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        });
+
+    });
+</script>
+
+
+

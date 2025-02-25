@@ -36,14 +36,16 @@
                         </dl>
                      </div>
                      <div class="col-6">
+                         <dl>
                          <dt>Invoice Address</dt>
                          <address >
-                                {{ company_obj.address|linebreaksbr  }}<br>
-                                {{ company_obj.area }}<br>
-                                {{ company_obj.city }}<br>
-                                <strong>{{ company_obj.postcode }}</strong><br>
-                                {{ company_obj.country }}
+                                {{ company_obj.accounts_address|linebreaksbr  }}<br>
+                                {{ company_obj.accounts_area }}<br>
+                                {{ company_obj.accounts_city }}<br>
+                                <strong>{{ company_obj.accounts_postcode }}</strong><br>
+                                {{ company_obj.accounts_country }}
                         </address>
+                             </dl>
                      </div>
                  </div>
 

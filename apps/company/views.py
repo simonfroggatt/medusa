@@ -135,7 +135,7 @@ def company_create_save(request):
                 new_address.area = clean_company['area']
                 new_address.postcode = clean_company['postcode']
                 new_address.country = clean_company['country']
-                new_address.default_billing = 1
+                new_address.default_billing = 0
                 new_address.default_shipping = 1
                 new_address.save()
 

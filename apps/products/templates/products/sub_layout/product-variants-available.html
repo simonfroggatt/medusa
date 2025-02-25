@@ -53,7 +53,7 @@ $(document).ready(function() {
                 {data: "variant_image_url", defaultContent: "no-image.png",
                     render: function ( data, type, row ) {
                     if(data == null ){
-                        img_path = {% get_media_prefix %} + "no-image.png"
+                        img_path =  "{% get_media_prefix %}no-image.png"
                     }
                     else{
                         img_path =  data

@@ -48,6 +48,7 @@ class OcStore(models.Model):
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
     email_header_logo = models.CharField(max_length=255, blank=True, null=True)
     email_foot_logo = models.CharField(max_length=255, blank=True, null=True)
+    product_code_template = models.CharField(max_length=1024, blank=True, null=True)
 
     class Meta:
         managed = False

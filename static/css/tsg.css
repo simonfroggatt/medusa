@@ -581,7 +581,9 @@ table.dataTable td a.info-link {
 table.dataTable .product-thumb {
             height: 30px;
         }
-
+table.dataTable .product-thumb-lg {
+            height: 50px;
+        }
 
 .dataTables_wrapper .dataTables_filter {
     float:left !important;

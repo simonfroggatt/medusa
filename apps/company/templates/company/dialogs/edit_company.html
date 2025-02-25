@@ -13,19 +13,28 @@
                       id="js-company-edit-form">
                     {% csrf_token %}
                     {{ form.xero_id.as_hidden }}
-                    <div class="row border-bottom">
+                    <div class="row">
                         <div class="col-md-4">{{ form.company_name|as_crispy_field }}</div>
                         <div class="col-md-4">{{ form.company_type|as_crispy_field }}</div>
                         <div class="col-md-4">{{ form.website|as_crispy_field }}</div>
                     </div>
-                    <div class="row border-bottom">
-                        <div class="col-md-4">{{ form.fullname|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.email|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.telephone|as_crispy_field }}</div>
+                    <div class="row border-bottom pb-2">
+                        <div class="col-md-3">{{ form.account_type|as_crispy_field }}</div>
+
+                                <div class="col-md-2">{{ form.payment_terms|as_crispy_field }}</div>
+                                <div class="col-md-1">{{ form.payment_days|as_crispy_field }}</div>
+                                <div class="col-md-2">{{ form.discount|as_crispy_field }}</div>
+                                <div class="col-md-2">{{ form.credit_limit|as_crispy_field }}</div>
+                                <div class="col-md-2">{{ form.tax_rate|as_crispy_field }}</div>
                     </div>
                     <div class="row">
-                        <div class="col-6 border-end">
+
+                        <div class="col-12 col-md-6">
+                            <h3>Main Contact</h3>
                             <div class="row">
+                                <div class="col-md-6">{{ form.fullname|as_crispy_field }}</div>
+                                <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
+                                <div class="col-md-12">{{ form.email|as_crispy_field }}</div>
                                 <div class="col-12">{{ form.address|as_crispy_field }}</div>
                                 <div class="col-6">{{ form.city|as_crispy_field }}</div>
                                 <div class="col-6">{{ form.area|as_crispy_field }}</div>
@@ -33,14 +42,17 @@
                                 <div class="col-6">{{ form.country|as_crispy_field }}</div>
                             </div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-12 col-md-6 border-end">
+                            <h3>Accounts Contact <i class="fa-solid fa-copy" id="js-copy_main_contact"></i></h3>
                             <div class="row">
-                                <div class="col-md-4">{{ form.account_type|as_crispy_field }}</div>
-                                <div class="col-md-4">{{ form.payment_days|as_crispy_field }}</div>
-                                <div class="col-md-4">{{ form.payment_terms|as_crispy_field }}</div>
-                                <div class="col-md-4">{{ form.discount|as_crispy_field }}</div>
-                                <div class="col-md-4">{{ form.credit_limit|as_crispy_field }}</div>
-                                <div class="col-md-4">{{ form.tax_rate|as_crispy_field }}</div>
+                                <div class="col-md-6">{{ form.accounts_contact_name|as_crispy_field }}</div>
+                                <div class="col-md-6">{{ form.accounts_telephone|as_crispy_field }}</div>
+                                <div class="col-md-12">{{ form.accounts_email|as_crispy_field }}</div>
+                                <div class="col-12">{{ form.accounts_address|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.accounts_city|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.accounts_area|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.accounts_postcode|as_crispy_field }}</div>
+                                <div class="col-6">{{ form.accounts_country|as_crispy_field }}</div>
                             </div>
                         </div>
                     </div>
@@ -59,3 +71,16 @@
         </div>
     </div>
 </div>
+
+<script>
+     $('#js-copy_main_contact').on('click', function () {
+        $('#id_accounts_contact_name').val($('#id_fullname').val());
+        $('#id_accounts_telephone').val($('#id_telephone').val());
+        $('#id_accounts_email').val($('#id_email').val());
+        $('#id_accounts_address').val($('#id_address').val());
+        $('#id_accounts_city').val($('#id_city').val());
+        $('#id_accounts_area').val($('#id_area').val());
+        $('#id_accounts_postcode').val($('#id_postcode').val());
+        $('#id_accounts_country').val($('#id_country').val());
+    });
+</script>

@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core import serializers
 from .models import OcCustomer, OcAddress, OcTsgContactDocuments
-from .serializers import CustomerListSerializer
+from .serializers import CustomerListSerializer, CustomerPreviousOrdersSerializer
+#from apps.orders.serializers import CustomerPreviousOrdersSerializer
 from .forms import AddressForm, CustomerForm, CustomerDocumentForm
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
 from rest_framework import viewsets
@@ -48,6 +49,12 @@ class customer_list_bycompany(viewsets.ModelViewSet):
         customer_list = OcCustomer.objects.filter(parent_company_id=pk).filter(archived=0)
         serializer = self.get_serializer(customer_list, many=True)
         return Response(serializer.data)
+
+
+class previous_orders(viewsets.ModelViewSet):
+    queryset = OcCustomer.objects.all()
+    serializer_class = CustomerPreviousOrdersSerializer
+
 
 
 def customers_details(request, customer_id):
@@ -316,18 +323,31 @@ def order_customer_create(request, customer_id):
         new_order_obj.payment_method_id = 8
         # TODO - this needs to be from the website country
 
+        #check if this customer has a parent company
         address_book = get_default_address(customer_obj)
-
-        new_order_obj.payment_fullname = address_book['billing'].fullname
-        new_order_obj.payment_company = address_book['billing'].company
-        new_order_obj.payment_email = address_book['billing'].email
-        new_order_obj.payment_telephone = address_book['billing'].telephone
-        new_order_obj.payment_address_1 = address_book['billing'].address_1
-        new_order_obj.payment_city = address_book['billing'].city
-        new_order_obj.payment_area = address_book['billing'].area
-        new_order_obj.payment_postcode = address_book['billing'].postcode
-        new_order_obj.payment_country_name_id = address_book['billing'].country_id
-        new_order_obj.payment_country = address_book['billing'].country
+        if customer_obj.parent_company:
+            new_order_obj.payment_fullname = customer_obj.parent_company.accounts_contact_name
+            new_order_obj.payment_company = customer_obj.parent_company.company_name
+            new_order_obj.payment_email = customer_obj.parent_company.accounts_email
+            new_order_obj.payment_telephone = customer_obj.parent_company.accounts_telephone
+            new_order_obj.payment_address_1 = customer_obj.parent_company.accounts_address
+            new_order_obj.payment_city = customer_obj.parent_company.accounts_city
+            new_order_obj.payment_area = customer_obj.parent_company.accounts_area
+            new_order_obj.payment_postcode = customer_obj.parent_company.accounts_postcode
+            new_order_obj.payment_country_name_id = customer_obj.parent_company.accounts_country_id
+            new_order_obj.payment_country = customer_obj.parent_company.accounts_country
+        else:
+            billing_address = address_book['billing']
+            new_order_obj.payment_fullname = billing_address.fullname
+            new_order_obj.payment_company = billing_address.company
+            new_order_obj.payment_email = billing_address.email
+            new_order_obj.payment_telephone = billing_address.telephone
+            new_order_obj.payment_address_1 = billing_address.address_1
+            new_order_obj.payment_city = billing_address.city
+            new_order_obj.payment_area = billing_address.area
+            new_order_obj.payment_postcode = billing_address.postcode
+            new_order_obj.payment_country_name_id = billing_address.country_id
+            new_order_obj.payment_country = billing_address.country
 
 
         new_order_obj.shipping_fullname = address_book['shipping'].fullname
@@ -662,20 +682,37 @@ def customer_convert_to_company(request, customer_id):
         new_company_type = request.POST.get('company_type')
         new_company_obj = OcTsgCompany()
         default_address = get_default_address(customer_obj)
+
+        #see if there are more than one address
         billing_address = default_address['billing']
+        shipping_address = default_address['shipping']
+
         #copyt from customer
         new_company_obj.company_name = billing_address.company
-        new_company_obj.fullname = customer_obj.fullname
-        new_company_obj.email = billing_address.email
-        new_company_obj.telephone = billing_address.telephone
-        new_company_obj.address = billing_address.address_1
-        if billing_address.address_2:
-            new_company_obj.address += ' ' + billing_address.address_2
-        new_company_obj.city = billing_address.city
-        new_company_obj.area = billing_address.area
-        new_company_obj.postcode = billing_address.postcode
-        new_company_obj.country_id = billing_address.country_id
         new_company_obj.xero_id = customer_obj.xero_id
+
+        new_company_obj.accounts_contact_name = billing_address.fullname
+        new_company_obj.accounts_email = billing_address.email
+        new_company_obj.accounts_telephone = billing_address.telephone
+        new_company_obj.accounts_address = billing_address.address_1
+        if billing_address.address_2:
+            new_company_obj.accounts_address += ' ' + billing_address.address_2
+        new_company_obj.accounts_city = billing_address.city
+        new_company_obj.accounts_area = billing_address.area
+        new_company_obj.accounts_postcode = billing_address.postcode
+        new_company_obj.accounts_country_id = billing_address.country_id
+
+        new_company_obj.fullname = shipping_address.fullname
+        new_company_obj.email = shipping_address.email
+        new_company_obj.telephone = shipping_address.telephone
+        new_company_obj.address = shipping_address.address_1
+        if shipping_address.address_2:
+            new_company_obj.address += ' ' + shipping_address.address_2
+        new_company_obj.city = shipping_address.city
+        new_company_obj.area = shipping_address.area
+        new_company_obj.postcode = shipping_address.postcode
+        new_company_obj.country_id = shipping_address.country_id
+
 
         #set defaults
         new_company_obj.payment_days = 0
