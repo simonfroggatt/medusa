@@ -10,13 +10,43 @@ from googleapiclient.http import MediaFileUpload
 from django.conf import settings
 from django.http import JsonResponse
 
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
 from apps.orders.models import OcOrder, OcOrderProduct, OcTsgOrderBespokeImage
 from cairosvg import svg2pdf
 import json
 from django.views.decorators.csrf import csrf_exempt
 
+def test_google(request):
+    file_id = _googledrive_upload('bespoke_image-18.png')
+    return JsonResponse(file_id, safe=False)
+
+
+def test_list(request):
+    service = _google_auth()
+    items = get_last_five_files(service)
+    return JsonResponse(items, safe=False)
 
 def _google_auth():
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    SCOPES = ["https://www.googleapis.com/auth/drive.file"]
+
+    # Use the service account file
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    #service_account_file = os.path.join(project_root, 'ssan-bespoke-95dbf1ea28e6.json')
+    service_account_file = os.path.join(project_root, 'ssan-bespoke-88bccd81c643.json')
+    #service_account_file = 'path/to/your/service_account.json'  # Update this path
+    creds = service_account.Credentials.from_service_account_file(
+        service_account_file, scopes=SCOPES)
+
+    # Use the credentials to access the API
+    service = build('drive', 'v3', credentials=creds)
+
+    return service
+
+
+def _google_auth_old():
     SCOPES = ['https://www.googleapis.com/auth/drive']
     SCOPES = ["https://www.googleapis.com/auth/drive.file"]
     creds = None
@@ -75,14 +105,17 @@ def convert_order_product(request, pk):
 
 
 def _googledrive_upload(filename):
-    creds = _google_auth()
+
     fileid = '';
 
     try:
         # create drive api client
-        service = build("drive", "v3", credentials=creds)
+        service = _google_auth()
+        #service = build("drive", "v3", credentials=creds)
         pdf_filename = os.path.join(settings.BESPOKE_TMP_PATH, filename)
         file_metadata = {"name": filename, "mimeType": "application/pdf", "parents": [settings.GDRIVE_BESPOKE_FOLDER]}
+        #file_metadata = {"name": filename, "mimeType": "application/pdf"}
+
         media = MediaFileUpload(pdf_filename, mimetype="application/pdf")
         # pylint: disable=maybe-no-member
         file = (
@@ -92,7 +125,7 @@ def _googledrive_upload(filename):
         )
         fileid = file.get("id")
         #now delete the temp file
-        os.remove(pdf_filename)
+        #os.remove(pdf_filename)
 
 
     except HttpError as error:
@@ -114,3 +147,17 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
     else:
         return False
 
+
+def get_last_five_files(service):
+    # Query to get the last 5 files ordered by created time
+    query = "trashed = false"  # Exclude trashed files
+    results = service.files().list(
+        q=query,
+        orderBy='createdTime desc',
+        pageSize=5,
+        fields="files(id, name, createdTime)"
+    ).execute()
+
+    items = results.get('files', [])
+
+    return items
