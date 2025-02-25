@@ -19,7 +19,11 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 
 def test_google(request):
-    file_id = _googledrive_upload('bespoke_image-18.png')
+
+    filename = 'bespoke_image-18.png'
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    pdf_filename = os.path.join(project_root, settings.BESPOKE_TMP_PATH, filename)
+    file_id = _googledrive_upload(pdf_filename)
     return JsonResponse(file_id, safe=False)
 
 
@@ -112,7 +116,10 @@ def _googledrive_upload(filename):
         # create drive api client
         service = _google_auth()
         #service = build("drive", "v3", credentials=creds)
-        pdf_filename = os.path.join(settings.BESPOKE_TMP_PATH, filename)
+        #pdf_filename = os.path.join(settings.BESPOKE_TMP_PATH, filename)
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        pdf_filename = os.path.join(project_root, settings.BESPOKE_TMP_PATH, filename)
+
         file_metadata = {"name": filename, "mimeType": "application/pdf", "parents": [settings.GDRIVE_BESPOKE_FOLDER]}
         #file_metadata = {"name": filename, "mimeType": "application/pdf"}
 
