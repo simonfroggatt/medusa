@@ -165,3 +165,34 @@ def get_last_five_files(service):
     items = results.get('files', [])
 
     return items
+
+
+
+def test_write_permission(directory):
+    # Create a temporary file name
+    test_file_path = os.path.join(directory, 'test_write_permission.txt')
+
+    try:
+        # Try to write to the file
+        with open(test_file_path, 'w') as test_file:
+            test_file.write('This is a test file to check write permissions.')
+
+        # If successful, return True
+        return True
+    except Exception as e:
+        # If an error occurs, print the error and return False
+        print(f'Error writing to file: {e}')
+        return False
+    finally:
+        # Clean up by removing the test file if it was created
+        if os.path.exists(test_file_path):
+            os.remove(test_file_path)
+
+def test_write(request):
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    directory_to_test = os.path.join(project_root, settings.BESPOKE_TMP_PATH)
+    #directory_to_test = '/path/to/your/tmp_directory'  # Update this path
+    if test_write_permission(directory_to_test):
+        return JsonResponse({'message': 'Write permission is granted.'})
+    else:
+        return JsonResponse({'message': 'Write permission is denied.'})

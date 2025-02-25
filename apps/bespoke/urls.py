@@ -6,4 +6,5 @@ urlpatterns = [
     path('api/convert-order-product/<int:pk>', views.convert_order_product, name='convert_order'),
     path('test', views.test_google, name='convert_order'),
     path('testlist', views.test_list, name='convert_order'),
+    path('testwrite', views.test_write, name='convert_order'),
     ]
