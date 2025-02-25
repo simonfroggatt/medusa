@@ -28,7 +28,6 @@ def _google_auth():
     client_secret_path = os.path.join(project_root, 'client_secret.json')
     token_path = os.path.join(project_root, 'token.json')
 
-
     if os.path.exists(token_path):
         creds = Credentials.from_authorized_user_file(token_path, SCOPES)
 
