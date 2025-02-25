@@ -193,6 +193,6 @@ def test_write(request):
     directory_to_test = os.path.join(project_root, settings.BESPOKE_TMP_PATH)
     #directory_to_test = '/path/to/your/tmp_directory'  # Update this path
     if test_write_permission(directory_to_test):
-        return JsonResponse({'message': 'Write permission is granted.'})
+        return JsonResponse({'message': 'Write permission is granted.', 'directory': directory_to_test})
     else:
-        return JsonResponse({'message': 'Write permission is denied.'})
+        return JsonResponse({'message': 'Write permission is denied.', 'directory': directory_to_test})
