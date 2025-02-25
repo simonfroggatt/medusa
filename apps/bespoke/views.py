@@ -21,9 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 def test_google(request):
 
     filename = 'bespoke_image-18.png'
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    pdf_filename = os.path.join(project_root, settings.BESPOKE_TMP_PATH, filename)
-    file_id = _googledrive_upload(pdf_filename)
+    file_id = _googledrive_upload(filename)
     return JsonResponse(file_id, safe=False)
 
 
@@ -115,8 +113,6 @@ def _googledrive_upload(filename):
     try:
         # create drive api client
         service = _google_auth()
-        #service = build("drive", "v3", credentials=creds)
-        #pdf_filename = os.path.join(settings.BESPOKE_TMP_PATH, filename)
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
         pdf_filename = os.path.join(project_root, settings.BESPOKE_TMP_PATH, filename)
 
@@ -144,7 +140,8 @@ def _googledrive_upload(filename):
 
 def _convert_svg_to_pdf(svg_bytes, pdf_filename):
     #add the tmp path to the filename
-    tmp_filename = os.path.join(settings.BESPOKE_TMP_PATH, pdf_filename)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    tmp_filename = os.path.join(project_root, settings.BESPOKE_TMP_PATH, pdf_filename)
     svg_string = json.loads(svg_bytes)
     svg2pdf(bytestring=svg_string, write_to=tmp_filename)
    # tmp = json.dumps(svg_bytes)
