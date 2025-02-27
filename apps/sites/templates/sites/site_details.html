@@ -15,22 +15,26 @@
                     <div class="col-6 col-md-2">{{ form.code|as_crispy_field }}</div>
 
                 <hr>
-                    <div class="col-6 col-md-4">{{ form.company_name|as_crispy_field }}</div>
-                    <div class="col-6 col-md-4">{{ form.website|as_crispy_field }}</div>
-                    <div class="col-6 col-md-4">{{ form.email_address|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.company_name|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.website|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.email_address|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.accounts_email_address|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.telephone|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.vat_number|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.registration_number|as_crispy_field }}</div>
-                    <div class="col-6 col-md-3">{{ form.currency|as_crispy_field }}</div>
+                    <div class="col-6 col-md-1">{{ form.currency|as_crispy_field }}</div>
+                    <div class="col-6 col-md-2">{{ form.tax_rate|as_crispy_field }}</div>
                     <div class="col-12">{{ form.footer_text|as_crispy_field }}</div>
                     <div class="col-6 col-md-4">{{ form.address|as_crispy_field }}</div>
                     <div class="col-6 col-md-4">{{ form.postcode|as_crispy_field }}</div>
                     <div class="col-6 col-md-4">{{ form.country|as_crispy_field }}</div>
                 <hr>
-                    <div class="col-6 col-md-4">{{ form.thumb|as_crispy_field }}</div>
-                    <div class="col-6 col-md-4">{{ form.logo|as_crispy_field }}</div>
-                    <div class="col-6 col-md-4">{{ form.medusa_logo|as_crispy_field }}</div>
-                    <div class="col-6 col-md-4">{{ form.logo_paperwork|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.thumb|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.logo|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.medusa_logo|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.logo_paperwork|as_crispy_field }}</div>
+                <hr>
+                    <div class="col-12">{{ form.email_footer_text|as_crispy_field }}</div>
                 <div class="col-md-12">
                     {{ form.status|as_crispy_field }}
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">

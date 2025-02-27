@@ -7,6 +7,6 @@ class StoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcStore
-        fields = '__all__'
+        fields = ['name', 'url','status','store_id', 'store_thumb_url', 'store_logo_url', 'thumb']
         depth = 2
 

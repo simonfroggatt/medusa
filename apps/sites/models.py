@@ -38,6 +38,7 @@ class OcStore(models.Model):
     registration_number = models.CharField(max_length=25, blank=True, null=True)
     footer_text = models.CharField(max_length=255, blank=True, null=True)
     email_address = models.CharField(max_length=255, blank=True, null=True)
+    accounts_email_address = models.CharField(max_length=255, blank=True, null=True)
     prefix = models.CharField(max_length=10, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     postcode = models.CharField(max_length=255, blank=True, null=True)
@@ -49,6 +50,7 @@ class OcStore(models.Model):
     email_header_logo = models.CharField(max_length=255, blank=True, null=True)
     email_foot_logo = models.CharField(max_length=255, blank=True, null=True)
     product_code_template = models.CharField(max_length=1024, blank=True, null=True)
+    email_footer_text = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -60,6 +62,12 @@ class OcStore(models.Model):
             return f"{settings.MEDIA_URL}{self.thumb}"
         else:
             return f"{settings.MEDIA_URL}no-image.png"
+
+    def store_logo_url(self):
+        if self.logo:
+            return f"{settings.MEDIA_URL}{self.logo}"
+        else:
+            return f"{settings.MEDIA.URL}no-image.png"
 
     def __str__(self):
         return self.name
