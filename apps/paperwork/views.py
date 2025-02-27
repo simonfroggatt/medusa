@@ -29,7 +29,7 @@ from functools import partial
 from decimal import Decimal, ROUND_HALF_UP
 import pathlib
 from PyPDF2 import PdfFileMerger, PdfFileWriter, PdfFileReader
-from medusa.settings import TSG_PRODUCT_STATUS_SHIPPING
+from medusa import settings
 from django.conf import settings
 from urllib.parse import quote
 from django.urls import path, include, reverse_lazy
@@ -153,6 +153,7 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=12))
+    styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
     styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
 
 #company logo
@@ -198,20 +199,32 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     image_max_w = 20 * mm
 
     if bl_excl_shipped:
-        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+        order_items = order_obj.order_products.exclude(status__in=settings.TSG_PRODUCT_STATUS_SHIPPING).exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
     else:
-        order_items = order_obj.order_products.all()
+        order_items = order_obj.order_products.all().exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
 
     for order_item_data in order_items.iterator():
+
         if order_item_data.product_variant:
             model = order_item_data.product_variant.variant_code
         order_item_tbl_data = [''] * 10
         order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
         order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
-        order_item_tbl_data[2] = ""
+
+        #get any options in here
+        option_text = utils.get_order_product_line_options(order_item_data.order_product_id)
+        order_item_tbl_data[2] = Paragraph(option_text, styles['table_data_small'])
         if order_item_data.product_variant:
-            image_src = order_item_data.product_variant.site_variant_image_url
-            image_url = utils._create_image_url(order_item_data.product_variant.site_variant_image_url)
+            if order_item_data.order_product_bespoke_image.all().exists():
+                tmp_png_filename = utils._create_bespoke_image_png(
+                    order_item_data.order_product_bespoke_image.all().first())
+                if tmp_png_filename:
+                    image_url = tmp_png_filename
+                else:
+                    image_url = settings.TSG_NO_IMAGE
+            else:
+                image_src = order_item_data.product_variant.site_variant_image_url
+                image_url = utils._create_image_url(order_item_data.product_variant.site_variant_image_url)
 
             img = Image(image_url)
             img._restrictSize(image_max_w, image_max_h)
@@ -335,10 +348,11 @@ def gen_dispatch_note(order_id, bl_excl_shipped=False):
     image_max_h = 10 * mm
     image_max_w = 20 * mm
 
+
     if bl_excl_shipped:
-        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+        order_items = order_obj.order_products.exclude(status__in=settings.TSG_PRODUCT_STATUS_SHIPPING).exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
     else:
-        order_items = order_obj.order_products.all()
+        order_items = order_obj.order_products.all().exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
 
     for order_item_data in order_items.iterator():
         if order_item_data.product_variant:
@@ -391,6 +405,164 @@ def gen_dispatch_note(order_id, bl_excl_shipped=False):
         items_tbl_cols = [20 * mm, (image_max_w ) + 5,50 * mm, 22.5 * mm, 22.5 * mm,  40 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
     else:
         items_tbl_cols = [20 * mm, (image_max_w ) + 5, 60 * mm, 35 * mm, 35 * mm, 10 * mm, 5 * mm, 5 * mm, 5 * mm]
+    row_height = image_max_h + 10
+    rows = len(items_tbl_data)
+    items_tbl_rowh = [row_height] * rows
+    items_tbl_rowh[0] = 20
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('ALIGN', (5 + option_col_adj, 1), (5 + option_col_adj, -1), "CENTRE"),
+                                     ('ALIGN', (5 + option_col_adj, 0), (-1, 0), "CENTRE"),
+                                     ('ALIGN', (1, 1), (1, -1), "CENTRE"),
+                                     ('VALIGN', (0, 0), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 10),
+                                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), (colors.white, colors.whitesmoke)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5*mm))
+    order_lines = order_items.count()
+    product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
+
+#add in the totals
+    total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
+    elements.append(total_text)
+    elements.append(Spacer(doc.width, 15*mm))
+    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
+    elements.append(signed_text)
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+
+    #pdf = buffer.getvalue()
+    #uffer.close()
+    #response.write(pdf)
+    return buffer
+
+def gen_backorder_note(order_id, bl_excl_shipped=False):
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Backorder_'+order_ref_number,
+                            author="Total Safety Group Ltd",
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=10))
+
+#company logo
+    comp_logo = utils.create_company_logo(order_obj.store)
+
+#company contact & order details
+    header_address = utils.create_address(order_obj.store)
+
+# create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1),'MIDDLE'),
+                                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                                    ]))
+    elements.append(header_tbl)
+
+
+# Title
+    elements.append(Paragraph("Items on Backorder", styles['title']))
+
+# order details
+    contacts_str = utils.contact_details(order_obj)
+    order_str = utils.order_details(order_obj)
+    order_tbl_data = [
+        [Paragraph(contacts_str, styles['header_main']), Paragraph(order_str, styles['header_main'])]
+    ]
+    order_col_width = 40 * mm
+    order_tbl_data = Table(order_tbl_data, colWidths=[doc.width - order_col_width, order_col_width])
+    order_tbl_data.setStyle(TableStyle([
+                                        ('ALIGN', (1, 1), (1, 1), "RIGHT")]))
+    elements.append(order_tbl_data)
+    elements.append(Spacer(doc.width, 5*mm))
+#order items
+# Code, Product, Options, image, Size, Material, QTY, P,S,C
+    bl_options = utils.order_has_options(order_obj.order_id)
+    #product_options_addons = get_order_line_options(order_obj.or)
+    if bl_options:
+        items_tbl_data = [['Code', 'Image', 'Product','Size', 'Material','Options', 'QTY']]
+    else:
+        items_tbl_data = [['Code', 'Image', 'Product','Size', 'Material', 'Qty']]
+
+# Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+
+    if bl_excl_shipped:
+        order_items = order_obj.order_products.exclude(status__in=settings.TSG_PRODUCT_STATUS_SHIPPING).filter(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
+    else:
+        order_items = order_obj.order_products.all().filter(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
+
+    for order_item_data in order_items.iterator():
+        if order_item_data.product_variant:
+            model = order_item_data.product_variant.variant_code
+        if bl_options:
+            order_item_tbl_data = [''] * 7
+        else:
+            order_item_tbl_data = [''] * 6
+
+        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+
+        if order_item_data.product_variant:
+            #see if it's a bespoke image
+            if order_item_data.order_product_bespoke_image.all().exists():
+                tmp_png_filename = utils._create_bespoke_image_png(order_item_data.order_product_bespoke_image.all().first())
+                if tmp_png_filename:
+                    image_url = tmp_png_filename
+                else:
+                    image_url = settings.TSG_NO_IMAGE
+            else:
+                image_src = order_item_data.product_variant.site_variant_image_url
+                image_url = utils._create_image_url(order_item_data.product_variant.site_variant_image_url)
+
+            img = Image(image_url)
+            img._restrictSize(image_max_w, image_max_h)
+
+
+        else:
+            img = ''
+
+        order_item_tbl_data[1] = img
+
+        order_item_tbl_data[2] = Paragraph(order_item_data.name, styles['table_data'])
+        order_item_tbl_data[3] = Paragraph(order_item_data.size_name, styles['table_data'])
+        order_item_tbl_data[4] = Paragraph(order_item_data.material_name, styles['table_data'])
+
+        option_col_adj = 0
+        if bl_options:
+            option_text = utils.get_order_product_line_options(order_item_data.order_product_id)
+            order_item_tbl_data[5] = Paragraph(option_text, styles['table_data_small'])
+            option_col_adj = 1
+
+        order_item_tbl_data[5+option_col_adj] = order_item_data.quantity
+        items_tbl_data.append(order_item_tbl_data)
+
+    if bl_options:
+        items_tbl_cols = [20 * mm, (image_max_w ) + 5,55 * mm, 27.5 * mm, 27.5 * mm,  40 * mm, 10 * mm]
+    else:
+        items_tbl_cols = [20 * mm, (image_max_w ) + 5, 65 * mm, 40 * mm, 40 * mm, 10 * mm]
     row_height = image_max_h + 10
     rows = len(items_tbl_data)
     items_tbl_rowh = [row_height] * rows
@@ -498,9 +670,9 @@ def gen_options_pick_list(order_id, bl_excl_shipped=False):
     image_max_w = 20 * mm
 
     if bl_excl_shipped:
-        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+        order_items = order_obj.order_products.exclude(status__in=settings.TSG_PRODUCT_STATUS_SHIPPING).exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
     else:
-        order_items = order_obj.order_products.all()
+        order_items = order_obj.order_products.all().exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
 
     for order_item_data in order_items.iterator():
         if order_item_data.product_variant:
@@ -676,9 +848,9 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
     image_max_w = 20 * mm
 
     if bl_excl_shipped:
-        order_items = order_obj.order_products.exclude(status__in=TSG_PRODUCT_STATUS_SHIPPING)
+        order_items = order_obj.order_products.exclude(status__in=settings.TSG_PRODUCT_STATUS_SHIPPING).exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
     else:
-        order_items = order_obj.order_products.all()
+        order_items = order_obj.order_products.all().exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
 
     for order_item_data in order_items.iterator():
         if order_item_data.product_variant:
@@ -988,25 +1160,35 @@ def gen_merged_paperwork(request, order_id):
     pdflist=[]
 
     bl_exclude_shipped = False
+    bl_exclude_backorder = False
     if 'print_shipped' in request.POST:
         bl_exclude_shipped = True
+
+    if 'print_backorder' in request.POST:
+        bl_exclude_backorder = True
 
     if 'print_picklist' in request.POST:
         #pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
         #we need to see if there are tsg varoant options. If so, we create a different picklist and dispatch note
         if utils.order_has_product_options(order_id):
-            pdflist.append(gen_options_pick_list(order_id, bl_exclude_shipped))
-            pdflist.append(gen_dispatch_note(order_id, bl_exclude_shipped))
+            if _test_has_unshipped_items(order_id):
+                pdflist.append(gen_options_pick_list(order_id, bl_exclude_shipped))
+                pdflist.append(gen_dispatch_note(order_id, bl_exclude_shipped))
         else:
-            pdflist.append(gen_dispatch_note(order_id, bl_exclude_shipped))
+            if _test_has_unshipped_items(order_id):
+                pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
+            if _test_has_backorder_items(order_id) and not bl_exclude_backorder:
+                pdflist.append(gen_backorder_note(order_id, bl_exclude_shipped))
+
         set_printed(request, order_id)
     if 'print_shipping' in request.POST:
         pdflist.append(gen_shipping_page(order_id))
     if 'print_invoice' in request.POST:
         pdflist.append(gen_invoice(order_id))
     if 'print_collection' in request.POST:
-        pdflist.append(gen_collection_note(order_id, bl_exclude_shipped))
-        set_printed(request, order_id)
+        if _test_has_unshipped_items(order_id):
+            pdflist.append(gen_collection_note(order_id, bl_exclude_shipped))
+            set_printed(request, order_id)
 
     result_pdf = PdfFileWriter()
 
@@ -1289,3 +1471,16 @@ def gen_invoice_for_webstore(request, order_id, order_hash):
             response.write(json.dumps(data))
         return response
 
+def _test_has_unshipped_items(order_id):
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_items = order_obj.order_products.all().exclude(status__in=settings.TSG_PRODUCT_STATUS_SHIPPING).exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
+    if order_items.exists():
+        return True
+    return False
+
+def _test_has_backorder_items(order_id):
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_items = order_obj.order_products.all().filter(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
+    if order_items.exists():
+        return True
+    return False

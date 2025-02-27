@@ -18,6 +18,7 @@ from apps.customer.models import OcCustomer
 from apps.customer.views import get_default_address
 from apps.shipping.models import OcTsgShippingMethod
 from apps.templating.services import get_template_data
+from apps.templating.views import OcTsgTemplates
 
 
 class Quotes_asJSON(viewsets.ModelViewSet):
@@ -287,8 +288,12 @@ def quote_product_edit(request, quote_id, quote_product_id):
 def quote_get_text(request, quote_id):
     data = dict()
     store_id = OcTsgQuote.objects.filter(quote_id=quote_id).first().store_id
-    template_obj = get_template_data('quote_text', store_id)['main']
-    pricing_template = get_template_data('quote_prices', store_id)['main']
+
+    template_name = 'TEMPLATE_QUOTE_TEXT'
+
+
+    template_obj = get_template_data('TEMPLATE_QUOTE_TEXT', store_id)['main']
+    pricing_template = get_template_data('TEMPLATE_QUOTE_PRICE', store_id)['main']
     #shipping_template = get_template_data('shipping_price', store_id)['main']
     quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
     firstname = quote_obj.fullname.split()[0]

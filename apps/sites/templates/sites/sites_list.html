@@ -80,12 +80,12 @@
             {data: "name"},
             {data: "url"},
             {
-                data: "logo",
+                data: "store_logo_url",
                 sortable: false,
                 searchable: false,
                 render: function ( data, type, row ) {
-                    let image_src = '{% static "images/stores/" %}' + data;
-                    return '<img height="50px" src="' + image_src + '">'
+
+                    return '<img height="50px" src="' + data + '">'
                  }
             },
             {

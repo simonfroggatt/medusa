@@ -52,7 +52,7 @@ def create_address(company_obj):
     address += '<BR/>' + company_obj.postcode
     address += '<BR/>Tel: ' + company_obj.telephone
     address += '<BR/>' + company_obj.email_address
-    address += '<BR/>VAT:# ' + company_obj.vat_number
+    address += '<BR/>VAT# ' + company_obj.vat_number
     return address
 
 
@@ -224,6 +224,10 @@ def create_product_desc(order_line, bl_orientation=True, bl_quote = False):
 
     return product_desc
 
+def create_product_line_option_description(order_line):
+    options_text = get_order_product_line_options(order_line.order_product_id)
+    return options_text
+
 
 def quote_shipping(quote_obj):
     shipping_str = '<b>Address:</b><BR/>'
@@ -346,16 +350,21 @@ def get_order_product_line_options(order_product_id):
     options_obj = OcTsgOrderOption.objects.filter(order_product_id=order_product_id)
     option_text = ''
     option_break = ''
-    for option in options_obj:
-        option_text = f'{option_text}{option_break}{option.option_name} : {option.value_name}'
-        option_break = '<BR/>'
+    for index, option in enumerate(options_obj):
+        if index > 0:  # Check if this is not the first option
+            option_break = '<BR/>'
+        option_text += f'{option.option_name} : {option.value_name}{option_break}'
 
     addon_obj = OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id)
-    for addon in addon_obj:
-        option_text = f'{option_text}{option_break}{addon.class_name} : {addon.value_name}'
-        option_break = '<BR/>'
 
-    return option_text
+    addon_break = ''
+    addon_text = ''
+    for index, addon in enumerate(addon_obj):
+        if index > 0:  # Check if this is not the first option
+            addon_break = '<BR/>'
+        addon_text += f'{option_break}{addon.class_name} : {addon.value_name}{addon_break}'
+
+    return f'{option_text}{option_break}{addon_text}'
 
 def order_has_product_options(order_id):
     extra_items = OcTsgOptionTypes.objects.filter( Q(extra_product=True) | Q(extra_variant=True) ).values_list('option_type_id')
