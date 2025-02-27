@@ -73,8 +73,9 @@
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuEmail">
                         <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_invoice' order_obj.order_id %}">Invoice</a></li>
-                        <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-xl" data-url="{% url 'send_customer_email_proforma' order_obj.order_id %}">Pro-forma</a></li>
-                        <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-xl" data-url="{% url 'send_customer_email_tracking' order_obj.order_id %}">Tracking</a></li>
+                        <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_proforma' order_obj.order_id %}">Pro-forma</a></li>
+                        <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_tracking' order_obj.order_id %}">Tracking</a></li>
+                        <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_failed' order_obj.order_id %}">Failed Order</a></li>
                     </ul>
                 </div>
 

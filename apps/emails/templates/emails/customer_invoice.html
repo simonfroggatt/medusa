@@ -6,6 +6,8 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
+    <h3 class="text-center">Sent Customer Invoice</h3>
+    <hr>
     <div class="email_dialog">
                 <form method="post" action="{% url 'send_customer_email_invoice' order_obj.order_id %}"
                       id="js-order-email-form">

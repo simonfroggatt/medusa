@@ -1,10 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% load crispy_forms_tags %}
+{% load static %}
 
-</body>
-</html>
+<div class="modal-header">
+    <h4 class="modal-title">Email Customer - {{ order_obj.order_id }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <h3 class="text-center">Sent Customer Pro-forma</h3>
+    <hr>
+    <div class="email_dialog">
+                <form method="post" action="{% url 'send_customer_email_proforma' order_obj.order_id %}"
+                      id="js-order-email-form">
+                    {% csrf_token %}
+                        <div class="row">
+                            <div class="col-4 email_col_details">
+                                <h4>Email Details</h4>
+                                <div class="form-group pb-2">
+                                    <label for="email_subject">Subject</label>
+                                    <input type="text" id="email_subject" name="email_subject" class="form-control"
+                                        value="{{ email_subject }}" placeholder="name@customer.com" required="required">
+                                </div>
+                                <div class="form-group pb-2">
+                                    <label for="email_address">Email Address</label>
+                                    <input type="email" id="email_address" name="email_address" class="form-control"
+                                           value="{{ email_to }}" placeholder="name@customer.com" required="required">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email_address_reply">Reply Address</label>
+                                    <input type="email" id="email_address_reply" name="email_address_reply" class="form-control"
+                                           value="{{ email_from }}" placeholder="reply@totalsafetygroup.com" required="required">
+                                </div>
+
+                            </div>
+                            <div class="col-8 email_col_message">
+                                <h4>Email Contents</h4>
+                                <textarea id="email_message" name="email_message" class="form-control" rows="20">{{ email_content }}</textarea>
+                            </div>
+                        </div>
+                    <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end" id="shipit_actions">
+                                    <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                                    <button type="submit" id="update" class="btn {{ BUTTON_UPDATE }} pull-right"> Send</button>
+                                </div>
+                            </div>
+                        </div>
+                </form>
+            </div>
+        </div>
+
+

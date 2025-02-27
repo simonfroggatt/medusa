@@ -817,9 +817,6 @@ $(function () {
     $(document).on("click", ".js-xero-api", XeroApiCall);
     $(document).on("click", ".js-xero-dlg", XeroApiCallDlg);
 
-    //EMAILS
-    $(document).on("click", ".js-order-email", loadForm);
-
 })
 
 function copy_orderno_to_clipboard(order_number) {
