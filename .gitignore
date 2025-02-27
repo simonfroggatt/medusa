@@ -3,5 +3,3 @@
 .env
 /apps/dashboard/migrations/
 /medusa/settings.py
-requirements.txt!/medusa/settings.py
-
