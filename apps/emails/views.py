@@ -167,7 +167,12 @@ def send_email(email_to, email_from, email_subject, email_content, attachments=N
     load_dotenv()
 
     SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-    SERVICE_ACCOUNT_FILE = os.path.join(settings.BASE_DIR, "medusa-gmail-442210-6eee10050ccf.json")
+
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    # service_account_file = os.path.join(project_root, 'ssan-bespoke-95dbf1ea28e6.json')
+    SERVICE_ACCOUNT_FILE = os.path.join(project_root, 'medusa-gmail-442210-6eee10050ccf.json')
+
+   # SERVICE_ACCOUNT_FILE = os.path.join(settings.BASE_DIR, "medusa-gmail-442210-6eee10050ccf.json")
 
     credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     delegated_credentials = credentials.with_subject(email_from)
