@@ -27,6 +27,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileRe
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
 from apps.shipping.models import OcTsgShippingMethod
+from apps.emails.views import send_invoice_email, send_shipped_email
 from django.core import serializers
 from django.urls import reverse_lazy
 from decimal import Decimal, ROUND_HALF_UP
@@ -515,10 +516,17 @@ def order_ship_it(request, order_id):
                         order_product.status_id = 8    #set as shipped
                         order_product.save()
 
-            bl_send_invoice_email = request.POST.get('checkSendInvoice', 0)
-            invoice_emails = request.POST.get('sendInvoiceEmail', 0)
+            #send the tracking info
             bl_send_tracking_email = request.POST.get('checkSendTracking', 0)
-            tracking_emails = request.POST.get('sendTrackingEmail', 0)
+            if bl_send_tracking_email:
+                tracking_emails = request.POST.get('sendTrackingEmail', 0)
+                send_shipped_email(order_id, tracking_emails)
+
+            #send the pdf invoice
+            bl_send_invoice_email = request.POST.get('checkSendInvoice', 0)
+            if bl_send_invoice_email:
+                invoice_emails = request.POST.get('sendInvoiceEmail', 0)
+                send_invoice_email(order_id, invoice_emails)
 
         else:
             data['form_is_valid'] = False

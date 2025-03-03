@@ -8,7 +8,7 @@
 {% block content %}
     <div class="wrapper wrapper-content layout-details">
         <div class="row top_bar align-middle">
-            <a href="https://drive.google.com/uc?export=download&id={{ bespoke_product.google_id }}"><h2>{{ bespoke_product.order_product_id }}-{{ bespoke_product.pk }}</h2></a>
+            <a target="_blank" href="{% url 'download_file' bespoke_product.google_id %}"><h2>{{ order_id }}-{{ bespoke_product.pk }}</h2></a>
         </div>
         <div class="row" id="bespoke-order-product">
             <div class="col">
@@ -17,7 +17,9 @@
                         <div class="col-3">
                             <h3>SVG output <small>(version {{ bespoke_product.version }})</small></h3><h5></h5>
                             {{ svg_export|safe}}
-                            <button name="download_svg" id="download_svg" class="btn btn-primary">Download SVG</button>
+                            <a href="{% url 'download_svg_file' bespoke_product.pk %}"
+                               class="btn btn-primary"
+                               target="_blank">Download SVG</a>
                         </div>
                         <div class="col-6">
                             <div class="row">

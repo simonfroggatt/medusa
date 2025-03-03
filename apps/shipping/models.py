@@ -1,6 +1,8 @@
 from django.db import models
 from apps.sites.models import OcStore
 from medusa.models import OcTsgCountryIso
+from django.conf import settings
+
 
 class OcTsgShippingMethodTypes(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -43,6 +45,7 @@ class OcTsgCourier(models.Model):
     courier_username = models.CharField(max_length=255, blank=True, null=True)
     courier_key = models.CharField(max_length=255, blank=True, null=True)
     courier_tracking_url = models.CharField(max_length=512, blank=True, null=True)
+    courier_email_image = models.ImageField(upload_to='stores/couriers/', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -50,6 +53,12 @@ class OcTsgCourier(models.Model):
 
     def __str__(self):
         return self.courier_title
+
+    def email_image_url(self):
+        if self.courier_email_image:
+            return f"{settings.MEDIA_URL}{self.courier_email_image.name}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
 
 
 class OcTsgCourierOptions(models.Model):

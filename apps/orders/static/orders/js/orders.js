@@ -184,7 +184,7 @@ $(function () {
             type: 'get',
             dataType: 'json',
             beforeSend: function () {
-                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
+                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl modal-fullscreen')
                 $("#modal-base #modal-outer").addClass(dlg_size)
                 $("#modal-base").modal("show");
             },
@@ -232,7 +232,7 @@ $(function () {
             type: 'get',
             dataType: 'json',
             beforeSend: function () {
-                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
+                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl modal-fullscreen')
                 $("#modal-base #modal-outer").addClass(dlg_size)
                 $("#modal-base .modal-content").html('<html><body></body></html>');
                 $("#modal-base").modal("show");
@@ -363,7 +363,7 @@ $(function () {
             type: 'get',
             dataType: 'json',
             beforeSend: function () {
-                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
+                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl modal-fullscreen')
                 $("#modal-base #modal-outer").addClass(dlg_size)
                 $("#modal-base").modal("show");
             },
@@ -387,7 +387,7 @@ $(function () {
             type: 'get',
             dataType: 'json',
             beforeSend: function () {
-                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
+                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl modal-fullscreen')
                 $("#modal-base #modal-outer").addClass(dlg_size)
                 $("#modal-base").modal("show");
             },
@@ -431,7 +431,7 @@ $(function () {
             type: 'get',
             dataType: 'json',
             beforeSend: function () {
-                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl')
+                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl modal-fullscreen')
                 $("#modal-base #modal-outer").addClass(dlg_size)
                 $("#modal-base").modal("show");
             },
@@ -816,6 +816,10 @@ $(function () {
     //XERO api stuff
     $(document).on("click", ".js-xero-api", XeroApiCall);
     $(document).on("click", ".js-xero-dlg", XeroApiCallDlg);
+
+    //EMAILS
+    $(document).on("click", ".js-order-email", loadForm);
+
 
 })
 

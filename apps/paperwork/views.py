@@ -1398,6 +1398,19 @@ def gen_quote_paperwork(request, quote_id):
     response.write(pdf)
     return response
 
+def gen_invoice_for_emails(order_id):
+    pdflist = []
+    pdflist.append(gen_invoice(order_id))
+
+    merger = PdfFileMerger()
+    for pdf_buffer in pdflist:
+        merger.append(PdfFileReader(stream=pdf_buffer))
+        pdf_buffer.close()
+    buffer = BytesIO()
+    merger.write(buffer)
+    pdf = buffer.getvalue()
+
+    return pdf
 
 def set_printed(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)

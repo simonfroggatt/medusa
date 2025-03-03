@@ -1,14 +1,15 @@
 from django.shortcuts import render
 import os.path
-
+from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from django.conf import settings
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+import json
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -148,22 +149,74 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
         return True
     else:
         return False
+        
 
+def download_google_drive_file(request, file_id):
+    """Download a file from Google Drive using its file ID.
+    
+    Args:
+        request: The HTTP request
+        file_id: The Google Drive file ID
+        
+    Returns:
+        HttpResponse with the file content or error response
+    """
+    try:
+        # create drive api client
+        service = _google_auth()
+        
+        # Get the file metadata first to get the filename
+        file_metadata = service.files().get(fileId=file_id, fields="name").execute()
+        filename = file_metadata.get('name', 'download.pdf')
+        
+        # Download the file content
+        request = service.files().get_media(fileId=file_id)
+        file_content = request.execute()
 
-def get_last_five_files(service):
-    # Query to get the last 5 files ordered by created time
-    query = "trashed = false"  # Exclude trashed files
-    results = service.files().list(
-        q=query,
-        orderBy='createdTime desc',
-        pageSize=5,
-        fields="files(id, name, createdTime)"
-    ).execute()
+        # Create the response with the file content
+        response = HttpResponse(file_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
 
-    items = results.get('files', [])
+    except HttpError as error:
+        return HttpResponseServerError(f"Error downloading file: {str(error)}")
 
-    return items
+def download_svg_file(request, pk):
+    """Download SVG file for a bespoke product."""
 
+    
+    bespoke_obj = get_object_or_404(OcTsgOrderBespokeImage, pk=pk)
+    raw_svg = bespoke_obj.svg_export
+    
+    if not raw_svg:
+        return HttpResponseServerError("No SVG content available")
+
+    try:
+        # Convert bytes to string and parse JSON
+        if isinstance(raw_svg, bytes):
+            raw_svg = raw_svg.decode('utf-8')
+        
+        # Remove any JSON string encoding
+        decoded_svg = json.loads(raw_svg)
+        
+        # Add SVG header if needed
+        if not decoded_svg.startswith('<?xml'):
+            svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
+            if not decoded_svg.startswith('<svg'):
+                svg_header += '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n'
+                decoded_svg = svg_header + decoded_svg + '</svg>'
+            else:
+                decoded_svg = svg_header + decoded_svg
+                
+    except Exception as e:
+        return HttpResponseServerError(f"Error processing SVG: {str(e)}")
+    
+    filename = f"bespoke-{bespoke_obj.order_product.order.store.prefix}-{bespoke_obj.order_product.order.order_id}-{pk}.svg"
+    
+    response = HttpResponse(decoded_svg, content_type='image/svg+xml')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 def test_write_permission(directory):

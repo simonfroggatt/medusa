@@ -13,13 +13,14 @@
 {% block content %}
     <div class="row">
         <div class="col-12">
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {{ form.media }}
                 {% csrf_token %}
                 <div class="row">
                     <div class="col-md-6">{{ form.courier_logo|as_crispy_field }}</div>
-                    <div class="col-md-6">{{ form.courier_title|as_crispy_field }}</div>
-                    <div class="col-md-12">{{ form.courier_tracking_url|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.courier_email_image|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ form.courier_title|as_crispy_field }}</div>
+                    <div class="col-md-9">{{ form.courier_tracking_url|as_crispy_field }}</div>
                     <hr>
                     <div class="col-md-4">{{ form.courier_api_url|as_crispy_field }}</div>
                     <div class="col-md-4">{{ form.courier_username|as_crispy_field }}</div>

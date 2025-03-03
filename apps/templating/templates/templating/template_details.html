@@ -33,47 +33,56 @@
                         </div>
                     </div>
                 </div>
-
+            </div>
+        </div>
     </form>
 {% endblock content %}
 
 {% block javascript %}
-
-
-<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
-
-<script>
-    let bl_plaintext = false
-    {% if form.plain_text.value %}
-        bl_plaintext = true
-    {% endif %}
-
-    if(bl_plaintext === false) {
+    <script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+    <script>
         tinymce.init({
-        selector: '#id_main',
-       themes: 'modern',
-        height: 400,
-        })
-
-        tinymce.init({
-        selector: '#id_header',
-       themes: 'modern',
-        height: 200
-        })
-    }
-
-
-</script>
-
-
-
-
-
-
+            selector: '#id_main',
+            height: 500,
+            plugins: [
+                'code', // For HTML view
+                'image', // For image uploads
+                'link',  // For email links
+                'advlist', 'autolink', 'lists', 
+                'charmap', 'preview', 'anchor', 'searchreplace',
+                'visualblocks', 'fullscreen', 'insertdatetime',
+                'media', 'table', 'help', 'wordcount'
+            ],
+            toolbar: [
+                'code | undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist',
+                'link image | forecolor backcolor | removeformat | help',
+            ],
+            // Enable HTML code view with wrapping
+            code_dialog_height: 600,
+            code_dialog_width: 1000,
+            // Image upload settings
+            image_advtab: true,
+            image_title: true,
+            // Link settings
+            link_context_toolbar: true,
+            link_default_protocol: 'mailto:', // Default to email links
+            // General settings
+            menubar: 'file edit view insert format tools table help',
+            toolbar_mode: 'sliding',
+            contextmenu: 'link image table',
+            // Preserve HTML
+            verify_html: false,
+            cleanup: false,
+            valid_elements: '*[*]',
+            extended_valid_elements: '*[*]',
+            valid_children: '+body[style]',
+            forced_root_block: false,
+            // Auto save on change
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+    </script>
 {% endblock javascript %}
-
-
-
-
-
-

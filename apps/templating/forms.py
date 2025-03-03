@@ -10,6 +10,9 @@ class TemplateDetailsEditForm(forms.ModelForm):
         self.fields['template_type'].empty_label = None
         self.fields['store'].empty_label = None
 
+
+    main = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
+
     class Meta:
         model = OcTsgTemplates
 
