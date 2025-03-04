@@ -98,11 +98,13 @@ def load_email_template(request, order_id, email_enum, template_title, additiona
     replacements = {
         '{{order_number}}': f"{store_obj.prefix}-{order_obj.order_id}",
         '{{store_name}}': store_obj.name,
+        '{{store_website}}': store_obj.website,
+        '{{company_name}}': store_obj.company_name,
         '{{firstname}}': firstname,  # example of adding more replacements
         '{{order_date}}': order_obj.date_added.strftime('%Y-%m-%d'),
         '{{accounts_email}}': store_obj.accounts_email_address,
-        '{{store_email_footer}}': store_obj.email_footer_text,
-        '{{payment_link}}': '',
+        '{{store_address}}': store_obj.address,
+        '{{sales_email}}': store_obj.email_address
     }
 
     # Merge additional replacements if provided
@@ -110,9 +112,9 @@ def load_email_template(request, order_id, email_enum, template_title, additiona
         replacements.update(additional_replacements)
 
     template_header = apply_template_replacements(template_raw_header, replacements)
-
-    template_content_raw = template_obj.main
-    template_content = apply_template_replacements(template_content_raw, replacements)
+    template_footer = apply_template_replacements(store_obj.email_footer_text, replacements)
+    replacements['{{store_email_footer}}'] = template_footer
+    template_content = apply_template_replacements(template_obj.main, replacements)
 
     context['email_subject'] = template_header
     context['email_content'] = template_content
@@ -313,6 +315,7 @@ def _setup_medusa_email(order_id, enum_type, additional_replacements=None):
 
     template_raw_header = template_obj.header
     template_content_raw = template_obj.main
+    template_footer_raw = store_obj.email_footer_text
 
     fullname = order_obj.payment_fullname
     firstname = fullname.split(' ')[0]
@@ -320,10 +323,13 @@ def _setup_medusa_email(order_id, enum_type, additional_replacements=None):
     replacements = {
         '{{order_number}}': f"{store_obj.prefix}-{order_obj.order_id}",
         '{{store_name}}': store_obj.name,
+        '{{store_website}}': store_obj.website,
+        '{{company_name}}': store_obj.company_name,
         '{{firstname}}': firstname,  # example of adding more replacements
         '{{order_date}}': order_obj.date_added.strftime('%Y-%m-%d'),
         '{{accounts_email}}': store_obj.accounts_email_address,
-        '{{store_email_footer}}': store_obj.email_footer_text,
+        '{{store_address}}': store_obj.address,
+        '{{sales_email}}': store_obj.email_address
     }
 
     # Merge additional replacements if provided
@@ -331,7 +337,10 @@ def _setup_medusa_email(order_id, enum_type, additional_replacements=None):
         replacements.update(additional_replacements)
 
     template_header = apply_template_replacements(template_raw_header, replacements)
+    template_footer = apply_template_replacements(template_footer_raw, replacements)
+    replacements['{{store_email_footer}}'] = template_footer
     template_content = apply_template_replacements(template_content_raw, replacements)
+
 
     data = {'header': template_header, 'body': template_content}
     return data

@@ -1,0 +1,223 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Order Summary -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Order Summary</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Order #{{ order.order_id }}</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th class="text-end">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order_items %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td class="text-end">£{{ item.total }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td colspan="2" class="text-end"><strong>Total:</strong></td>
+                                    <td class="text-end"><strong>£{{ order.total }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Shipping Details</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1">{{ shipping_details.name }}</p>
+                    <p class="mb-1">{{ shipping_details.address.line1 }}</p>
+                    {% if shipping_details.address.line2 %}
+                    <p class="mb-1">{{ shipping_details.address.line2 }}</p>
+                    {% endif %}
+                    <p class="mb-1">{{ shipping_details.address.city }}</p>
+                    <p class="mb-1">{{ shipping_details.address.postal_code }}</p>
+                    <p class="mb-1">{{ shipping_details.address.country }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Form -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Payment Details</h4>
+                </div>
+                <div class="card-body">
+                    <form id="payment-form">
+                        <div id="payment-element">
+                            <!-- Stripe Elements will create form elements here -->
+                        </div>
+                        <button id="submit" class="btn btn-primary mt-3">
+                            <span id="button-text">Pay £{{ order.total }}</span>
+                            <span id="spinner" class="spinner hidden"></span>
+                        </button>
+                        <div id="error-message" class="text-danger mt-2"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_public_key }}');
+    let elements;
+
+    initialize();
+    checkStatus();
+
+    document
+        .querySelector("#payment-form")
+        .addEventListener("submit", handleSubmit);
+
+    async function initialize() {
+        const response = await fetch("{% url 'payments:create-payment-intent' order.order_id %}", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Something went wrong');
+        }
+
+        const { clientSecret } = await response.json();
+
+        const appearance = {
+            theme: 'stripe',
+            variables: {
+                colorPrimary: '#0d6efd',
+            },
+        };
+        
+        elements = stripe.elements({ 
+            appearance, 
+            clientSecret,
+            loader: 'auto',
+        });
+
+        const paymentElement = elements.create("payment", {
+            layout: "tabs",
+            defaultValues: {
+                billingDetails: {{ billing_details|safe }}
+            }
+        });
+        
+        paymentElement.mount("#payment-element");
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setLoading(true);
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: window.location.origin + "{% url 'payments:payment-success' order.order_id %}",
+                receipt_email: "{{ order.email }}",
+            },
+        });
+
+        if (error) {
+            const messageContainer = document.querySelector("#error-message");
+            messageContainer.textContent = error.message;
+        }
+
+        setLoading(false);
+    }
+
+    function checkStatus() {
+        const clientSecret = new URLSearchParams(window.location.search).get(
+            "payment_intent_client_secret"
+        );
+
+        if (!clientSecret) {
+            return;
+        }
+
+        stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
+            switch (paymentIntent.status) {
+                case "succeeded":
+                    showMessage("Payment succeeded!");
+                    break;
+                case "processing":
+                    showMessage("Your payment is processing.");
+                    break;
+                case "requires_payment_method":
+                    showMessage("Your payment was not successful, please try again.");
+                    break;
+                default:
+                    showMessage("Something went wrong.");
+                    break;
+            }
+        });
+    }
+
+    function setLoading(isLoading) {
+        if (isLoading) {
+            document.querySelector("#submit").disabled = true;
+            document.querySelector("#spinner").classList.remove("hidden");
+            document.querySelector("#button-text").classList.add("hidden");
+        } else {
+            document.querySelector("#submit").disabled = false;
+            document.querySelector("#spinner").classList.add("hidden");
+            document.querySelector("#button-text").classList.remove("hidden");
+        }
+    }
+
+    function showMessage(messageText) {
+        const messageContainer = document.querySelector("#error-message");
+        messageContainer.textContent = messageText;
+    }
+</script>
+
+<style>
+    .hidden {
+        display: none;
+    }
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-left: 10px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #payment-element {
+        margin-bottom: 24px;
+    }
+    .table td, .table th {
+        padding: 0.5rem;
+    }
+</style>
+{% endblock %}

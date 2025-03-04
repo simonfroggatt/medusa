@@ -4,7 +4,7 @@ from tinymce.widgets import TinyMCE
 
 
 class StoreEditForm(forms.ModelForm):
-    email_footer_text = forms.CharField(widget=TinyMCE(attrs={'rows': 10}))
+
 
     def __init__(self, *args, **kwargs):
         super(StoreEditForm, self).__init__(*args, **kwargs)
