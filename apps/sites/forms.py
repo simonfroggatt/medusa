@@ -20,6 +20,8 @@ class StoreEditForm(forms.ModelForm):
             'status': 'Site Live',
             'logo': 'Website Logo',
             'prefix': 'Order Ref Prefix',
+            'name': 'Title',
+            'footer_text' : 'Website Footer Text'
         }
 
         widgets = {

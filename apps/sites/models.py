@@ -39,6 +39,7 @@ class OcStore(models.Model):
     footer_text = models.CharField(max_length=255, blank=True, null=True)
     email_address = models.CharField(max_length=255, blank=True, null=True)
     accounts_email_address = models.CharField(max_length=255, blank=True, null=True)
+    base_email = models.CharField(max_length=255, blank=True, null=True)
     prefix = models.CharField(max_length=10, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     postcode = models.CharField(max_length=255, blank=True, null=True)

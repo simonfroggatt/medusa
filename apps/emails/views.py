@@ -70,7 +70,21 @@ def customer_failed_payment(request, order_id):
     enum_type = 'TEMPLATE_CUSTOMER_FAILED'
     template_title = 'Customer FAILED Order'
     data = dict()
-    data['html_form'] = load_email_template(request, order_id, enum_type, template_title)
+
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    store_obj = order_obj.store
+
+    failed_link_raw = '{{store_website}}/index.php?route=extension/payment/tsg_stripe/paymentfailed&order_id={{order_id}}&order_hash={{order_hash}}'
+    replacements = {
+        '{{store_website}}': store_obj.website,
+        '{{order_id}}': order_id,
+        '{{order_hash}}': order_obj.order_hash,
+    }
+
+    failed_link = apply_template_replacements(failed_link_raw, replacements)
+    replacements = { '{{payment_link}}' : failed_link}
+
+    data['html_form'] = load_email_template(request, order_id, enum_type, template_title, replacements)
     return JsonResponse(data)
 
 
@@ -90,7 +104,7 @@ def load_email_template(request, order_id, email_enum, template_title, additiona
     # now get the template stuff
     template_obj = OcTsgTemplates.objects.filter(store_id=store_obj.store_id,
                                                  template_type__enum_val=email_enum).first()
-    template_raw_header = template_obj.header
+    template_raw_header = template_obj.subject
 
     fullname = order_obj.payment_fullname
     firstname = fullname.split(' ')[0]
@@ -252,7 +266,7 @@ def send_invoice_email(order_id, to_email):
 
 
 
-    send_status = send_email(mail_to_list, email_from, email_data['header'], email_data['body'], attachments)
+    send_status = send_email(mail_to_list, email_from, email_data['subject'], email_data['body'], attachments)
     data = dict()
     if send_status['success']:
         data['message'] = 'Email sent successfully'
@@ -294,7 +308,7 @@ def send_shipped_email(order_id, to_email):
     email_data = _setup_medusa_email(order_id, enum_type, replacements)
     mail_to_list = [to_email]
     attachments = []
-    send_status = send_email(mail_to_list, email_from, email_data['header'], email_data['body'], attachments)
+    send_status = send_email(mail_to_list, email_from, email_data['subject'], email_data['body'], attachments)
     data = dict()
     if send_status['success']:
         data['message'] = 'Email sent successfully'
@@ -313,7 +327,7 @@ def _setup_medusa_email(order_id, enum_type, additional_replacements=None):
     template_obj = OcTsgTemplates.objects.filter(store_id=store_obj.store_id,
                                                  template_type__enum_val=enum_type).first()
 
-    template_raw_header = template_obj.header
+    template_raw_header = template_obj.subject
     template_content_raw = template_obj.main
     template_footer_raw = store_obj.email_footer_text
 

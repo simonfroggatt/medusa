@@ -30,11 +30,10 @@ class OcTsgTemplates(models.Model):
                                          null=True, related_name='template_type')
 
     name = models.CharField(max_length=255, blank=True, null=True)
-    header = models.CharField(max_length=512, blank=True, null=True)
+    subject = models.CharField(max_length=512, blank=True, null=True)
     main = models.TextField(blank=True, null=True)
     plain_text = models.BooleanField()
     description = models.CharField(max_length=1024, blank=True, null=True)
-
 
     class Meta:
         managed = False
