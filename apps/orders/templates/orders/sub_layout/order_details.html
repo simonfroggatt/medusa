@@ -47,7 +47,14 @@
                      <dd class="col-9">{{ order_obj.date_added }}</dd>
                     {% if order_obj.date_due %}
                         <dt class="col-3">Due Date:</dt>
-                        <dd class="col-9">{{ order_obj.due_date }}</dd>
+                        <dd class="col-9">
+                            {% now "Y-m-d" as today %}
+                            {% if order_obj.date_due|date:"Y-m-d" < today %}
+                                <span class="text-danger">{{ order_obj.date_due }}</span>
+                            {% else %}
+                                <span>{{ order_obj.date_due }}</span>
+                            {% endif %}
+                        </dd>
                     {% endif %}
 
                      <dt class="col-3">Status:</dt>
