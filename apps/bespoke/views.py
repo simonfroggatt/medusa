@@ -141,7 +141,8 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
 
     tmp_filename = os.path.join(settings.REPORT_PATH_CACHE, pdf_filename)
 
-    svg_string = json.loads(svg_bytes)
+    #svg_string = json.loads(svg_bytes)
+    svg_string = svg_bytes
     svg2pdf(bytestring=svg_string, write_to=tmp_filename)
    # tmp = json.dumps(svg_bytes)
     #now check the file exists
@@ -198,7 +199,8 @@ def download_svg_file(request, pk):
             raw_svg = raw_svg.decode('utf-8')
         
         # Remove any JSON string encoding
-        decoded_svg = json.loads(raw_svg)
+        #decoded_svg = json.loads(raw_svg)
+        decoded_svg = raw_svg
         
         # Add SVG header if needed
         if not decoded_svg.startswith('<?xml'):

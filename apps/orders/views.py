@@ -2079,14 +2079,18 @@ def bespoke_order_product(request, order_id, bespoke_order_product_id):
     context = dict()
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     context['order_id'] = order_obj.order_id
+    context['order_obj'] = order_obj
 
 
     bespoke_order_product_obj = get_object_or_404(OcTsgOrderBespokeImage, order_product_id=bespoke_order_product_id)
     context['bespoke_product'] = bespoke_order_product_obj
 
-    tmp = json.loads(bespoke_order_product_obj.svg_export)
-    context['svg_export'] = json.loads(bespoke_order_product_obj.svg_export)
+    #context['svg_export'] = json.loads(bespoke_order_product_obj.svg_export)
+
+    context['svg_export'] = bespoke_order_product_obj.svg_export.decode('utf-8')
+    svg_texts = json.loads(bespoke_order_product_obj.svg_texts)
     context['text_line'] = json.loads(bespoke_order_product_obj.svg_texts)
+
 
     images_tmp = json.loads( bespoke_order_product_obj.svg_images)
     if images_tmp:
