@@ -331,17 +331,6 @@ class OcTsgBulkdiscountGroupBreaks(models.Model):
         db_table = 'oc_tsg_bulkdiscount_group_breaks'
 
 
-# class OcTsgProductToBulkDiscounts(models.Model):
-#     product = models.OneToOneField(OcProduct, models.DO_NOTHING, primary_key=True, related_name='productbulkdiscounts')
-#     bulk_discount_group = models.ForeignKey(OcTsgBulkdiscountGroups, models.DO_NOTHING)
-#     store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'oc_tsg_product_to_bulk_discounts'
-#         unique_together = (('product', 'bulk_discount_group'),)
-
-
 class OcProductToCategory(models.Model):
     product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='product_category')
     category_store = models.ForeignKey(OcCategoryToStore, models.DO_NOTHING)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OcTsgBlogs, OcInformationToStore, OcInformationDescription
+from .models import OcTsgBlogs, OcInformationDescription
 from django.conf import settings
 
 

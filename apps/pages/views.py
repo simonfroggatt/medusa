@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
-from apps.pages.models import OcTsgBlogs, OcInformationDescription, OcInformationToStore
+from apps.pages.models import OcTsgBlogs, OcInformationDescription
 from apps.pages.serializers import BlogSerializer, InformationSerializer
 from apps.pages.forms import BlogDetailsEditForm, InformationDetailsEditForm
 from django.urls import reverse_lazy

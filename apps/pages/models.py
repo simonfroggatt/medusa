@@ -51,16 +51,4 @@ class OcInformationDescription(models.Model):
         return self.title
 
 
-class OcInformationToStore(models.Model):
-    information = models.ForeignKey(OcInformationDescription, models.DO_NOTHING,
-                                    db_column='information_id', primary_key=True,  related_name='information_description')
-    store = models.ForeignKey(OcStore, models.DO_NOTHING)
-    sort_order = models.IntegerField(blank=True, null=True)
-    bottom = models.BooleanField(blank=True, null=True)
-    status = models.BooleanField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_information_to_store'
-
 
