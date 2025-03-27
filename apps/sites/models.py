@@ -58,12 +58,14 @@ class OcStore(models.Model):
         db_table = 'oc_store'
         ordering = ['store_id']
 
+    @property
     def store_thumb_url(self):
         if self.thumb:
             return f"{settings.MEDIA_URL}{self.thumb}"
         else:
             return f"{settings.MEDIA_URL}no-image.png"
 
+    @property
     def store_logo_url(self):
         if self.logo:
             return f"{settings.MEDIA_URL}{self.logo}"
@@ -72,3 +74,33 @@ class OcStore(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
+class OcTsgNotificationTypes(models.Model):
+    title = models.CharField(max_length=50, blank=True, null=True)
+    value = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_notification_types'
+
+    def __str__(self):
+        return self.title
+
+
+class OcTsgNotifications(models.Model):
+    is_active = models.IntegerField(blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    notification = models.TextField(blank=True, null=True)
+    dismissible = models.IntegerField(blank=True, null=True)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
+    order_by = models.IntegerField(blank=True, null=True)
+    notification_type = models.ForeignKey(OcTsgNotificationTypes, models.DO_NOTHING, db_column='notification_type', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_notifications'
+
+    def __str__(self):
+        return self.title
