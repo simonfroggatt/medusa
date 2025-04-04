@@ -15,11 +15,10 @@
                     <div class="col-md-6">{{ form.category_store|as_crispy_field }}</div>
                      <div class="row">
                       <div class="col-md-12">{{ form.parent|as_crispy_field }}</div>
-                      <div class="col-md-4">{{ form.homepage|as_crispy_field }}</div>
-                      <div class="col-md-4">{{ form.top|as_crispy_field }}</div>
-                      <div class="col-md-4">{{ form.status|as_crispy_field }}</div>
-
-
+                      <div class="col-md-3">{{ form.is_base|as_crispy_field }}</div>
+                      <div class="col-md-3">{{ form.homepage|as_crispy_field }}</div>
+                      <div class="col-md-3">{{ form.top|as_crispy_field }}</div>
+                      <div class="col-md-3">{{ form.status|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn btn-danger ">Cancel</button>

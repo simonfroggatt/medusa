@@ -68,6 +68,10 @@ class CategoryStoreForm(forms.ModelForm):
 
 class CategoryStoreParentForm(forms.ModelForm):
 
+    def __init__(self, *args, **kwargs):
+        super(CategoryStoreParentForm, self).__init__(*args, **kwargs)
+        #self.fields['parent'].empty_label = None
+
     class Meta:
         model = OcTsgCategoryStoreParent
         fields = '__all__'

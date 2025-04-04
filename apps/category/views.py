@@ -260,18 +260,19 @@ def category_store_parent_delete_dlg(request, pk):
 def category_store_parent_add(request, base_category_id):
     template = 'category/sub_layouts/category_site_parent_add.html'
     context = {}
-    context['heading'] = "Category"
-    context['pageview'] = "New Site Parent"
+    base_cat_obj = get_object_or_404(OcCategoryDescriptionBase, pk=base_category_id)
+
+    context['heading'] = "Parent Category"
+    breadcrumbs = []
+    breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
+    breadcrumbs.append(
+        {'name': base_cat_obj.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': base_category_id})})
+    context['breadcrumbs'] = breadcrumbs
 
     if request.method == 'POST':
-        cat_iniitials = {
-            'category_store': request.POST.get('cat_store_id'),
-            'parent': request.POST.get('parent_id'),
-        }
         store_cat_obj = OcCategoryToStore.objects.filter( category_id=base_category_id,
                                           store_id=request.POST.get('store_id'))
 
-        #store_cat_obj = get_object_or_404(OcCategoryToStore, category_id=base_category_id, store_id=request.POST.get('store_id'))
         if store_cat_obj:
             store_cat_id = store_cat_obj.first().category_store_id
         else:
@@ -279,40 +280,41 @@ def category_store_parent_add(request, base_category_id):
 
         form = CategoryStoreParentForm(request.POST)
         form_instance = form.instance
-        new_category_obj = OcTsgCategoryStoreParent()
-        new_category_obj.sort_order = form_instance.sort_order
-        new_category_obj.status = form_instance.status
-        new_category_obj.path = form_instance.path
-        new_category_obj.level = form_instance.level
-        new_category_obj.top = form_instance.top
-        new_category_obj.homepage = form_instance.homepage
-        new_category_obj.is_base = form_instance.is_base
-        new_category_obj.category_store_id = store_cat_id
-        new_category_obj.parent_id = request.POST.get('parent_id')
-        new_category_obj.save()
+        form_instance.category_store_id = store_cat_id
+        form_instance.parent_id = request.POST.get('parent_id')
+        form_instance.save()
 
-        success_url = reverse_lazy('categorydetails', kwargs={'pk': base_category_id})
-        return HttpResponseRedirect(success_url)
-
+        #check it saved
+        new_id = form_instance.pk
+        if new_id:
+            refresh_url = reverse_lazy('categorydetails', kwargs={'pk': base_category_id})
+            return HttpResponseRedirect(refresh_url)
+        else:
+            context['form'] = form
+            context['base_category_id'] = base_category_id
+            context['return_url'] = reverse_lazy('categorydetails', kwargs={'pk': base_category_id})
+            context['base_category'] = base_cat_obj
+            context['store_obj'] = OcStore.objects.filter(store_id__gt=0)
+            context['error_message'] = "Error saving category parent"
+            return render(request, template, context)
     else:
         category_obj = OcTsgCategoryStoreParent
+        cat_iniitials = {
+            'sort_order': 999,
+            'top': False,
+            'status': False,
+            'homepage': False,
+            'is_base': False,
+        }
+        form = CategoryStoreParentForm(instance=category_obj, initial=cat_iniitials)
+        base_cat_obj = get_object_or_404(OcCategoryDescriptionBase, pk=base_category_id)
 
-    cat_iniitials = {
-        'sort_order': 999,
-        'top': False,
-        'status': False,
-        'homepage': False,
-        'is_base': False,
-        'path': '',
-        'level': ''
-    }
-    form = CategoryStoreParentForm(instance=category_obj, initial=cat_iniitials)
-    base_cat_obj = get_object_or_404(OcCategoryDescriptionBase, pk=base_category_id)
     context['form'] = form
     context['base_category_id'] = base_category_id
     context['return_url'] = reverse_lazy('categorydetails', kwargs={'pk': base_category_id})
     context['base_category'] = base_cat_obj
     context['store_obj'] = OcStore.objects.filter(store_id__gt=0)
+
     return render(request, template, context)
 
 

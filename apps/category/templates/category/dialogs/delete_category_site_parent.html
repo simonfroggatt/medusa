@@ -1,7 +1,7 @@
 {% load static %}
 
 <div class="modal-header">
-    <h4 class="modal-title" <strong>DELETE</strong> category STORE text</h4>
+    <h4 class="modal-title" <strong>DELETE</strong> category STORE structure</h4>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
@@ -13,7 +13,7 @@
                     {% csrf_token %}
                     <input type="hidden" id="pk" name="pk"
                            value="{{ pk }}">
-                Are you sure you want to delete this category parent?
+                Are you sure you want to delete this category structure?
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>

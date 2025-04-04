@@ -21,17 +21,10 @@
                     <div class="col-12 col-md-4">
                         <div class="row">
                             <div class="col-12">
-                                <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <img src="{% get_media_prefix %}{{ form.image.value }}" height="100" alt="{{ form.name.value }}"
+                                <img src="{% get_media_prefix %}{{ form.image.value }}" height="100" alt="{{ form.name.value }}"
                                              class="img-fluid img-thumbnail">
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        {{ form.image|as_crispy_field }}
-                                    </div>
-                                </div>
-
                             </div>
+                            <div class="col-12">{{ form.image|as_crispy_field }}</div>
                             <div class="col-12">{{ form.category|as_crispy_field }}</div>
                             <div class="col-12">{{ form.name|as_crispy_field }}</div>
                             <div class="col-12">{{ form.clean_url|as_crispy_field }}</div>
@@ -40,7 +33,6 @@
                             <div class="col-12">{{ form.meta_keyword|as_crispy_field }}</div>
                             <div class="col-12">{{ form.adwords_name|as_crispy_field }}</div>
                             <div class="col-12">{{ form.language|as_crispy_field }}</div>
-                            xxx
                         </div>
 
                     </div>

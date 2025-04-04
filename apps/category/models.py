@@ -26,11 +26,7 @@ class OcCategory(models.Model):
     category_id = models.AutoField(primary_key=True)
     image = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255)
-    parent_id = models.IntegerField()
-    top = models.IntegerField()
-    column = models.IntegerField()
-    sort_order = models.IntegerField()
-    status = models.IntegerField()
+    status = models.BooleanField()
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     category_type = models.ForeignKey(OcTsgCategoryTypes, models.DO_NOTHING, blank=True, null=True)
@@ -160,11 +156,9 @@ class OcTsgCategoryStoreParent(models.Model):
     parent = models.ForeignKey(OcCategoryToStore, models.DO_NOTHING, related_name='store_parent')
     sort_order = models.IntegerField(blank=True, null=True)
     status = models.BooleanField(blank=True)
-    path = models.CharField(max_length=255, blank=True, null=True)
-    level = models.IntegerField(blank=True, null=True)
     top = models.BooleanField(blank=True)
     homepage = models.BooleanField(blank=True)
-    is_base = models.BooleanField(blank=True, null=True)
+    is_base = models.BooleanField(blank=False)
 
     class Meta:
         managed = False

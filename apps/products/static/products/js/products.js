@@ -465,7 +465,8 @@ $(function () {
             "responsive": false,
             "serverSide": false,
             "scroller": true,
-            scrollY: 400,
+            "scrollY": "400",
+            "scrollCollapse": true,
             "rowId": 'product_id',
             "ajax": {
                 "processing": true,
@@ -517,7 +518,8 @@ $(function () {
             "responsive": false,
             "serverSide": false,
             "scroller": true,
-            scrollY: 400,
+            "scrollY": "400",
+            "scrollCollapse": true,
             "rowId": 'id',
             "ajax": {
                 "processing": true,
@@ -570,7 +572,8 @@ $(function () {
             "responsive": false,
             "serverSide": false,
             "scroller": true,
-            scrollY: 400,
+            "scrollY": "400",
+            "scrollCollapse": true,
             "rowId": 'id',
             "select": 'single',
             "ajax": {
@@ -631,7 +634,8 @@ $(function () {
             "responsive": false,
             "serverSide": false,
             "scroller": true,
-            scrollY: 400,
+            "scrollY": "400",
+            "scrollCollapse": true,
             "rowId": 'id',
             "ajax": {
                 "processing": true,

@@ -1,138 +1,120 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
-
-{% block extrahead %}
-
-{% endblock extrahead %}
-
-{% block extra_css %}
-
-{% endblock extra_css %}
-
 {% block content %}
-        <form method="post" action="{% url 'categorystoreparentadd' base_category_id %}">
+    <form method="post" action="{% url 'categorystoreparentadd' base_category_id %}">
         <input type="hidden" id="static_media_url" value="{% get_media_prefix %}">
         <input type="hidden" id="parent_id" name="parent_id" value="">
-        <input type="hidden" id="cat_store_id" name="cat_store_id" value="{{ base_category_id }}">
-
         {{ form.category_store|as_crispy_field }}
-            {% csrf_token %}
-            <h1>{{ base_category.name }}</h1>
-            <div class="row">
-<div class="form-group">
-    <div class="row">
+        {% csrf_token %}
+        <h1>{{ base_category.name }}</h1>
+        <div class="row">
+            <div class="form-group">
+                <div class="row">
                     <div class="row">
-                <div class="col-6">
-                    <div class="row">
-                    <div class="col-12">
-                        <select class="form-select pb-2" aria-label="Store" id="store_id" name="store_id">
-
-                    {% for store_data in store_obj.all %}
-                        <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
-
-                    {% endfor %}
-                </select></div>
-                    <div class="col-12">{{ form.sort_order|as_crispy_field }}</div>
-                    <div class="col-12">{{ form.status|as_crispy_field }}</div>
-                    <div class="col-12">{{ form.top|as_crispy_field }}</div>
-                    <div class="col-12">{{ form.homepage|as_crispy_field }}</div>
-                    </div>
-                </div>
-                <div class="col-6">
-                        <div class="col-md-12">
-                            <table id="category_parents_table" class="table table-hover table-striped align-middle table-sm"
-        style="width:100%">
-     <thead>
-     <tr>
-         <th>Image</th>
-         <th>Name</th>
-         <th>Description</th>
-     </tr>
-     </thead>
- </table>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-12">
+                                    <select class="form-select pb-2" aria-label="Store" id="store_id" name="store_id">
+                                        {% for store_data in store_obj.all %}
+                                            <option value="{{ store_data.store_id }}">{{ store_data.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-12">{{ form.sort_order|as_crispy_field }}</div>
+                                <div class="col-12">{{ form.status|as_crispy_field }}</div>
+                                <div class="col-12">{{ form.top|as_crispy_field }}</div>
+                                <div class="col-12">{{ form.homepage|as_crispy_field }}</div>
+                            </div>
                         </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn {{ BUTTON_CANCEL }} " onclick="location.href='{{ return_url }}'">Cancel</button>
-                        <button type="submit" id="update" class="btn {{ BUTTON_ADD }} pull-right">Add</button>
+                        <div class="col-6">
+                            <h3>Choose the parent for this category</h3>
+                                <table id="category_parents_table"
+                                       class="table table-hover table-striped align-middle table-sm"
+                                       style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn {{ BUTTON_CANCEL }} "
+                                        onclick="location.href='{{ return_url }}'">Cancel
+                                </button>
+                                <button type="submit" id="update" class="btn {{ BUTTON_ADD }} pull-right">Add</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-        </form>
+        </div>
+    </form>
 {% endblock content %}
 
 {% block javascript %}
-<script>
+    <script>
 
- $(function () {
-     var cat_parent_table = $('#category_parents_table').DataTable({
-         "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
-             "<'row'<'col-sm-12'tr>>" +
-             "<'row'<'col-sm-6'i><'col-sm-6'p>>",
-         "processing": true,
-         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-         "pageLength": 25,
-         "autoWidth": false,
-         "responsive": true,
-         "ajax": {
-             "processing": true,
-             "url": "/category/api/storecats/" + 1 + "?format=datatables"
-         },
-         "deferRender": true,
-         "select": 'single',
-         "search": {
-             "regex": true
-         },
-         "rowId" : 'category_store_id',
-         columns: [
-             {
-                 data: "image",
-                 render: function (data, type, row) {
-                     if ((data == null) || (data == '')) {
-                         let static_media_url = $('#static_media_url').val()
-                         var image_src = static_media_url + row['category']['image'];
-                     } else
-                         var image_src = row['category_image_url'];
+        $(function () {
+            var cat_parent_table = $('#category_parents_table').DataTable({
+                "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "pageLength": 25,
+                "autoWidth": true,
+                "responsive": false,
+                "serverSide": false,
+                "scrollY": "500px",
+                "processing": true,
+                "scrollCollapse": true,
+                "ajax": {
+                    "processing": true,
+                    "url": "/category/api/storecats/" + 1 + "?format=datatables"
+                },
+                "deferRender": true,
+                "select": 'single',
+                "search": {
+                    "regex": true
+                },
+                "rowId": 'category_store_id',
+                columns: [
+                    {
+                        data: "category_image_url",
+                        render: function (data, type, row) {
+                            return '<img height="30px" src="' + data + '">'
+                        }
+                    },
+                    {
+                        data: "category.name",
+                    },
+                    {
+                        data: 'category_store_id', visible: false
+                    }
+                ]
+            });
 
-                     return '<img height="30px" src="' + image_src + '">'
-                 }
-             },
-             {
-                 data: "name",
-                 render: function (data, type, row) {
-                     if ((data == null) || (data == '')) {
-                         return row['category']['name'];
-                     } else
-                         return data
-                 }
-             },
-             {data: "description"},
-         ]
-     });
+            $('#store_id').on('change', function () {
+                let newval = $(this).val()
+                let ajax_url = "/category/api/storecats/" + newval + "?format=datatables";
+                cat_parent_table.ajax.url(ajax_url).load();
+            });
 
-     $('#store_id').on('change', function() {
-        let newval = $(this).val()
-        let ajax_url = "/category/api/storecats/" + newval + "?format=datatables";
-        cat_parent_table.ajax.url(ajax_url).load();
-    });
+            cat_parent_table.on('select', function (e, dt, type, indexes) {
+                if (type === 'row') {
+                    var parent_id = cat_parent_table.row(indexes).id();
+                    $('#parent_id').val(parent_id)
+                    // do something with the ID of the selected items
+                }
+            });
+        })
 
-     cat_parent_table.on( 'select', function ( e, dt, type, indexes ) {
-        if ( type === 'row' ) {
-             var parent_id = dt.row(indexes).id();
-             $('#parent_id').val(parent_id)
-            // do something with the ID of the selected items
-        }
-    } );
- })
-
-
-
-</script>
+    </script>
 {% endblock javascript %}
 
 

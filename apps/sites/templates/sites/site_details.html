@@ -37,6 +37,7 @@
                     <div class="col-12">{{ form.email_footer_text|as_crispy_field }}</div>
                 <div class="col-md-12">
                     {{ form.status|as_crispy_field }}
+                    {{ form.product_code_template|as_crispy_field }}
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" class="btn {{ BUTTON_CANCEL }} "
                                 onclick="location.href='{{ view.get_success_url }}'">Cancel

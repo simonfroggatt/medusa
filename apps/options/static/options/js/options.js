@@ -21,7 +21,8 @@ $(function () {
                     "lengthChange": false,
                     "info": false,
                     "scroller": true,
-                    scrollY: 300,
+                    "scrollY": 300,
+                    "scrollCollapse": true,
             "serverSide": true,
             "rowId": 'product_id',
                     "ajax": {
@@ -93,7 +94,8 @@ $(function () {
                     "lengthChange": false,
                     "info": false,
                     "scroller": true,
-                    scrollY: 300,
+                    "scrollY": "300",
+                    "scrollCollapse": true,
             "serverSide": true,
             "rowId": 'product_id',
                     "ajax": {
@@ -163,7 +165,8 @@ $(function () {
             "select": 'single',
             "deferRender": false,
             "scroller": true,
-            scrollY: 200,
+            "scrollY": "200",
+            "scrollCollapse": true,
             "rowId": 'prod_variant_core_id',
             "ajax": {
                 "processing": true,
