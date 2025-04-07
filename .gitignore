@@ -2,4 +2,4 @@
 /venv/
 .env
 /apps/dashboard/migrations/
-/medusa/settings.py!/medusa/wsgi.py
+medusa/wsgi.py

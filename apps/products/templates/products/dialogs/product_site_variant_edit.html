@@ -1,3 +1,4 @@
+{% load crispy_forms_filters %}
 {% load crispy_forms_tags %}
 {% load static %}
 
@@ -20,17 +21,25 @@
             {{ form.isdeleted|as_crispy_field }}
             <div class="row">
                 <div class="col-4">
-                    <img src="{{ current_image }}" class="img-thumbnail tsg-thumbnail">
+                    <img src="{{ current_image }}" class="img-thumbnail tsg-thumbnail" alt="">
                 </div>
                 <div class="col-8">
                     {{ form.alt_image|as_crispy_field }}
                 </div>
-                <div class="col-6">
-                    {{ form.variant_code|as_crispy_field }}
+                <div class="col-6 pt-2">
+                    <label for="id_{{ form.variant_code.id }}" class="form-label" id="variantcode_lbl">Variant Code</label>
+                    <div class="input-group">
+                        <input type="text" name="{{ form.variant_code.name }}" id="id_{{ form.variant_code.name }}" class="form-control" placeholder="" aria-label="variant code" aria-describedby="variantcode"
+                        value="{{ form.variant_code.value }}">
+                        <button class="btn btn-outline-secondary" type="button" id="code-generate"><i class="fa-regular fa-wand-magic-sparkles"></i></button>
+                    </div>
+                    <div id="AutoCode" class="form-text">
+                        Automatic site code is {{ auto_code }}
+                    </div>
                 </div>
-                <div class="col-5">
+                <div class="col-6 pt-2">
                     {{ form.variant_overide_price|as_crispy_field}}
-                    <div id="passwordHelpBlock" class="form-text">
+                    <div id="currentDefaultPrice" class="form-text">
                         Current default prices is {{ product_variant_obj.prod_var_core.size_material.price }}
                     </div>
                 </div>
@@ -49,5 +58,12 @@
         </form>
     </div>
 </div>
+
+<script>
+    $('#code-generate').on('click', function () {
+            $('#id_{{ form.variant_code.name }}').val('{{ auto_code }}');
+
+        });
+</script>
 
 <!-- <script type="text/javascript" src="{% static 'js/products.js' %}"></script> -->

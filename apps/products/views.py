@@ -893,18 +893,8 @@ def product_variant_site_add(request, core_variant_id, store_id):
 
             # get the core variant details
             obj_product_variant_core = get_object_or_404(OcTsgProductVariantCore, prod_variant_core_id=core_variant_id)
-            template_tags = {'{size_id}': obj_product_variant_core.size_material.product_size.size_id,
-                             '{material_id}': obj_product_variant_core.size_material.product_material.material_id,
-                             '{material_code}': obj_product_variant_core.size_material.product_material.code,
-                             '{variant_code}': obj_product_variant_core.prod_variant_core_id,
-                             '{product_id}': obj_product_variant_core.product.product_id,
-                             '{store_id}': store_id,
-                             '{supplier_code}': obj_product_variant_core.supplier_code}
 
-            #now step through the template and replace
-            for key, value in template_tags.items():
-                code_template = code_template.replace(key, str(value))
-
+            code_template = ''
 
             obj_product_variants = OcTsgProductVariants()   #create a new variant
             obj_product_variants.prod_var_core_id = core_variant_id
@@ -913,8 +903,11 @@ def product_variant_site_add(request, core_variant_id, store_id):
             obj_product_variants.variant_overide_price = 0.00
             obj_product_variants.isdeleted = False
             obj_product_variants.save()
-            new_id = obj_product_variants.prod_variant_id
 
+            #now we have saved it we can set the correct code
+            new_id = obj_product_variants.prod_variant_id
+            code_template = create_product_variant_code(new_id)
+            obj_product_variants.variant_code = code_template
             #now we need to see if the options to copy are are selected.
             #product_variant_site_add_options(core_variant_id, new_id)
 
@@ -1186,9 +1179,10 @@ def site_variant_edit(request, pk):
         else:
             data['form_is_valid'] = False
     else:
-
         data['form_is_valid'] = False
 
+    # generate the variant code, just in case we need it.
+    context['auto_code'] = create_product_variant_code(pk)
     context['product_variant_obj'] = product_variant_obj
     form_obj = SiteProductVariantForm(instance=product_variant_obj)
     context['form'] = form_obj
@@ -1777,32 +1771,6 @@ def product_option_delete(request, product_id, pk):
 
     return JsonResponse(data)
 
-def product_option_delete_old(request, product_id, pk):
-    data = dict()
-
-    if request.method == 'POST':
-        #check if this option is used in any past order, if so - refuse to delete it
-        past_orders_obj = OcTsgProductOption.objects.filter(product_option_value=pk)
-        product_option_value_obj = get_object_or_404(OcProductOptionValue, pk=pk)
-        option_type = product_option_value_obj.option.type_id
-        if past_orders_obj:
-            product_option_value_obj.isdeleted = True
-            product_option_value_obj.save()
-            if option_type == 2:  # this is a hack due to how shite opencart is
-                product_option_obj = product_option_value_obj.option
-                product_option_obj.isdeleted = True
-        else:
-            if option_type == 2: #this is a hack due to how shite opencart is
-                product_option_obj = product_option_value_obj.option
-                product_option_obj.delete()
-            product_option_value_obj.delete()
-        data['is_saved'] = True
-    else:
-        data['is_saved'] = False
-
-    return JsonResponse(data)
-
-
 def product_option_edit(request, product_id, pk):
     data = dict()
     context = dict()
@@ -1907,3 +1875,30 @@ def product_option_list_delete(request, product_id, pk):
     return JsonResponse(data)
 
 
+def create_product_variant_code(variant_id):
+    replacements = dict()
+    variant_code = ''
+    product_variant_obj = OcTsgProductVariants.objects.filter(prod_variant_id=variant_id).first()
+    product_variant_core = OcTsgProductVariantCore.objects.filter(prod_variant_core_id=product_variant_obj.prod_var_core_id).first()
+    size_material_obj = product_variant_core.size_material
+    store_code_template = product_variant_obj.store.product_code_template
+
+    replacements = {
+        '{{size_id}}': size_material_obj.product_size_id,
+        '{{size_code}}': size_material_obj.product_size.size_code,
+        '{{material_id}}': size_material_obj.product_material_id,
+        '{{material_code}}': size_material_obj.product_material.code,
+        '{{size_material_id}}': product_variant_core.size_material_id,
+        '{{product_id}}': product_variant_core.product_id,
+        '{{variant_id}}': variant_id,
+        '{{store_id}}': product_variant_obj.store.store_id,
+        '{supplier_code}': obj_product_variant_core.supplier_code
+    }
+    variant_code = apply_template_replacements(store_code_template, replacements)
+    return variant_code
+
+def apply_template_replacements(template_string, replacements):
+    result = template_string
+    for placeholder, value in replacements.items():
+        result = result.replace(placeholder, str(value))
+    return result
