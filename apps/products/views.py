@@ -199,7 +199,6 @@ class ProductsListView(generics.ListAPIView):
     serializer_class = ProductListSerializer
     model = serializer_class.Meta.model
 
-
     def get_queryset(self, store_id=0):
         if self.kwargs['store_id']:
             store_id = self.kwargs['store_id']
@@ -1892,7 +1891,7 @@ def create_product_variant_code(variant_id):
         '{{product_id}}': product_variant_core.product_id,
         '{{variant_id}}': variant_id,
         '{{store_id}}': product_variant_obj.store.store_id,
-        '{supplier_code}': obj_product_variant_core.supplier_code
+       # '{supplier_code}': obj_product_variant_core.supplier_code
     }
     variant_code = apply_template_replacements(store_code_template, replacements)
     return variant_code

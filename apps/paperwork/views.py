@@ -208,7 +208,12 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
         if order_item_data.product_variant:
             model = order_item_data.product_variant.variant_code
         order_item_tbl_data = [''] * 10
-        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        if order_item_data.model != order_item_data.supplier_code:
+            product_order_code = f"{order_item_data.model}<BR/>( {order_item_data.supplier_code} )"
+        else:
+            product_order_code = order_item_data.model
+
+        order_item_tbl_data[0] = Paragraph(product_order_code, styles['table_data'])
         order_item_tbl_data[1] = Paragraph(order_item_data.name, styles['table_data'])
 
         #get any options in here
@@ -362,7 +367,12 @@ def gen_dispatch_note(order_id, bl_excl_shipped=False):
         else:
             order_item_tbl_data = [''] * 9
 
-        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        if order_item_data.model != order_item_data.supplier_code:
+            product_order_code = f"{order_item_data.model}<BR/>( {order_item_data.supplier_code} )"
+        else:
+            product_order_code = order_item_data.model
+
+        order_item_tbl_data[0] = Paragraph(product_order_code, styles['table_data'])
 
         if order_item_data.product_variant:
             #see if it's a bespoke image
@@ -523,7 +533,12 @@ def gen_backorder_note(order_id, bl_excl_shipped=False):
         else:
             order_item_tbl_data = [''] * 6
 
-        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        if order_item_data.model != order_item_data.supplier_code:
+            product_order_code = f"{order_item_data.model}<BR/>( {order_item_data.supplier_code} )"
+        else:
+            product_order_code = order_item_data.model
+
+        order_item_tbl_data[0] = Paragraph(product_order_code, styles['table_data'])
 
         if order_item_data.product_variant:
             #see if it's a bespoke image
@@ -682,7 +697,12 @@ def gen_options_pick_list(order_id, bl_excl_shipped=False):
         else:
             order_item_tbl_data = [''] * 9
 
-        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        if order_item_data.model != order_item_data.supplier_code:
+            product_order_code = f"{order_item_data.model}<BR/>( {order_item_data.supplier_code} )"
+        else:
+            product_order_code = order_item_data.model
+
+        order_item_tbl_data[0] = Paragraph(product_order_code, styles['table_data'])
 
         if order_item_data.product_variant:
             if order_item_data.order_product_bespoke_image.all().exists():

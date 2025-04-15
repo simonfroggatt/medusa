@@ -11,8 +11,9 @@
             <div class="row">
                     <div class="col-6 col-md-2">{{ form.name|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.company_name|as_crispy_field }}</div>
-                    <div class="col-6 col-md-3">{{ form.url|as_crispy_field }}</div>
-                    <div class="col-6 col-md-2">{{ form.prefix|as_crispy_field }}</div>
+                    <div class="col-6 col-md-2">{{ form.url|as_crispy_field }}</div>
+                    <div class="col-6 col-md-2">{{ form.ssl|as_crispy_field }}</div>
+                    <div class="col-6 col-md-1">{{ form.prefix|as_crispy_field }}</div>
                     <div class="col-6 col-md-2">{{ form.code|as_crispy_field }}</div>
                 <hr>
                     <div class="col-6 col-md-3">{{ form.website|as_crispy_field }}</div>
@@ -24,7 +25,6 @@
                     <div class="col-6 col-md-3">{{ form.registration_number|as_crispy_field }}</div>
                     <div class="col-6 col-md-1">{{ form.currency|as_crispy_field }}</div>
                     <div class="col-6 col-md-2">{{ form.tax_rate|as_crispy_field }}</div>
-                    <div class="col-12">{{ form.footer_text|as_crispy_field }}</div>
                     <div class="col-6 col-md-4">{{ form.address|as_crispy_field }}</div>
                     <div class="col-6 col-md-4">{{ form.postcode|as_crispy_field }}</div>
                     <div class="col-6 col-md-4">{{ form.country|as_crispy_field }}</div>
@@ -34,7 +34,12 @@
                     <div class="col-6 col-md-3">{{ form.medusa_logo|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.logo_paperwork|as_crispy_field }}</div>
                 <hr>
+                    <div class="col-12">{{ form.footer_text|as_crispy_field }}</div>
                     <div class="col-12">{{ form.email_footer_text|as_crispy_field }}</div>
+                <hr>
+                    <div class="col-6">{{ form.meta_title|as_crispy_field }}</div>
+                    <div class="col-6">{{ form.meta_description|as_crispy_field }}</div>
+                    <div class="col-12">{{ form.meta_keywords|as_crispy_field }}</div>
                 <div class="col-md-12">
                     {{ form.status|as_crispy_field }}
                     {{ form.product_code_template|as_crispy_field }}

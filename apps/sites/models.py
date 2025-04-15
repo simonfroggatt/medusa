@@ -51,6 +51,9 @@ class OcStore(models.Model):
     email_foot_logo = models.CharField(max_length=255, blank=True, null=True)
     product_code_template = models.CharField(max_length=1024, blank=True, null=True)
     email_footer_text = models.TextField(blank=True, null=True)
+    meta_title = models.CharField(max_length=128, blank=True, null=True)
+    meta_description = models.CharField(max_length=256, blank=True, null=True)
+    meta_keywords = models.CharField(max_length=256, blank=True, null=True)
 
     class Meta:
         managed = False

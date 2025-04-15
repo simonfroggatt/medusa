@@ -348,6 +348,7 @@ class OcOrderProduct(models.Model):
     product_id = models.IntegerField()
     name = models.CharField(max_length=255)
     model = models.CharField(max_length=64)
+    supplier_code = models.CharField(max_length=64)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=2)
     discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)

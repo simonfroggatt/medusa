@@ -466,7 +466,7 @@ $(function () {
             "serverSide": false,
             "scroller": true,
             "scrollY": "400",
-            "scrollCollapse": true,
+
             "rowId": 'product_id',
             "ajax": {
                 "processing": true,

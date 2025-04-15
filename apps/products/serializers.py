@@ -36,7 +36,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcProduct
-        fields = ['product_id', 'model', 'image', 'status', 'image_url']
+        fields = ['product_id', 'image', 'status', 'image_url']
         depth = 1
 
 # class BaseProductListSerializer(serializers.ModelSerializer):
@@ -73,7 +73,7 @@ class ProductToStoreInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcProduct
-        fields = ['corevariants','model', 'image', 'status', 'productdescbase']
+        fields = ['corevariants', 'image', 'status', 'productdescbase']
         depth = 1
 
 
@@ -92,7 +92,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcProduct
         #fields = ['product_id', 'model', 'image_url', 'status', 'productdescbase', 'corevariants']
-        fields = ['product_id', 'model', 'image_url', 'status','productdescbase', 'corevariants']
+        fields = ['product_id', 'image_url', 'status','productdescbase', 'corevariants']
         depth = 2
 
 
@@ -101,7 +101,7 @@ class ProductStoreProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcProduct
-        fields = ['model', 'productdescbase']
+        fields = [ 'productdescbase']
 
 
 class SizeMaterialCombSerializer(serializers.ModelSerializer):
@@ -207,7 +207,7 @@ class RelatedBaseDescriptionSerializer(serializers.ModelSerializer):
     productdescbase = ProductDescriptionBase(read_only=True)
     class Meta:
         model = OcProduct
-        fields = ['product_id', 'model', 'image', 'status', 'productdescbase']
+        fields = ['product_id', 'image', 'status', 'productdescbase']
         depth = 2
 
 
@@ -323,5 +323,5 @@ class ProductBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcProduct
-        fields = ['product_id', 'model', 'status', 'image_url', 'productdescbase']
+        fields = ['product_id',  'status', 'image_url', 'productdescbase']
         depth = 2
