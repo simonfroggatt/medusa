@@ -30,7 +30,6 @@ class OcTsgBespokeTemplates(models.Model):
 
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
-    location = models.CharField(max_length=128, blank=True, null=True,)
     image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
     manufacturer_id = models.IntegerField()
     tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING)
