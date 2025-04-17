@@ -7,7 +7,6 @@
                 <thead>
                 <tr>
                     <th width="75px">Image</th>
-                    <th class="col-2">Code</th>
                     <th class="col-4">Name</th>
                     <th class="col-auto">Title</th>
                 </tr>
@@ -191,9 +190,7 @@
                         "processing": true,
                         "url": "/products/api/post-list/products/0/?format=datatables",
                         "type": "GET",
-                        "beforeSend": function (xhr) {
-                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token|escapejs }}");
-                        }
+
                     },
                     "deferRender": false,
 
@@ -211,7 +208,6 @@
                                 return '<img class="rounded mx-auto d-block product-thumb" src="' + data + '">';
                             }
                         },
-                        {data: "model"},
                         {
                             data: "productdescbase.name",
                             defaultContent: ""

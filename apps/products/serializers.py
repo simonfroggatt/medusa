@@ -158,12 +158,6 @@ class StoreCoreProductVariantSerialize(serializers.ModelSerializer):
 
 
 
-class TestProduct(serializers.ModelSerializer):
-    class Meta:
-        model = OcProduct
-        fields = ['product_id', 'model', 'image']
-
-
 class ProductStoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcProductToStore
