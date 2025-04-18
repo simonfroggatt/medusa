@@ -88,7 +88,6 @@
                             data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"><i class="fa-solid fa-cog"></i>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
-                        <li><a class="dropdown-item" href="#">E-Mail</a></li>
                         {% if not order_obj.customer %}
                              <li><a class="dropdown-item" href="{% url 'create_customer_from_guest' order_obj.order_id %}">Convert to Customer</a></li>
                         {% else %}
