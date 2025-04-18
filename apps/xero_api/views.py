@@ -85,7 +85,7 @@ def xero_contact(request):
     #xero_company_data = xero_auth.get_xero_response()
     #contact_data = xero_company_data['Contacts']
 
-    contact_id = '251c6bcb-6393-49aa-aade-bddd66077985'
+    contact_id = 'c6d85815-0c41-4d7d-961a-90f099d016ee'
 
     xero_item = XeroItem()
     tennant_id = xero_item.get_tenant_id()
