@@ -36,7 +36,7 @@ from django.views.decorators.csrf import csrf_protect
 
 
 def XeroFirstLogin(request):
-    template_name = 'xero_onetime.html'
+    template_name = 'xero_api/xero_onetime.html'
 
     auth_url = ('''https://login.xero.com/identity/connect/authorize?''' +
                 '''response_type=code''' +
