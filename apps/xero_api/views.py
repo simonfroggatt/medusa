@@ -40,7 +40,7 @@ def XeroFirstLogin(request):
 
     auth_url = ('''https://login.xero.com/identity/connect/authorize?''' +
                 '''response_type=code''' +
-                '''&client_id=''' + xeromanager_constants.XERO_CLIENT_ID +
+                '''&client_id=''' + settings.XERO_CLIENT_ID +
                 '''&redirect_uri=''' + xeromanager_constants.XERO_REDIRECT_URL +
                 '''&scope=''' + xeromanager_constants.XERO_SCOPES +
                 '''&state=123''')
