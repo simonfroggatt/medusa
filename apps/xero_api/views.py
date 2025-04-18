@@ -45,6 +45,7 @@ def XeroFirstLogin(request):
                 '''&scope=''' + xeromanager_constants.XERO_SCOPES +
                 '''&state=123''')
 
+
     webbrowser.open_new(auth_url)
 
     return render(request, template_name)
@@ -84,7 +85,7 @@ def xero_contact(request):
     #xero_company_data = xero_auth.get_xero_response()
     #contact_data = xero_company_data['Contacts']
 
-    contact_id = '305ca5cf-497d-4fee-a161-cdb30e6be989'
+    contact_id = '251c6bcb-6393-49aa-aade-bddd66077985'
 
     xero_item = XeroItem()
     tennant_id = xero_item.get_tenant_id()
@@ -92,7 +93,7 @@ def xero_contact(request):
     contact_obj = XeroContact()
     contact_data = contact_obj.get_contact(contact_id)
 
-    context = {'tenant_id': 'adasd', 'contact': contact_data }
+    context = {'tenant_id': tennant_id, 'contact': contact_data }
 
     return render(request, template_name, context)
 
