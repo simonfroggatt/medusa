@@ -186,14 +186,16 @@ class XeroAuthManager:
                                     'Accept': 'application/json'
                                 })
 
-
+        self._debug('response code:' + str(response.status_code))
         if response.status_code == 200:
             json_response = response.json()
+            self._debug('json_response:' + str(json_response))
             if json_response['Status'] == 'OK':
                 self.xero_return_data = json_response
                 self.valid_xero = True
                 self.error_codes = {}
             else:
+                self._debug('json status:' + str(json_response['Status']))
                 self.valid_xero = False
                 self.status_code = json_response['Status']
         else:
