@@ -20,21 +20,21 @@ from django.dispatch import receiver
 
 class OcOrderQuerySet(models.QuerySet):
     def successful(self):
-        valid_status = [2, 3, 8]
+        valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         order_status_excl = [4,5]
         return self.exclude(order_status_id__in=order_status_excl).filter(payment_status_id__in=valid_status)
 
     def live(self):
-        valid_status = [2, 3, 8]
+        valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         order_status_excl = [99, 1, 7]
         return self.exclude(order_status_id__in=order_status_excl).filter(payment_status_id__in=valid_status)
 
     def new(self):
-        valid_status = [2, 3, 8]
+        valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         return self.filter(order_status_id=1).filter(payment_status_id__in=valid_status)
 
     def failed(self):
-        valid_status = [2, 3, 8]
+        valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         return self.exclude(payment_status_id__in=valid_status).exclude(order_status_id=99)
 
     def days_since(self):
