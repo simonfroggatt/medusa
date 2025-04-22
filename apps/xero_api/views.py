@@ -317,7 +317,6 @@ def xero_order_add(request, order_id, encrypted):
 
     #need to do several checks and tests
 
-
     xero_customer_data = _get_order_contact_id(order_obj)
     if xero_customer_data['status'] == 'OK':
         xero_customer_id = xero_customer_data['contactID']
@@ -541,10 +540,14 @@ def _get_order_contact_id(order_obj):
     data['contactID'] = None
 
     #does this order have a customer or is it a guest checkout
+    logger.debug(f"in _get_order_contact_id")
     if order_obj.customer:
+        logger.info(f"in _get_order_contact_id - there is a customer")
         if order_obj.customer.xero_id:
+            logger.debug(f"in _get_order_contact_id XERO_ID = {order_obj.customer.xero_id}")
             contact_id = order_obj.customer.xero_id
         else:
+            logger.info(f"in _get_order_contact_id no XERO_ID")
             if order_obj.customer.parent_company:
                 if order_obj.customer.parent_company.xero_id:
                     contact_id = order_obj.customer.parent_company.xero_id
@@ -557,6 +560,8 @@ def _get_order_contact_id(order_obj):
                         data['status'] = return_contact['status']
                         data['error'] = return_contact['error']
             else:
+                logger.info(f"in _get_order_contact_id no parent company, so adding a new contact")
+                logger.debug(f"in _get_order_contact_id customer = {order_obj.customer}")
                 return_contact = _create_new_contact(order_obj.customer)
                 if return_contact['status'] == 'OK':
                     contact_id = return_contact['contactID']
@@ -588,8 +593,8 @@ def _get_order_contact_id(order_obj):
             country=order_obj.payment_country
         )
 
-        logger.debug(f"in _create_new_contact - customer_details_obj = {customer_details_obj}")
-        logger.debug(f"in _create_new_contact - customer_address_obj = {customer_address_obj}")
+        logger.debug(f"in _get_order_contact_id - customer_details_obj = {customer_details_obj}")
+        logger.debug(f"in _get_order_contact_id - customer_address_obj = {customer_address_obj}")
 
         return_contact = _create_new_contact(customer_details_obj, None, customer_address_obj, True)
         if return_contact['status'] == 'OK':
@@ -609,6 +614,9 @@ def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = No
     data = {}
     data['status'] = 'OK'
     customer_names = HumanName(customer_obj.fullname)
+    logger.debug(f"in _create_new_contact - customer_obj = {customer_obj}")
+    logger.debug(f"in billing_address_guest - customer_obj = {billing_address_guest}")
+    logger.debug(f"guestCustoemr = {guestCustoemr}")
 
    # xero_item = XeroItem()
     # tennant_id = xero_item.get_tenant_id()
