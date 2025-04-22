@@ -168,7 +168,7 @@ class Previous_Products_asJSON(viewsets.ModelViewSet):
             OcOrderProduct.objects
             .select_related('order')  # optimize DB hit
             .filter(order__customer_id=customer_id)
-            .order_by('-order_id')[:100]  # optional performance cap
+            .order_by('-order_id')  # optional performance cap
         )
 
     def retrieve(self, request, pk=None):
@@ -397,6 +397,9 @@ def order_add_product(request, order_id):
             calculate_order_total(order_id)
             data['form_is_valid'] = True
         else:
+            logger.debug(f"order_add_product - form not valid = {form.errors}")
+            logger.debug(f"order_add_product - form errors (dict) = {form.errors.as_data()}")
+            logger.debug(f"order_add_product - form errors (clean) = {form.errors.get_json_data()}")
             data['form_is_valid'] = False
 
     form = ProductAddForm()
