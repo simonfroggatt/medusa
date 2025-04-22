@@ -644,10 +644,12 @@ def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = No
             else:
                 billing_address = def_billing
 
+
+
     customer_address = {
         'address_1': billing_address.address_1,
         'city': billing_address.city,
-        'region': billing_address.region,
+        'region': billing_address.area,
         'postcode': billing_address.postcode,
         'country' : billing_address.country
     }
