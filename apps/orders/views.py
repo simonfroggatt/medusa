@@ -157,8 +157,21 @@ class Orders_Products_asJSON(viewsets.ModelViewSet):
         serializer = self.get_serializer(order_products, many=True)
         return Response(serializer.data)
 
-
 class Previous_Products_asJSON(viewsets.ModelViewSet):
+    queryset = OcOrderProduct.objects.none()
+    serializer_class = OrderPreviousProductListSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        customer_id = self.request.GET.get('customer_id')
+        return (
+            OcOrderProduct.objects
+            .select_related('order')  # optimize DB hit
+            .filter(order__customer_id=customer_id)
+            .order_by('-order_id')  # optional performance cap
+        )
+
+
+class _old_Previous_Products_asJSON(viewsets.ModelViewSet):
     queryset = OcOrderProduct.objects.none()
     serializer_class = OrderPreviousProductListSerializer
 
@@ -168,7 +181,7 @@ class Previous_Products_asJSON(viewsets.ModelViewSet):
             OcOrderProduct.objects
             .select_related('order')  # optimize DB hit
             .filter(order__customer_id=customer_id)
-            .order_by('-order_id')  # optional performance cap
+            .order_by('-order_id')[:100]  # optional performance cap
         )
 
     def retrieve(self, request, pk=None):

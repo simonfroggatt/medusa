@@ -402,8 +402,8 @@ class OcOrderProduct(models.Model):
         #calc_order_totals(self.order.order_id)
 
     def save(self, *args, **kwargs):
-        if self.base_unit_price <= 0:
-            self.base_unit_price = self.single_unit_price
+        if not self.base_unit_price or self.base_unit_price <= 0:
+            self.base_unit_price = self.single_unit_price or 0
         super(OcOrderProduct, self).save(*args, **kwargs)
         add_order_product_history(self.order_product_id, self.old_status_id, self.status_id)
 
