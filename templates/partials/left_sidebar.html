@@ -9,13 +9,14 @@
                     <div id="sidebar-menu">
                         <!-- Left Menu Start -->
                         <ul class="metismenu list-unstyled" id="side-menu">
-                            
+                            {% if request.user|has_group:"superuser" %}
                             <li>
                                 <a href="{% url 'dashboard' %}" class="waves-effect">
                                     <i class="fa-regular fa-gauge"></i>
                                     <span key="t-dashboard">Dashboard</span>
                                 </a>
                             </li>
+                            {% endif %}
 
                 
                             <li>

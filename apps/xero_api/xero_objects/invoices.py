@@ -2,6 +2,7 @@ from apps.xero_api.xero_objects.xero_base import XeroItem
 import apps.xero_api.config as xero_config
 from apps.orders.services import create_due_date, get_order_product_line_options
 from decimal import Decimal
+from django.conf import settings
 
 
 class XeroInvoice(XeroItem):
@@ -47,7 +48,12 @@ class XeroInvoice(XeroItem):
         payment_data['IsReconciled'] = "false"
         payment_data['Reference'] = order_obj.payment_ref
         payment_data['Invoice'] = {"InvoiceID": self.__InvoiceID}
-        payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_DEMO}
+        #find out if it's paypal or card
+        if order_obj.payment_method == settings.TSG_PAYMENT_TYPE_PAYPAL:
+            payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_PAYPAL}
+        else:
+            payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_SSAN}
+       # payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_DEMO}
         self.__Payments.append(payment_data)
 
     def add_order_lines(self, order_lines):
