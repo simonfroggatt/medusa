@@ -1,3 +1,4 @@
+import logging
 import os
 from django.shortcuts import render, get_object_or_404
 import apps.xero_api.config as xero_config
@@ -32,6 +33,9 @@ from collections import namedtuple
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
+
+import logging
+logger = logging.getLogger('apps')
 
 
 
@@ -562,20 +566,30 @@ def _get_order_contact_id(order_obj):
                     data['error'] = return_contact['error']
     else:
         #there is no customer associated with this order
-        customer_details_obj = namedtuple('customer_detail', 'company firstname lastname email fullname')
-        customer_address_obj = namedtuple('customer_address', 'address_1 city region postcode country')
-        customer_details_obj.fullname = order_obj.payment_fullname
-        customer_details_obj.company = order_obj.payment_company
-        customer_details_obj.firstname = order_obj.payment_firstname
-        customer_details_obj.lastname = order_obj.payment_lastname
-        customer_details_obj.email = order_obj.payment_email
-        customer_details_obj.telephone = order_obj.payment_telephone
-        customer_address_obj.address_1 = order_obj.payment_address_1
-        customer_address_obj.city = order_obj.payment_city
-        customer_address_obj.region = order_obj.payment_area
-        customer_address_obj.postcode = order_obj.payment_postcode
-        customer_address_obj.country = order_obj.payment_country
+        # Define namedtuple classes
+        CustomerDetail = namedtuple('CustomerDetail', 'company firstname lastname email fullname telephone')
+        CustomerAddress = namedtuple('CustomerAddress', 'address_1 city region postcode country')
 
+        # Create instances using the constructor
+        customer_details_obj = CustomerDetail(
+            company=order_obj.payment_company,
+            firstname=order_obj.payment_firstname,
+            lastname=order_obj.payment_lastname,
+            email=order_obj.payment_email,
+            fullname=order_obj.payment_fullname,
+            telephone=order_obj.payment_telephone
+        )
+
+        customer_address_obj = CustomerAddress(
+            address_1=order_obj.payment_address_1,
+            city=order_obj.payment_city,
+            region=order_obj.payment_area,
+            postcode=order_obj.payment_postcode,
+            country=order_obj.payment_country
+        )
+
+        logger.debug(f"in _create_new_contact - customer_details_obj = {customer_details_obj}")
+        logger.debug(f"in _create_new_contact - customer_address_obj = {customer_address_obj}")
 
         return_contact = _create_new_contact(customer_details_obj, None, customer_address_obj, True)
         if return_contact['status'] == 'OK':

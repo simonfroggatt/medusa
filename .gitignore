@@ -3,3 +3,4 @@
 .env
 /apps/dashboard/migrations/
 medusa/wsgi.py
+!/apps/xero_api/config.py
