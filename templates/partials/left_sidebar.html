@@ -26,10 +26,14 @@
 
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
+                                    {% if request.user|has_group:"superuser" %}
                                     <li><a href="{% url 'liveorders' %}" >Live Orders</a></li>
                                     <li><a href="{% url 'neworders' %}" >NEW Orders</a></li>
+                                    {% endif %}
                                     <li><a href="{% url 'allorders' %}">All Orders</a></li>
+                                    {% if request.user|has_group:"superuser" %}
                                     <li><a href="{% url 'failedorders' %}">Failed Orders</a></li>
+                                    {% endif %}
                                     
                                     <li><a href="{% url 'allreturns' %}">Returns</a></li>
                                 </ul>

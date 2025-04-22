@@ -205,6 +205,8 @@
                     if(row['printed'] == 1){
                         printed_colour = 'btn-green'
                     }
+
+
                    // let printed_icon = '<i class="fa-solid fa-print ' + printed_colour + ' "></i>'
 
 
@@ -239,12 +241,12 @@
                 $(row).addClass( 'failed-order' );
             } */
             if(data.shipping_flag == null) {
-                if (data.highlight_code == 1) {
+                /*if (data.highlight_code == 1) {
                     $(row).addClass('live-order');
                 }
                 if (data.highlight_code == 2) {
                     $(row).addClass('pending-order');
-                }
+                }*/
                 if (data.highlight_code == 3) {
                     $(row).addClass('failed-order');
                 }

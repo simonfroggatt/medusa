@@ -496,12 +496,21 @@ table.table-mail tr td {
     left: -10000px;
 }
 
+/* Alternating row colors */
+.dataTable > tbody > tr:nth-child(odd) > * {
+    background-color: #C6DDF3;
+}
+
+.dataTable > tbody > tr:nth-child(even) > * {
+    background-color: #FBFADD;
+}
+
+/* Selected row styling */
 .dataTable > tbody > tr.selected > *,
-.dataTable > tbody > tr.odd.selected > *,
-.dataTable > tbody > tr.selected:hover > *  {
-    box-shadow: inset 0 0 0 9999px #acbad4 !important;
-    color: #333;
-    background-color: #fff; !important;
+.dataTable > tbody > tr.selected:hover > * {
+    box-shadow: inset 0 0 0 9999px #6B8EC9 !important;
+    background-color: #6B8EC9 !important;
+    color: #fff !important;
 }
 
 table .order-total {

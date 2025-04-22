@@ -521,6 +521,7 @@ def _xero_invoice_check_rounding(order_obj, xero_order_obj):
             'description': 'Rounding',
             'account_code': xero_config.ACCOUNT_CODE_ROUNDING
         }
+        logger.debug('rounding line: ' + str(rounding_line))
         xero_order_obj.add_line(rounding_line)
         xero_order_obj.save_invoice()
         errors = xero_order_obj.xero_api.get_error()
