@@ -586,6 +586,8 @@ def order_product_edit(request, order_id, order_product_id):
             update_product_options_and_variant_options(request.POST, order_id, order_product_id, order_product.product_id)
         else:
             logger.debug(f"form not valid = {form.errors}")
+            logger.debug(f"form errors (dict) = {form.errors.as_data()}")
+            logger.debug(f"form errors (clean) = {form.errors.get_json_data()}")
             data['form_is_valid'] = False
 
     else:
