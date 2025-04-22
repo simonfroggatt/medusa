@@ -38,13 +38,13 @@
                 <div class="col-6 col-md-4">
                     <label for="label_{{ form.model.name }}" class="form-label">{{ form.model.label }}</label>
                     <input type="text" class="form-control" id="label_{{ form.model.name }}"
-                           name="{{ form.model.name }}" value="{{ form.model.value }}">
+                           name="{{ form.model.name }}" value="{{ form.model.value }}" required>
                 </div>
 
                 <div class="col-6 {% if price_for|upper == "I" %} col-md-6 {% else %} col-md-8 {% endif %}">
                     <label for="label_{{ form.name.name }}" class="form-label">{{ form.name.label }}</label>
                     <input type="text" class="form-control" id="label_{{ form.name.name }}"
-                           name="{{ form.name.name }}" value="{{ form.name.value }}">
+                           name="{{ form.name.name }}" value="{{ form.name.value }}" required>
                 </div>
                 {% if price_for|upper == "I" %}
                     <div class="col-6 col-md-2">{{ form.status|as_crispy_field }}</div>
