@@ -313,6 +313,7 @@ def xero_order_add(request, order_id, encrypted):
 
     #need to do several checks and tests
 
+
     xero_customer_data = _get_order_contact_id(order_obj)
     if xero_customer_data['status'] == 'OK':
         xero_customer_id = xero_customer_data['contactID']

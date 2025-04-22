@@ -3,6 +3,7 @@ import apps.xero_api.config as xero_config
 from apps.orders.services import create_due_date, get_order_product_line_options
 from decimal import Decimal
 from django.conf import settings
+import os
 
 
 class XeroInvoice(XeroItem):
@@ -237,5 +238,14 @@ class XeroInvoice(XeroItem):
 
         return option_text
 
+    def _debug(self, debugline):
+        log_file = os.path.join(settings.BASE_DIR, 'apps/xero_api/logs/xero_error_invoices.txt')
+        if os.path.exists(log_file):
+            append_write = 'a'  # append if already exists
+        else:
+            append_write = 'w'  # make a new file if not
+
+        with open(log_file, append_write) as outfile:
+            outfile.write(debugline + '\n')
 
 

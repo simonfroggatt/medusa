@@ -1,5 +1,11 @@
+
 from apps.xero_api.xero_objects.xero_base import XeroItem
 from phonenumbers import number_type, parse
+from django.conf import settings
+import os
+import logging
+logger = logging.getLogger('apps')
+
 class XeroContact(XeroItem):
 
     __XERO_ENDPOINT = 'Contacts'
@@ -57,6 +63,13 @@ class XeroContact(XeroItem):
         return
 
     def add_address(self, address_data):
+        self._debug('add_address')
+        #check if we have a contact address
+        self._debug('add_address - address_data')
+        self._debug(str(address_data))
+
+        logger.debug(f"add_address = {address_data}")
+
         address_xero = {'AddressType': 'POBOX'}
         #split the address
         address_data['address_1'] = address_data['address_1'].replace('\r', '')
@@ -135,3 +148,13 @@ class XeroContact(XeroItem):
     def set_existing_id(self, contact_id):
         self.__ContactID = contact_id
         return
+
+    def _debug(self, debugline):
+        log_file = os.path.join(settings.BASE_DIR, 'apps/xero_api/logs/xero_error_contacts.txt')
+        if os.path.exists(log_file):
+            append_write = 'a'  # append if already exists
+        else:
+            append_write = 'w'  # make a new file if not
+
+        with open(log_file, append_write) as outfile:
+            outfile.write(debugline + '\n')
