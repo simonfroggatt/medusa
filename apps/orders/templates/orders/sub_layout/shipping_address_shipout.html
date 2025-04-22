@@ -1,0 +1,121 @@
+<dl class="row text-nowrap">
+
+    <dt class="col-3 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.order_id }}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        Order ID:
+    </dt>
+    <dd class="col-9">{{ order_obj.order_id }}</dd>
+
+    <dt class="col-3 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.shipping_fullname }}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        Contact:
+    </dt>
+    <dd class="col-9">{{ order_obj.shipping_fullname }}</dd>
+
+    <dt class="col-3 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.shipping_email }}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        Email:
+    </dt>
+    <dd class="col-9">
+        <a href="mailto:{{ order_obj.shipping_email }}">{{ order_obj.shipping_email }}</a>
+    </dd>
+
+    <dt class="col-3 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.shipping_telephone }}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        Phone:
+    </dt>
+    <dd class="col-9">{{ order_obj.shipping_telephone|default:"&nbsp;" }}</dd>
+
+    {% if order_obj.shipping_company %}
+        <dt class="col-3 d-flex align-items-center">
+            <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                    data-copy-text="{{ order_obj.shipping_company }}">
+                <i class="fa-solid fa-copy fa-xs"></i>
+            </button>
+            Company:
+        </dt>
+        <dd class="col-9">{{ order_obj.shipping_company }}</dd>
+    {% endif %}
+
+    <dt class="col-3 d-flex align-items-start">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.shipping_address_1 }}{% if order_obj.shipping_address_2 %}, {{ order_obj.shipping_address_2 }}{% endif %}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        Address:
+    </dt>
+    <dd class="col-9">
+        {{ order_obj.shipping_address_1 }}<br>
+        {% if order_obj.shipping_address_2 %}{{ order_obj.shipping_address_2 }}<br>{% endif %}
+    </dd>
+
+    {% if order_obj.shipping_area %}
+        <dt class="col-3 d-flex align-items-center">
+            <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                    data-copy-text="{{ order_obj.shipping_area }}">
+                <i class="fa-solid fa-copy fa-xs"></i>
+            </button>
+            Area:
+        </dt>
+        <dd class="col-9">{{ order_obj.shipping_area }}</dd>
+    {% endif %}
+
+    <dt class="col-3 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.shipping_city }}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        City:
+    </dt>
+    <dd class="col-9">{{ order_obj.shipping_city }}</dd>
+
+    <dt class="col-3 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.shipping_postcode }}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        Postcode:
+    </dt>
+    <dd class="col-9"><strong>{{ order_obj.shipping_postcode }}</strong></dd>
+
+    <dt class="col-3 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
+                data-copy-text="{{ order_obj.shipping_country }}">
+            <i class="fa-solid fa-copy fa-xs"></i>
+        </button>
+        Country:
+    </dt>
+    <dd class="col-9">{{ order_obj.shipping_country }}</dd>
+
+</dl>
+
+
+<script>
+$(document).on('click', '.copy-btn', function () {
+    const $btn = $(this);
+    const text = $btn.data('copy-text');
+    const $icon = $btn.find('i');
+
+    navigator.clipboard.writeText(text).then(() => {
+        // Change icon to check
+        $icon.removeClass('fa-copy').addClass('fa-check');
+
+        // Revert after 1 second
+        setTimeout(() => {
+            $icon.removeClass('fa-check').addClass('fa-copy');
+        }, 1000);
+    });
+});
+</script>
