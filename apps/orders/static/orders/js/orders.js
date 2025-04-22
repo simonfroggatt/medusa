@@ -458,6 +458,15 @@ $(function () {
                     updateOrderDetails()
                     updateProductTable()
                     updateOrderFlags()
+                    //now check for messages
+                    debugger;
+                    if (data.emails)
+                    {
+                        $.each(data.emails, function (email_type, value) {
+                            let class_type = value.success === true ? 'bg-success' : 'bg-danger';
+                            add_toast_message(email_type.toUpperCase() + ' - ' + value.message, "Send Message", class_type);
+                        })
+                    }
                     $("#modal-base").modal("hide");  // <-- Close the modal
                 } else {
                     $("#modal-base .modal-content").html(data.html_form);

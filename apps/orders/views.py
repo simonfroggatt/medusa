@@ -157,13 +157,23 @@ class Orders_Products_asJSON(viewsets.ModelViewSet):
 
 
 class Previous_Products_asJSON(viewsets.ModelViewSet):
-    queryset = OcOrderProduct.objects.all()
+    queryset = OcOrderProduct.objects.none()
     serializer_class = OrderPreviousProductListSerializer
 
+    def get_queryset(self):
+        customer_id = self.kwargs.get('pk')  # taken from URL
+        return (
+            OcOrderProduct.objects
+            .select_related('order')  # optimize DB hit
+            .filter(order__customer_id=customer_id)
+            .order_by('-order_id')[:100]  # optional performance cap
+        )
+
     def retrieve(self, request, pk=None):
-        previous_products = OcOrderProduct.objects.filter(order__customer_id=pk).order_by('-order_id')
-        serializer = self.get_serializer(previous_products, many=True)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
 
 
 class Order_Flags_asJSON(viewsets.ModelViewSet):
@@ -516,17 +526,22 @@ def order_ship_it(request, order_id):
                         order_product.status_id = 8    #set as shipped
                         order_product.save()
 
+            data['form_is_valid'] = True
             #send the tracking info
+
+            email_messages = dict()
+
             bl_send_tracking_email = request.POST.get('checkSendTracking', 0)
             if bl_send_tracking_email:
                 tracking_emails = request.POST.get('sendTrackingEmail', 0)
-                send_shipped_email(order_id, tracking_emails)
+                email_messages['tracking'] = send_shipped_email(order_id, tracking_emails)
 
-            #send the pdf invoice
             bl_send_invoice_email = request.POST.get('checkSendInvoice', 0)
             if bl_send_invoice_email:
                 invoice_emails = request.POST.get('sendInvoiceEmail', 0)
-                send_invoice_email(order_id, invoice_emails)
+                email_messages['invoice'] = send_invoice_email(order_id, invoice_emails)
+
+            data['emails'] = email_messages
 
         else:
             data['form_is_valid'] = False

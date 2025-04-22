@@ -31,18 +31,27 @@
 
                         <div class="tab-content" id="courier_tabs_content">
                             {% for courier in couriers %}
-                                <div class="tab-pane fade show" id="nav_courier_{{courier.pk}}" role="tabpanel" aria-labelledby="nav_courier_{{courier.pk}}-tab">
-                                    {% for courier_options in courier.courierdetails.all %}
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="radio_{{courier.pk}}"
-                                                   id="radio-{{courier.pk}}-{{ courier_options.courier_opion_id }}" value="{{ courier_options.courier_option_title }}">
-                                            <label class="form-check-label" for="radio_{{courier.pk}}-{{ courier_options.courier_opion_id }}">
-                                                {{ courier_options.courier_option_title }}
-                                            </label>
-                                        </div>
+                                {% with courier.courierdetails.all as courier_options %}
+                                    <div class="tab-pane fade show"
+                                         id="nav_courier_{{ courier.pk }}"
+                                         role="tabpanel"
+                                         aria-labelledby="nav_courier_{{ courier.pk }}-tab"
+                                         data-has-options="{{ courier_options|length|yesno:'true,false' }}">
 
-                                    {% endfor %}
-                                </div>
+                                        {% for option in courier_options %}
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                       name="radio_{{ courier.pk }}"
+                                                       id="radio-{{ courier.pk }}-{{ option.courier_opion_id }}"
+                                                       value="{{ option.courier_option_title }}">
+                                                <label class="form-check-label"
+                                                       for="radio_{{ courier.pk }}-{{ option.courier_opion_id }}">
+                                                    {{ option.courier_option_title }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endwith %}
                             {% endfor %}
                         </div>
                     </div>
@@ -106,15 +115,28 @@
 $('#courier_tabs .nav-link').on('click', function(){
        //alert(this.data('courierId'));
     courier_id = $(this).data("courierId")
+
+    debugger;
+    $('#chosen_courier').val(courier_id);
+    const tabPane = $('#nav_courier_' + courier_id);
+    const hasOptions = tabPane.data('has-options'); // true or false (from data-has-options)
+    if (hasOptions) {
+        $('#shipit_actions #update').prop({disabled: true});
+    } else {
+        $('#chosen_courier_option').val('No options');
+        $('#shipit_actions #update').prop({disabled: false});
+    }
     if(courier_option[courier_id] !== undefined)
     {
         $('#chosen_courier_option').val(courier_option[courier_id])
+        $('#shipit_actions #update').prop({disabled: false});
     }
-    $('#chosen_courier').val(courier_id);
-    })
+    //need to check if there are no options
+})
 
 $('#courier_tabs_content .form-check-input').on('click', function(){
        //alert(this.data('courierId'));
+    debugger;
     let data_tag = $(this).attr('id');
     let data_label = $(this).val()
     let data_tag_info = data_tag.split('-');
