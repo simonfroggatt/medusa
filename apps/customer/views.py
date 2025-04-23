@@ -300,6 +300,7 @@ def order_customer_create(request, customer_id):
         new_order_obj.invoice_prefix = customer_obj.store.prefix
         new_order_obj.currency_id = customer_obj.store.currency_id
         new_order_obj.currency_code = customer_obj.store.currency.code
+
         new_order_obj.currency_value = customer_obj.store.currency.value
         new_order_obj.language_id = customer_obj.language_id
         new_order_obj.fullname = customer_obj.fullname

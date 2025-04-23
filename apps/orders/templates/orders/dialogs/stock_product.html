@@ -109,7 +109,7 @@
             {% endif %}
                 <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
-                <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
+                 <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
                 <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
                 <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
                 <input type="hidden" id="{{ form.width.name }}" name="{{ form.width.name }}">
@@ -576,14 +576,15 @@
             }
 
             function set_product_variant_details(data_row) {
-
+                debugger;
                 let core_variant = data_row['prod_var_core'];
                 $('#form-stock #{{ form.size_name.name }}').val(core_variant['size_material']['product_size']['size_name'])
                 $('#form-stock #{{ form.width.name }}').val(core_variant['size_material']['product_size']['size_width'])
                 $('#form-stock #{{ form.height.name }}').val(core_variant['size_material']['product_size']['size_height'])
                 $('#form-stock #{{ form.material_name.name }}').val(core_variant['size_material']['product_material']['material_name'])
                 $('#form-stock #{{ form.orientation_name.name }}').val(core_variant['size_material']['product_size']['orientation']['orientation_name'])
-                $('#form-stock #{{ form.product_variant.name }}').val(core_variant['prod_variant_core_id'])
+                //$('#form-stock #{{ form.product_variant.name }}').val(core_variant['prod_variant_core_id'])
+                $('#form-stock #{{ form.product_variant.name }}').val(core_variant['product_variant_id'])
                 $('#form-stock #{{ form.model.name }}').val(data_row['variant_code'])
 
                 if (data_row['variant_overide_price'] > 0) {

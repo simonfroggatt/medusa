@@ -44,7 +44,7 @@ class ProductDescriptionBaseForm(forms.ModelForm):
 
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 10}))
     long_description = forms.CharField(widget=TinyMCE(attrs={'rows': 20}))
-    sign_reads = forms.CharField(widget=TinyMCE(attrs={'rows': 10}))
+    sign_reads = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
 
     class Meta:
         model = OcProductDescriptionBase

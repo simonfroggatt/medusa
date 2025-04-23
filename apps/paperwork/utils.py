@@ -308,7 +308,6 @@ def draw_footer(canvas, doc, order_obj):
     canvas.drawString(5 * mm, 5 * mm, footer_company_str)
     canvas.restoreState()
 
-
 class NumberedCanvas(canvas.Canvas):
 
     def __init__(self, *args, **kwargs):
