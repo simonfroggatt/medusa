@@ -80,18 +80,18 @@ class OrderListSerializer(serializers.ModelSerializer):
     def get_highlight_code(self, obj):
         return serv.order_highlight_code(obj)
 
-
 class OrderProductListSerializer(serializers.ModelSerializer):
-
+    has_svg = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OcOrderProduct
-        #fields = ['order_id','order_product_id', 'product_id', 'name', 'model', 'quantity', 'price', 'total', 'tax', 'product_variant']
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['product_image_url', 'order_product_option', 'order_product_variant_options'])
+        fields.extend(['product_image_url', 'order_product_option', 'order_product_variant_options', 'has_svg'])
         fields.remove('order')
         depth = 3
 
+    def get_has_svg(self, obj):
+        return obj.order_product_bespoke_image.exists()
 
 class PreviousVariant(serializers.ModelSerializer):
 

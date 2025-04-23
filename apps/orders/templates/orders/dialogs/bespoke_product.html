@@ -1,34 +1,4 @@
 <div class="container">
-    <div class="row tsg_navs">
-
-        <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="standard-tab" data-bs-toggle="tab" href="#tab-standard"
-                   role="tab">Standard</a>
-            </li>
-            <li>
-                <a class="nav-link" id="calc-tab" data-bs-toggle="tab" href="#tab-calculate"
-                   role="tab">Calculate</a>
-            </li>
-        </ul>
-        <div class="tab-content">
-            <div role="tabpanel" id="tab-standard" class="tab-pane fade show active">
-                <div class="panel-body">
-
-                    <table id="bespoke_size_table" class="table table-hover table-striped align-middle table-sm"
-                           style="width:100%">
-                        <thead>
-                        <tr>
-                            <th class="col-6">Size</th>
-                            <th class="col-3">Material</th>
-                            <th class="col-3">Price</th>
-                        </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-            <div role="tabpanel" id="tab-calculate" class="tab-pane fade">
-                <div class="panel-body">
                     <div class="row">
                         <div class="col-2">
                             <label for="calc_width" class="form-label">Width (mm)</label>
@@ -81,11 +51,6 @@
                         </div>
 
                     </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="row">
         <div class="col-12">
             <form method="post" action="{{form_post_url}}"
@@ -352,6 +317,7 @@
             })
 
             $('#calc_button').on('click', function(){
+                debugger;
                 let str_width = $('#calc_width').val()
                 let str_height =  $('#calc_height').val()
                 $('#form-bespoke #{{ form.width.name }}').val($('#calc_width').val())
