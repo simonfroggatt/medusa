@@ -467,7 +467,7 @@ $(function () {
                         })
                     }
                     //if fast ship then we don't need to update everthing, just the row of the table
-                    if (data.fastship) {
+                    if (data.fastship > 0) {
                         updateOrderListShippingRowAjax(data.tblrowid)
                     }else{
                         updateOrderDetails()
