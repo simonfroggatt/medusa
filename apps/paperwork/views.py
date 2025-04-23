@@ -1,60 +1,36 @@
-import http
-
 import requests
-from django.shortcuts import render, get_object_or_404
-from apps.orders.models import OcOrder, OcOrderProduct, OcTsgOrderOption, OcTsgOrderProductOptions
-from apps.orders.serializers import OrderProductListSerializer
-from apps.quotes.models import OcTsgQuote, OcTsgQuoteProduct
-from apps.quotes.serializers import QuoteProductListSerializer
-from django.template.loader import get_template
-from django.http import HttpResponse
+from django.shortcuts import  get_object_or_404
+from apps.orders.models import OcOrder
+from apps.quotes.models import OcTsgQuote
 import os
 import json
-from io import BytesIO
-from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm, inch
-from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_LEFT, TA_CENTER
+from reportlab.lib.units import mm
+from reportlab.lib.enums import TA_RIGHT, TA_LEFT, TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, Frame, PageTemplate, NextPageTemplate, FrameBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, Frame, PageTemplate, FrameBreak
 from reportlab_qrcode import QRCodeImage
-from reportlab.graphics.barcode import code128
-from reportlab.pdfgen import canvas
-from reportlab.graphics import renderPDF, renderPM
 from reportlab.lib import colors
 from apps.paperwork import utils
-from svglib.svglib import svg2rlg
 from django.db.models import Sum
 from functools import partial
-from decimal import Decimal, ROUND_HALF_UP
-import pathlib
 from PyPDF2 import PdfFileMerger, PdfFileWriter, PdfFileReader
 from medusa import settings
 from django.conf import settings
-from urllib.parse import quote
-from django.urls import path, include, reverse_lazy
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.urls import reverse_lazy
+from django.http import HttpResponse
 from django.template.loader import get_template
-from svglib.svglib import svg2rlg
 from io import BytesIO
 from xhtml2pdf import pisa
 
-
 from reportlab.pdfbase.pdfmetrics import registerFont
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.csrf import csrf_protect
+from apps.orders.models import OcTsgOrderShipment
+
 registerFont(TTFont('Arial','ARIAL.ttf'))
 
-
-from wand.api import library
-import wand.color
-import wand.image
-
-from cairosvg import svg2png
-
-
-from django.template.loader import render_to_string
 from django.contrib.staticfiles import finders
 
 
@@ -151,6 +127,7 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=12))
     styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
@@ -269,17 +246,36 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     product_count = order_items.aggregate(Sum('quantity'))['quantity__sum']
 
 #add in the totals
+
     total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
     elements.append(total_text)
     elements.append(Spacer(doc.width, 15*mm))
-    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
-    elements.append(signed_text)
 
-    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+    #see if there are comments
+    if order_obj.comment:
+        comment_clean = (order_obj.comment or "").replace('\n', '<br/>')
+        comment_paragraph = Paragraph(f'<b>Comment:</b><br/>{comment_clean or ""}', styles['footer_left'])
+    else:
+        comment_paragraph = Paragraph('', styles['footer_left'])
+    signed_paragraph = Paragraph('Signed:____________________', styles['footer_right'])
 
-    #pdf = buffer.getvalue()
-    #uffer.close()
-    #response.write(pdf)
+    footer_table = Table([[comment_paragraph, signed_paragraph]], colWidths=[doc.width / 2.0] * 2)
+    footer_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # Optional border styling for debug
+         #('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    # Add to document
+    elements.append(footer_table)
+
+
+    #doc.build(elements, canvasmaker=partial(CommentLastPageCanvas, draw_footer_fn=draw_footer, order_obj=order_obj))
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj, is_last_page=True))
+
+
     return buffer
 
 
@@ -303,6 +299,7 @@ def gen_dispatch_note(order_id, bl_excl_shipped=False):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
@@ -439,8 +436,26 @@ def gen_dispatch_note(order_id, bl_excl_shipped=False):
     total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
     elements.append(total_text)
     elements.append(Spacer(doc.width, 15*mm))
-    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
-    elements.append(signed_text)
+
+    # see if there are comments
+    if order_obj.comment:
+        comment_clean = (order_obj.comment or "").replace('\n', '<br/>')
+        comment_paragraph = Paragraph(f'<b>Comment:</b><br/>{comment_clean or ""}', styles['footer_left'])
+    else:
+        comment_paragraph = Paragraph('', styles['footer_left'])
+    signed_paragraph = Paragraph('Signed:____________________', styles['footer_right'])
+
+    footer_table = Table([[comment_paragraph, signed_paragraph]], colWidths=[doc.width / 2.0] * 2)
+    footer_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # Optional border styling for debug
+        # ('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    # Add to document
+    elements.append(footer_table)
 
     doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
 
@@ -469,6 +484,7 @@ def gen_backorder_note(order_id, bl_excl_shipped=False):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
@@ -602,8 +618,26 @@ def gen_backorder_note(order_id, bl_excl_shipped=False):
     total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
     elements.append(total_text)
     elements.append(Spacer(doc.width, 15*mm))
-    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
-    elements.append(signed_text)
+
+    # see if there are comments
+    if order_obj.comment:
+        comment_clean = (order_obj.comment or "").replace('\n', '<br/>')
+        comment_paragraph = Paragraph(f'<b>Comment:</b><br/>{comment_clean or ""}', styles['footer_left'])
+    else:
+        comment_paragraph = Paragraph('', styles['footer_left'])
+    signed_paragraph = Paragraph('Signed:____________________', styles['footer_right'])
+
+    footer_table = Table([[comment_paragraph, signed_paragraph]], colWidths=[doc.width / 2.0] * 2)
+    footer_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # Optional border styling for debug
+        # ('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    # Add to document
+    elements.append(footer_table)
 
     doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
 
@@ -634,6 +668,7 @@ def gen_options_pick_list(order_id, bl_excl_shipped=False):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
@@ -780,8 +815,26 @@ def gen_options_pick_list(order_id, bl_excl_shipped=False):
     total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
     elements.append(total_text)
     elements.append(Spacer(doc.width, 15*mm))
-    signed_text = Paragraph('Signed:____________________', styles['footer_right'])
-    elements.append(signed_text)
+
+    # see if there are comments
+    if order_obj.comment:
+        comment_clean = (order_obj.comment or "").replace('\n', '<br/>')
+        comment_paragraph = Paragraph(f'<b>Comment:</b><br/>{comment_clean or ""}', styles['footer_left'])
+    else:
+        comment_paragraph = Paragraph('', styles['footer_left'])
+    signed_paragraph = Paragraph('Signed:____________________', styles['footer_right'])
+
+    footer_table = Table([[comment_paragraph, signed_paragraph]], colWidths=[doc.width / 2.0] * 2)
+    footer_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # Optional border styling for debug
+        # ('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    # Add to document
+    elements.append(footer_table)
 
     doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
 
@@ -815,6 +868,7 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data_small', alignment=TA_LEFT, fontSize=6, leading=10))
@@ -946,10 +1000,33 @@ def gen_collection_note(order_id, bl_excl_shipped=False):
     total_text = Paragraph(f'Total: {order_lines} lines and {product_count} products', styles['footer_right'])
     elements.append(total_text)
     elements.append(Spacer(doc.width, 10*mm))
+
+    # see if there are comments
+    if order_obj.comment:
+        comment_clean = (order_obj.comment or "").replace('\n', '<br/>')
+        comment_paragraph = Paragraph(f'<b>Comment:</b><br/>{comment_clean or ""}', styles['footer_left'])
+    else:
+        comment_paragraph = Paragraph('', styles['footer_left'])
+
     signed_str = 'Staff Signed:__________________'
     customer_signed_str = 'Customer Name:__________________'
     customer_signed_str += 'Customer signed:__________________<BR/><BR/>'
     customer_signed_str += 'Date:___/___/_____'
+
+    signed_paragraph = Paragraph(customer_signed_str, styles['footer_right'])
+
+    footer_table = Table([[comment_paragraph, signed_paragraph]], colWidths=[doc.width / 2.0] * 2)
+    footer_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # Optional border styling for debug
+        # ('BOX', (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+
+    # Add to document
+    elements.append(footer_table)
+
 
     signed_text = Paragraph(signed_str, styles['footer_right'])
     customer_signed_text = Paragraph(customer_signed_str, styles['footer_right'])
@@ -990,6 +1067,7 @@ def gen_invoice(order_id):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=9, leading=13))
     styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
@@ -1124,8 +1202,125 @@ def gen_invoice(order_id):
     #response.write(pdf)
     return buffer
 
-
 def gen_shipping_page(order_id):
+    width, height = A4
+    styles = getSampleStyleSheet()
+
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+    buffer = BytesIO()
+
+    gap = 10 * mm
+    margin = 10 * mm
+    usable_width = width - 2 * margin
+    usable_height = height - 2 * margin - 1 * gap  # subtract 2 gaps
+
+    # Heights (adjusted to account for gaps)
+    top_h = usable_height * 0.5 - 10 * mm
+    middle_h = usable_height * 0.3
+    bottom_h = usable_height * 0.2
+
+    # Y positions
+    bottom_y = margin
+    middle_y = bottom_y + bottom_h
+    top_y = middle_y + middle_h + gap
+
+    top_frame = Frame(
+        x1=margin,
+        y1=top_y,
+        width=usable_width,
+        height=top_h,
+        showBoundary=0
+    )
+
+    middle_frame = Frame(
+        x1=margin,
+        y1=middle_y,
+        width=usable_width,
+        height=middle_h,
+        showBoundary=0
+    )
+
+    bottom_left_frame = Frame(
+        x1=margin,
+        y1=bottom_y,
+        width=usable_width * 0.75,
+        height=bottom_h,
+        showBoundary=0
+    )
+
+    bottom_right_frame = Frame(
+        x1=margin + usable_width * 0.75,
+        y1=bottom_y,
+        width=usable_width * 0.25,
+        height=bottom_h,
+        showBoundary=0
+    )
+
+    template = PageTemplate(frames=[
+        top_frame,
+        middle_frame,
+        bottom_left_frame,
+        bottom_right_frame
+    ])
+
+
+    # Create document and add template
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Shipping_address_' + order_ref_number,  # exchange with your title
+                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            )
+
+    doc.addPageTemplates([template])
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='address_top', alignment=TA_LEFT, fontSize=20, leading=24))
+    styles.add(ParagraphStyle(name='address_bottom', alignment=TA_LEFT, fontSize=16, leading=18))
+    styles.add(ParagraphStyle(name='details_bottom', alignment=TA_LEFT, fontSize=14, leading=18))
+
+    shipping_address = utils.get_shipping_address(order_obj)
+    address_para = Paragraph(shipping_address, styles["address_top"])
+
+    # Wrap the address in a table to center it in the top frame
+    centered_address = Table(
+        [[address_para]],
+        colWidths=usable_width * 0.7,  # you can tweak width here
+        hAlign='CENTER'  # horizontally center the content
+    )
+    centered_address.setStyle(TableStyle([
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+
+
+
+    shipping_address_keep = utils.get_shipping_address(order_obj)
+    shipping_order_details = utils.shipping_order_details(order_obj)
+    qr = QRCodeImage(f'http://medusa.totalsafetygroup.com/orders/{order_id}', size=40 * mm)
+
+    # Add content to each frame
+    elements = [
+        centered_address,
+        #Paragraph(shipping_address, styles["address_top"]),
+        FrameBreak(),
+        Paragraph(shipping_address_keep, styles["address_bottom"]),
+        FrameBreak(),
+        Paragraph(shipping_order_details, styles["details_bottom"]),
+        FrameBreak(),
+        qr
+    ]
+
+    # Build the document
+    doc.build(elements)
+
+    pdf = buffer.getvalue()
+    return buffer
+
+def gen_shipping_page_old(order_id):
     width = 210 * mm
     height = 297 * mm
     padding = 40 * mm
@@ -1250,6 +1445,7 @@ def gen_quote_pdf(quote_id, bl_total=True):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
     styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
     styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=9, leading=11))
     styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
@@ -1516,3 +1712,46 @@ def _test_has_backorder_items(order_id):
     if order_items.exists():
         return True
     return False
+
+
+class CommentLastPageCanvas(utils.NumberedCanvas):
+    def __init__(self, *args, draw_footer_fn=None, order_obj=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._saved_page_states = []
+        self.draw_footer_fn = draw_footer_fn
+        self.order_obj = order_obj
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        super().showPage()
+
+    def save(self):
+        page_count = len(self._saved_page_states)
+        for page_num, state in enumerate(self._saved_page_states):
+            self.__dict__.update(state)
+            self._startPage()
+
+            # Custom footer on each page
+            is_last = (page_num == page_count - 1)
+            if self.draw_footer_fn:
+                self.draw_footer_fn(self, self._doc, self.order_obj, is_last)
+
+            super().showPage()
+        super().save()
+
+def draw_footer(canvas, doc, order_obj, is_last_page=False):
+    canvas.saveState()
+    footer_text = order_obj.store.company_name
+    if order_obj.store.footer_text:
+        footer_text += " " + order_obj.store.footer_text
+    if order_obj.store.registration_number:
+        footer_text += " Registered in England No. " + order_obj.store.registration_number
+
+    canvas.setFont('Helvetica', 8)
+    canvas.drawString(5 * mm, 5 * mm, footer_text)
+
+    if is_last_page and order_obj.comment:
+        canvas.setFont('Helvetica', 9)
+        canvas.drawString(5 * mm, 20 * mm, f"Comment: {order_obj.comment}")
+
+    canvas.restoreState()

@@ -584,7 +584,8 @@
                 $('#form-stock #{{ form.material_name.name }}').val(core_variant['size_material']['product_material']['material_name'])
                 $('#form-stock #{{ form.orientation_name.name }}').val(core_variant['size_material']['product_size']['orientation']['orientation_name'])
                 //$('#form-stock #{{ form.product_variant.name }}').val(core_variant['prod_variant_core_id'])
-                $('#form-stock #{{ form.product_variant.name }}').val(core_variant['product_variant_id'])
+               // let product_variant_id = data_row['prod_variant_id'];
+                $('#form-stock #{{ form.product_variant.name }}').val(data_row['prod_variant_id'])
                 $('#form-stock #{{ form.model.name }}').val(data_row['variant_code'])
 
                 if (data_row['variant_overide_price'] > 0) {
@@ -597,6 +598,10 @@
                     $('#form-stock #{{ form.single_unit_price.name }}').val(core_variant['size_material']['price'])
                 }
 
+                let form_data = $('#form-stock').serializeArray();
+                console.log(form_data)
+
+
                 manual_data['width'] = core_variant['size_material']['product_size']['size_width']
                 manual_data['calcwidth'] = core_variant['size_material']['product_size']['size_width']
                 manual_data['height'] = core_variant['size_material']['product_size']['size_height']
@@ -605,6 +610,9 @@
                 manual_data['code'] = data_row['variant_code']
                 manual_data['price'] = $('#form-stock #{{ form.price.name }}').val()
                 manual_data['size_name'] = core_variant['size_material']['product_size']['size_name']
+
+
+
 
             }
 

@@ -95,6 +95,13 @@ def shipping_address_keep(order_obj):
     shipping_str += "<BR/>Website: " + order_obj.store.name
     return shipping_str
 
+def shipping_order_details(order_obj):
+    shipping_str = "Shipping: " + order_obj.shipping_method
+    shipping_str += "<br/>Telephone: " + order_obj.shipping_telephone
+    shipping_str += f'<BR/>Order ref: <b>{order_obj.order_id}</b>'
+    shipping_str += "<BR/>Website: " + order_obj.store.name
+    shipping_str += "<BR/>Comment:" + order_obj.comment
+    return shipping_str
 
 def order_billing(order_obj):
     billing_str = '<b>Billing Address:</b><BR/>'
