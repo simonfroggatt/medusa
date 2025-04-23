@@ -736,3 +736,15 @@ ul.chart_ul li {
   width: 100%;
   height: 100%;
 }
+
+#tsg-login h1 {
+    color: #495057;
+}
+
+#tsg-login p {
+    color: white;
+}
+
+#tsg-login .card-footer {
+    color: white;
+}
