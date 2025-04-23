@@ -523,6 +523,13 @@ def order_ship_it(request, order_id):
     courier_obj = OcTsgCourier.objects.all()
 
     if request.method == 'POST':
+        """passback data for ajax, so we know if we are updating the details or if it was a fastship"""
+        table_row_id = request.POST.get('tblrowid', 0)  # used to update the row
+        fast_ship = request.POST.get('fastship', 0)  # checks where we have come from
+
+        data['fastship'] = fast_ship
+        data['tblrowid'] = table_row_id
+
         form = OrderShipItForm(request.POST)
         if form.is_valid():
             form_instance = form.instance
@@ -536,6 +543,7 @@ def order_ship_it(request, order_id):
             order_details_obj.order_status_id = 99
             order_details_obj.save()
 
+
             """Now check to see if we set the product status to shipped and if we send the invoice or not"""
             bl_mark_shipped = int(request.POST.get('checkSetShipped', 0))
             if bl_mark_shipped == 1:
@@ -545,6 +553,7 @@ def order_ship_it(request, order_id):
                         order_product.save()
 
             data['form_is_valid'] = True
+
             #send the tracking info
 
             email_messages = dict()
@@ -552,12 +561,15 @@ def order_ship_it(request, order_id):
             bl_send_tracking_email = request.POST.get('checkSendTracking', 0)
             if bl_send_tracking_email:
                 tracking_emails = request.POST.get('sendTrackingEmail', 0)
-                email_messages['tracking'] = send_shipped_email(order_id, tracking_emails)
+                json_return = send_shipped_email(order_id, tracking_emails)
+                email_messages['tracking'] = json.loads(json_return.content)
+
 
             bl_send_invoice_email = request.POST.get('checkSendInvoice', 0)
             if bl_send_invoice_email:
                 invoice_emails = request.POST.get('sendInvoiceEmail', 0)
-                email_messages['invoice'] = send_invoice_email(order_id, invoice_emails)
+                json_return = send_invoice_email(order_id, invoice_emails)
+                email_messages['imvoice'] = json.loads(json_return.content)
 
             data['emails'] = email_messages
 
@@ -566,13 +578,18 @@ def order_ship_it(request, order_id):
 
     else:
         form = OrderShipItForm()
+        #we've added some extra parms to the query string to help with the ajax call ?fastship=true&rowid=
+        table_row_id = request.GET.get('tblrowid', 0)  #used to update the row
+        fast_ship = request.GET.get('fastship', 0) #checks where we have come from
 
     template_name = 'orders/dialogs/ship_order.html'
 
     context = {'order_id': order_id,
                'order_obj':order_details_obj,
                'form': form,
-               'couriers': courier_obj}
+               'couriers': courier_obj,
+               'fastship': fast_ship,
+               'tblrowid': table_row_id,}
 
     data['html_form'] = render_to_string(template_name,
                                          context,

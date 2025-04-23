@@ -442,7 +442,28 @@ table.table-mail tr td {
 .btn-amber.disabled,
 .btn-amber:disabled {
     background-color: orange;
-     color: white;
+    color: white;
+    border-color: orange;
+}
+
+.btn-amber:hover,
+.btn-amber:focus {
+    background-color: #e69500; /* Slightly darker */
+    border-color: #e69500;
+    color: white;
+}
+
+.btn-amber:active,
+.btn-amber.active,
+.show > .btn-amber.dropdown-toggle {
+    background-color: #cc8400; /* Even darker for active */
+    border-color: #cc8400;
+    color: white;
+}
+
+.btn-amber:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(255, 165, 0, 0.5); /* subtle amber shadow */
 }
 
 .flag-green {
@@ -456,8 +477,29 @@ table.table-mail tr td {
 .btn-green,
 .btn-green.disabled,
 .btn-green:disabled {
-   background-color: #20de20;
-     color: white;
+    background-color: #20de20;
+    color: white;
+    border-color: #20de20;
+}
+
+.btn-green:hover,
+.btn-green:focus {
+    background-color: #1ab81a; /* Slightly darker green */
+    border-color: #1ab81a;
+    color: white;
+}
+
+.btn-green:active,
+.btn-green.active,
+.show > .btn-green.dropdown-toggle {
+    background-color: #159c15; /* Even darker for active state */
+    border-color: #159c15;
+    color: white;
+}
+
+.btn-green:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(32, 222, 32, 0.5); /* soft glow */
 }
 
 
@@ -467,10 +509,31 @@ table.table-mail tr td {
 }
 
 .btn-grey,
-.btn-grey.disabled
+.btn-grey.disabled,
 .btn-grey:disabled {
     background-color: grey;
     color: black;
+    border-color: grey;
+}
+
+.btn-grey:hover,
+.btn-grey:focus {
+    background-color: #6e6e6e; /* Slightly darker grey */
+    border-color: #6e6e6e;
+    color: black;
+}
+
+.btn-grey:active,
+.btn-grey.active,
+.show > .btn-grey.dropdown-toggle {
+    background-color: #5c5c5c; /* Even darker */
+    border-color: #5c5c5c;
+    color: black;
+}
+
+.btn-grey:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(128, 128, 128, 0.4);
 }
 
 

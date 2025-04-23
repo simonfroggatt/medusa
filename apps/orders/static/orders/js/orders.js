@@ -307,6 +307,8 @@ $(function () {
     }
 
 
+
+
     var updateProductTable = function () {
         //let url =  "/orders/api/order-products/" + current_order_id + "/?format=datatables";
         //product_list_table.ajax.url( url ).load();
@@ -455,11 +457,8 @@ $(function () {
             dataType: 'json',
             success: function (data) {
                 if (data.form_is_valid) {
-                    updateOrderDetails()
-                    updateProductTable()
-                    updateOrderFlags()
-                    //now check for messages
                     debugger;
+                     //now check for messages
                     if (data.emails)
                     {
                         $.each(data.emails, function (email_type, value) {
@@ -467,6 +466,16 @@ $(function () {
                             add_toast_message(email_type.toUpperCase() + ' - ' + value.message, "Send Message", class_type);
                         })
                     }
+                    //if fast ship then we don't need to update everthing, just the row of the table
+                    if (data.fastship) {
+                        updateOrderListShippingRowAjax(data.tblrowid)
+                    }else{
+                        updateOrderDetails()
+                        updateProductTable()
+                        updateOrderFlags()
+                    }
+
+
                     $("#modal-base").modal("hide");  // <-- Close the modal
                 } else {
                     $("#modal-base .modal-content").html(data.html_form);
@@ -830,6 +839,39 @@ $(function () {
     $(document).on("click", ".js-order-email", loadForm);
 
 
+     var updateOrderListShippingRow = function (tblrowid) {
+    //get the productlisttable
+         let $row = $('#order_table').find('tr#' + tblrowid);
+         let $button = $row.find('.js-order-ship-it');
+
+         $button.removeClass('btn-grey').addClass('btn-amber');
+    }
+
+    var updateOrderListShippingRowAjax = function (tblrowid) {
+         debugger;
+         let table = $('#order_table').DataTable();
+         let ajx_url = '/orders/api/orders/'+tblrowid+'/?format=datatables&status=ALL';
+         $.ajax({
+            url: ajx_url,  // adjust to your actual API
+            type: 'GET',
+            success: function(response) {
+            if (response && response.data) {
+                // get the updated row data
+                const updatedRow = response.data;
+
+                // find the row in the table and update it
+                const row = table.row('#' + tblrowid);
+                if (row.length) {
+                    row.data(updatedRow).draw(false);  // redraw only that row
+                }
+            }
+            },
+            error: function(err) {
+                console.error('Failed to fetch row update:', err);
+            }
+        });
+    }
+
 })
 
 function copy_orderno_to_clipboard(order_number) {
@@ -844,38 +886,6 @@ function copy_orderno_to_clipboard(order_number) {
     document.body.removeChild(el);
 
 }
-
-//Dropzone.autoDiscover = false;
-
-Dropzone.options.orderDocDropzone = { // camelized version of the `id`
-    paramName: "filename", // The name that will be used to transfer the file
-    maxFilesize: 2, // MB
-    autoProcessQueue: false,
-    uploadMultiple: false,
-
-    init: function() {
-        var myDropzone = this;
-
-        // First change the button to actually tell Dropzone to process the queue.
-        this.element.querySelector("button[type=submit]").addEventListener("click", function (e) {
-            // Make sure that the form isn't actually being sent.
-            e.preventDefault();
-            e.stopPropagation();
-            myDropzone.processQueue();
-        });
-
-
-    },
-
-    success: function (file, response) {
-        if(response.upload){
-            alert('uploaded done')
-        } else {
-            alert('error')
-        }
-    }
-
-  };
 
 var ORDERSNAMESPACE_old = {}
 ORDERSNAMESPACE_old.SetSingleUnitPrice = function (new_price, form_id, bl_update_pricing = false) {

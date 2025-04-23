@@ -12,6 +12,8 @@
                 <form method="post" action="{% url 'ordershipit' order_id %}"
                       id="js-order-ship-it">
                     {% csrf_token %}
+                    <input type="hidden" name="fastship" value={{ fastship }}>
+                    <input type="hidden" name="tblrowid" value="{{ tblrowid }}">
                     <input type="hidden" id="order_id" name="order_id"
                            value="{{ order_id }}">
                     <input type="hidden" id="chosen_courier" name="chosen_courier"
@@ -116,7 +118,6 @@ $('#courier_tabs .nav-link').on('click', function(){
        //alert(this.data('courierId'));
     courier_id = $(this).data("courierId")
 
-    debugger;
     $('#chosen_courier').val(courier_id);
     const tabPane = $('#nav_courier_' + courier_id);
     const hasOptions = tabPane.data('has-options'); // true or false (from data-has-options)
@@ -136,7 +137,6 @@ $('#courier_tabs .nav-link').on('click', function(){
 
 $('#courier_tabs_content .form-check-input').on('click', function(){
        //alert(this.data('courierId'));
-    debugger;
     let data_tag = $(this).attr('id');
     let data_label = $(this).val()
     let data_tag_info = data_tag.split('-');
@@ -147,10 +147,6 @@ $('#courier_tabs_content .form-check-input').on('click', function(){
 
     $('#shipit_actions #update').prop({disabled: false});
     })
-
-
-
-
 
 </script>
 

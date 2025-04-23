@@ -35,11 +35,15 @@
 {% endblock content %}
 
 {% block javascript %}
-
+<script>
+  const current_order_id = 0;
+</script>
 {% include 'partials/javascript.html' %}
 
+    <script type="text/javascript" src="{% static 'js/orders.js' %}"></script>
 
     <script>
+
     $(document).ready(function() {
 
     if ( $.fn.dataTable.isDataTable( '#order_table' ) ) {
@@ -51,8 +55,8 @@
                  "<'row'<'col-sm-12' tr>>" +
                  "<'row'<'col-sm-6'i><'col-sm-6' p>>",
         "processing" : true,
-        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
-        "pageLength": 25,
+        "lengthMenu" : [[25,50,100,200,-1], [25,50,100,200,"All"]],
+        "pageLength": 100,
         "autoWidth": false,
         "responsive": true,
         "serverSide": true,
@@ -206,14 +210,13 @@
                         printed_colour = 'btn-green'
                     }
 
-
-                   // let printed_icon = '<i class="fa-solid fa-print ' + printed_colour + ' "></i>'
-
-
                     //return printed_icon + " " + shipping_icon + /* " " + delete_icon + "  " +*/ edit_icon;
                     let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
                         let printed_icon = '<button type="button" class="btn btn-tsg-row ' + printed_colour +  '" disabled><i class="fa-solid fa-print  "></i></button>'
-                        let shipping_icon = '<button type="button" class="btn btn-tsg-row '+ shipping_colour + '" disabled><i class="fa-solid fa-shipping-fast "></i></button>'
+                        let shipping_icon = '<button type="button" class="btn btn-tsg-row '+ shipping_colour + ' js-order-ship-it"' +
+                            'data-url="api/' + data + '/shipit?fastship=true&tblrowid='+data+'" data-dlgsize="modal-xl"><i class="fa-solid fa-shipping-fast "></i></button>'
+                        //let shipping_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" '+ shipping_colour + '"  role="button" ' +
+                         //  'href="api/' + data + '/shipit?fastship=true"><i class="fa-solid fa-shipping-fast "></i></a>'
                         let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" role="button" href="' + data + '"><i class="{{ ICON_EDIT }} "></i></a>'
                     return btn_grp + shipping_icon + printed_icon + edit_icon +'</div>'
                 }

@@ -356,6 +356,6 @@ def _setup_medusa_email(order_id, enum_type, additional_replacements=None):
     template_content = apply_template_replacements(template_content_raw, replacements)
 
 
-    data = {'header': template_header, 'body': template_content}
+    data = {'subject': template_header, 'body': template_content}
     return data
 
