@@ -8,7 +8,7 @@ from django.urls import include
 urlpatterns = [
    # path('api/courier/<int:courier_id>/options/', views.CourierOptions().as_view({'get': 'list'}), name='courier_options'),
     path('login/', views.XeroFirstLogin, name='login'),
-    path('passback/', views.xero_passback, name='passback'),
+    path('passback/', views.do_refesh_token, name='passback'),
     path('test/', views.xero_tenants_check, name='test'),
     path('contact/', views.xero_contact, name='test'),
     path('refresh/', views.do_refesh_token, name='refresh'),

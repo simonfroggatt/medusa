@@ -60,7 +60,7 @@ def do_refesh_token(request):
 
     client_id = settings.XERO_CLIENT_ID
     client_secret = settings.XERO_CLIENT_SECRET
-    redirect_uri = 'https://medusa.totalsafetygroup.com/xero_api/refresh/'
+    redirect_uri = xeromanager_constants.XERO_REDIRECT_URL;
     code = auth_code
 
     # Encode credentials
