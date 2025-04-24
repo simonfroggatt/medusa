@@ -78,13 +78,25 @@ def get_shipping_address(order_obj):
     shipping_str += order_obj.shipping_fullname + "<BR/>"
     if order_obj.shipping_company:
         shipping_str += order_obj.shipping_company + "<BR/>"
-    shipping_str += order_obj.shipping_address_1 + "<BR/>"
+
+    if order_obj.shipping_address_1:
+        shipping_str += order_obj.shipping_address_1.replace("\n", "<br/>") + "<br/>"
+
     if order_obj.shipping_address_2:
-        shipping_str += order_obj.shipping_address_2 + "<BR/>"
-    shipping_str += order_obj.shipping_city + "<BR/>"
+        shipping_str += order_obj.shipping_address_2.replace("\n", "<br/>") + "<br/>"
+
+    if order_obj.shipping_city:
+        shipping_str += order_obj.shipping_city + "<BR/>"
+
     if order_obj.shipping_area:
         shipping_str += order_obj.shipping_area + "<BR/>"
-    shipping_str += order_obj.shipping_postcode
+
+    if order_obj.shipping_postcode:
+        shipping_str += order_obj.shipping_postcode + "<BR/>"
+
+
+
+
     return shipping_str
 
 
@@ -96,11 +108,21 @@ def shipping_address_keep(order_obj):
     return shipping_str
 
 def shipping_order_details(order_obj):
-    shipping_str = "Shipping: " + order_obj.shipping_method
-    shipping_str += "<br/>Telephone: " + order_obj.shipping_telephone
-    shipping_str += f'<BR/>Order ref: <b>{order_obj.order_id}</b>'
-    shipping_str += "<BR/>Website: " + order_obj.store.name
-    shipping_str += "<BR/>Comment:" + order_obj.comment
+    shipping_str = ''
+    if order_obj.shipping_method:
+        shipping_str += f"Shipping: {order_obj.shipping_method}<br/>"
+
+    if order_obj.shipping_telephone:
+        shipping_str += f"Telephone: {order_obj.shipping_telephone}<br/>"
+
+    shipping_str += f"Order ref: <b>{order_obj.order_id}</b><br/>"
+
+    if order_obj.store and order_obj.store.name:
+        shipping_str += f"Website: {order_obj.store.name}<br/>"
+
+    if order_obj.comment:
+        shipping_str += f"Comment: {order_obj.comment}"
+
     return shipping_str
 
 def order_billing(order_obj):
