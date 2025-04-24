@@ -9,10 +9,11 @@ from django.db.models import Sum
 import datetime as dt
 import pandas as pd
 
-
+from medusa.decorators import group_required
 
 # Create your views here.
 #@permission_required('group.sales')
+@group_required('superuser')
 def dashboard(request):
     template_name = 'dashboard/dashboard_main.html'
     context = {'heading': "Dashboard"}

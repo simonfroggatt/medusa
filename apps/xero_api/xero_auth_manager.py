@@ -110,7 +110,7 @@ class XeroAuthManager:
             dt_exp = self.refresh_timestamp
 
         dt_now = datetime.datetime.now()
-
+        self._debug(f'_json_file: {self.token_filename}')
         if dt_now > dt_exp:
             with open(self.token_filename) as json_file:
                 data = json.load(json_file)
