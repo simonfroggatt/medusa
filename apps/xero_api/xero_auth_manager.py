@@ -10,6 +10,8 @@ import datetime
 import os
 from django.core.cache import cache
 
+import logging
+logger = logging.getLogger('apps')
 
 class XeroAuthManager:
 
@@ -81,6 +83,8 @@ class XeroAuthManager:
         return self.xero_return_data
 
     def _get_refresh_token(self):
+        logger.debug('_get_refresh_token')
+        logger.debug('_get_refresh_token - filepath ' + self.token_filename)
         if os.path.isfile(self.token_filename) == False:
             self._xero_first_login()
         else:
@@ -103,6 +107,7 @@ class XeroAuthManager:
     def _xero_refresh_token(self):
 
         self._debug('_xero_refresh_token')
+        logger.debug('_xero_refresh_token')
 
         if cache.get('xero_refresh_timestamp'):
             dt_exp = cache.get('xero_refresh_timestamp')
@@ -110,8 +115,10 @@ class XeroAuthManager:
             dt_exp = self.refresh_timestamp
 
         dt_now = datetime.datetime.now()
-        self._debug(f'_json_file: {self.token_filename}')
+
+
         if dt_now > dt_exp:
+            logger.debug(f'_xero_refresh_token - token_filename {self.token_filename}')
             with open(self.token_filename) as json_file:
                 data = json.load(json_file)
 

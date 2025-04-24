@@ -49,7 +49,7 @@ def XeroFirstLogin(request):
                 '''&scope=''' + xeromanager_constants.XERO_SCOPES +
                 '''&state=123''')
 
-
+    logger.debug(auth_url)
     webbrowser.open_new(auth_url)
 
     return render(request, template_name)
