@@ -214,14 +214,19 @@ class XeroInvoice(XeroItem):
 
         return contact_id
 
-
     def __save_invoice_to_object(self, xero_response_invoice):
-        self.__InvoiceID = xero_response_invoice['InvoiceID']
-        self.__Total = Decimal(str(xero_response_invoice['Total']))
-        self.__SubTotal = Decimal(str(xero_response_invoice['SubTotal']))
-        self.__Payments = xero_response_invoice['Payments']
-        self.__DueDate = xero_response_invoice['DueDate']
-        self.__Status = xero_response_invoice['Status']
+        self.__InvoiceID = xero_response_invoice.get('InvoiceID')
+        self.__Total = Decimal(str(xero_response_invoice.get('Total', '0')))
+        self.__SubTotal = Decimal(str(xero_response_invoice.get('SubTotal', '0')))
+        self.__Payments = xero_response_invoice.get('Payments', [])
+        self.__DueDate = xero_response_invoice.get('DueDate')
+        self.__Status = xero_response_invoice.get('Status')
+
+        # Optional: log if important fields are missing
+        missing_keys = [k for k in ['InvoiceID', 'Total', 'SubTotal', 'DueDate', 'Status'] if
+                        k not in xero_response_invoice]
+        if missing_keys:
+            logger.warning(f"Missing keys in Xero invoice response: {missing_keys}")
 
 
     def __get_order_product_line_options(self, order_product_id):
