@@ -505,6 +505,10 @@ def order_shipping_change(request, order_id):
         if form.is_valid():
             data['form_is_valid'] = True
             order_totals_obj.save()
+            #and set the order details too
+            order_obj = get_object_or_404(OcOrder, pk=order_id)
+            order_obj.shipping_method = request.POST.get('title')
+            order_obj.save()
             calculate_order_total(order_id, False, False)
         else:
             data['form_is_valid'] = False

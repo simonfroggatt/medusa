@@ -1300,6 +1300,7 @@ def gen_shipping_page(order_id):
 
     shipping_address_keep = utils.get_shipping_address(order_obj)
     shipping_order_details = utils.shipping_order_details(order_obj)
+
     qr = QRCodeImage(f'http://medusa.totalsafetygroup.com/orders/{order_id}', size=40 * mm)
 
     # Add content to each frame
@@ -1318,55 +1319,6 @@ def gen_shipping_page(order_id):
     doc.build(elements)
 
     pdf = buffer.getvalue()
-    return buffer
-
-def gen_shipping_page_old(order_id):
-    width = 210 * mm
-    height = 297 * mm
-    padding = 40 * mm
-    order_obj = get_object_or_404(OcOrder, pk=order_id)
-    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
-
-    #response = HttpResponse(content_type='application/pdf')
-
-    buffer = BytesIO()
-
-    elements = []
-    top_address_frame = Frame(padding, height/2 + 20*mm, width - 2*padding, 100*mm, showBoundary=0)
-    bottom_address_frame = Frame(padding, 20*mm, width - 2*padding, 100 * mm, showBoundary=0)
-    mainPage = PageTemplate(frames=[top_address_frame, bottom_address_frame])
-
-    doc = SimpleDocTemplate(buffer, pagesize=A4,
-                            rightMargin=3 * mm, leftMargin=3 * mm,
-                            topMargin=8 * mm, bottomMargin=3 * mm,
-                            title=f'Shipping_address_' + order_ref_number,  # exchange with your title
-                            author="Safety Signs and Notices LTD",  # exchange with your authors name
-                            )
-
-    doc.addPageTemplates(mainPage)
-
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='address_top', alignment=TA_LEFT, fontSize=20, leading=24))
-    styles.add(ParagraphStyle(name='address_bottom', alignment=TA_LEFT, fontSize=14, leading=18))
-
-    shipping_address = utils.get_shipping_address(order_obj)
-    shipping_address_keep = utils.shipping_address_keep(order_obj)
-    heading = Paragraph(shipping_address, styles['address_top'])
-    heading2 = Paragraph(shipping_address_keep, styles['address_bottom'])
-
-    elements.append(heading)
-    elements.append(FrameBreak())  # move to next frame
-    elements.append(heading2)
-
-    qr = QRCodeImage(f'http://www.totalsafetygroup.co.uk/paperwork/shipping/{order_id}', size=30 * mm)
-   # elements.append(Spacer(doc.width, 5*mm))
-    elements.append(qr)
-
-    doc.build(elements)
-
-    pdf = buffer.getvalue()
-    #buffer.close()
-   # response.write(pdf)
     return buffer
 
 

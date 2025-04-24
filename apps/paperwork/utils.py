@@ -111,6 +111,14 @@ def shipping_order_details(order_obj):
     shipping_str = ''
     if order_obj.shipping_method:
         shipping_str += f"Shipping: {order_obj.shipping_method}<br/>"
+    else:
+        shipping_value = order_obj.order_totals.filter(code='shipping').first()
+        if shipping_value:
+            shipping_value = shipping_value.title
+        else:
+            shipping_value = 'No shipping specified'
+
+        shipping_str += f"Shipping: {shipping_value}<br/>"
 
     if order_obj.shipping_telephone:
         shipping_str += f"Telephone: {order_obj.shipping_telephone}<br/>"
