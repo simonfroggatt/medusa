@@ -51,14 +51,14 @@
 
     <dt class="col-3 d-flex align-items-start">
         <button type="button" class="btn btn-outline-secondary btn-xs me-2 copy-btn"
-                data-copy-text="{{ order_obj.shipping_address_1 }}{% if order_obj.shipping_address_2 %}, {{ order_obj.shipping_address_2 }}{% endif %}">
+                data-copy-text="{{ order_obj.shipping_address_1|linebreaksbr|safe }}{% if order_obj.shipping_address_2 %}, {{ order_obj.shipping_address_2|linebreaksbr|safe }}{% endif %}">
             <i class="fa-solid fa-copy fa-xs"></i>
         </button>
         Address:
     </dt>
     <dd class="col-9">
-        {{ order_obj.shipping_address_1 }}<br>
-        {% if order_obj.shipping_address_2 %}{{ order_obj.shipping_address_2 }}<br>{% endif %}
+        {{ order_obj.shipping_address_1|linebreaksbr|safe }}<br>
+        {% if order_obj.shipping_address_2 %}{{ order_obj.shipping_address_2|linebreaksbr|safe }}<br>{% endif %}
     </dd>
 
     {% if order_obj.shipping_area %}
