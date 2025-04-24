@@ -469,10 +469,31 @@ def _create_bespoke_image_png(bespoke_print_obj):
     bespoke_id = bespoke_print_obj.id
     png_filename = f'bespoke_image-{bespoke_id}.png'
     tmp_filename = os.path.join(settings.BESPOKE_TMP_PATH, png_filename)
-    svg_string = json.loads(bespoke_print_obj.svg_export)
+    #svg_string = json.loads(bespoke_print_obj.svg_export)
+    #svg_string = bespoke_print_obj.svg_export
+    #svg2png(bytestring=svg_string, write_to=tmp_filename)
+
+    svg_data = bespoke_print_obj.svg_export
+    if isinstance(svg_data, bytes):
+        # It's already ready to be used
+        svg_string = svg_data
+    else:
+        # Assume it's JSON and parse
+        try:
+            svg_string = json.loads(svg_data)
+            if isinstance(svg_string, str):
+                svg_string = svg_string.encode('utf-8')  # convert to bytes for svg2png
+        except json.JSONDecodeError:
+            raise ValueError("Expected JSON, but got an invalid string")
+
     svg2png(bytestring=svg_string, write_to=tmp_filename)
+
+
     # tmp = json.dumps(svg_bytes)
     # now check the file exists
+
+
+
     if os.path.exists(tmp_filename):
         return tmp_filename
     else:

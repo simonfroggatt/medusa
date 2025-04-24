@@ -574,7 +574,7 @@ def _get_order_contact_id(order_obj):
         #there is no customer associated with this order
         # Define namedtuple classes
         CustomerDetail = namedtuple('CustomerDetail', 'company firstname lastname email fullname telephone')
-        CustomerAddress = namedtuple('CustomerAddress', 'address_1 city region postcode country')
+        CustomerAddress = namedtuple('CustomerAddress', 'address_1 city area postcode country')
 
         # Create instances using the constructor
         customer_details_obj = CustomerDetail(
@@ -589,7 +589,7 @@ def _get_order_contact_id(order_obj):
         customer_address_obj = CustomerAddress(
             address_1=order_obj.payment_address_1,
             city=order_obj.payment_city,
-            region=order_obj.payment_area,
+            area=order_obj.payment_area,
             postcode=order_obj.payment_postcode,
             country=order_obj.payment_country
         )
@@ -610,14 +610,15 @@ def _get_order_contact_id(order_obj):
 
 #############################################   PRIVATE  -   CONTACT   ########################################################
 
-def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = None, guestCustoemr = False):
+def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = None, guest_customer = False):
     contact_id = ''
     data = {}
+
     data['status'] = 'OK'
     customer_names = HumanName(customer_obj.fullname)
     logger.debug(f"in _create_new_contact - customer_obj = {customer_obj}")
     logger.debug(f"in billing_address_guest - customer_obj = {billing_address_guest}")
-    logger.debug(f"guestCustoemr = {guestCustoemr}")
+    logger.debug(f"guestCustoemr = {guest_customer}")
 
    # xero_item = XeroItem()
     # tennant_id = xero_item.get_tenant_id()
@@ -635,7 +636,7 @@ def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = No
     xero_contact_obj.add_contact_details(customer_contact)
     xero_contact_obj.add_telephone(customer_obj.telephone)
 
-    if guestCustoemr:
+    if guest_customer:
         billing_address = billing_address_guest
     else:
         if customer_obj.address_customer:
@@ -660,7 +661,7 @@ def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = No
     payment_type = xero_config.CONTACT_PAYMENT_TERMS_TYPE
     payment_days = xero_config.CONTACT_PAYMENT_TERMS_DAYS
 
-    if not guestCustoemr:
+    if not guest_customer:
         if customer_obj.parent_company:
             company = customer_obj.parent_company
             if company.account_type_id == 3:
@@ -675,7 +676,7 @@ def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = No
     contact_id = xero_contact_obj.save_contact()
     errors = xero_contact_obj.xero_api.get_error()
 
-    if not guestCustoemr:
+    if not guest_customer:
         if not errors:
             customer_obj.xero_id = contact_id
             customer_obj.save()
