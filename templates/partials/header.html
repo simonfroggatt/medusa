@@ -1,11 +1,17 @@
 {% load static %}
+{% load user_tags %}
 {% block header %}
     <header id="page-topbar">
         <div class="navbar-header">
             <div class="d-flex">
                 <!-- LOGO -->
                 <div class="navbar-brand-box">
-                    <a href="{% url 'dashboard' %}" class="logo logo-dark">
+                    {% if request.user|has_group:"superuser" %}
+    {% url 'dashboard' as brand_url %}
+{% else %}
+    {% url 'index' as brand_url %}
+{% endif %}
+                    <a href="{{ brand_url }}" class="logo logo-dark">
                                 <span class="logo-sm">
                                     <img src="{% static 'images/logo-sm.png' %}" alt="" height="22">
                                 </span>
@@ -14,7 +20,7 @@
                                 </span>
                     </a>
 
-                    <a href="{% url 'dashboard' %}" class="logo logo-light">
+                    <a href="{{ brand_url }}" class="logo logo-light">
                                 <span class="logo-sm">
                                     <img src="{% static 'images/medusa_small.svg' %}" alt="" height="23">
                                 </span>
