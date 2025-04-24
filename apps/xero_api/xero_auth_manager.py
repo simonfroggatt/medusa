@@ -251,30 +251,27 @@ class XeroAuthManager:
     def __process_errors(self, response, error_process):
         self.valid_xero = False
         self.status_code = response.status_code
-        self.error_codes['error_type']= response.reason
+        self.error_codes['error_type'] = response.reason
         self.error_codes['error_process'] = error_process
         self.error_codes['error_code'] = response.status_code
 
-        json_response = response.json()
-        for elements in json_response['Elements']:
-            if elements['ValidationErrors']:
-                self.error_codes['error_details'] = elements['ValidationErrors'];
+        try:
+            json_response = response.json()
+        except ValueError:
+            self.error_codes['error_details'] = 'Invalid JSON in response'
+            return
 
+        elements = json_response.get('Elements', [])
+        if not isinstance(elements, list):
+            self.error_codes['error_details'] = 'Invalid structure: Elements is not a list'
+            return
 
-
-  #      log_file = os.path.join(settings.BASE_DIR, 'apps/xero_toolkit/xero_error.log')
-  #      if os.path.exists(log_file):
-  #          append_write = 'a'  # append if already exists
-  #      else:
-  #          append_write = 'w'  # make a new file if not
-
-  #      with open(log_file, append_write) as outfile:
-  #          outfile.write(error_process + "response:" + response + '\n')
-
-
-       # self.error_codes['error_number'] = json_response['status']
-        #self.error_codes['error_type'] = json_response['type']
-        #self.error_codes['error_detail'] = json_response['detail']
+        for element in elements:
+            if isinstance(element, dict):
+                validation_errors = element.get('ValidationErrors')
+                if validation_errors:
+                    self.error_codes['error_details'] = validation_errors
+                    break  # Optionally stop after the first one
 
     def _debug(self, debugline):
         log_file = os.path.join(settings.BASE_DIR, 'apps/xero_api/logs/xero_error.txt')
