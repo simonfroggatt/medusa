@@ -56,6 +56,7 @@ def XeroFirstLogin(request):
 
 def xero_passback(request):
     template_name = 'xero_api/passback.html'
+    logger.debug(f"xero_passback - request = {request}")
     auth_code = request.GET['code']
     xero_auth = XeroAuthManager()
     xero_auth.xero_setup_token_info(auth_code)
