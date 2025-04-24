@@ -794,6 +794,7 @@ def xero_web_hook(request):
     if provided_signature != generated_signature:
         return HttpResponse(status=401)
     else:
+        logger.debug(f'signature match')
         _xero_webhook_payload(payload_data.decode('UTF-8'))
         return HttpResponse(status=200)
 
@@ -815,15 +816,20 @@ def xero_web_hook_test(request):
 def _xero_webhook_payload(payload):
     webhook_data = json.loads(payload)
     events = webhook_data['events']
+    logger.debug(f'_xero_webhook_payload - events = {events}')
     for event in events:
         if event['eventCategory'] == 'INVOICE':
             if event['eventType'] == 'UPDATE':
                 _xero_webhook_invoice_update(event['resourceId'])
 
 def _xero_webhook_invoice_update(invoice_id):
+    logger.debug(f'_xero_webhook_invoice_update')
     xero_invoice = XeroInvoice()
+    logger.debug(f'going to call xero_invoice.get_invoice')
     returned_invoice_id = xero_invoice.get_invoice(invoice_id)
+    logger.debug(f'_xero_webhook_invoice_update - returned_invoice_id = {returned_invoice_id}')
     if returned_invoice_id:
+        logger.debug(f'_xero_webhook_invoice_update - returned_invoice_id')
         order_obj = OcOrder.objects.get(xero_id=invoice_id)
         invoice_payments = xero_invoice.get_payments()
         if invoice_payments:
