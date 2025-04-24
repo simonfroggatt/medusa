@@ -14,6 +14,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 import os
 import json
+from datetime import date
 
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -39,6 +40,9 @@ class OcOrderQuerySet(models.QuerySet):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         return self.exclude(payment_status_id__in=valid_status).exclude(order_status_id=99)
 
+    def legacy(self):
+        return self.filter(is_legacy=True)
+
     def days_since(self):
        #ß today_data = '2019-06-17'
         return 1
@@ -63,6 +67,9 @@ class OcOrderManager(models.Manager):
 
     def failed(self):
         return self.get_queryset().failed()
+
+    def legacy(self):
+        return self.get_queryset().legacy()
 
     def days_since(self):
         return 3
@@ -246,6 +253,8 @@ class OcOrder(models.Model):
         return self.successful
 
     def dow(self):
+        if self.date_added.date() == date.today():
+            return "Today"
         return self.date_added.strftime('%a')
 
     def days_since_order(self):

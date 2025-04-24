@@ -26,15 +26,19 @@
 
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
-                                    {% if request.user|has_group:"superuser" %}
-                                    <li><a href="{% url 'liveorders' %}" >Live Orders</a></li>
-                                    <li><a href="{% url 'neworders' %}" >NEW Orders</a></li>
-                                    {% endif %}
                                     <li><a href="{% url 'allorders' %}">All Orders</a></li>
+                                    <li class="nav-item">
+  <a href="{% url 'neworders' %}" class="nav-link d-flex align-items-center">
+    New Orders
+    {% if new_orders_count %}
+      <span class="badge bg-danger ms-2">{{ new_orders_count }}</span>
+    {% endif %}
+  </a>
+</li>
+                                    <li><a href="{% url 'liveorders' %}" >Live Orders</a></li>
                                     {% if request.user|has_group:"superuser" %}
                                     <li><a href="{% url 'failedorders' %}">Failed Orders</a></li>
                                     {% endif %}
-                                    
                                     <li><a href="{% url 'allreturns' %}">Returns</a></li>
                                 </ul>
                             </li>
@@ -168,6 +172,7 @@
                                     <span key="t-product-symbols">Product Symbols</span>
                                 </a>
                             </li>
+                                <li><a href="{% url 'legacyorders' %}" >Legacy Orders</a></li>
 
                             {% endif %}
 

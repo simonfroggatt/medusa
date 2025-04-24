@@ -82,6 +82,7 @@ urlpatterns = [
     path('all', views.order_list, name='allorders'),
     path('new', views.new_order_list, name='neworders'),
     path('failed', views.failed_order_list, name='failedorders'),
+    path('legacy', views.legacy_order_list, name='legacyorders'),
 
 
     #uploads

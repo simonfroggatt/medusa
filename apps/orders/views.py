@@ -104,6 +104,12 @@ def failed_order_list(request):
     context['order_status'] = 'FAILED'
     return render(request, template_name, context)
 
+def legacy_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'heading': 'Legacy Orders'}
+    context['order_status'] = 'LEGACY'
+    return render(request, template_name, context)
+
 
 class Orders_asJSON(viewsets.ModelViewSet):
     queryset = OcOrder.objects.all()
@@ -121,6 +127,8 @@ class Orders_asJSON(viewsets.ModelViewSet):
             queryset = self.model.objects.new()
         elif status == 'FAILED':
             queryset = self.model.objects.failed()
+        elif status == 'LEGACY':
+            queryset = self.model.objects.legacy()
         else:
             queryset = self.model.objects.all()
         return queryset
@@ -288,6 +296,10 @@ def order_details(request, order_id):
         breadcrumbs.append({'name': 'Orders'})
         context['order_status'] = 'FAILED'
         breadcrumbs.append({'name': 'FAILED Orders', 'url': reverse_lazy('failedorders')})
+    elif order_type == 'LEGACY':
+        breadcrumbs.append({'name': 'Orders'})
+        context['order_status'] = 'LEGACY'
+        breadcrumbs.append({'name': 'LEGACY Orders', 'url': reverse_lazy('legacyorders')})
     else:
         context['order_status'] = 'ALL'
         order_obj_status = OcOrder.objects.all()
