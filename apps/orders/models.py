@@ -27,11 +27,13 @@ class OcOrderQuerySet(models.QuerySet):
     def live(self):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         order_status_excl = [99, 1, 7]
-        return self.exclude(order_status_id__in=order_status_excl).filter(payment_status_id__in=valid_status)
+
+        return self.exclude(order_status_id__in=order_status_excl) \
+            .filter(payment_status_id__in=valid_status, is_legacy=False)
 
     def new(self):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
-        return self.filter(order_status_id=1).filter(payment_status_id__in=valid_status)
+        return self.filter(order_status_id=1).filter(payment_status_id__in=valid_status, is_legacy=False)
 
     def failed(self):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
@@ -235,6 +237,7 @@ class OcOrder(models.Model):
     printed = models.BooleanField(default=False)  #note - must be BooleanField
     plain_label = models.BooleanField(default=False)
     order_hash = models.CharField(max_length=256, blank=True, null=True)
+    is_legacy = models.BooleanField(default=False, blank=True, null=True)
 
     @property
 
