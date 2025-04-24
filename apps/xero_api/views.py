@@ -54,6 +54,36 @@ def XeroFirstLogin(request):
 
     return render(request, template_name)
 
+def do_refesh_token(request):
+    template_name = 'xero_api/xero_onetime.html'
+    auth_code = request.GET['code']
+
+    client_id = settings.XERO_CLIENT_ID
+    client_secret = settings.XERO_CLIENT_SECRET
+    redirect_uri = 'https://medusa.totalsafetygroup.com/xero_api/refresh/'
+    code = auth_code
+
+    # Encode credentials
+    b64_creds = base64.b64encode(f'{client_id}:{client_secret}'.encode()).decode()
+
+    response = requests.post(
+        'https://identity.xero.com/connect/token',
+        headers={
+            'Authorization': f'Basic {b64_creds}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data={
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirect_uri
+        }
+    )
+
+
+    context = {}
+    context['response'] = response.json()
+    return render(request, template_name, context)
+
 def xero_passback(request):
     template_name = 'xero_api/passback.html'
     logger.debug(f"xero_passback - request = {request}")

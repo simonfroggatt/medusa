@@ -11,6 +11,7 @@ urlpatterns = [
     path('passback/', views.xero_passback, name='passback'),
     path('test/', views.xero_tenants_check, name='test'),
     path('contact/', views.xero_contact, name='test'),
+    path('refresh/', views.do_refesh_token, name='refresh'),
 
     path('api/customer/add/<int:contact_id>/<str:encrypted>', views.xero_customer_add, name='xero_customer_add'),
     path('api/customer/update/<int:contact_id>/<str:encrypted>', views.xero_customer_update, name='xero_customer_update'),
