@@ -14,7 +14,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileRe
 from cryptography.fernet import Fernet
 from nameparser import HumanName
 
-from apps.orders.models import OcOrder, OcOrderTotal
+from apps.orders.models import OcOrder, OcOrderTotal, OcTsgPaymentHistory
 from apps.customer.models import OcCustomer
 from apps.company.models import OcTsgCompany
 
@@ -825,17 +825,34 @@ def _xero_webhook_payload(payload):
 def _xero_webhook_invoice_update(invoice_id):
     logger.debug(f'_xero_webhook_invoice_update')
     xero_invoice = XeroInvoice()
-    logger.debug(f'going to call xero_invoice.get_invoice')
+    logger.debug(f'calling xero_invoice.get_invoice')
     returned_invoice_id = xero_invoice.get_invoice(invoice_id)
     logger.debug(f'_xero_webhook_invoice_update - returned_invoice_id = {returned_invoice_id}')
+
     if returned_invoice_id:
-        logger.debug(f'_xero_webhook_invoice_update - returned_invoice_id')
-        order_obj = OcOrder.objects.get(xero_id=invoice_id)
+        try:
+            order_obj = OcOrder.objects.get(xero_id=invoice_id)
+        except OcOrder.DoesNotExist:
+            logger.warning(f'OcOrder with xero_id={invoice_id} not found.')
+            return False
+
         invoice_payments = xero_invoice.get_payments()
         if invoice_payments:
             order_obj.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
             payment_details = invoice_payments[0]
-            order_obj.payment_date = payment_details['Date']
+            order_obj.payment_date = payment_details.get('Date')
+            order_obj.payment_method_id = settings.TSG_PAYMENT_TYPE_XERO
             order_obj.save()
+            #add this to the payment history
+            new_history_obj = OcTsgPaymentHistory()
+            new_history_obj.order_id = order_obj.order_id
+            new_history_obj.payment_method_id = order_obj.payment_method_id
+            new_history_obj.payment_status_id = order_obj.payment_status_id
+            new_history_obj.comment = 'XERO - Automated update'
+            new_history_obj.save()
+
+            logger.debug(f'Order {order_obj.order_id} marked as paid.')
+        else:
+            logger.info(f'No payments found for invoice {invoice_id}. Maybe legacy')
     return True
 
