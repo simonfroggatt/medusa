@@ -771,17 +771,28 @@ def _update_company(company_obj):
 @csrf_protect
 @csrf_exempt
 def xero_web_hook(request):
+    logger.debug('XERO WEBHOOK')
+
     key = xero_config.XERO_WEBHOOK_KEY
+    logger.debug(f'XERO_WEBHOOK_KEY: {key}')
+
     provided_signature = request.headers.get('X-Xero-Signature')
+    logger.debug(f'provided_signature: {provided_signature}')
+
 
     payload_data = request.body.strip()
     byte_key = key.encode('UTF-8')
     message = payload_data
+    logger.debug(f'message: {message}')
+
     hashed = hmac.new(byte_key, message, hashlib.sha256)
+    logger.debug(f'hash: {hashed}')
+
     generated_signature = base64.b64encode(hashed.digest()).decode('UTF-8')
+    logger.debug(f'generated_signature: {generated_signature}')
 
     if provided_signature != generated_signature:
-        return HttpResponse( status=401)
+        return HttpResponse(status=401)
     else:
         _xero_webhook_payload(payload_data.decode('UTF-8'))
         return HttpResponse(status=200)
