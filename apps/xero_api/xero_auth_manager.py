@@ -136,7 +136,7 @@ class XeroAuthManager:
                                          'refresh_token': old_token
                                      })
             logger.debug(f' response =  {response}')
-            logger.error(f"Xero response text: {response.text}")
+            logger.debug(f"Xero response text: {response.text}")
             if response.status_code == 200:
                 json_response = response.json()
 
