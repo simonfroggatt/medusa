@@ -185,13 +185,10 @@ class XeroInvoice(XeroItem):
 
     def get_invoice(self, invoice_id):
         endpoint = 'Invoices'
-        logger.debug(f'get_invoice')
         if self.xero_api.get_from_xero(endpoint, invoice_id):
             xero_response = self.xero_api.get_xero_response()
-            logger.debug(f'xero_response {invoice_id} {xero_response}')
             if xero_response['Invoices']:
                 xero_response_invoice = xero_response['Invoices'][0]
-                logger.debug(f'xero_response_invoice {xero_response_invoice}')
                 self.__save_invoice_to_object(xero_response_invoice)
             else:
                 self.__InvoiceID = None
@@ -225,7 +222,6 @@ class XeroInvoice(XeroItem):
         self.__Payments = xero_response_invoice['Payments']
         self.__DueDate = xero_response_invoice['DueDate']
         self.__Status = xero_response_invoice['Status']
-        logger.debug("in __save_invoice_to_object")
 
 
     def __get_order_product_line_options(self, order_product_id):
