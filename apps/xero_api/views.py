@@ -854,12 +854,8 @@ def _xero_webhook_payload(payload):
                 _xero_webhook_invoice_update(event['resourceId'])
 
 def _xero_webhook_invoice_update(invoice_id):
-    logger.debug(f'_xero_webhook_invoice_update')
     xero_invoice = XeroInvoice()
-    logger.debug(f'calling xero_invoice.get_invoice')
     returned_invoice_id = xero_invoice.get_invoice(invoice_id)
-    logger.debug(f'_xero_webhook_invoice_update - returned_invoice_id = {returned_invoice_id}')
-
     if returned_invoice_id:
         try:
             order_obj = OcOrder.objects.get(xero_id=invoice_id)
