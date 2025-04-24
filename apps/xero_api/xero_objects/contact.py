@@ -150,11 +150,11 @@ class XeroContact(XeroItem):
         return
 
     def _debug(self, debugline):
-        log_file = os.path.join(settings.BASE_DIR, 'apps/xero_api/logs/xero_error_contacts.txt')
+        log_file = os.path.join(settings.BASE_DIR, 'apps/xero_api/logs/xero_error.txt')
         if os.path.exists(log_file):
             append_write = 'a'  # append if already exists
         else:
             append_write = 'w'  # make a new file if not
 
-        with open(log_file, append_write) as outfile:
+        with open(log_file, append_write, encoding='utf-8') as outfile:
             outfile.write(debugline + '\n')
