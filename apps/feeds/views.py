@@ -24,6 +24,9 @@ from django.db.models import Prefetch
 from decimal import Decimal, ROUND_HALF_UP
 from html import unescape
 import re
+import logging
+logger = logging.getLogger('apps')
+
 
 def clean_description(text):
     text = unescape(text)  # Decode any HTML entities like &lt;, &amp;, &quot;, etc.
@@ -131,12 +134,13 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                 elem = ET.SubElement(item, f'g:{field}')
                 elem.text = value
 
-
     def _get_product_category(self, product):
-        #get the full category path
+
         product_category = OcProductToCategory.objects.filter(product=product).first()
-        category_path = self._build_category_path(product_category.category_store)
-        return category_path
+        if not product_category or not product_category.category_store:
+            logger.warning(f"Product {product.product_id} does not have a valid category.")
+            return ''
+        return self._build_category_path(product_category.category_store)
 
     def _build_category_path(self, starting_category_store: OcCategoryToStore):
         """
