@@ -219,22 +219,18 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
             to_attr='filtered_store_variants'
         )
 
-        product_filters = {
-            'store': store,
-            'status': True,
-            'include_google_merchant': True,
-            'product__product_to_category__isnull': False,
-            'product__product_to_category__category_store__isnull': False,
-        }
-
-        store_products = OcProductToStore.objects.filter(**product_filters) \
-            .select_related('product', 'product__productdescbase') \
-            .prefetch_related(
+        store_products = OcProductToStore.objects.filter(
+            store=store,
+            status=True,
+            include_google_merchant=True
+        ).select_related(
+            'product',
+            'product__productdescbase',
+        ).prefetch_related(
             Prefetch(
                 'product__corevariants',
                 queryset=OcTsgProductVariantCore.objects.order_by('size_material__price').prefetch_related(
-                    store_variants_prefetch
-                )
+                    store_variants_prefetch)
             ),
             'product__corevariants__size_material',
             'product__corevariants__size_material__product_material',
@@ -242,27 +238,13 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
             'product__productimage',
         )
 
-        # store_products = OcProductToStore.objects.filter(
-        #     store=store,
-        #     status=True,
-        #     include_google_merchant=True
-        # ).select_related(
-        #     'product',
-        #     'product__productdescbase',
-        # ).prefetch_related(
-        #     Prefetch(
-        #         'product__corevariants',
-        #         queryset=OcTsgProductVariantCore.objects.order_by('size_material__price').prefetch_related(
-        #             store_variants_prefetch)
-        #     ),
-        #     'product__corevariants__size_material',
-        #     'product__corevariants__size_material__product_material',
-        #     'product__corevariants__size_material__product_size',
-        #     'product__productimage',
-        # )
-
         for store_product in store_products:
+
             product = store_product.product
+            product_category = OcProductToCategory.objects.filter(product=product).first()
+            if not product_category or not product_category.category_store:
+                continue  # skip bad product
+
             base_desc = product.productdescbase
             product_standard = self._get_product_standard(product)
 
