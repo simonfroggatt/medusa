@@ -863,6 +863,9 @@ def _xero_webhook_invoice_update(invoice_id):
             logger.warning(f'OcOrder with xero_id={invoice_id} not found.')
             return False
 
+        if order_obj.payment_status_id == settings.TSG_PAYMENT_STATUS_PAID:
+            return False
+
         invoice_payments = xero_invoice.get_payments()
         if invoice_payments:
             order_obj.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID

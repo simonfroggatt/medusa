@@ -52,10 +52,13 @@ class XeroInvoice(XeroItem):
         payment_data['Reference'] = order_obj.payment_ref
         payment_data['Invoice'] = {"InvoiceID": self.__InvoiceID}
         #find out if it's paypal or card
+        logger.debug("Adding invoice payment details")
+        logger.debug(f"Payment method: {order_obj.payment_method}")
         if order_obj.payment_method == settings.TSG_PAYMENT_TYPE_PAYPAL:
             payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_PAYPAL}
         else:
             payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_SSAN}
+        logger.debug(f"Payment data: {payment_data['Account']}")
        # payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_DEMO}
         self.__Payments.append(payment_data)
 
