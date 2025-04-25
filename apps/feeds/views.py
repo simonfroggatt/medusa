@@ -482,6 +482,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         xml_str = ET.tostring(rss, encoding='utf8', method='xml')
 
         # Define a file path
+        logger.info(f"Saving Google Merchant feed for store {store.name} to file.")
         output_dir = os.path.join(settings.BASE_DIR,'logs')  # <-- Change this to wherever you want it
         os.makedirs(output_dir, exist_ok=True)
 
