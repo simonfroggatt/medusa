@@ -409,6 +409,8 @@ $(function () {
             "dom": "<'row'<'col-sm-6'f><'col-sm-6'T>>" +
          "<'row'<'col-sm-12'tr>>" +
          "<'row'<'col-sm-6'><'col-sm-6'>>",
+            "pageLength": 50,
+            "paging": true,
             "processing": true,
             "search": true,
             "info": false,
@@ -429,7 +431,9 @@ $(function () {
                 {   data: "product_desc.product__image",
                     render: function ( data, type, row ) {
                     let image_src =  media_url +data;
-                    return '<img height="50px" src="' + image_src + '">';
+                        return '<a href="' + image_src + '" data-lightbox="image"><img height="30px" class="rounded mx-auto d-block" src="' + image_src + '">';
+
+                   // return '<img height="30px" src="' + image_src + '">';
                  },
                  defaultContent: "" },
 
@@ -512,14 +516,14 @@ $(function () {
             "dom": "<'row'<'col-6'fl><'col-6'p>>" +
                 "<'row'<'col-12'tr>>",
             "processing": true,
-            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            "pageLength": 10,
+            "lengthMenu": [[ 25, 50, 100, -1], [ 25, 50, 100, "All"]],
+            "pageLength": 25,
             "autoWidth": false,
-            "responsive": false,
+            "responsive": true,
             "serverSide": false,
             "scroller": true,
             "scrollY": "400",
-            "scrollCollapse": true,
+            "scrollCollapse": false,
             "rowId": 'id',
             "ajax": {
                 "processing": true,
@@ -1035,8 +1039,10 @@ $(function () {
             dataType: 'json',
             success: function (data) {
                 if (data.form_is_valid) {
+                    product_related_table = $('#product_related_table').DataTable();
                     product_related_table.ajax.reload();
                     $("#modal-base").modal("hide");
+                    //reload the table
                 }
                 else {
                     $("#modal-base .modal-content").html(data.html_form);

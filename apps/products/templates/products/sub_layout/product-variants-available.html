@@ -22,10 +22,10 @@ $(document).ready(function() {
     var manual_data = {}
 
     if ($.fn.dataTable.isDataTable('#product_variant_table_available')) {
-        var product_symbol_table_available = $('#product_variant_table_available').DataTable();
+        var product_variant_table_available = $('#product_variant_table_available').DataTable();
     } else {
 
-        var product_symbol_table_available = $('#product_variant_table_available').DataTable({
+        var product_variant_table_available = $('#product_variant_table_available').DataTable({
             "dom": "<'row'<'col-6'fl><'col-6'p>>" +
                 "<'row'<'col-12'tr>>",
             "processing": true,

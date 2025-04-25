@@ -26,7 +26,7 @@
                 <div class="col-6">
                     <label class="form-label" for="related_order">Order Position</label>
                     <input class="form-control" type="number" min="0" value="{{ order_by_next }}" id="related_order"
-                           name="related_order"</div>
+                           name="related_order"></div>
             </div>
 
             <div class="col-12 pt-2 ">
@@ -182,7 +182,6 @@
          product_related_table_add.on('select', function (e, dt, type, indexes) {
              if (type === 'row') {
                  let related_product_id = dt.row(indexes).id();
-                 alert(related_product_id)
                  $('#new_related_id').val(related_product_id);
                  $('#btn_related_product_add').removeClass('disabled');
              }
