@@ -76,7 +76,7 @@ def customer_failed_payment(request, order_id):
 
     failed_link_raw = '{{store_website}}/index.php?route=extension/payment/tsg_stripe/paymentfailed&order_id={{order_id}}&order_hash={{order_hash}}'
     replacements = {
-        '{{store_website}}': store_obj.website,
+        '{{store_website}}': store_obj.ssl,
         '{{order_id}}': order_id,
         '{{order_hash}}': order_obj.order_hash,
     }
