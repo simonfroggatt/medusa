@@ -212,7 +212,6 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         """Get all products and their variants for the store"""
         products = []
 
-
         store_variants_prefetch = Prefetch(
             'storeproductvariants',
             queryset=OcTsgProductVariants.objects.filter(store=store, isdeleted=False),
@@ -239,12 +238,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         )
 
         for store_product in store_products:
-
             product = store_product.product
-            product_category = OcProductToCategory.objects.filter(product=product).first()
-            if not product_category or not product_category.category_store:
-                continue  # skip bad product
-
             base_desc = product.productdescbase
             product_standard = self._get_product_standard(product)
 
