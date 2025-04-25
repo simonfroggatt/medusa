@@ -26,6 +26,7 @@ from html import unescape
 import re
 import logging
 logger = logging.getLogger('apps')
+import os
 
 
 def clean_description(text):
@@ -469,10 +470,27 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
             self._add_product_to_channel(channel, product_data)
         
         # Convert to string
-        #xml_str = ET.tostring(rss, encoding='unicode', method='xml')
-        xml_str = ET.tostring(rss, encoding='utf8', method='xml')
+
+        #xml_str = ET.tostring(rss, encoding='utf8', method='xml')
 
         # Return as XML response with store name in filename
-        response = HttpResponse(xml_str, content_type='application/xml')
-        response['Content-Disposition'] = f'attachment; filename="{store.name.lower().replace(" ", "_")}_google_merchant_feed.xml"'
-        return response
+        #response = HttpResponse(xml_str, content_type='application/xml')
+        #response['Content-Disposition'] = f'attachment; filename="{store.name.lower().replace(" ", "_")}_google_merchant_feed.xml"'
+        #return response
+
+        # Convert XML to string
+        xml_str = ET.tostring(rss, encoding='utf8', method='xml')
+
+        # Define a file path
+        output_dir = os.path.join(settings.BASE_DIR,'logs')  # <-- Change this to wherever you want it
+        os.makedirs(output_dir, exist_ok=True)
+
+        filename = f"{store.name.lower().replace(' ', '_')}_google_merchant_feed.xml"
+        file_path = os.path.join(output_dir, filename)
+
+        # Write the XML to a file
+        with open(file_path, 'wb') as f:
+            f.write(xml_str)
+
+        # Optionally return a simple response
+        return Response({'success': True, 'message': f'Feed saved to {file_path}'})
