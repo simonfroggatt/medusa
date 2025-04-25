@@ -171,33 +171,6 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         # Reverse to build path from top-level to lowest level
         return ' > '.join(reversed(path_parts))
 
-    def _get_category_parent_old(self, category, current_path):
-        if not category or not category.category_store:
-            return ''
-
-        parent_id = category.category_store.category.parent_id
-        if parent_id > 0:
-            parent_category = OcTsgCategoryStoreParent.objects.filter(category_store_id=parent_id).first()
-            #check that the current path is not empty first
-            if category.category_store.adwords_name:
-                adwords_title = category.category_store.adwords_name
-            else:
-                adwords_title = category.category_store.category.categorybasedesc.adwords_name
-
-            if not adwords_title:
-                adwords_title = category.category_store.category.name
-
-            if current_path:
-                pass_path = f"{adwords_title} > {current_path}"
-            else:
-                pass_path = f"{adwords_title}"
-            return self._get_category_parent(parent_category, pass_path)
-        else:
-            if current_path:
-                return f"{category.category_store.category.name} > {current_path}"
-            else:
-                return f"{category.category_store.category.name}"
-
     def _get_category_parent(self, category_store_parent, current_path):
         """
         Recursively build the category path until we reach a base category (is_base=True).
@@ -234,173 +207,11 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         else:
             return ''
 
-    def _get_product_data_old(self, store):
-        """Get all products and their variants for the store"""
-        products = []
-
-        # Get all active products for this store
-        store_products = OcProductToStore.objects.filter(
-            store=store,
-            status=True,
-            include_google_merchant=True
-        ).select_related(
-            'product',
-            'product__productdescbase',
-
-        ).prefetch_related(
-            'product__corevariants',
-            'product__corevariants__storeproductvariants',
-            # 'product__corevariants__size_material_combo__product_material',
-            'product__productimage',
-        )
-
-        for store_product in store_products:
-            product = store_product.product
-            base_desc = product.productdescbase
-            product_standard = self._get_product_standard(product)
-
-            # Skip if product or description is missing
-            if not product or not base_desc:
-                continue
-
-            if store_product.name:
-                title = store_product.name
-            else:
-                title = base_desc.name
-
-            if store_product.description:
-                desc = store_product.description
-            else:
-                desc = base_desc.description
-
-            # need the category
-            category_path = self._get_product_category(product)
-            if not category_path:
-                continue
-
-            # final_category = OcProductToCategory.objects.filter(product=product).first().category_store.category.name
-
-            # Base product data
-            product_data = {
-                'id': f'{store.store_id}-{product.product_id}',
-                'title': title,
-                'description': desc,
-                # 'brand': store.company_name or 'Brand Name',
-                'brand': 'Safety Signs and Notices',
-                'google_product_category': '5892',
-                'store_url': store.url,
-                'variants': [],
-                # 'product_type': f"Safety Signs > {category_path}",
-                'product_type': f"{category_path}",
-                # Add custom labels for better ad targeting
-                # 'custom_labels': {
-                #    'custom_label_0': self._get_price_range_label(product),  # Price range
-                #    'custom_label_1': 'bespoke' if product.is_bespoke else 'standard',  # Product type
-                #    'custom_label_2': product.bulk_group.group_name if product.bulk_group else '',  # Bulk discount group
-                #    'custom_label_3': 'new_arrival' if (datetime.now() - product.date_added).days < 30 else '',  # New arrivals
-                #    'custom_label_4': 'bestseller' if product.viewed > 100 else ''  # Popular items
-                # }
-            }
-
-            # Get all variants for this product
-            core_variants = product.corevariants.all().order_by('size_material__price')
-            store_variants = core_variant.storeproductvariants.filter(store=store, isdeleted=False)
-            index = 0
-            for core_variant in core_variants:
-                # Get store-specific variant
-                store_variant = core_variant.storeproductvariants.filter(store=store, isdeleted=False).first()
-                if not store_variant:
-                    continue
-
-                # Calculate variant price
-                if store_variant.variant_overide_price:
-                    base_price = store_variant.variant_overide_price * Decimal(1.20)
-                else:
-                    base_price = core_variant.size_material.price * Decimal(1.20)
-
-                variant_title = f"{base_desc.name} - {core_variant.size_material.product_size.size_name} - {core_variant.size_material.product_material.material_name}"
-
-                # check the length, if it's more than 150 then print the product id
-                if len(variant_title) > 150:
-                    print(f"Length Product ID: {product.product_id} = length is {len(variant_title)}")
-
-                store_url = "https://www.safetysignsandnotices.co.uk/"
-                if base_desc.clean_url:
-                    product_link = f"{store_url}{base_desc.clean_url}"
-                else:
-                    product_link = f"{store_url}index.php?route=product/product&product_id={product.product_id}"
-
-                product_highlight = ''
-                if product_standard:
-                    product_highlight = f"Product conforms to {product_standard}"
-
-                is_cheapest = 'cheapest_false'
-                if index == 0:
-                    is_cheapest = 'cheapest_true'
-
-                # tmp - test
-                product_size = core_variant.size_material.product_size
-                size_name_adwords = self._get_size_name(product_size)
-
-                # Build variant data
-                variant_data = {
-                    # 'id': f'{core_variant.prod_variant_core_id}v20',
-                    'id': f'{store.store_id}-{product.product_id}-{store_variant.prod_variant_id}',
-                    # 'group_id': f'{store.store_id}-{product.product_id}',
-                    'group_id': f'{product.product_id}',
-                    'title': variant_title,
-                    'price': str(base_price),
-                    'availability': 'in_stock' if store_variant.prod_var_core.bl_live else 'out_of_stock',
-                    'gtin': core_variant.gtin or '',
-                    'mpn': core_variant.supplier_code or '',
-                    'link': f"{product_link}{'&' if '?' in product_link else '?'}variantid={store_variant.prod_variant_id}",
-                    # 'shipping_weight': str(core_variant.shipping_cost) if core_variant.shipping_cost else None,
-                    'size': f'{core_variant.size_material.product_size.size_name}',
-                    # 'size': size_name_adwords,
-                    'material': f'{core_variant.size_material.product_material.material_name}',
-                    'condition;': 'new',
-                    'product_highlight': product_highlight,
-                    # Add remarketing tags
-                    'custom_label_0': f"{core_variant.size_material.product_material.material_name}",
-                    # 'custom_label_1': f"{core_variant.size_material.product_size.size_name}",
-                    'custom_label_1': f'{core_variant.size_material.product_size.size_name}',
-                    'custom_label_2': f"{is_cheapest}",
-                    'custom_label_3': f"ver20",
-                    # 'custom_labels': product_data['custom_labels'].copy()  # Copy base product labels
-                }
-
-                # Handle variant images
-                # if core_variant.variant_image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{core_variant.variant_image}"
-                # elif store_variant.alt_image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{store_variant.alt_image}"
-                # elif store_product.image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{store_product.image}"
-                # elif product.image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{product.image}"
-
-                variant_data['image_link'] = f"{core_variant.variant_image_url}"
-
-                # Add additional images
-                additional_images = []
-                product_images = product.productimage.filter(main=False).order_by('sort_order')
-                for img in product_images:
-                    additional_images.append(f"{store.url}/media/{img.image}")
-                if additional_images:
-                    variant_data['additional_image_links'] = additional_images
-
-                product_data['variants'].append(variant_data)
-
-                index += 1
-
-            if product_data['variants']:  # Only add products that have valid variants
-                products.append(product_data)
-
-        return products
 
     def _get_product_data(self, store):
         """Get all products and their variants for the store"""
         products = []
+
 
         store_variants_prefetch = Prefetch(
             'storeproductvariants',
@@ -408,24 +219,47 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
             to_attr='filtered_store_variants'
         )
 
-        store_products = OcProductToStore.objects.filter(
-            store=store,
-            status=True,
-            include_google_merchant=True
-        ).select_related(
-            'product',
-            'product__productdescbase',
-        ).prefetch_related(
+        product_filters = {
+            'store': store,
+            'status': True,
+            'include_google_merchant': True,
+            'product__product_to_category__isnull': False,
+            'product__product_to_category__category_store__isnull': False,
+        }
+
+        store_products = OcProductToStore.objects.filter(**product_filters) \
+            .select_related('product', 'product__productdescbase') \
+            .prefetch_related(
             Prefetch(
                 'product__corevariants',
                 queryset=OcTsgProductVariantCore.objects.order_by('size_material__price').prefetch_related(
-                    store_variants_prefetch)
+                    store_variants_prefetch
+                )
             ),
             'product__corevariants__size_material',
             'product__corevariants__size_material__product_material',
             'product__corevariants__size_material__product_size',
             'product__productimage',
         )
+
+        # store_products = OcProductToStore.objects.filter(
+        #     store=store,
+        #     status=True,
+        #     include_google_merchant=True
+        # ).select_related(
+        #     'product',
+        #     'product__productdescbase',
+        # ).prefetch_related(
+        #     Prefetch(
+        #         'product__corevariants',
+        #         queryset=OcTsgProductVariantCore.objects.order_by('size_material__price').prefetch_related(
+        #             store_variants_prefetch)
+        #     ),
+        #     'product__corevariants__size_material',
+        #     'product__corevariants__size_material__product_material',
+        #     'product__corevariants__size_material__product_size',
+        #     'product__productimage',
+        # )
 
         for store_product in store_products:
             product = store_product.product
