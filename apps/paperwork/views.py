@@ -273,7 +273,7 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
 
 
     #doc.build(elements, canvasmaker=partial(CommentLastPageCanvas, draw_footer_fn=draw_footer, order_obj=order_obj))
-    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj, is_last_page=True))
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
 
 
     return buffer
