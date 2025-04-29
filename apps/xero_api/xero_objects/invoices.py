@@ -52,9 +52,9 @@ class XeroInvoice(XeroItem):
         payment_data['IsReconciled'] = "false"
         payment_data['Reference'] = invoiceNumber
 
-        logger.info(f"payment_method: {order_obj.payment_method}")
+        logger.info(f"payment_method: {order_obj.payment_method_id}")
 
-        if order_obj.payment_method == settings.TSG_PAYMENT_TYPE_PAYPAL:
+        if order_obj.payment_method_id == settings.TSG_PAYMENT_TYPE_PAYPAL:
             payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_PAYPAL}
             logger.info(f"payment_account: {xero_config.ACCOUNT_ID_PAYPAL}")
         else:
