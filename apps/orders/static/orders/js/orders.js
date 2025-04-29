@@ -829,8 +829,6 @@ $(function () {
 
     $(document).on("click", "#dropdownMenuPrint", PrintPaperWork);
 
-    $(document).on("click", "#print-proforma", PrintProForma);
-
     $(document).on("submit", "#js-order-shipping-change", ShippingAddressSearchQuick);
 
 
