@@ -28,6 +28,5 @@ urlpatterns = [
     path('api/order/customer/<int:xero_id>/<str:encrypted>', views.xero_get_order_customer, name='xero_get_order_customer'),
 
     path('api/webhooks', views.xero_web_hook, name='xero_web_hook'),
-    path('api/webhooks_test', views.xero_web_hook_test, name='xero_web_hook_test'),
 
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
