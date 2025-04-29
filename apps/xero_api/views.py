@@ -522,8 +522,6 @@ def _create_new_order(order_obj, customer_id, xero_id = None):
             else:
                 data['paymentID'] = payment_id
 
-
-
     else:
         data['status'] = 'ERROR'
         data['error'] = errors
@@ -878,7 +876,7 @@ def _xero_webhook_invoice_update(invoice_id):
             new_history_obj.order_id = order_obj.order_id
             new_history_obj.payment_method_id = order_obj.payment_method_id
             new_history_obj.payment_status_id = order_obj.payment_status_id
-            new_history_obj.comment = 'XERO - Automated update'
+            new_history_obj.comment = 'XERO - Automated update - Payment'
             new_history_obj.save()
 
             logger.debug(f'Order {order_obj.order_id} marked as paid.')

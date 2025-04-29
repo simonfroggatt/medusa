@@ -43,23 +43,24 @@ class XeroInvoice(XeroItem):
             self.__DueDate = create_due_date(order_obj)
 
     def add_invoice_payment(self, order_obj):
+        invoiceNumber = order_obj.invoice_prefix + "-" + str(order_obj.order_id)
         payment_data = {}
-        payment_data['Date'] = order_obj.payment_date
-        payment_data['Amount'] = order_obj.total
+        payment_data['Date'] = order_obj.payment_date.strftime('%Y-%m-%d')
+        payment_data['Amount'] = float(order_obj.total)
         payment_data['PaymentType'] = "ACCRECPAYMENT"
         payment_data['Status'] = "AUTHORISED"
         payment_data['IsReconciled'] = "false"
-        payment_data['Reference'] = order_obj.payment_ref
-        payment_data['Invoice'] = {"InvoiceID": self.__InvoiceID}
-        #find out if it's paypal or card
-        logger.debug("Adding invoice payment details")
-        logger.debug(f"Payment method: {order_obj.payment_method}")
+        payment_data['Reference'] = invoiceNumber
+
+        logger.info(f"payment_method: {order_obj.payment_method}")
+
         if order_obj.payment_method == settings.TSG_PAYMENT_TYPE_PAYPAL:
             payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_PAYPAL}
+            logger.info(f"payment_account: {xero_config.ACCOUNT_ID_PAYPAL}")
         else:
             payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_SSAN}
-        logger.debug(f"Payment data: {payment_data['Account']}")
-       # payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_DEMO}
+            logger.info(f"payment_account: {xero_config.ACCOUNT_ID_SSAN}")
+
         self.__Payments.append(payment_data)
 
     def add_order_lines(self, order_lines):
