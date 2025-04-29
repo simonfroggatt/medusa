@@ -625,9 +625,7 @@ def order_product_edit(request, order_id, order_product_id):
 
     if request.method == 'POST':
         form = ProductEditForm(request.POST, instance=order_product)
-        logger.debug(f"order_product_edit = {form}")
         if form.is_valid():
-            logger.debug(f"form is valid")
             data['form_is_valid'] = True
             order_product.save()
             calculate_order_total(order_id)
