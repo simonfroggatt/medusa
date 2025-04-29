@@ -17,6 +17,7 @@ from nameparser import HumanName
 from apps.orders.models import OcOrder, OcOrderTotal, OcTsgPaymentHistory
 from apps.customer.models import OcCustomer
 from apps.company.models import OcTsgCompany
+import threading
 
 import json
 import requests
@@ -803,44 +804,28 @@ def xero_web_hook(request):
     logger.debug('XERO WEBHOOK')
 
     key = xero_config.XERO_WEBHOOK_KEY
-    logger.debug(f'XERO_WEBHOOK_KEY: {key}')
-
     provided_signature = request.headers.get('X-Xero-Signature')
-    logger.debug(f'provided_signature: {provided_signature}')
-
 
     payload_data = request.body.strip()
     byte_key = key.encode('UTF-8')
     message = payload_data
-    logger.debug(f'message: {message}')
 
     hashed = hmac.new(byte_key, message, hashlib.sha256)
-    logger.debug(f'hash: {hashed}')
-
     generated_signature = base64.b64encode(hashed.digest()).decode('UTF-8')
-    logger.debug(f'generated_signature: {generated_signature}')
 
     if provided_signature != generated_signature:
         return HttpResponse(status=401)
-    else:
-        logger.debug(f'signature match')
-        _xero_webhook_payload(payload_data.decode('UTF-8'))
-        return HttpResponse(status=200)
 
-@csrf_protect
-@csrf_exempt
-def xero_web_hook_test(request):
-    key = xero_config.XERO_WEBHOOK_KEY
-    provided_signature = request.headers.get('X-Xero-Signature')
+    logger.debug('Signature match')
 
-    payload_data = request.body.strip()
-    byte_key = key.encode('UTF-8')
-    message = payload_data
-    hashed = hmac.new(byte_key, message, hashlib.sha256)
-    generated_signature = base64.b64encode(hashed.digest()).decode('UTF-8')
+    # Respond immediately
+    response = HttpResponse(status=200)
 
-    _xero_webhook_payload(payload_data.decode('UTF-8'))
-    return HttpResponse(status=200)
+    # Background processing
+    threading.Thread(target=_xero_webhook_payload, args=(payload_data.decode('UTF-8'),)).start()
+
+    return response
+
 
 def _xero_webhook_payload(payload):
     webhook_data = json.loads(payload)
