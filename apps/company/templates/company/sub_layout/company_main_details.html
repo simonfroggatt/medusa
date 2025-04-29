@@ -5,7 +5,7 @@
                      <div class="col-9 align-center">
                          <img height="20px" src="{% get_media_prefix %}stores/branding/logos/{{ company_obj.store.thumb }}" class="img-responsive"
                          alt="{{ company_obj.store.name }}">
-                         Main Contact
+                         Company and Accounts Contact
                      </div>
                      <div class="col-3">
                          <div class="float-end">
@@ -25,18 +25,26 @@
                         <dl class="row text-nowrap" id="company_{{ company_obj.company_id }}">
                              <dt class="col-3">Company</dt>
                              <dd class="col-9">{{ company_obj.company_name }}</dd>
-                             <dt class="col-3">Main Contact:</dt>
-                             <dd class="col-9">{{ company_obj.fullname }}</dd>
-                             <dt class="col-3">Telephone:</dt>
-                             <dd class="col-9">{{ company_obj.telephone }}</dd>
-                             <dt class="col-3">Email:</dt>
-                             <dd class="col-9">{{ company_obj.email }}</dd>
-                             <dt class="col-3">Website:</dt>
-                             <dd class="col-9"><a href="http://{{company_obj.website}}" target="_blank">{{company_obj.website|default:"&nbsp;" }}</a> </dd>
+                             <dt class="col-3">Contact Name</dt>
+                             <dd class="col-9">{{ company_obj.accounts_contact_name }}</dd>
+                             <dt class="col-3">Company Type:</dt>
+                             <dd class="col-9">{{ company_obj.company_type.company_type_name }}</dd>
+                             <dt class="col-3">Account Type</dt>
+                             <dd class="col-9">{{ company_obj.account_type.account_type_name }}</dd>
+                             <dt class="col-3">Payment Terms:</dt>
+                             <dd class="col-9">{{ company_obj.payment_days }} - {{ company_obj.payment_terms.term_title }}</dd>
+                             <dt class="col-3">Credit Limit:</dt>
+                             <dd class="col-9">{{ company_obj.credit_limit }}</dd>
+                             <dt class="col-3">Discount %:</dt>
+                             <dd class="col-9">{{ company_obj.discount }}</dd>
                         </dl>
                      </div>
                      <div class="col-6">
-                         <dl>
+                         <dl class="row text-nowrap">
+                             <dt class="col-3">Email: </dt>
+                             <dd class="col-9"><a href="mailto:{{ company_obj.accounts_email }}">{{ company_obj.accounts_email }}</a></dd>
+                             <dt class="col-3">Telephone: </dt>
+                             <dd class="col-9">{{ company_obj.accounts_telephone }}</dd>
                          <dt>Invoice Address</dt>
                          <address >
                                 {{ company_obj.accounts_address|linebreaksbr  }}<br>

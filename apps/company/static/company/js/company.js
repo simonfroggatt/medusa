@@ -57,6 +57,7 @@ $(function () {
         "autoWidth": true,
         "responsive": true,
         "serverSide": true,
+        "select": 'single',
         "rowId" : 'order_id',
         "ajax": {
                  "processing": true,

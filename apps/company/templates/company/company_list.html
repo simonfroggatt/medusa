@@ -26,9 +26,8 @@
                                     <tr>
                                         <th width="50px">Store</th>
                                         <th>Company</th>
-                                        <th>Main Contact</th>
-                                        <th>Email</th>
-                                        <th>Telephone</th>
+                                        <th>Accounts Contact</th>
+                                        <th>Accounts Postcode</th>
                                         <th>Account</th>
                                         <th>Terms</th>
                                         <th width="25px"></th>
@@ -57,6 +56,8 @@
         "pageLength": 25,
         "autoWidth": false,
         "responsive": true,
+        "serverSide": true,
+        "select": 'single',
         "ajax": {
                  "processing": true,
                  "url": "/company/api/companylist/?format=datatables"
@@ -73,20 +74,22 @@
                 render: function ( data, type, row ) {
                     let image_src = '{% get_media_prefix %}' + 'stores/branding/logos/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
-                 }
+                 },
+                  searchable: false,
             },
             {data: "company_name"},
-            {data: "fullname"},
-            {data: "email"},
-            {data: "telephone"},
+            {data: "accounts_contact_name"},
+            {data: "accounts_postcode"},
             {
                 data: "account_type.account_type_name",
+                searchable: false,
             },
             {
                 data: "payment_terms.term_title",
                 render :function ( data, type, row ) {
                     return row['payment_days'] + ' ' + data
-                }
+                },
+                 searchable: false,
             },
             {
                 data: "company_id",
@@ -94,17 +97,13 @@
                 render: function ( data, type, row ) {
                  let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row js-order-product-edit" href="'+data+'" role="button" ><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
                 return edit_icon;
-                }
+                },
+                 searchable: false,
             },
             {
                 data: 'payment_days',
                 visible : false
-            },
-            {
-                data: 'postcode',
-                visible: false
             }
-
 
         ]
     } );
