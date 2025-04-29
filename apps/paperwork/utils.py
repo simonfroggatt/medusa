@@ -244,6 +244,20 @@ def order_payment_details_simple(order_obj, currency_symbol):
     return order_payment_str
 
 
+def order_proforma_details_tup(order_obj):
+    order_details_tup = dict()
+    order_details_tup['Proforma Number'] = f'PF-{order_obj.store.prefix}-{order_obj.order_id}'
+    order_details_tup['Proforma Date'] = order_obj.date_added.strftime('%d/%m/%Y')
+    order_details_tup['Main Contact'] = f'{order_obj.fullname}'
+    order_details_tup['Telephone'] = f'{order_obj.telephone}'
+    order_details_tup['Email'] = f'{order_obj.email}'
+    return order_details_tup
+
+
+def proforma_details_legal():
+    proforma_string = 'This is a Proforma Invoice for information only.<BR/>A VAT invoice will be issued upon receipt of payment.'
+    return proforma_string
+
 def create_product_desc(order_line, bl_orientation=True, bl_quote = False):
     product_desc = ''
     product_desc += order_line.name + "<BR/>"

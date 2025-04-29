@@ -1202,6 +1202,159 @@ def gen_invoice(order_id):
     #response.write(pdf)
     return buffer
 
+def gen_proforma(order_id):
+    width = 210 * mm
+    height = 297 * mm
+    padding = 5 * mm
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'PF-{order_obj.store.prefix}-{order_obj.order_id}'
+
+   # response = HttpResponse(content_type='application/pdf')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=3 * mm, leftMargin=3 * mm,
+                            topMargin=8 * mm, bottomMargin=3 * mm,
+                            title=f'Proforma_'+order_ref_number,  # exchange with your title
+                            author="Safety Signs and Notices LTD",  # exchange with your authors name
+                            )
+
+    # Our container for 'Flowable' objects
+    elements = []
+
+    # A large collection of style sheets pre-made for us
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='footer_right', alignment=TA_RIGHT, fontSize=14, leading=16))
+    styles.add(ParagraphStyle(name='footer_left', alignment=TA_LEFT, fontSize=8, leading=16))
+    styles.add(ParagraphStyle(name='header_main', alignment=TA_LEFT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='table_data', alignment=TA_LEFT, fontSize=9, leading=13))
+    styles.add(ParagraphStyle(name='footer', alignment=TA_CENTER, fontSize=8, leading=12))
+
+#company logo
+    comp_logo = utils.create_company_logo(order_obj.store)
+
+#company contact & order details
+    header_address = utils.create_address(order_obj.store)
+
+# create the table
+    header_tbl_data = [
+        [comp_logo, Paragraph(header_address, styles['header_right'])]
+    ]
+    header_tbl = Table(header_tbl_data)
+    header_tbl.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1),'MIDDLE'),
+                                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                                    ]))
+    elements.append(header_tbl)
+# Title
+    elements.append(Paragraph("Proforma Invoice", styles['title']))
+
+# order details
+    shipping_address = utils.order_shipping(order_obj)
+    billing_address = utils.order_billing(order_obj)
+    order_details_dict = utils.order_proforma_details_tup(order_obj)
+    order_list = list(order_details_dict.items())
+    order_details_tbl_data = []
+    for order_details_data in order_list:
+        tmp_data = list(order_details_data)
+        order_details_tbl_data.append(tmp_data)
+
+    order_details_table = Table(order_details_tbl_data)
+    order_details_table.setStyle(TableStyle([
+                                ('ALIGN', (0, 0), (-1, -1), "RIGHT"),
+                                ('ALIGN', (1, 0), (-1, -1), "LEFT"),
+                                 ('VALIGN', (0, 0), (-1, -1), "TOP"),
+                                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                                ('FONTNAME', (1, 0), (1, 0), 'Helvetica-Bold'),
+                                 ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+                                 ('TOPPADDING', (0, 0), (-1, -1), 0)]))
+
+    order_tbl_info = [
+        [Paragraph(billing_address, styles['header_main']),
+         Paragraph(shipping_address, styles['header_main']),
+         order_details_table]
+    ]
+
+    #rder_address_col_width = (doc.width - order_col_width_details) / 2
+    order_tbl_data = Table(order_tbl_info)
+    order_tbl_data.setStyle(TableStyle([
+                                        ('ALIGN', (2, 0), (2, 0), "RIGHT"),
+                                        ('VALIGN', (0, 0), (-1, -1), "TOP"),
+                                       # ('BACKGROUND', (2, 0), (-1, 0), colors.green),
+                                        ]))
+    elements.append(order_tbl_data)
+    elements.append(Spacer(doc.width, 5*mm))
+
+#order items
+# Code, Item, Quantity, Unit Price, Line Price,
+    currency_symbol = order_obj.store.currency.symbol_left
+    items_tbl_cols = [30 * mm, 100 * mm, 20 * mm, 25 * mm, 25 * mm]
+    items_tbl_data = [
+        ['Code', 'Item', 'Quantity', f'Unit Price ({currency_symbol})', f'Line Price ({currency_symbol})']
+    ]
+
+# Now add in all the
+    image_max_h = 10 * mm
+    image_max_w = 20 * mm
+
+    order_items = order_obj.order_products.all()
+    for order_item_data in order_items.iterator():
+        if order_item_data.product_variant:
+            model = order_item_data.product_variant.variant_code
+        order_item_tbl_data = [''] * 5
+        order_item_tbl_data[0] = Paragraph(order_item_data.model, styles['table_data'])
+        product_description = utils.create_product_desc(order_item_data)
+        order_item_tbl_data[1] = Paragraph(product_description, styles['table_data'])
+
+        order_item_tbl_data[2] = order_item_data.quantity
+        order_item_tbl_data[3] = round(order_item_data.price,2)
+        order_item_tbl_data[4] = round(order_item_data.total,2)
+        items_tbl_data.append(order_item_tbl_data)
+
+
+    items_table = Table(items_tbl_data, items_tbl_cols, repeatRows=1)
+    items_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                     ('LINEABOVE', (0, 1), (-1, 1), 1, colors.black),
+                                     ('ALIGN', (2, 0), (2, -1), "CENTRE"),
+                                     ('ALIGN', (3, 1), (-1, -1), "RIGHT"),
+                                     ('VALIGN', (0, 1), (-1, -1), "MIDDLE"),
+                                     ('FONTSIZE', (0, 1), (-1, -1), 9),
+                                     #('ROWBACKGROUNDS', (0, 0), (-1, -1), (colors.whitesmoke, colors.white)),
+                                     ]))
+
+    elements.append(items_table)
+    elements.append(Spacer(doc.width, 5*mm))
+
+#add in the totals
+    order_total_obj = order_obj.order_totals.all()
+    order_totals = utils.order_total_table(order_total_obj, order_obj.store.currency.symbol_left)
+    order_total_table = Table(order_totals)
+    order_total_table.setStyle(TableStyle([
+                                    ('ALIGN', (0, 0), (-1, -1), "RIGHT"),
+                                    ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+                                    ('FONTSIZE', (0, 0), (-1, -1), 10),
+                                    ('FONTSIZE', (-2, -1), (-1, -1), 14),
+                                    ('FONTNAME', (-1, -1), (-1, -1), 'Helvetica-Bold'),
+                                    ('INNERGRID', (0, 0), (-1, -2), 0.25, colors.black),
+                                    ('BOX', (0, 0), (-1, -2), 0.25, colors.black),
+                                    ]))
+
+    order_payment_str = utils.proforma_details_legal()
+    order_total_info = [
+        [Paragraph(order_payment_str, styles['header_main']), order_total_table]
+    ]
+    order_total_footer = Table(order_total_info, colWidths=[100*mm, 100*mm])
+    order_total_footer.setStyle(TableStyle([
+        ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('VALIGN', (1, 0), (-1, -1), "TOP")]))
+
+    elements.append(order_total_footer)
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+    return buffer
+
 def gen_shipping_page(order_id):
     width, height = A4
     styles = getSampleStyleSheet()
@@ -1372,6 +1525,26 @@ def gen_merged_paperwork(request, order_id):
     merger.close()
     return response
 
+def gen_proforma_paperwork(request, order_id):
+    response = HttpResponse(content_type='application/pdf')
+    # Here is the magic:
+    filename = f"proforma-{order_id}.pdf"  # or whatever you want
+
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+
+    pdflist = []
+    pdflist.append(gen_proforma(order_id))
+    merger = PdfFileMerger()
+    for pdf_buffer in pdflist:
+        merger.append(PdfFileReader(stream=pdf_buffer))
+        pdf_buffer.close()
+    buffer = BytesIO()
+
+    merger.write(buffer)
+    pdf = buffer.getvalue()
+    response.write(pdf)
+    merger.close()
+    return response
 
 def gen_quote_pdf(quote_id, bl_total=True):
     width = 210 * mm
@@ -1579,6 +1752,21 @@ def gen_invoice_for_emails(order_id):
     pdf = buffer.getvalue()
 
     return pdf
+
+def gen_proforma_for_emails(order_id):
+    pdflist = []
+    pdflist.append(gen_proforma(order_id))
+
+    merger = PdfFileMerger()
+    for pdf_buffer in pdflist:
+        merger.append(PdfFileReader(stream=pdf_buffer))
+        pdf_buffer.close()
+    buffer = BytesIO()
+    merger.write(buffer)
+    pdf = buffer.getvalue()
+    return pdf
+
+
 
 def set_printed(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)

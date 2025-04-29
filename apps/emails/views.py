@@ -15,7 +15,7 @@ from googleapiclient.errors import HttpError
 from django.core.mail import EmailMessage
 import base64
 import os
-from apps.paperwork.views import gen_invoice_for_emails
+from apps.paperwork.views import gen_invoice_for_emails, gen_proforma_for_emails
 
 import logging
 logger = logging.getLogger('apps')
@@ -35,7 +35,20 @@ def customer_proforma(request, order_id):
     enum_type = 'TEMPLATE_CUSTOMER_PROFORMA'
     template_title = 'Customer Proforma'
     data = dict()
-    data['html_form'] = load_email_template(request, order_id, enum_type, template_title)
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    store_obj = order_obj.store
+
+    failed_link_raw = '{{store_website}}/index.php?route=extension/payment/tsg_stripe/proforma&order_id={{order_id}}&order_hash={{order_hash}}'
+    replacements = {
+        '{{store_website}}': store_obj.ssl,
+        '{{order_id}}': order_id,
+        '{{order_hash}}': order_obj.order_hash,
+    }
+
+    failed_link = apply_template_replacements(failed_link_raw, replacements)
+    replacements = {'{{payment_link}}': failed_link}
+
+    data['html_form'] = load_email_template(request, order_id, enum_type, template_title, replacements)
     return JsonResponse(data)
 
 def customer_tracking(request, order_id):
@@ -163,8 +176,14 @@ def send_customer_email(request):
         if enum_type == 'TEMPLATE_CUSTOMER_INVOICE':
             invoice_pdf = gen_invoice_for_emails(order_id)
             if invoice_pdf:
-                pdf_filename = f'{store_obj.prefix}-{order_obj.order_id}-invoice.pdf'
+                pdf_filename = f'Invoice-{store_obj.prefix}-{order_obj.order_id}.pdf'
                 attachments.append((pdf_filename, invoice_pdf, 'application/pdf'))
+
+        if enum_type == 'TEMPLATE_CUSTOMER_PROFORMA':
+            proforma_pdf = gen_proforma_for_emails(order_id)
+            if proforma_pdf:
+                pdf_filename = f'Proforma-{store_obj.prefix}-{order_obj.order_id}.pdf'
+                attachments.append((pdf_filename, proforma_pdf, 'application/pdf'))
 
         #convert the email to a list
         email_to = [email_to]

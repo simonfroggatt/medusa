@@ -123,6 +123,10 @@
                                    data-url="{% url 'order-add-xero' order_obj.order_id %}" data-dlgsize="modal-sm">Add to Xero</a>
                             </li>
                         {% endif %}
+                            <li>
+                                <a class="dropdown-item" role="button"
+                                   href="{% url 'proforma_paperwork_pdf' order_obj.order_id %}" target="_blank" data-dlgsize="modal-sm">Generate Proforma</a>
+                            </li>
                         <hr>
                         <li class="list-group-item-danger">
                             <a class="dropdown-item js-order-product-edit" role="button"
