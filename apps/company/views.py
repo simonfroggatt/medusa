@@ -111,9 +111,11 @@ def company_create_save(request):
             if request.POST.get('chk_create_contact'): #create a contact too
                 new_contact = OcCustomer()
                 new_contact.company = clean_company['company_name']
-                new_contact.fullname = clean_company['fullname']
-                new_contact.telephone = clean_company['telephone']
-                new_contact.email = clean_company['email']
+                new_contact.firstname = clean_company['accounts_contact_firstname']
+                new_contact.lastname = clean_company['accounts_contact_lastname']
+                new_contact.fullname = f"{clean_company['accounts_contact_firstname']} {clean_company['accounts_contact_lastname']}"
+                new_contact.telephone = clean_company['accounts_telephone']
+                new_contact.email = clean_company['accounts_email']
                 new_contact.account_type = clean_company['account_type']
                 new_contact.store = clean_company['store']
                 new_contact.customer_group_id = 1
@@ -124,22 +126,21 @@ def company_create_save(request):
                 new_contact.parent_company_id = company_id
                 new_contact.save()
 
-                new_customer_id = new_contact.customer_id
                 new_address = new_contact.address_customer.create()
-                new_address.fullname = clean_company['company_name']
-                new_address.fullname = clean_company['fullname']
-                new_address.address_1 = clean_company['address']
-                new_address.telephone = clean_company['telephone']
-                new_address.email = clean_company['email']
-                new_address.city = clean_company['city']
-                new_address.area = clean_company['area']
-                new_address.postcode = clean_company['postcode']
-                new_address.country = clean_company['country']
+                new_address.company = clean_company['accounts_contact_firstname']
+                new_address.firstname = clean_company['accounts_contact_firstname']
+                new_address.lastname = clean_company['accounts_contact_lastname']
+                new_address.fullname = f"{clean_company['accounts_contact_firstname']} {clean_company['accounts_contact_lastname']}"
+                new_address.address_1 = clean_company['accounts_address']
+                new_address.telephone = clean_company['accounts_telephone']
+                new_address.email = clean_company['accounts_email']
+                new_address.city = clean_company['accounts_city']
+                new_address.area = clean_company['accounts_area']
+                new_address.postcode = clean_company['accounts_postcode']
+                new_address.country = clean_company['accounts_country']
                 new_address.default_billing = 0
                 new_address.default_shipping = 1
                 new_address.save()
-
-
             data['form_is_valid'] = True
 
         else:
@@ -218,24 +219,26 @@ def company_create_contact(request, company_id):
         'safe': 1,
         'customer_group': 1,
         'account_type': company_obj.account_type,
-        'telephone': company_obj.telephone,
-        'email': company_obj.email[company_obj.email.index('@')  : ]
+        'telephone': company_obj.accounts_telephone,
+        'email': company_obj.accounts_email[company_obj.accounts_email.index('@')  : ]
     }
 
     company_address = {
-        'address_1': company_obj.address,
-        'city': company_obj.city,
-        'postcode': company_obj.postcode,
-        'area': company_obj.area,
-        'country': company_obj.country,
-        'country_id': company_obj.country_id
+        'address_1': company_obj.accounts_address,
+        'city': company_obj.accounts_city,
+        'postcode': company_obj.accounts_postcode,
+        'area': company_obj.accounts_area,
+        'country': company_obj.accounts_country,
+        'country_id': company_obj.accounts_country_id
     }
 
     form = CustomerForm(initial=iniitial_data)
     form_address = AddressForm(initial=company_address)
-    del company_address['country']
 
-    content = {'form': form, 'form_address': form_address, 'company_id': company_id, 'initials': iniitial_data, 'company_address': company_address}
+    company_address_json = company_address.copy()
+    company_address_json.pop('country', None)  # Safe delete if it exists
+
+    content = {'form': form, 'form_address': form_address, 'company_id': company_id, 'initials': iniitial_data, 'company_address': company_address_json}
 
     html_form = render_to_string(template_name, content, request=request)
     return JsonResponse({'html_form': html_form})
@@ -248,28 +251,39 @@ def company_contact_save(request):
         form_address = AddressForm(request.POST)
         if form.is_valid():
             form.save()
+            #need to set the fullname in here
             customer_instance = form.instance
+            clean_contact = form.cleaned_data
             customer_id = customer_instance.customer_id
             customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
-            if form_address.is_valid():
-                clean_address = form_address.cleaned_data
-                new_address = customer_obj.address_customer.create()
-                new_address.fullname = clean_address['company']
-                new_address.fullname = clean_address['fullname']
-                new_address.address_1 = clean_address['address_1']
-                new_address.telephone = clean_address['telephone']
-                new_address.label = clean_address['label']
-                new_address.email = clean_address['email']
-                new_address.city = clean_address['city']
-                new_address.area = clean_address['area']
-                new_address.postcode = clean_address['postcode']
-                new_address.country = clean_address['country']
-                new_address.default_billing = clean_address['default_billing']
-                new_address.default_shipping = clean_address['default_shipping']
-                new_address.save()
-                data['form_is_valid'] = True
+            customer_obj.fullname = f"{clean_contact['firstname']} {clean_contact['lastname']}"
+            customer_obj.save()
+
+            #check if we need to create an address - switchAddAddress
+            if request.POST.get('chk_switchAddAddress'):
+                if form_address.is_valid():
+                    clean_address = form_address.cleaned_data
+                    new_address = customer_obj.address_customer.create()
+                    new_address.company = clean_address['company']
+                    new_address.firstname = clean_contact['firstname']
+                    new_address.lastname = clean_contact['lastname']
+                    new_address.fullname = f"{clean_contact['firstname']} {clean_contact['lastname']}"
+                    new_address.address_1 = clean_address['address_1']
+                    new_address.telephone = clean_address['telephone']
+                    new_address.label = clean_address['label']
+                    new_address.email = clean_address['email']
+                    new_address.city = clean_address['city']
+                    new_address.area = clean_address['area']
+                    new_address.postcode = clean_address['postcode']
+                    new_address.country = clean_address['country']
+                    new_address.default_billing = clean_address['default_billing']
+                    new_address.default_shipping = clean_address['default_shipping']
+                    new_address.save()
+                    data['form_is_valid'] = True
+                else:
+                    data['form_is_valid'] = False
             else:
-                data['form_is_valid'] = False
+                data['form_is_valid'] = True
         else:
             data['form_is_valid'] = False
 
@@ -394,5 +408,23 @@ def company_xero_update(request, company_id):
     return_url = reverse_lazy('xero_company_update',
                               kwargs={'company_id': company_id, 'encrypted': encrypted_order_num})
     return HttpResponseRedirect(return_url)
+
+def company_api_account_address(request, company_id):
+    data = dict()
+    data['address'] = None
+    if request.method == 'GET':
+        company_obj = get_object_or_404(OcTsgCompany, pk=company_id)
+        data['address'] = {
+                'accounts_contact_firstname': company_obj.accounts_contact_firstname,
+                'accounts_contact_lastname': company_obj.accounts_contact_lastname,
+                'accounts_email': company_obj.accounts_email,
+                'accounts_telephone': company_obj.accounts_telephone,
+                'accounts_address': company_obj.accounts_address,
+                'accounts_city': company_obj.accounts_city,
+                'accounts_area': company_obj.accounts_area,
+                'accounts_postcode': company_obj.accounts_postcode,
+                'accounts_country_id': company_obj.accounts_country_id,
+        }
+    return JsonResponse(data)
 
 

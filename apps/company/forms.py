@@ -21,7 +21,6 @@ class CompanyEditForm(forms.ModelForm):
         labels = {
             'fullname': 'Main contact',
             'payment_days': 'Day(s)',
-            'accounts_contact_name': 'Accounts contact',
         }
 
         widgets = {

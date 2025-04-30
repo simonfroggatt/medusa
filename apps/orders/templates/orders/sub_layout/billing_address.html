@@ -5,6 +5,12 @@
                     </div>
                     <div class="col-6 text-end">
                         <div class="btn-group">
+                        {% if order_obj.customer.parent_company %}
+                            <button class="btn {{ BUTTON_OK }} btn-sm" type="button" id="resetCompanyBillingAddress"
+                                    data-url="{% url 'api_company_account_address' order_obj.order_id order_obj.customer.parent_company.company_id %}">
+                                   <i class="fa-regular fa-coins"></i>
+                        </button>
+                        {% endif %}
                         {% if order_obj.customer %}
                                 <button class="btn {{ BUTTON_EXTRA }} btn-sm" type="button"
                                         data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress"
@@ -12,7 +18,6 @@
                                    <i class="fa-regular fa-location-dot"></i>
                         </button>
                         {% endif %}
-
                                 <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-address-edit"
                                         data-url="{% url 'orderbillingaddressedit' order_obj.order_id %}"
                                 ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>

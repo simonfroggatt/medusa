@@ -289,8 +289,6 @@ def order_customer_create(request, customer_id):
     if request.method == 'POST':
         #ignore the incoming customerid
         post_customer_id = request.POST.get('customer_id')
-
-
         new_order_obj = OcOrder()
         customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
 
@@ -327,7 +325,7 @@ def order_customer_create(request, customer_id):
         #check if this customer has a parent company
         address_book = get_default_address(customer_obj)
         if customer_obj.parent_company:
-            new_order_obj.payment_fullname = customer_obj.parent_company.accounts_contact_name
+            new_order_obj.payment_fullname = f"{customer_obj.parent_company.accounts_contact_firstname} {customer_obj.parent_company.accounts_contact_lastname}"
             new_order_obj.payment_company = customer_obj.parent_company.company_name
             new_order_obj.payment_email = customer_obj.parent_company.accounts_email
             new_order_obj.payment_telephone = customer_obj.parent_company.accounts_telephone

@@ -43,7 +43,8 @@ class OcTsgCompany(models.Model):
     company_type = models.ForeignKey(OcTsgCompanyType, models.DO_NOTHING, db_column='company_type', blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
     notes = models.CharField(max_length=2048, blank=True, null=True)
-    accounts_contact_name = models.CharField(max_length=255)
+    accounts_contact_firstname = models.CharField(max_length=255)
+    accounts_contact_lastname = models.CharField(max_length=255)
     accounts_email = models.CharField(max_length=255)
     accounts_telephone = models.CharField(max_length=40)
     accounts_address = models.CharField(max_length=512)
@@ -56,8 +57,14 @@ class OcTsgCompany(models.Model):
         managed = False
         db_table = 'oc_tsg_company'
 
+    @property
+    def accounts_contact_fullname(self):
+        return f"{self.accounts_contact_firstname} {self.accounts_contact_lastname}".strip()
+
+
     def __str__(self):
         return self.company_name
+
 
 
 class OcTsgCompanyDocuments(models.Model):

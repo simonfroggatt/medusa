@@ -30,5 +30,6 @@ urlpatterns = [
     path('<int:company_id>/xero/add', views.company_xero_add, name='company_xero_add'),
     path('<int:company_id>/xero/update', views.company_xero_update, name='company_xero_update'),
 
+    # APIS
     path('', views.company_list, name='allcompanies'),
 ]

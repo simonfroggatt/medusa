@@ -16,8 +16,9 @@
                     <div class="row">
                         <div class="col-8 border-end">
                             <div class="row">
-                                <div class="col-md-6">{{ form.company_name|as_crispy_field }}</div>
-                                <div class="col-md-6">{{ form.accounts_contact_name|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.company_name|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.accounts_contact_firstname|as_crispy_field }}</div>
+                                <div class="col-md-4">{{ form.accounts_contact_lastname|as_crispy_field }}</div>
                                 <div class="col-md-6">{{ form.accounts_telephone|as_crispy_field }}</div>
                                 <div class="col-md-6">{{ form.accounts_email|as_crispy_field }}</div>
                                 <div class="col-12">{{ form.accounts_address|as_crispy_field }}</div>

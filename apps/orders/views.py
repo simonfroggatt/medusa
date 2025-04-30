@@ -271,7 +271,13 @@ def order_details(request, order_id):
 
 
     if order_obj.customer:
-        context["addressItem"] = order_obj.customer.address_customer.all().order_by('postcode')
+        #see if they have a company
+        if order_obj.customer.parent_company:
+            company_id = order_obj.customer.parent_company.company_id
+            #get all the address books for this company
+            context["addressItem"] = OcAddress.objects.filter(customer__parent_company=company_id).order_by('postcode')
+        else:
+            context["addressItem"] = order_obj.customer.address_customer.all().order_by('postcode')
     else:
         context["addressItem"] = []
 
@@ -810,9 +816,15 @@ def order_shipping_search(request, order_id):
     data = dict()
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     context = {'order_id': order_id}
+
     if order_obj.customer:
-        context['order_customer_id'] = order_obj.customer_id
+        if order_obj.customer.parent_company:
+            context['order_company_id'] = order_obj.customer.parent_company.company_id
+        else:
+            context['order_company_id'] = 0
+            context['order_customer_id'] = order_obj.customer_id
     else:
+        context['order_company_id'] = 0
         context['order_customer_id'] = 0;
 
 
@@ -1055,9 +1067,15 @@ class OrderShippingAddressList(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         order_obj = get_object_or_404(OcOrder, pk=pk)
         customer_id = order_obj.customer_id
-        queryset = OcAddress.objects.filter(customer_id=customer_id)
+        if order_obj.customer.parent_company:
+            company_id = order_obj.customer.parent_company.company_id
+            queryset = OcAddress.objects.filter(customer__parent_company=company_id).order_by('postcode')
+        else:
+            queryset = OcAddress.objects.filter(customer_id=customer_id)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
 
 
 def order_duplicate_dlg(request, order_id):
@@ -2185,3 +2203,29 @@ def bespoke_order_product(request, order_id, bespoke_order_product_id):
                                          )
 
     return render(request, template_name, context)
+
+def company_api_account_address(request, order_id, company_id):
+    data = dict()
+    data['address'] = None
+    if request.method == 'GET':
+        company_obj = get_object_or_404(OcTsgCompany, pk=company_id)
+        order_obj = get_object_or_404(OcOrder, pk=order_id)
+        order_obj.payment_fullname = f"{company_obj.accounts_contact_firstname} {company_obj.accounts_contact_lastname}"
+        order_obj.payment_firstname = company_obj.accounts_contact_firstname
+        order_obj.payment_lastname = company_obj.accounts_contact_lastname
+        order_obj.payment_company = company_obj.company_name
+        order_obj.payment_email = company_obj.accounts_email
+        order_obj.payment_telephone = company_obj.accounts_telephone
+        order_obj.payment_address_1 = company_obj.accounts_address
+        order_obj.payment_address_2 = ''
+        order_obj.payment_city = company_obj.accounts_city
+        order_obj.payment_area = company_obj.accounts_area
+        order_obj.payment_postcode = company_obj.accounts_postcode
+        order_obj.payment_country_name = company_obj.accounts_country
+
+        order_obj.save()
+        data['form_is_valid'] = True
+    else:
+        data['form_is_valid'] = False
+
+    return JsonResponse(data)

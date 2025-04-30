@@ -44,12 +44,18 @@ class CustomerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CustomerForm, self).__init__(*args, **kwargs)
         self.fields['store'].empty_label = None
+        self.fields['account_type'].empty_label = None
+
+        self.fields['firstname'].required = True
+        self.fields['lastname'].required = True
+
     class Meta:
         model = OcCustomer
         fields = '__all__'
 
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 4}),
+            'email': forms.EmailInput,
         }
 
         labels = {

@@ -78,7 +78,8 @@
                   searchable: false,
             },
             {data: "company_name"},
-            {data: "accounts_contact_name"},
+            {data: "accounts_contact_fullname",
+                searchable: false},
             {data: "accounts_postcode"},
             {
                 data: "account_type.account_type_name",
@@ -102,6 +103,14 @@
             },
             {
                 data: 'payment_days',
+                visible : false
+            },
+            {
+                data: 'accounts_contact_firstname',
+                visible : false
+            },
+            {
+                data: 'accounts_contact_lastname',
                 visible : false
             }
 

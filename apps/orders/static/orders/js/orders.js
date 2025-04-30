@@ -791,6 +791,24 @@ $(function () {
         return false;
     }
 
+    function resetCompanyBillingAddress()
+    {
+        var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                   updateAddressDiv()
+                } else {
+                    // $("#modal-base .modal-title").html("Edit Address");
+                }
+            },
+        });
+
+    }
+
 
     $(document).on('click', '.js-order-product-edit', loadProductEditForm);
     $(document).on("submit", "#js-product-edit-submit", saveProductEditForm);
@@ -843,6 +861,9 @@ $(function () {
 
     //EMAILS
     $(document).on("click", ".js-order-email", loadForm);
+
+    //REST BILLING ADDRESS
+    $(document).on("click", "#resetCompanyBillingAddress", resetCompanyBillingAddress);
 
 
      var updateOrderListShippingRow = function (tblrowid) {

@@ -1,0 +1,30 @@
+
+                    <dl class="row text-nowrap" id="address_{{ address.pk }}">
+                        <dt class="col-3">Contact</dt>
+                        <dd class="col-9">{{ address_obj.fullname}}</dd>
+                    <dt class="col-3">Email</dt>
+                        <dd class="col-9"><a
+                                href="mailto:{{ address_obj.email }}">{{ address_obj.email }}</a></dd>
+                        <dt class="col-3">Phone</dt>
+                        <dd class="col-9">{{ address_obj.telephone|default:"&nbsp;" }}</dd>
+                        {% if address_obj.company %}
+                            <dt class="col-3">Company</dt>
+                            <dd class="col-9">{{ address_obj.company }}</dd>
+                        {% endif %}
+                        <dt class="col-3">Address</dt>
+                        <dd class="col-9">
+                            <address >
+                                {{ address_obj.address_1|linebreaksbr  }}<br>
+                                {% if address_obj.address_2 %}
+                                    {{ address_obj.address_2|linebreaksbr }}<br>
+                                {% endif %}
+                                 {% if address_obj.area %}
+                                {{ address_obj.area }}<br>
+                                {% endif %}
+                                {{ address_obj.city }}<br>
+                                <strong>{{ address_obj.postcode }}</strong><br>
+                                {{ address_obj.country }}
+                            </address>
+                        </dd>
+
+                    </dl>

@@ -5,6 +5,13 @@
                     </div>
                     <div class="col-6 text-end">
                      <div class="btn-group  ">
+                     {% if addressItem|length > 2 %}
+                               <button type="button" class="btn {{ BUTTON_ADD }} btn-sm js-order-address-edit"
+                                        data-url="{% url 'ordershippingaddresssearch' order_obj.order_id %}"
+                                        data-dlgsize="modal-lg">
+                                        <i class="fa-solid fa-search fa-pull-right ms-0"></i>
+                               </button>
+                        {% endif %}
                          {% if order_obj.customer %}
                                 <button class="btn {{ BUTTON_EXTRA }} btn-sm" type="button" data-bs-toggle="collapse"
                                      data-bs-target="#collapseShippingAddress" aria-expanded="false"
@@ -12,13 +19,7 @@
                                     ><i class="fa-regular fa-location-dot"></i>
                                 </button>
                          {% endif %}
-                         {% if addressItem|length > 2 %}
-                               <button type="button" class="btn {{ BUTTON_ADD }} btn-sm js-order-address-edit"
-                                        data-url="{% url 'ordershippingaddresssearch' order_obj.order_id %}"
-                                        data-dlgsize="modal-lg">
-                                        <i class="fa-solid fa-search fa-pull-right ms-0"></i>
-                               </button>
-                        {% endif %}
+
                                 <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-address-edit"
                                         data-url="{% url 'ordershippingaddressedit' order_obj.order_id %}"
                                         data-dlgsize="modal-lg">

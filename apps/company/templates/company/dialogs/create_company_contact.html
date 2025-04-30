@@ -27,8 +27,9 @@
                     <input type="hidden" id="id_{{ form.safe.name}}" name="{{ form.safe.name}}"
                            value="{{ initials.safe }}">
                     <div class="row border-bottom">
-                        <div class="col-md-6">{{ form.fullname|as_crispy_field }}</div>
-                        <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.firstname|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.lastname|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.telephone|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.email|as_crispy_field }}</div>
                         <div class="col-md-6">{{ form.account_type|as_crispy_field }}</div>
                     </div>
@@ -38,9 +39,14 @@
                                 <input type="hidden" id="id_{{ form_address.customer.name}}" name="{{ form_address.customer.name}}"
                            value="2">
                                 <div class="form-check form-switch">
+                           <input class="form-check-input" type="checkbox" id="chk_switchAddAddress" name="chk_switchAddAddress" checked>
+                           <label class="form-check-label" for="chk_switchAddAddress">Add Address Book to Contact</label>
+                       </div>
+                                <div class="form-check form-switch">
                            <input class="form-check-input switchUseCompanyAddress" type="checkbox" id="switchUseCompanyAddress" checked>
                            <label class="form-check-label" for="switchUseCompanyAddress">Use Company Address</label>
                        </div>
+
                                  <div class="col-12">{{ form.company|as_crispy_field }}</div>
                                 <div class="col-12">{{ form_address.address_1|as_crispy_field }}</div>
                                 <div class="col-6">{{ form_address.city|as_crispy_field }}</div>
@@ -63,9 +69,15 @@
         </div>
     </div>
 </div>
+{{ company_address|json_script:"company_address_loaded" }}
+<script>
+    console.log("Script tag exists?", document.getElementById('company_address_loaded'));
+    console.log("Raw text:", document.getElementById('company_address_loaded')?.textContent);
+</script>
 
 <script>
-    let company_address = {{ company_address|safe }}
+
+
 
     $(function () {
 
@@ -81,24 +93,69 @@
         }
 
 
-        let inputFields = ['#id_{{ form_address.company_name.name}}', '#id_{{ form_address.postcode.name}}', '#id_{{ form_address.address.name}}']
+        let inputFields = ['#id_{{ form.company.name}}', '#id_{{ form_address.postcode.name}}', '#id_{{ form_address.address_1.name}}']
         TSGAddressLookup(inputFields, '', fieldMatch)
 
     })
 
-    function toggleCompAddressSwitch(){
-        let use_company_address = $('#switchUseCompanyAddress').is(":checked");
+    function toggleCompAddressSwitch() {
+        debugger;
+        const use_company_address = $('#switchUseCompanyAddress').is(":checked");
 
-        $('#id_{{ form_address.address_1.name}}').html(use_company_address?company_address['address_1']:'').prop('readonly', use_company_address)
-        $('#id_{{ form_address.postcode.name}}').val(use_company_address?company_address['postcode']:'').prop('readonly', use_company_address)
-        $('#id_{{ form_address.city.name}}').val(use_company_address?company_address['city']:'').prop('readonly', use_company_address)
-        $('#id_{{ form_address.area.name}}').val(use_company_address?company_address['area']:'').prop('readonly', use_company_address)
-        $('#id_{{ form_address.country.name}}').val(use_company_address?company_address['country_id']:0).prop('disabled', use_company_address)
+        const raw = document.getElementById('company_address_loaded')?.textContent;
+        if (raw) {
+            const company_address = JSON.parse(raw);
 
+            $('#id_{{ form_address.address_1.name }}')
+                .val(use_company_address ? company_address['address_1'] : '')
+                .prop('readonly', use_company_address);
+
+            $('#id_{{ form_address.postcode.name }}')
+                .val(use_company_address ? company_address['postcode'] : '')
+                .prop('readonly', use_company_address);
+
+            $('#id_{{ form_address.city.name }}')
+                .val(use_company_address ? company_address['city'] : '')
+                .prop('readonly', use_company_address);
+
+            $('#id_{{ form_address.area.name }}')
+                .val(use_company_address ? company_address['area'] : '')
+                .prop('readonly', use_company_address);
+
+            $('#id_{{ form_address.country.name }}')
+                .val(use_company_address ? company_address['country_id'] : 0)
+                .prop('disabled', use_company_address);
+        }
+
+
+
+    }
+
+    function initReadonly(){
+        const fields = [
+            'id_{{ form_address.address_1.name }}',
+            'id_{{ form_address.city.name }}',
+            'id_{{ form_address.area.name }}',
+            'id_{{ form_address.postcode.name }}',
+            'id_{{ form_address.country.name }}'
+        ];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.readOnly = true;
+
+                // Special case: country is often a <select>, use disabled
+                if (el.tagName.toLowerCase() === 'select') {
+                    el.disabled = true;
+                }
+            }
+        });
     }
 
     $("#switchUseCompanyAddress").change(function () {
         toggleCompAddressSwitch()
 
     })
+
+    initReadonly()
 </script>
