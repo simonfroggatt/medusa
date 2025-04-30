@@ -54,6 +54,9 @@ class XeroInvoice(XeroItem):
 
         logger.info(f"payment_method: {order_obj.payment_method_id}")
 
+        logger.info(f"InvoiceID: {self.__InvoiceID}")
+        payment_data['Invoice'] = {"InvoiceID": self.__InvoiceID}
+
         if order_obj.payment_method_id == settings.TSG_PAYMENT_TYPE_PAYPAL:
             payment_data['Account'] = {"AccountID": xero_config.ACCOUNT_ID_PAYPAL}
             logger.info(f"payment_account: {xero_config.ACCOUNT_ID_PAYPAL}")
