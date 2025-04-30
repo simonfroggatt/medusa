@@ -11,7 +11,7 @@ from apps.orders.models import OcTsgOrderOption, OcTsgOrderProductOptions, OcOrd
 from apps.products.models import OcTsgProductVariants, OcTsgProductVariants, OcTsgProductVariantCore, OcProduct
 from apps.options.models import OcTsgProductOption, OcTsgOptionValues
 from django.conf import settings
-from urllib.parse import quote, urlparse, urljoin
+from urllib.parse import quote, urlparse, urljoin, urlunparse
 import os
 from cairosvg import svg2png
 from django.shortcuts import render, get_object_or_404
@@ -490,12 +490,13 @@ def _create_addon_data_for_table(product_variant_id, bl_options = False, styles 
 def _create_image_url(image_src):
     parsed = urlparse(image_src)
     safe_path = quote(parsed.path)
+    image_safe_path = urlunparse(parsed._replace(path=safe_path))
 
     if image_src.endswith('.svg'):
         if settings.CDN:
-            svg_url = image_src
+            svg_url = image_safe_path
         else:
-            svg_url = filename = settings.REPORT_URL + quote(safe_path)
+            svg_url = filename = settings.REPORT_URL + quote(image_src)
 
         image_file_name = os.path.basename(quote(image_src))
         image_file = os.path.splitext(image_file_name)
@@ -506,9 +507,9 @@ def _create_image_url(image_src):
             svg2png(url=svg_url, write_to=image_url)
     else:
         if settings.CDN:
-            image_url = image_src
+            image_url = image_safe_path
         else:
-            image_url = settings.REPORT_URL + quote(safe_path)
+            image_url = settings.REPORT_URL + quote(image_src)
 
     return image_url
 
