@@ -655,7 +655,7 @@ def customer_delete(request, customer_id):
 
 
 def customer_assign_company(request, customer_id):
-    # need to check if that are anyorders....if so, we can't delete the customer, just archieve it.
+
     data = dict()
     customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
     if request.method == 'POST':
@@ -688,9 +688,12 @@ def customer_convert_to_company(request, customer_id):
 
         #copyt from customer
         new_company_obj.company_name = billing_address.company
+        # if the xero_id exists that pass it up
         new_company_obj.xero_id = customer_obj.xero_id
 
-        new_company_obj.accounts_contact_name = billing_address.fullname
+        new_company_obj.accounts_fullname = billing_address.fullname
+        new_company_obj.accounts_firstname = billing_address.firstname
+        new_company_obj.accounts_lastname = billing_address.lastname
         new_company_obj.accounts_email = billing_address.email
         new_company_obj.accounts_telephone = billing_address.telephone
         new_company_obj.accounts_address = billing_address.address_1
@@ -700,18 +703,6 @@ def customer_convert_to_company(request, customer_id):
         new_company_obj.accounts_area = billing_address.area
         new_company_obj.accounts_postcode = billing_address.postcode
         new_company_obj.accounts_country_id = billing_address.country_id
-
-        new_company_obj.fullname = shipping_address.fullname
-        new_company_obj.email = shipping_address.email
-        new_company_obj.telephone = shipping_address.telephone
-        new_company_obj.address = shipping_address.address_1
-        if shipping_address.address_2:
-            new_company_obj.address += ' ' + shipping_address.address_2
-        new_company_obj.city = shipping_address.city
-        new_company_obj.area = shipping_address.area
-        new_company_obj.postcode = shipping_address.postcode
-        new_company_obj.country_id = shipping_address.country_id
-
 
         #set defaults
         new_company_obj.payment_days = 0

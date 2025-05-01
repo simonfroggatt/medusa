@@ -11,10 +11,8 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = OcAddress
         fields = [
-
-            'company',
-            'branch',
             'fullname',
+            'company',
             'telephone',
             'email',
             'address_1',
@@ -48,6 +46,8 @@ class CustomerForm(forms.ModelForm):
 
         self.fields['firstname'].required = True
         self.fields['lastname'].required = True
+
+        self.fields['parent_company'].widget = forms.HiddenInput()
 
     class Meta:
         model = OcCustomer

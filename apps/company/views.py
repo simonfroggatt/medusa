@@ -10,12 +10,14 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileRe
 from django.core import serializers
 from apps.customer.forms import CustomerForm, AddressForm
 from apps.customer.models import OcCustomer
+from apps.orders.models import OcOrder
 from medusa import services
 from django.conf import settings
 import os
 from cryptography.fernet import Fernet
 from django.core.files.storage import default_storage as storage
-
+from django.db.models import Sum
+from apps.xero_api import views as xero
 
 
 # Create your views here.
@@ -70,6 +72,19 @@ def company_details(request, company_id):
         address_book.append(contact.address_customer.all().order_by('postcode'))
     context['address_book_list'] = address_book
 
+    context['total_orders'] = OcOrder.objects.filter(customer__parent_company=company_id).successful().count()
+    context['total_order_value'] = context['total_order_value'] = (
+    OcOrder.objects
+    .filter(customer__parent_company=company_id)
+    .successful()
+    .aggregate(total=Sum('total'))['total'] or 0
+)
+    context['current_symbol'] = '£'  #todo - get correct symbol in here
+
+    #f = Fernet(settings.XERO_TOKEN_FERNET)
+    #encrypted = f.encrypt(str(company_id).encode()).decode()
+    #account_details = xero.xero_company_account(company_id, encrypted)
+    #context['account_balance'] = account_details
 
     return render(request, template_name, context)
 
@@ -105,39 +120,38 @@ def company_create_save(request):
         form = CompanyEditForm(request.POST)
         if form.is_valid():
             form.save()
-            clean_company = form.cleaned_data
             form_instance = form.instance
             company_id = form_instance.company_id
             if request.POST.get('chk_create_contact'): #create a contact too
                 new_contact = OcCustomer()
-                new_contact.company = clean_company['company_name']
-                new_contact.firstname = clean_company['accounts_contact_firstname']
-                new_contact.lastname = clean_company['accounts_contact_lastname']
-                new_contact.fullname = f"{clean_company['accounts_contact_firstname']} {clean_company['accounts_contact_lastname']}"
-                new_contact.telephone = clean_company['accounts_telephone']
-                new_contact.email = clean_company['accounts_email']
-                new_contact.account_type = clean_company['account_type']
-                new_contact.store = clean_company['store']
+                new_contact.company = form_instance.company_name
+                new_contact.firstname = form_instance.accounts_contact_firstname
+                new_contact.lastname = form_instance.accounts_contact_lastname
+                new_contact.fullname = form_instance.accounts_contact_fullname  # ✅ use . not ['']
+                new_contact.telephone = form_instance.accounts_telephone
+                new_contact.email = form_instance.accounts_email
+                new_contact.account_type = form_instance.account_type
+                new_contact.store = form_instance.store
                 new_contact.customer_group_id = 1
                 new_contact.language_id = 1
                 new_contact.ip = '0.0.0.0'
                 new_contact.status = 1
                 new_contact.safe = 1
-                new_contact.parent_company_id = company_id
+                new_contact.parent_company_id = form_instance.company_id
                 new_contact.save()
 
                 new_address = new_contact.address_customer.create()
-                new_address.company = clean_company['accounts_contact_firstname']
-                new_address.firstname = clean_company['accounts_contact_firstname']
-                new_address.lastname = clean_company['accounts_contact_lastname']
-                new_address.fullname = f"{clean_company['accounts_contact_firstname']} {clean_company['accounts_contact_lastname']}"
-                new_address.address_1 = clean_company['accounts_address']
-                new_address.telephone = clean_company['accounts_telephone']
-                new_address.email = clean_company['accounts_email']
-                new_address.city = clean_company['accounts_city']
-                new_address.area = clean_company['accounts_area']
-                new_address.postcode = clean_company['accounts_postcode']
-                new_address.country = clean_company['accounts_country']
+                new_address.company = form_instance.company_name
+                new_address.firstname = form_instance.accounts_contact_firstname
+                new_address.lastname = form_instance.accounts_contact_lastname
+                new_address.fullname = form_instance.accounts_contact_fullname
+                new_address.address_1 = form_instance.accounts_address
+                new_address.telephone = form_instance.accounts_telephone
+                new_address.email = form_instance.accounts_email
+                new_address.city = form_instance.accounts_city
+                new_address.area = form_instance.accounts_area
+                new_address.postcode = form_instance.accounts_postcode
+                new_address.country = form_instance.accounts_country  # this is a ForeignKey object, safer from the model
                 new_address.default_billing = 0
                 new_address.default_shipping = 1
                 new_address.save()
@@ -427,4 +441,22 @@ def company_api_account_address(request, company_id):
         }
     return JsonResponse(data)
 
+def customer_unlink_company(request, customer_id):
+    data = dict()
+    customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+    if request.method == 'POST':
+        customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
+        current_parent_id = customer_obj.parent_company_id
+        customer_obj.parent_company_id = None
+        customer_obj.save()
+        data['form_is_valid'] = True
+        data['redirect_url'] = reverse_lazy('company_details', kwargs={'company_id': parent_company_id})
+    else:
+        template_name = 'company/dialogs/customer_unlink_company.html'
+        context = {'customer_id': customer_id}
 
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)

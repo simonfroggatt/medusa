@@ -323,6 +323,20 @@ def xero_company_account(request, company_id, encrypted):
         return JsonResponse(data)
 
     company_obj = get_object_or_404(OcTsgCompany, pk=company_id)
+    xero_contact_data = _get_company_accounts(company_obj)
+    if xero_contact_data['status'] == 'OK':
+        data['status'] = 'OK'
+        data['account_details'] = xero_contact_data['account_balance']
+    else:
+        data['status'] = xero_contact_data['status']
+        data['error'] = xero_contact_data['error']
+
+    data['xero_call_type'] = 'COMPANY'
+    return JsonResponse(data)
+
+
+
+
     return JsonResponse(data)
 
 #############################################   ORDER   ########################################################
@@ -452,6 +466,10 @@ def xero_get_order_customer(request, xero_id, encrypted):
 
     data['xero_call_type'] = 'ORDER'
     return data
+
+
+
+
 
 
 #############################################   PRIVATE  -   ORDER   ########################################################
@@ -739,16 +757,16 @@ def _create_new_company(company_obj, xero_contact_id = None):
     contact_id = ''
     data = {}
     data['status'] = 'OK'
-    contact_names = HumanName(company_obj.fullname)
+    #contact_names = HumanName(company_obj.fullname)
 
     xero_contact_obj = XeroContact()
 
     company_contact = {
         'company': company_obj.company_name,
-        'firstname': contact_names.first,
-        'lastname': contact_names.surnames,
-        'email': company_obj.email,
-        'fullname': company_obj.company_name
+        'firstname': company_obj.accounts_contact_firstname,
+        'lastname': contact_names.accounts_contact_lastname,
+        'email': company_obj.accounts_email,
+        'fullname': f"{company_obj.account_contact_fullname}"
     }
     if company_obj.website:
         company_contact['website'] = company_obj.website
@@ -757,11 +775,11 @@ def _create_new_company(company_obj, xero_contact_id = None):
     xero_contact_obj.add_telephone(company_obj.telephone)
 
     company_address = {
-        'address_1': company_obj.address,
-        'city': company_obj.city,
-        'region': company_obj.area,
-        'postcode': company_obj.postcode,
-        'country' : company_obj.country
+        'address_1': company_obj.accounts_address,
+        'city': company_obj.accounts_city,
+        'region': company_obj.accounts_area,
+        'postcode': company_obj.accounts_postcode,
+        'country' : company_obj.accounts_country.name
     }
     xero_contact_obj.add_address(company_address)
 
@@ -795,6 +813,30 @@ def _update_company(company_obj):
     xero_contact_id = company_obj.xero_id
     data = _create_new_company(company_obj, xero_contact_id)
     return data
+
+def _get_company_accounts(company_obj):
+    data = {}
+    data['status'] = 'OK'
+
+    xero_contact_id = company_obj.xero_id
+    if xero_contact_id:
+        xero_contact_obj = XeroContact()
+        xero_balance = xero_contact_obj.get_account_balance()
+        errors = xero_contact_obj.xero_api.get_error()
+        if not errors:
+            company_obj.xero_id = contact_id
+            company_obj.save()
+            data['status'] = 'OK'
+            data['account_balance'] = xero_balance
+        else:
+            data['status'] = 'ERROR'
+            data['error'] = errors
+            data['account_balance'] = {}
+    else:
+        data['status'] = 'OK'
+        data['account_balance'] = {}
+
+
 
 
 #############################################   WEBHOOK   ########################################################

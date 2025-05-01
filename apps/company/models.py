@@ -3,6 +3,8 @@ from medusa.models import OcTaxRate, OcTsgPaymentTerms, OcTsgCountryIso, OcTsgAc
 from apps.sites.models import OcStore, OcCurrency
 from django.conf import settings
 
+
+
 class OcTsgCustomerStatus(models.Model):
     status_id = models.AutoField(primary_key=True)
     status_title = models.CharField(max_length=32, blank=True, null=True)
@@ -43,8 +45,9 @@ class OcTsgCompany(models.Model):
     company_type = models.ForeignKey(OcTsgCompanyType, models.DO_NOTHING, db_column='company_type', blank=True, null=True)
     tax_rate = models.ForeignKey(OcTaxRate, models.DO_NOTHING, blank=True, null=True)
     notes = models.CharField(max_length=2048, blank=True, null=True)
+    accounts_contact_fullname = models.CharField(max_length=255, blank=True, null=True)
     accounts_contact_firstname = models.CharField(max_length=255)
-    accounts_contact_lastname = models.CharField(max_length=255)
+    accounts_contact_lastname = models.CharField(max_length=255, blank=True, null=True)
     accounts_email = models.CharField(max_length=255)
     accounts_telephone = models.CharField(max_length=40)
     accounts_address = models.CharField(max_length=512)
@@ -57,14 +60,12 @@ class OcTsgCompany(models.Model):
         managed = False
         db_table = 'oc_tsg_company'
 
-    @property
-    def accounts_contact_fullname(self):
-        return f"{self.accounts_contact_firstname} {self.accounts_contact_lastname}".strip()
-
-
     def __str__(self):
         return self.company_name
 
+    def save(self, *args, **kwargs):
+        self.accounts_contact_fullname = f"{self.accounts_contact_firstname} {self.accounts_contact_lastname}".strip()
+        super().save(*args, **kwargs)
 
 
 class OcTsgCompanyDocuments(models.Model):

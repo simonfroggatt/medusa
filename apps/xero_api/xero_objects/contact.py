@@ -70,7 +70,7 @@ class XeroContact(XeroItem):
 
         logger.debug(f"add_address = {address_data}")
 
-        address_xero = {'AddressType': 'POBOX'}
+        address_xero = {'AddressType': 'STREET'}
         #split the address
         address_data['address_1'] = address_data['address_1'].replace('\r', '')
         address_lines = address_data['address_1'].split('\n')
@@ -148,6 +148,27 @@ class XeroContact(XeroItem):
     def set_existing_id(self, contact_id):
         self.__ContactID = contact_id
         return
+
+    def get_account_balance(self, contact_id):
+        data = dict()
+        self.__ContactID = contact_id
+        if self.do_request('Contacts/' + xero_contact_id, '', ''):
+            xero_reponse = self.xero_api.get_xero_response()
+            if xero_reponse['Contacts']:
+                xero_reponse_contact = xero_reponse['Contacts'][0]
+                outstanding = Decimal(str(xero_reponse_contact.get('AccountsReceivableOutstanding', 0)))
+                overdue = Decimal(str(xero_reponse_contact.get('AccountsReceivableOverdue', 0)))
+                data = {
+                    'outstanding': outstanding,
+                    'overdue': overdue
+                }
+            else:
+                self.__ContactID = None
+        else:
+            self.__ContactID = None
+
+        return data
+
 
     def _debug(self, debugline):
         log_file = os.path.join(settings.BASE_DIR, 'apps/xero_api/logs/xero_error.txt')

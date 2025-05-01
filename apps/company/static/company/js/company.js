@@ -37,7 +37,7 @@ $(function () {
                      render: function (data, type, row) {
 
                          let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row" role="button" href="/customer/details/' + data + '"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
-                         let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row" role="button" data-url="' + data + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
+                         let delete_icon = '<a class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-btn-company-contact" role="button" data-url="' + data + '/companyunlink" data-dlgsize="modal-sm"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
                          return delete_icon + " " + edit_icon;
 
                      }
@@ -175,6 +175,11 @@ $(function () {
 
     $(document).on('click', '.js-company-dlg', loadForm);
     $(document).on("submit", "#js-company-edit-form", SaveDialogFormRedirect);
+
+    $(document).on('click', '.js-btn-company-contact', loadForm);
+    $(document).on("submit", "#js-form-unlink-customer", SaveDialogFormRedirect);
+
+
 
     $(document).on('click', '.js-company-contact-create', loadForm);
     $(document).on("submit", "#js-company-contact-edit-form", SaveDialogFormRedirect);

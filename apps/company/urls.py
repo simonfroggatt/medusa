@@ -32,4 +32,7 @@ urlpatterns = [
 
     # APIS
     path('', views.company_list, name='allcompanies'),
+
+    #contacts
+    path('<int:customer_id>/companyunlink', views.customer_unlink_company, name='customerunlinkcompany'),
 ]

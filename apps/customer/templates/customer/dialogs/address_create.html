@@ -10,13 +10,9 @@
             {% csrf_token %}
 
             <div class="row">
-                <div class="col-md-8">{{ form.fullname|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.telephone|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.fullname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.email|as_crispy_field }}</div>
-                <div class="col-md-12 form-floating">
-                    <input  class="form-control" id="addressLookup" placeholder="Lookup">
-                    <label for="addressLookup">Search for address</label>
-                </div>
                 <div class="col-md-12">{{ form.company|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.address_1|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.city|as_crispy_field }}</div>
@@ -53,7 +49,7 @@
         }
 
 
-        let inputFields = ['#addressLookup']
+        let inputFields = ['#id_{{ form.company.name}}', '#id_{{ form.postcode.name}}']
         TSGAddressLookup(inputFields, '', fieldMatch)
     })
 

@@ -24,10 +24,12 @@
                            value="{{ form.safe.value }}">
             <input type="hidden" id="id_customer" name="customer_id"
                            value="{{ customer_id }}">
+            {{ form.parent_company|as_crispy_field }}
 
             <div class="row">
-                <div class="col-md-6">{{ form.fullname|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.company|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.company|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.firstname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.lastname|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.email|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.mobile|as_crispy_field }}</div>

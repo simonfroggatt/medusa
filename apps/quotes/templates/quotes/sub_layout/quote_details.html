@@ -31,7 +31,7 @@
                          {% else %}
                              <dd class="col-9 col-xl-10"><a href="{% url 'customerdetails' quote_obj.customer.customer_id  %}">{{ quote_obj.customer.fullname }}</a>
                              {% if quote_obj.customer.parent_company %}
-                                 - ( works at: <a href="{% url 'company_details' quote_obj.customer.parent_company.company_id %}">{{ quote_obj.customer.parent_company.company_name }}</a> )
+                                 - ( part of: <a href="{% url 'company_details' quote_obj.customer.parent_company.company_id %}">{{ quote_obj.customer.parent_company.company_name }}</a> )
                              {% endif %}</dd>
                          {% endif %}
                      {% endif %}

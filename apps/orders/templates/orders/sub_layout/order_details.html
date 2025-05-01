@@ -18,12 +18,12 @@
                          {% if order_obj.customer.company %}
                               <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id %}">{{ order_obj.customer.company }}</a>
                              {% if order_obj.customer.parent_company %}
-                                 <br/> ( works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a> )
+                                 <br/> ( part of: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a> )
                              {% endif %}
                               </dd>
                          {% else %}
                              {% if order_obj.customer.parent_company %}
-                                <dd class="col-9">works at: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a>
+                                <dd class="col-9">part of: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a>
                              {% else %}
                                  <dd class="col-9"></dd>
                              {% endif %}
