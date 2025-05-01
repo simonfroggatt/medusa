@@ -876,8 +876,10 @@ $(function () {
             success: function (data) {
                 if (data.form_is_valid) {
                     updateProductVariantCoreTable();
-                }
-                else {
+                    message_text = 'Product Variant Added'
+                     add_toast_message(message_text,'Add Variant', 'bg-success')
+                } else {
+                    add_toast_message('Opps, something went wrong','Add Variant', 'bg-error')
                     $("#modal-base .modal-content").html(data.html_form);
                 }
             }
