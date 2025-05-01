@@ -1,5 +1,5 @@
 from django import forms
-from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryDescriptionBase, OcCategoryToStore, OcTsgCategoryStoreParent
+from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryDescriptionBase, OcCategoryToStore, OcTsgCategoryStoreParent, OcTsgCategory, OcTsgCategoryParent
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
 from django.conf import settings
@@ -33,6 +33,8 @@ class CategoryBaseDescriptionForm(forms.ModelForm):
         widgets = {
             'category': forms.HiddenInput()
         }
+
+
 
 
 class CategoryStoreDescriptionForm(forms.ModelForm):
@@ -88,8 +90,36 @@ class CategoryStoreParentForm(forms.ModelForm):
             'image': SvgAndImageFormField,
         }
 
+class CategoryDescriptionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CategoryDescriptionForm, self).__init__(*args, **kwargs)
+        self.fields['store'].empty_label = None
 
+    description = forms.CharField(widget=TinyMCE(attrs={'rows': 30}), required=False)
 
+    class Meta:
+        model = OcTsgCategory
 
+        fields = '__all__'
 
+        labels = {
+            'status': 'Visible',
+        }
 
+class CategoryParentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CategoryParentForm, self).__init__(*args, **kwargs)
+        #self.fields['parent'].empty_label = None
+
+    class Meta:
+        model = OcTsgCategoryParent
+        fields = '__all__'
+
+        widgets = {
+            'parent': forms.HiddenInput(),
+           'category': forms.HiddenInput(),
+        }
+
+        labels = {
+            'status': 'Live',
+        }

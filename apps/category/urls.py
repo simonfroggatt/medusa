@@ -23,10 +23,15 @@ urlpatterns = [
     path('<int:pk>/storeeditpk', views.CategoryStoreEdit.as_view(), name='categorystoreeditpk'),
     path('<int:pk>/storeadddlg', views.category_store_add_text_dlg, name='categorystoreadd_dlg'),
     path('<int:base_category_id>/storeparent/add_gld', views.category_store_parent_add, name='categorystoreparentadd_gld'),
-    path('<int:base_category_id>/storeparent/add', views.category_store_parent_add, name='categorystoreparentadd'),
+    path('<int:category_id>/storeparent/add', views.category_store_parent_add, name='categorystoreparentadd'),
     path('<int:pk>/storecatparentdlg', views.category_store_parent_edit_dlg, name='categorystoreparent_dlg'),
     path('api/storeadd', views.category_store_add_text, name='categorystoreadd'),
     path('api/storetextdelete/<int:pk>', views.category_store_text_delete_dlg, name='categorystoredelete'),
-    path('api/storeparentdelete/<int:pk>', views.category_store_parent_delete_dlg, name='categorystoreparentdelete')
+    path('api/storeparentdelete/<int:pk>', views.category_store_parent_delete_dlg, name='categorystoreparentdelete'),
   #  path('<int:pk>', views.SymbolsUpdateView.as_view(), name='symboldetails')
+
+
+    path('<int:pk>/edit', views.CategoryEdit.as_view(), name='categorydetailsedit'),
+
+
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

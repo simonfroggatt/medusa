@@ -12,9 +12,9 @@
                 <form method="post" action="{% url 'categorystoreparent_dlg' pk %}"
                       id="js-category-add-text-dlg">
                     {% csrf_token %}
-                    <div class="col-md-6">{{ form.category_store|as_crispy_field }}</div>
+                    {{ form.category|as_crispy_field }}
+                    {{ form.parent|as_crispy_field }}
                      <div class="row">
-                      <div class="col-md-12">{{ form.parent|as_crispy_field }}</div>
                       <div class="col-md-3">{{ form.is_base|as_crispy_field }}</div>
                       <div class="col-md-3">{{ form.homepage|as_crispy_field }}</div>
                       <div class="col-md-3">{{ form.top|as_crispy_field }}</div>

@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
-from apps.category.models import OcCategory, OcCategoryDescriptionBase, OcCategoryDescription, OcCategoryToStore, OcTsgCategoryStoreParent
-from apps.category.forms import CategoryEditForm, CategoryBaseDescriptionForm, CategoryStoreDescriptionForm, CategoryStoreForm, CategoryStoreParentForm
+from apps.category.models import (OcCategory, OcCategoryDescriptionBase, OcCategoryDescription, OcCategoryToStore,
+                                  OcTsgCategoryStoreParent, OcTsgCategory, OcTsgCategoryParent)
+from apps.category.forms import (CategoryEditForm, CategoryBaseDescriptionForm, CategoryStoreDescriptionForm,
+                                 CategoryStoreForm, CategoryStoreParentForm,CategoryDescriptionForm, CategoryParentForm)
 from apps.sites.models import OcStore
-from .serializers import CategorySerialise, CategoryDescriptionSerialize, CategoryToStoreSerializer, CategoryStoreParentPaths, StoreCategoriesSerializer,CategoryBaseDescriptionSerializer
+from .serializers import CategorySerializer, CategoryDescriptionSerialize, CategoryToStoreSerializer, CategoryStoreParentPaths, StoreCategoriesSerializer,CategoryParentPaths
 from rest_framework.response import Response
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.core import serializers
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
@@ -19,11 +20,9 @@ def all_cats(request):
     context = {'heading': 'Categories'}
     return render(request, template_name, context)
 
-
 class Categories(viewsets.ModelViewSet):
-    queryset = OcCategoryDescriptionBase.objects.filter(category_id__gt=0).order_by('category_id')
-    serializer_class = CategoryBaseDescriptionSerializer
-
+    queryset = OcTsgCategory.objects.all().order_by('id')
+    serializer_class = CategorySerializer
 
 class CategoryDescriptions(viewsets.ModelViewSet):
     queryset = OcCategoryDescription.objects.all()
@@ -45,11 +44,11 @@ class CategoryToStoreDescriptions(viewsets.ModelViewSet):
 
 
 class CategoryStoreToParents(viewsets.ModelViewSet):
-    queryset = OcTsgCategoryStoreParent.objects.all()
-    serializer_class = CategoryStoreParentPaths
+    queryset = OcTsgCategoryParent.objects.all()
+    serializer_class = CategoryParentPaths
 
     def retrieve(self, request, pk=None):
-        queryset = OcTsgCategoryStoreParent.objects.filter(category_store__category__category_id=pk)
+        queryset = OcTsgCategoryParent.objects.filter(category_id=pk)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -80,18 +79,18 @@ class CategoryStoreEdit(UpdateView):
 
 
 class CategoryEdit(UpdateView):
-    queryset = OcCategoryDescriptionBase.objects.all()
-    form_class = CategoryBaseDescriptionForm
-    template_name = 'category/category_base_edit.html'
+    queryset = OcTsgCategory.objects.all()
+    form_class = CategoryDescriptionForm
+    template_name = 'category/category_edit.html'
     success_url = reverse_lazy('allcategories')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        category_obj = get_object_or_404(OcCategoryDescriptionBase, pk=self.kwargs['pk'])
+        category_obj = get_object_or_404(OcTsgCategory, pk=self.kwargs['pk'])
         context['heading'] = "BASE text"
         breadcrumbs = []
         breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
-        breadcrumbs.append({'name': category_obj.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': category_obj.category_id})})
+        breadcrumbs.append({'name': category_obj.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': category_obj.id})})
         context['breadcrumbs'] = breadcrumbs
 
         return context
@@ -105,7 +104,7 @@ class CategoryEdit(UpdateView):
 def category_details(request, pk):
     template = 'category/category_layout.html'
     context = {}
-    category_obj = get_object_or_404(OcCategoryDescriptionBase, pk=pk)
+    category_obj = get_object_or_404(OcTsgCategory, pk=pk)
     breadcrumbs = []
     breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
     context['breadcrumbs'] = breadcrumbs
@@ -216,17 +215,17 @@ def category_store_parent_edit_dlg(request, pk):
     context = {}
     data = dict()
     template_name = 'category/dialogs/category_site_parent_edit.html'
-    category_obj = get_object_or_404(OcTsgCategoryStoreParent, pk=pk)
+    category_parent_obj = get_object_or_404(OcTsgCategoryParent, pk=pk)
     if request.method == 'POST':
-        form = CategoryStoreParentForm(request.POST, instance=category_obj)
+        form = CategoryParentForm(request.POST, instance=category_parent_obj)
         if form.is_valid():
             form_instance = form.instance
             form.save()
-            refresh_url = reverse_lazy('categorydetails', kwargs={'pk': form_instance.category_store.category_id})
+            refresh_url = reverse_lazy('categorydetails', kwargs={'pk': form_instance.category_id})
             return HttpResponseRedirect(refresh_url)
 
     else:
-        form = CategoryStoreParentForm(instance=category_obj)
+        form = CategoryParentForm(instance=category_parent_obj)
 
     context = {'form': form, 'pk': pk}
 
@@ -244,8 +243,8 @@ def category_store_parent_delete_dlg(request, pk):
 
     if request.method == 'POST':
         pk_post = request.POST['pk']
-        category_obj = get_object_or_404(OcTsgCategoryStoreParent, pk=pk_post)
-        refresh_url = reverse_lazy('categorydetails', kwargs={'pk': category_obj.category_store.category_id})
+        category_obj = get_object_or_404(OcTsgCategoryParent, pk=pk_post)
+        refresh_url = reverse_lazy('categorydetails', kwargs={'pk': category_obj.category_id})
         category_obj.delete()
         return HttpResponseRedirect(refresh_url)
 
@@ -257,73 +256,62 @@ def category_store_parent_delete_dlg(request, pk):
     return JsonResponse(data)
 
 
-def category_store_parent_add(request, base_category_id):
-    template = 'category/sub_layouts/category_site_parent_add.html'
+def category_store_parent_add(request, category_id):
+    template = 'category/sub_layouts/category_structure_add.html'
     context = {}
-    base_cat_obj = get_object_or_404(OcCategoryDescriptionBase, pk=base_category_id)
+    cat_obj = get_object_or_404(OcTsgCategory, pk=category_id)
 
     context['heading'] = "Parent Category"
     breadcrumbs = []
     breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
     breadcrumbs.append(
-        {'name': base_cat_obj.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': base_category_id})})
+        {'name': cat_obj.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': category_id})})
     context['breadcrumbs'] = breadcrumbs
 
     if request.method == 'POST':
-        store_cat_obj = OcCategoryToStore.objects.filter( category_id=base_category_id,
-                                          store_id=request.POST.get('store_id'))
+        parent_id = request.POST['parent_id']
+        form = CategoryParentForm(request.POST)
+        if form.is_valid():
+            new_cat_parent = form.save(commit=False)
+            new_cat_parent.category_id = category_id
+            new_cat_parent.parent_id = parent_id
+            new_cat_parent.save()
 
-        if store_cat_obj:
-            store_cat_id = store_cat_obj.first().category_store_id
-        else:
-            store_cat_id = create_category_to_store(base_category_id, request.POST.get('store_id'))
-
-        form = CategoryStoreParentForm(request.POST)
-        form_instance = form.instance
-        form_instance.category_store_id = store_cat_id
-        form_instance.parent_id = request.POST.get('parent_id')
-        form_instance.save()
-
-        #check it saved
-        new_id = form_instance.pk
-        if new_id:
-            refresh_url = reverse_lazy('categorydetails', kwargs={'pk': base_category_id})
+            refresh_url = reverse_lazy('categorydetails', kwargs={'pk': category_id})
             return HttpResponseRedirect(refresh_url)
         else:
             context['form'] = form
-            context['base_category_id'] = base_category_id
-            context['return_url'] = reverse_lazy('categorydetails', kwargs={'pk': base_category_id})
-            context['base_category'] = base_cat_obj
-            context['store_obj'] = OcStore.objects.filter(store_id__gt=0)
+            context['category_id'] = category_id
+            context['return_url'] = reverse_lazy('categorydetails', kwargs={'pk': category_id})
+            context['category'] = cat_obj
             context['error_message'] = "Error saving category parent"
             return render(request, template, context)
     else:
-        category_obj = OcTsgCategoryStoreParent
-        cat_iniitials = {
+        category_obj = OcTsgCategoryParent()
+        cat_initials = {
             'sort_order': 999,
             'top': False,
             'status': False,
             'homepage': False,
             'is_base': False,
+            'parent': cat_obj,
+            'category': cat_obj
         }
-        form = CategoryStoreParentForm(instance=category_obj, initial=cat_iniitials)
-        base_cat_obj = get_object_or_404(OcCategoryDescriptionBase, pk=base_category_id)
+        form = CategoryParentForm(instance=category_obj, initial=cat_initials)
 
     context['form'] = form
-    context['base_category_id'] = base_category_id
-    context['return_url'] = reverse_lazy('categorydetails', kwargs={'pk': base_category_id})
-    context['base_category'] = base_cat_obj
-    context['store_obj'] = OcStore.objects.filter(store_id__gt=0)
-
+    context['category_id'] = category_id
+    context['return_url'] = reverse_lazy('categorydetails', kwargs={'pk': category_id})
+    context['category'] = cat_obj
     return render(request, template, context)
 
 
 class StoreCategories(viewsets.ModelViewSet):
-    queryset = OcCategoryToStore.objects.all()
-    serializer_class = StoreCategoriesSerializer
+    queryset = OcTsgCategory.objects.all()
+    serializer_class = CategorySerializer
 
     def retrieve(self, request, pk=None):
-        queryset = OcCategoryToStore.objects.filter(store_id=pk).order_by('category_id')
+        queryset = OcTsgCategory.objects.filter(store_id=pk).order_by('id')
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

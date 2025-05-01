@@ -19,7 +19,7 @@
 
         <div class="row pb-2">
             <div class="col">
-               {% include 'category/sub_layouts/category_details_base.html' %}
+               {% include 'category/sub_layouts/category_details.html' %}
             </div>
         </div>
 
@@ -29,27 +29,19 @@
                      <div class="ibox-content tsg_navs">
                         <ul class="nav nav-tabs " role="tablist">
 
-
                              <li class="nav-item" role="presentation">
                         <a class="nav-link active" id="variants-tab" data-bs-toggle="tab" href="#tab-structure" role="tab">
                             <i class="fa-solid fa-folder-tree"></i>  Structure</a>
                     </li>
-                            <li>
-                        <a class="nav-link " id="address-tab" data-bs-toggle="tab" href="#tab-texts" role="tab">
-                            <i class="fa-solid fa-align-left"></i>  Text</a>
-                    </li>
+
                 </ul>
                         <div class="tab-content">
-                    <div role="tabpanel" id="tab-texts" class="tab-pane fade ">
+                    <div role="tabpanel" id="tab-texts" class="tab-pane fade show active">
                         <div class="panel-body">
-                            {% include 'category/sub_layouts/category_list_descriptions.html' %}
+                             {% include 'category/sub_layouts/category_list_structure.html' %}
                         </div>
                     </div>
-                            <div role="tabpanel" id="tab-structure" class="tab-pane fade show active">
-                        <div class="panel-body">
-                          {% include 'category/sub_layouts/category_list_site_parents.html' %}
-                        </div>
-                    </div>
+
                 </div>
                      </div>
                  </div>
@@ -62,7 +54,7 @@
 
 {% block javascript %}
     <script>
-        const current_cat_id = {{ category_obj.category_id }}
+        const current_cat_id = {{ category_obj.id }}
     </script>
 
 <script type="text/javascript" src="{% static 'js/category.js' %}"></script>

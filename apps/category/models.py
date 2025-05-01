@@ -188,6 +188,16 @@ class OcTsgCategory(models.Model):
     def __str__(self):
         return self.category.name
 
+    @property
+    def category_image_url(self):
+        if self.image:
+            return f"{settings.MEDIA_URL}{self.image}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
+
+    def __str__(self):
+        return self.name
+
 
 class OcTsgCategoryParent(models.Model):
     category = models.ForeignKey(OcTsgCategory, models.DO_NOTHING)
