@@ -152,7 +152,7 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
 
     try:
         # Fix common font fallback issues
-        logger.info('svg_bytes before: {}'.format(svg_bytes))
+        #logger.info('svg_bytes before: {}'.format(svg_bytes))
 
         """svg_bytes = svg_bytes.replace(
             b'font-family="Arial-BoldMT, Arial, sans-serif"',
@@ -166,7 +166,7 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
 
 
         cleaned_svg = clean_svg_bytes(svg_bytes)
-        logger.info('svg_bytes after: {}'.format(cleaned_svg))
+        #logger.info('svg_bytes after: {}'.format(cleaned_svg))
         svg2pdf(bytestring=cleaned_svg, write_to=tmp_filename)
 
         if os.path.exists(tmp_filename):
