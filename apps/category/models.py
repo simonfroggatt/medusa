@@ -164,3 +164,41 @@ class OcTsgCategoryStoreParent(models.Model):
         managed = False
         db_table = 'oc_tsg_category_store_parent'
         unique_together = (('category_store', 'parent'),)
+
+
+        """NEW CAT STRUCTURE"""
+
+class OcTsgCategory(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='stores/category/', blank=True, null=True)
+    meta_title = models.CharField(max_length=128, blank=True, null=True)
+    meta_description = models.CharField(max_length=1024, blank=True, null=True)
+    meta_keywords = models.CharField(max_length=1024, blank=True, null=True)
+    adwords_name = models.CharField(max_length=255, blank=True, null=True)
+    clean_url = models.CharField(max_length=255, blank=True, null=True)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING)
+    status = models.BooleanField(blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_category'
+
+    def __str__(self):
+        return self.category.name
+
+
+class OcTsgCategoryParent(models.Model):
+    category = models.ForeignKey(OcTsgCategory, models.DO_NOTHING)
+    parent = models.ForeignKey(OcTsgCategory, models.DO_NOTHING, related_name='tsg_category_parent', blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+    status = models.BooleanField(blank=True)
+    top = models.BooleanField(blank=True)
+    homepage = models.BooleanField(blank=True)
+    is_base = models.BooleanField(blank=False)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_category_parent'
+        unique_together = (('category', 'parent'),)

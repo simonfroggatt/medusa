@@ -4,7 +4,7 @@ from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus
-from apps.category.models import OcCategoryToStore
+from apps.category.models import OcCategoryToStore, OcTsgCategory
 
 
 
@@ -300,3 +300,18 @@ class OcTsgProductDocuments(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+"""NEW CAT STRUCTURE"""
+
+
+class OcTsgProductToCategory(models.Model):
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING)
+    category = models.ForeignKey(OcTsgCategory, models.DO_NOTHING)
+    status = models.IntegerField()
+    order = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_to_category'
