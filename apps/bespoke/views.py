@@ -12,6 +12,8 @@ from django.shortcuts import get_object_or_404
 from lxml import etree
 from io import BytesIO
 import json
+import logging
+logger = logging.getLogger('apps')
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -150,7 +152,8 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
 
     try:
         # Fix common font fallback issues
-        print(svg_bytes)
+        logger.info('svg_bytes before: {}'.format(svg_bytes))
+
         """svg_bytes = svg_bytes.replace(
             b'font-family="Arial-BoldMT, Arial, sans-serif"',
             b'font-family="Arial" font-weight="bold"'
@@ -161,8 +164,9 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
         svg_bytes = svg_bytes.strip()
         """
 
-        print(svg_bytes)
+
         cleaned_svg = clean_svg_bytes(svg_bytes)
+        logger.info('svg_bytes after: {}'.format(svg_bytes))
         svg2pdf(bytestring=svg_bytes, write_to=tmp_filename)
 
         if os.path.exists(tmp_filename):
