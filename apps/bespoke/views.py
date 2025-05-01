@@ -141,15 +141,34 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
 
     tmp_filename = os.path.join(settings.REPORT_PATH_CACHE, pdf_filename)
 
+    # If svg_bytes is a string (not bytes), encode it
+    if isinstance(svg_bytes, str):
+        svg_bytes = svg_bytes.encode('utf-8')
+
+    try:
+        # Fix common font fallback issues
+        svg_bytes = svg_bytes.replace(
+            b'font-family="Arial-BoldMT, Arial, sans-serif"',
+            b'font-family="Arial" font-weight="bold"'
+        )
+
+        svg2pdf(bytestring=svg_bytes, write_to=tmp_filename)
+        if os.path.exists(tmp_filename):
+            return True
+        else:
+            return False
+    except:
+        return False
+
     #svg_string = json.loads(svg_bytes)
-    svg_string = svg_bytes
-    svg2pdf(bytestring=svg_string, write_to=tmp_filename)
+    #svg_string = svg_bytes
+    #svg2pdf(bytestring=svg_string, write_to=tmp_filename)
    # tmp = json.dumps(svg_bytes)
     #now check the file exists
-    if os.path.exists(tmp_filename):
-        return True
-    else:
-        return False
+    #if os.path.exists(tmp_filename):
+    #    return True
+    #else:
+    #    return False
         
 
 def download_google_drive_file(request, file_id):
