@@ -9,6 +9,8 @@ from googleapiclient.http import MediaFileUpload
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from lxml import etree
+from io import BytesIO
 import json
 
 from google.oauth2 import service_account
@@ -139,6 +141,7 @@ def _googledrive_upload(filename):
 def _convert_svg_to_pdf(svg_bytes, pdf_filename):
     #add the tmp path to the filename
 
+
     tmp_filename = os.path.join(settings.REPORT_PATH_CACHE, pdf_filename)
 
     # If svg_bytes is a string (not bytes), encode it
@@ -147,17 +150,28 @@ def _convert_svg_to_pdf(svg_bytes, pdf_filename):
 
     try:
         # Fix common font fallback issues
-        svg_bytes = svg_bytes.replace(
+        print(svg_bytes)
+        """svg_bytes = svg_bytes.replace(
             b'font-family="Arial-BoldMT, Arial, sans-serif"',
             b'font-family="Arial" font-weight="bold"'
         )
+        svg_bytes = re.sub(
+            rb'\s+(family|size|weight|anchor)="[^"]+"', b'', svg_bytes
+        )
+        svg_bytes = svg_bytes.strip()
+        """
 
+        print(svg_bytes)
+        cleaned_svg = clean_svg_bytes(svg_bytes)
         svg2pdf(bytestring=svg_bytes, write_to=tmp_filename)
+
         if os.path.exists(tmp_filename):
             return True
         else:
             return False
-    except:
+    except Exception as e:
+        # Optional: log the error
+        print(f"Error converting SVG to PDF: {e}")
         return False
 
     #svg_string = json.loads(svg_bytes)
@@ -267,3 +281,24 @@ def test_write(request):
         return JsonResponse({'message': 'Write permission is granted.', 'directory': directory_to_test})
     else:
         return JsonResponse({'message': 'Write permission is denied.', 'directory': directory_to_test})
+
+
+def clean_svg_bytes(svg_bytes):
+    # Parse the SVG from bytes
+    parser = etree.XMLParser(remove_comments=True)
+    tree = etree.parse(BytesIO(svg_bytes), parser)
+    root = tree.getroot()
+
+    # Strip invalid attributes from all elements
+    for elem in root.iter():
+        for attr in ['family', 'size', 'weight', 'anchor']:
+            if attr in elem.attrib:
+                del elem.attrib[attr]
+
+        # Fix font-family
+        if "font-family" in elem.attrib and "Arial-BoldMT" in elem.attrib["font-family"]:
+            elem.attrib["font-family"] = "Arial"
+            elem.attrib["font-weight"] = "bold"
+
+    # Return cleaned SVG as bytes
+    return etree.tostring(tree, pretty_print=True, xml_declaration=True, encoding="UTF-8")
