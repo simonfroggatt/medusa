@@ -15,106 +15,26 @@
                     <input type="hidden" id="static_media_url" value="{% get_media_prefix %}">
                     <input type="hidden" id="store_category_id" name="store_category_id" value="">
                     {{ form.product|as_crispy_field }}
-                    {{ form.category_store|as_crispy_field }}
+                    {{ form.category|as_crispy_field }}
 
                     {% csrf_token %}
                     <div class="row">
-                    <div class="col-12">
-                        {{ form.status|as_crispy_field }}
-                    </div>
                         <div class="col-12">
-                            <label for="store_id_category">Which Store?</label>
-                <select class="form-select pb-2" aria-label="Default select" id="store_id_category" name="store_id_category">
-
-                    {% for store_data in store_obj %}
-                        <option value="{{ store_data.store_id }}">{{ store_data.store }}</option>
-
-                    {% endfor %}
-                </select>
-
+                            {{ form.status|as_crispy_field }}
                         </div>
-                        <div class="col-12">
-                            <table id="product_category_table_edit" class="table table-hover table-striped align-middle table-sm"
-                                   style="width:100%">
-                                <thead>
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                </tr>
-                                </thead>
-                            </table>
+
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                                <button type="submit" id="delete" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
+                            </div>
                         </div>
                     </div>
-                <div class="col-md-12">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
-                        <button type="submit" id="delete" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
-                    </div>
-                </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-{% block javascript %}
 
-    <script>
-
-    if ($.fn.dataTable.isDataTable('#product_category_table_edit')) {
-        var product_category_table_edit = $('#product_category_table_edit').DataTable();
-    } else {
-        var product_category_table_edit = $('#product_category_table_edit').DataTable({
-            "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
-        "processing" : true,
-        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
-        "pageLength": 10,
-        "autoWidth": false,
-        "responsive": true,
-            "select": "single",
-            "rowId" : 'category_store_id',
-            "ajax": "/category/api/storecats/" + 1 + "/?format=datatables",
-            "columns": [
-                {data: "category.image",
-                    render: function ( data, type, row ) {
-                    var img_path = '';
-                    if( data != null){
-                        img_path = {% get_media_prefix %} + data
-                    }
-                    else {
-                        img_path = row['category_image_url'];
-
-                    }
-                    return '<img height="50px" class="mx-auto d-block product-thumb img-responsive" src="'+img_path+'">';
-                 } },
-                {data: "category.name"},
-                {data: "category.name"},
-
-            ],
-        });
-    }
-
-    $('#store_id_category').on('change', function() {
-        let newval = $(this).val()
-        let ajax_url = "/category/api/storecats/" + newval + "?format=datatables";
-
-        var product_category_table_edit = $('#product_category_table_edit').DataTable();
-        product_category_table_edit.ajax.url(ajax_url).load();
-
-    });
-
-    product_category_table_edit.on( 'select', function ( e, dt, type, indexes ) {
-        if (type === 'row') {
-            var store_cetegory_id = dt.row(indexes).id();
-            $('#store_category_id').val(store_cetegory_id)
-
-            // do something with the ID of the selected items
-        }
-    });
-    </script>
-
-{% endblock javascript %}
 

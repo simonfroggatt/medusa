@@ -473,7 +473,7 @@ def product_category_edit(request, pk):
     template_name = 'products/dialogs/product_category-edit.html'
     context = dict()
     data = dict()
-    product_obj = get_object_or_404(OcProductToCategory, pk=pk)
+    product_obj = get_object_or_404(OcTsgProductToCategory, pk=pk)
 
     if request.method == 'POST':
         form_product = ProductCategoryForm(request.POST, instance=product_obj)
@@ -502,23 +502,24 @@ def product_category_create(request, pk):
     data = dict()
     product_obj = get_object_or_404(OcProduct, pk=pk)
     form_product = ProductCategoryForm(instance=product_obj)
-
     if request.method == 'POST':
-        product_cat_obj = OcProductToCategory()
-        product_cat_obj.product_id = pk
-        product_cat_obj.category_store_id = request.POST.get('store_category_id')
-        if request.POST.get('status'):
-            product_cat_obj.status = True
-        else:
-            product_cat_obj.status = False
-        product_cat_obj.save()
-        if product_cat_obj.pk > 0:
+        form_prod_cat = ProductCategoryForm(request.POST)
+        if request.POST.get('new_category_id'):
+            product_cat_obj = OcTsgProductToCategory()
+            form_instance = form_prod_cat.instance
+            product_cat_obj.category_id = request.POST.get('new_category_id')
+            product_cat_obj.product_id = pk
+            product_cat_obj.status = form_instance.status
+            product_cat_obj.order = 999
+            product_cat_obj.save()
             data['form_is_valid'] = True
         else:
             data['form_is_valid'] = False
+
     else:
         data['form_is_valid'] = False
-        form_product = ProductCategoryForm(instance=product_obj)
+        init_data = {'product_id': product_obj, 'status': True, 'order': 999 }
+        form_product = ProductCategoryForm(initial=init_data, instance=product_obj)
 
     store_obj = OcProductToStore.objects.filter(product_id=product_obj.product_id)
     context = {'store_obj': store_obj, 'form': form_product, 'pk': pk}
@@ -534,8 +535,8 @@ def product_category_delete(request, pk):
 
     if request.method == 'POST':
         #product_category_id = request.POST.get('product_category_id')
-        variant_option_core_obj = get_object_or_404(OcProductToCategory, id=pk)
-        variant_option_core_obj.delete()
+        product_cat_obj = get_object_or_404(OcTsgProductToCategory, id=pk)
+        product_cat_obj.delete()
         data['form_is_valid'] = True
     else:
         data['form_is_valid'] = False

@@ -1,7 +1,7 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
     OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage, \
-    OcTsgProductDocuments, OcProductRelated
+    OcTsgProductDocuments, OcProductRelated, OcTsgProductToCategory
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions,  OcTsgProductOption, OcTsgProductOptionValues
 
@@ -95,7 +95,7 @@ class SiteProductDetailsForm(forms.ModelForm):
 
 class ProductCategoryForm(forms.ModelForm):
     class Meta:
-        model = OcProductToCategory
+        model = OcTsgProductToCategory
         fields = '__all__'
 
         labels = {
@@ -104,7 +104,7 @@ class ProductCategoryForm(forms.ModelForm):
 
         widgets = {
             'product': forms.HiddenInput,
-            'category_store': forms.HiddenInput,
+            'category': forms.HiddenInput,
             'status': forms.CheckboxInput,
 
         }

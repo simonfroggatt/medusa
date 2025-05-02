@@ -129,7 +129,7 @@ $(function () {
                        sortable: false,
                        className: 'text-md-end text-start',
                        render: function (data, type, row) {
-                           let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categoryedit"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                           let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categoryedit" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
                            let delete_icon = '<a  class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/categorydelete"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
                            return edit_icon + " " + delete_icon;
 
