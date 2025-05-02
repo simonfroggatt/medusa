@@ -96,7 +96,6 @@
     product_category_table_edit.on( 'select', function ( e, dt, type, indexes ) {
         if (type === 'row') {
             var store_cetegory_id = dt.row(indexes).id();
-            alert('Selected row ID: ' + store_cetegory_id);
             $('#new_category_id').val(store_cetegory_id)
 
             // do something with the ID of the selected items
