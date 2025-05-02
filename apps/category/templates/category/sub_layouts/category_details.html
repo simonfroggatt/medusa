@@ -1,7 +1,7 @@
 {% load static %}
 <div class="row pb-2">
     <div class="col-12 col-sm-2 pe-0">
-        <img src="{{ category_obj.base_category_image_url }}" alt="{{ category_obj.name }} category image" class="img-fluid img-thumbnail">
+        <img src="{{ category_obj.category_image_url }}" alt="{{ category_obj.name }} category image" class="img-fluid img-thumbnail">
     </div>
     <div class="col-12 col-sm-5 pe-0" id="card_category_base_desc">
         <div class="card h-100 mb-0">
@@ -12,7 +12,7 @@
                         <div class="float-end">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
                                 <a type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
-                                        href="{% url 'categorybaseedit' category_obj.pk %}"
+                                        href="{% url 'categorydetailsedit' category_obj.pk %}"
                                         data-dlgsize="modal-xl"
                                 ><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                             </div>
@@ -28,16 +28,17 @@
                             <dd class="col-9">{{ category_obj.name }}</dd>
                             <dt class="col-3">Description</dt>
                             <dd class="col-9">{{ category_obj.description|truncatechars:128 }}</dd>
-                            <dt class="col-3">Language</dt>
-                            <dd class="col-9">{{ category_obj.language }}</dd>
                             <dt class="col-3">Clean URL</dt>
                             <dd class="col-9">{{ category_obj.clean_url }}</dd>
                             <dt class="col-3">Status</dt>
-                            <dd class="col-9">{% if category_obj.category.status %}
+                            <dd class="col-9">{% if category_obj.status %}
+
                                 <span class="badge rounded-pill badge-soft-success font-size-14">LIVE</span>
                             {% else %}
                                 <span class="badge rounded-pill badge-soft-warning font-size-14">OFF-LINE</span>
                             {% endif %}</dd>
+                            <dt class="col-3">Store</dt>
+                            <dd class="col-9">{{ category_obj.store.name }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -53,7 +54,7 @@
                         <div class="float-end">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
                                 <a type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-company-dlg"
-                                        href="{% url 'categorybaseedit' category_obj.id %}"
+                                        href="{% url 'categorydetailsedit' category_obj.id %}"
                                         data-dlgsize="modal-xl"
                                 ><i class="{{ ICON_EDIT }} fa-pull-right"></i></a>
                             </div>
@@ -68,7 +69,7 @@
                             <dt class="col-3">Meta Title</dt>
                             <dd class="col-9">{{ category_obj.meta_title }}</dd>
                             <dt class="col-3">Meta Keywords</dt>
-                            <dd class="col-9">{{ category_obj.meta_keyword }}</dd>
+                            <dd class="col-9">{{ category_obj.meta_keywords }}</dd>
                             <dt class="col-3">Meta Description</dt>
                             <dd class="col-9">{{ category_obj.meta_description|truncatechars:128 }}</dd>
                             <dt class="col-3">Adwords Name</dt>

@@ -3,7 +3,7 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
-    OcProductImage, OcStoreProductImages, OcTsgProductDocuments
+    OcProductImage, OcStoreProductImages, OcTsgProductDocuments, OcTsgProductToCategory
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
 from .serializers import (ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
@@ -70,11 +70,11 @@ class ProductSymbolsAvailable(viewsets.ModelViewSet):
 
 
 class Category(viewsets.ModelViewSet):
-    queryset = OcProductToCategory.objects.all()
+    queryset = OcTsgProductToCategory.objects.all()
     serializer_class = CategorySerializer
 
     def retrieve(self, request, pk=None):
-        category_object = OcProductToCategory.objects.filter(product_id=pk)
+        category_object = OcTsgProductToCategory.objects.filter(product_id=pk)
         serializer = self.get_serializer(category_object, many=True)
         return Response(serializer.data)
 
@@ -730,6 +730,12 @@ def product_core_variant_add(request, pk):
         form_obj = VariantCoreForm(request.POST, request.FILES)
         if form_obj.is_valid():
             form_obj.save()
+            clean_data = form_obj.cleaned_data
+            size_material = clean_data['size_material']
+
+            variant_size = size_material.product_size.size_name
+            variant_material = size_material.product_material.material_name
+            data['message_txt'] = f"Product Variant Core Created<br>{variant_size} - {variant_material}"
             data['form_is_valid'] = True
         else:
             data['form_is_valid'] = False
@@ -888,25 +894,23 @@ def product_variant_site_add(request, core_variant_id, store_id):
         else:
             #get the store details
             store_obj = get_object_or_404(OcStore, store_id=store_id)
-            code_template = store_obj.product_code_template
+            store_code_template = store_obj.product_code_template
 
             # get the core variant details
             obj_product_variant_core = get_object_or_404(OcTsgProductVariantCore, prod_variant_core_id=core_variant_id)
 
-            code_template = ''
-
             obj_product_variants = OcTsgProductVariants()   #create a new variant
             obj_product_variants.prod_var_core_id = core_variant_id
             obj_product_variants.store_id = store_id
-            obj_product_variants.variant_code = code_template
             obj_product_variants.variant_overide_price = 0.00
             obj_product_variants.isdeleted = False
+
             obj_product_variants.save()
 
-            #now we have saved it we can set the correct code
             new_id = obj_product_variants.prod_variant_id
             code_template = create_product_variant_code(new_id)
             obj_product_variants.variant_code = code_template
+            obj_product_variants.save()
             #now we need to see if the options to copy are are selected.
             #product_variant_site_add_options(core_variant_id, new_id)
 

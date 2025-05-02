@@ -24,9 +24,11 @@
                                        style="width:100%">
                                     <thead>
                                     <tr>
+                                        <th width="50px">Website</th>
                                         <th class="col-2">Image</th>
                                         <th> Name</th>
                                         <th> URL</th>
+                                        <th> Status</th>
                                         <th class="50px">&nbsp</th>
                                     </tr>
                                     </thead>
@@ -57,16 +59,27 @@
         "serverSide": true,
         "ajax": {
                  "processing": true,
-                 "url": "/category/api/category/?format=datatables"
+                 "url": "/category/api/category?format=datatables"
              },
         "deferRender": true,
          "search": {
             "regex": true
         },
         columns :[
-
             {
-                data: "base_category_image_url",
+                data: "store",
+                sortable: false,
+                searchable: false,
+                name: "store.name",
+                class: "align-middle",
+                render: function ( data, type, row ) {
+                    let image_src = '{% get_media_prefix %}stores/branding/logos/' + data.thumb;
+                    let store_logo = '<img height="15px" src="' + image_src + '" title="'+data.name+'">';
+                    return store_logo;
+                 }
+            },
+            {
+                data: "category_image_url",
                 searchable: "false",
                 sortable: "false",
                 render: function (data, type, row, meta ) {
@@ -76,7 +89,7 @@
             },
             {data: "name"},
             {data: "clean_url" , defaultContent:"" },
-           /* {
+            {
                 data: "status",
                 render: function (data, type, row) {
                     if (data == 1) {
@@ -86,9 +99,9 @@
                     }
 
                 }
-            },*/
+            },
             {
-                data: 'category_id',
+                data: 'id',
                 sortable: false,
                 className: 'text-end',
                 searchable: false,

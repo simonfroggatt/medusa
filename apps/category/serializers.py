@@ -1,28 +1,20 @@
 from rest_framework import serializers
-from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryToStore, OcCategoryPath, OcTsgCategoryStoreParent, OcCategoryDescriptionBase
+from apps.category.models import (OcCategory, OcCategoryDescription, OcCategoryToStore, OcCategoryPath,
+                                  OcTsgCategoryStoreParent, OcCategoryDescriptionBase, OcTsgCategory, OcTsgCategoryParent)
 from apps.sites.models import OcStore
 from django.conf import settings
 
 
-class CategorySerialise(serializers.ModelSerializer):
-
-    #base_category_image_url = serializers.SerializerMethodField(read_only=True)
-
-    #def get_base_category_image_url(self, category):
-    #    basedesc = category.categorybasedesc.all()
-    #    if basedesc:
-    #        return basedesc[0].base_category_image_url
-    #    else:
-    #        f"{settings.MEDIA_URL}no-image.png"
-
-    #def get_base_image_url(self, category):
-    #    return f"{settings.MEDIA_URL}{category.categorybasedesc.image}"
+class CategorySerializer(serializers.ModelSerializer):
+    category_image_url = serializers.SerializerMethodField()
 
     class Meta:
-        model = OcCategory
-
-        fields = ['category_id', 'name', 'status', 'categorybasedesc']
+        model = OcTsgCategory
+        fields = '__all__'
         depth = 1
+
+    def get_category_image_url(self, obj):
+        return obj.category_image_url
 
 class CategoryBaseDescriptionSerializer(serializers.ModelSerializer):
 
@@ -83,5 +75,10 @@ class StoreCategoriesSerializer(serializers.ModelSerializer):
         fields = ['category_store_id', 'category', 'category_image_url']
         depth = 1
 
+class CategoryParentPaths(serializers.ModelSerializer):
 
+    class Meta:
+        model = OcTsgCategoryParent
+        fields = '__all__'
+        depth = 1
 

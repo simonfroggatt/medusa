@@ -96,7 +96,7 @@ $(function () {
                },
                columns: [
                    {
-                       data: "category_store.store.thumb",
+                       data: "category.store.thumb",
                        sortable: false,
                        searchable: false,
                        render: function (data, type, row) {
@@ -105,10 +105,10 @@ $(function () {
                        }
                    },
                    {
-                       data: "category_store.name",
+                       data: "category.name",
                        render: function (data, type, row) {
                            if (data == null) {
-                               return row['category_store']['category']['name']
+                               return row['category']['category']['name']
                            } else
                                return data
                        }
@@ -876,8 +876,10 @@ $(function () {
             success: function (data) {
                 if (data.form_is_valid) {
                     updateProductVariantCoreTable();
-                }
-                else {
+                    message_text = 'Product Variant Added'
+                     add_toast_message(message_text,'Add Variant', 'bg-success')
+                } else {
+                    add_toast_message('Opps, something went wrong','Add Variant', 'bg-error')
                     $("#modal-base .modal-content").html(data.html_form);
                 }
             }
