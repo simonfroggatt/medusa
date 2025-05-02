@@ -96,7 +96,7 @@ $(function () {
                },
                columns: [
                    {
-                       data: "category_store.store.thumb",
+                       data: "category.store.thumb",
                        sortable: false,
                        searchable: false,
                        render: function (data, type, row) {
@@ -105,10 +105,10 @@ $(function () {
                        }
                    },
                    {
-                       data: "category_store.name",
+                       data: "category.name",
                        render: function (data, type, row) {
                            if (data == null) {
-                               return row['category_store']['category']['name']
+                               return row['category']['category']['name']
                            } else
                                return data
                        }

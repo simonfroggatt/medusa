@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
-    OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated
+    OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, OcTsgProductToCategory
 from apps.options.models import OcTsgProductVariantOptions, OcTsgProductOption, OcTsgProductOptionValues
 from apps.category.models import OcCategoryToStore
 from apps.pricing.models import OcTsgSizeMaterialCombPrices
@@ -167,7 +167,7 @@ class ProductStoreSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer_old(serializers.ModelSerializer):
     class Meta:
         model = OcProductToCategory
         fields = '__all__'
@@ -319,3 +319,13 @@ class ProductBasicSerializer(serializers.ModelSerializer):
         model = OcProduct
         fields = ['product_id',  'status', 'image_url', 'productdescbase']
         depth = 2
+
+
+"""NEW CATEGORY SERIALIZER"""
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductToCategory
+        fields = '__all__'
+        depth = 2
+

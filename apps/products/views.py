@@ -3,7 +3,7 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
-    OcProductImage, OcStoreProductImages, OcTsgProductDocuments
+    OcProductImage, OcStoreProductImages, OcTsgProductDocuments, OcTsgProductToCategory
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
 from .serializers import (ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
@@ -70,11 +70,11 @@ class ProductSymbolsAvailable(viewsets.ModelViewSet):
 
 
 class Category(viewsets.ModelViewSet):
-    queryset = OcProductToCategory.objects.all()
+    queryset = OcTsgProductToCategory.objects.all()
     serializer_class = CategorySerializer
 
     def retrieve(self, request, pk=None):
-        category_object = OcProductToCategory.objects.filter(product_id=pk)
+        category_object = OcTsgProductToCategory.objects.filter(product_id=pk)
         serializer = self.get_serializer(category_object, many=True)
         return Response(serializer.data)
 
