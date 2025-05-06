@@ -7,9 +7,10 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic.base import TemplateView
 from django.shortcuts import get_object_or_404
 from apps.orders.models import OcOrder
-from apps.orders.views import order_xero_update
+from apps.xero_api.views import xero_order_update
 from .models import OcTsgStripePayments
 import logging
+from cryptography.fernet import Fernet
 logger = logging.getLogger('apps')
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -44,7 +45,10 @@ def webhook_stripe(request):
                 order.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
                 order.payment_ref = payment_intent['id']
                 order.save()
-                order_xero_update(request,order)
+                f = Fernet(settings.XERO_TOKEN_FERNET)
+                encrypted_order_num = f.encrypt(str(order_id).encode()).decode()
+                logger.info(f"Encrypted order number: {encrypted_order_num}")
+                xero_order_update(order_id, encrypted_order_num)
             except OcOrder.DoesNotExist:
                 pass
 
