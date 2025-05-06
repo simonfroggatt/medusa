@@ -18,9 +18,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 def webhook_stripe(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-    tmpsecret = 'whsec_65dc530adfc13fdc98ade4e853304f850a9fc210ac69704625df83ac7db1096e'
     stripe_webhook_secret = settings.STRIPE_WEBHOOK_SECRET
-    stripe_webhook_secret = tmpsecret
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, stripe_webhook_secret
