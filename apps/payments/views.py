@@ -17,7 +17,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 @csrf_exempt
-#@require_http_methods(["POST"])
+@require_http_methods(["POST"])
 def webhook_stripe(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')

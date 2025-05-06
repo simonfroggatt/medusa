@@ -30,7 +30,7 @@ urlpatterns = [
 
     #this is where we will put the different courier methods API calls and webhooks
     #ROYALMAIL
-    #path('api/royalmail/', views.royal_mail, name='royal_mail'),
+    path('api/royalmail/webhook/', views.royalmail_webhook, name='royalmail_webhook'),
 
     #FEDEX
 

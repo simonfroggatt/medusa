@@ -9,6 +9,10 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse
+import logging
 
 
 class Couriers(viewsets.ModelViewSet):
@@ -223,3 +227,13 @@ def methods_delete(request, pk):
                                              request=request
                                              )
     return JsonResponse(data)
+
+
+
+@csrf_exempt
+#@require_http_methods(["POST"])
+def royalmail_webhook(request):
+        payload = request.body
+        logging.info("Royal Mail Webhook received")
+        logging.info(f"Received payload: {payload}")
+        return HttpResponse(status=200)
