@@ -7,9 +7,43 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic.base import TemplateView
 from django.shortcuts import get_object_or_404
 from apps.orders.models import OcOrder
+from apps.orders.views import order_xero_update
 from .models import OcTsgStripePayments
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def webhook_stripe(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    tmpsecret = 'whsec_65dc530adfc13fdc98ade4e853304f850a9fc210ac69704625df83ac7db1096e'
+    stripe_webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+    stripe_webhook_secret = tmpsecret
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, stripe_webhook_secret
+        )
+    except ValueError as e:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        return HttpResponse(status=400)
+
+    if event['type'] == 'payment_intent.succeeded' or event['type'] == 'charge.succeeded':
+        payment_intent = event['data']['object']
+        order_id = payment_intent.metadata.get('order_id')
+        if order_id:
+            try:
+                order = OcOrder.objects.get(order_id=order_id)
+                order.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
+                order.payment_ref = payment_intent['id']
+                order.save()
+                order_xero_update(request,order)
+            except OcOrder.DoesNotExist:
+                pass
+
+    return HttpResponse(status=200)
 
 
 class PaymentPageView(TemplateView):
@@ -100,39 +134,3 @@ def create_payment_intent(request, order_id):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def webhook(request):
-    payload = request.body
-    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError as e:
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
-        return HttpResponse(status=400)
-
-    if event['type'] == 'payment_intent.succeeded':
-        payment_intent = event['data']['object']
-        order_id = payment_intent.metadata.get('order_id')
-        
-        # Update payment status
-        payment = OcTsgStripePayments.objects.filter(stripe_payment_intent_id=payment_intent['id']).first()
-        if payment:
-            payment.status = 'completed'
-            payment.save()
-            
-            # Update order status if needed
-            if order_id:
-                try:
-                    order = OcOrder.objects.get(order_id=order_id)
-                    order.payment_status_id = 2  # Assuming 2 is the ID for 'paid' status
-                    order.payment_ref = payment_intent['id']
-                    order.save()
-                except OcOrder.DoesNotExist:
-                    pass
-        
-    return HttpResponse(status=200)

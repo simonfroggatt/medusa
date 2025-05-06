@@ -28,4 +28,14 @@ urlpatterns = [
     path('methods/update/<int:pk>', views.MethodsUpdate.as_view(), name='method_update'),
     path('methods/delete_confirm/<int:pk>', views.methods_delete, name='method_delete_confirm'),
 
+    #this is where we will put the different courier methods API calls and webhooks
+    #ROYALMAIL
+    #path('api/royalmail/', views.royal_mail, name='royal_mail'),
+
+    #FEDEX
+
+    #DPD
+
+    #DX
+
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
