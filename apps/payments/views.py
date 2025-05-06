@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404
 from apps.orders.models import OcOrder
 from apps.orders.views import order_xero_update
 from .models import OcTsgStripePayments
+import logging
+logger = logging.getLogger('apps')
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -19,15 +21,19 @@ def webhook_stripe(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     stripe_webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+    logger.info(f"Inside stripe webhook request: {payload}")
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, stripe_webhook_secret
         )
     except ValueError as e:
+        logger.info(f"Invalid payload: {e}")
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
+        logger.info(f"Invalid signature: {e}")
         return HttpResponse(status=400)
 
+    logger.info(f"Received event: {event}")
     if event['type'] == 'payment_intent.succeeded' or event['type'] == 'charge.succeeded':
         payment_intent = event['data']['object']
         order_id = payment_intent.metadata.get('order_id')
