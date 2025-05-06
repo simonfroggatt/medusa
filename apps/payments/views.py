@@ -48,7 +48,7 @@ def webhook_stripe(request):
                 f = Fernet(settings.XERO_TOKEN_FERNET)
                 encrypted_order_num = f.encrypt(str(order_id).encode()).decode()
                 logger.info(f"Encrypted order number: {encrypted_order_num}")
-                xero_order_update(order_id, encrypted_order_num)
+                xero_order_update(request, order_id, encrypted_order_num)
             except OcOrder.DoesNotExist:
                 pass
 
