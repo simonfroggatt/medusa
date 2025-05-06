@@ -19,11 +19,9 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 @csrf_exempt
 #@require_http_methods(["POST"])
 def webhook_stripe(request):
-    logger.info(f"Inside stripe")
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     stripe_webhook_secret = settings.STRIPE_WEBHOOK_SECRET
-    logger.info(f"Inside stripe webhook request: {payload}")
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, stripe_webhook_secret
@@ -35,7 +33,6 @@ def webhook_stripe(request):
         logger.info(f"Invalid signature: {e}")
         return HttpResponse(status=400)
 
-    logger.info(f"Received event: {event}")
     if event['type'] == 'payment_intent.succeeded' or event['type'] == 'charge.succeeded':
         payment_intent = event['data']['object']
         order_id = payment_intent.metadata.get('order_id')
@@ -47,7 +44,6 @@ def webhook_stripe(request):
                 order.save()
                 f = Fernet(settings.XERO_TOKEN_FERNET)
                 encrypted_order_num = f.encrypt(str(order_id).encode()).decode()
-                logger.info(f"Encrypted order number: {encrypted_order_num}")
                 xero_order_update(request, order_id, encrypted_order_num)
             except OcOrder.DoesNotExist:
                 pass
