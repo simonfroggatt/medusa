@@ -172,14 +172,15 @@ class Previous_Products_asJSON(viewsets.ModelViewSet):
     def get_queryset(self, *args, **kwargs):
         customer_id = self.request.GET.get('customer_id')
         #get all the products if part of a company
+        return_obj = dict()
         if customer_id is not None:
             customer_obj = get_object_or_404(OcCustomer, pk=customer_id)
             if customer_obj.parent_company:
                 parent_company_id = customer_obj.parent_company_id
                 #filter on this instead
                 return_obj = OcOrderProduct.objects.select_related('order').filter(order__customer__parent_company_id=parent_company_id)
-        else:
-            return_obj = OcOrderProduct.objects.select_related('order').filter(order__customer_id=customer_id).order_by('-order_id')  # optional performance cap
+            else:
+                return_obj = OcOrderProduct.objects.select_related('order').filter(order__customer_id=customer_id).order_by('-order_id')  # optional performance cap
         return return_obj
 
 
