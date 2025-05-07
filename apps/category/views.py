@@ -287,8 +287,7 @@ def category_store_parent_add(request, category_id):
             'top': False,
             'status': False,
             'homepage': False,
-            'is_base': False,
-            'parent': cat_obj,
+            'parent': None,
             'category': cat_obj
         }
         form = CategoryParentForm(instance=category_obj, initial=cat_initials)

@@ -54,6 +54,10 @@
                 }
                 },
             {
+                data: "sort_order",
+                sortable: true,
+            },
+            {
                 data: "id",
                 sortable: false,
                 className: 'text-md-end text-start',
