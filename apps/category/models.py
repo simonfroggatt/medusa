@@ -206,7 +206,6 @@ class OcTsgCategoryParent(models.Model):
     status = models.BooleanField(blank=True)
     top = models.BooleanField(blank=True)
     homepage = models.BooleanField(blank=True)
-    is_base = models.BooleanField(blank=False)
 
     class Meta:
         managed = False
