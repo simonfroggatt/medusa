@@ -607,10 +607,11 @@ def add_payment_status_history(order_id, new_method_id, new_status_id):
         old_method_id = last_history.payment_method_id
         old_status_id = last_history.payment_status_id
 
-    if (old_method_id != new_method_id) or (old_status_id != new_status_id):
+    #if (old_method_id != new_method_id) or (old_status_id != new_status_id):
+    if old_status_id != new_status_id:
         new_history_obj = OcTsgPaymentHistory()
         new_history_obj.order_id = order_id
-        new_history_obj.payment_method_id = new_method_id
+        #new_history_obj.payment_method_id = new_method_id
         new_history_obj.payment_status_id = new_status_id
         new_history_obj.comment = 'Medusa automatically added payment status history'
         new_history_obj.save()
