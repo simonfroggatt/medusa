@@ -123,3 +123,20 @@ class CategoryParentForm(forms.ModelForm):
         labels = {
             'status': 'Live',
         }
+
+class CategoryEditParentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CategoryEditParentForm, self).__init__(*args, **kwargs)
+        #self.fields['parent'].empty_label = None
+
+    class Meta:
+        model = OcTsgCategoryParent
+        fields = '__all__'
+
+        widgets = {
+            'category': forms.HiddenInput()
+        }
+
+        labels = {
+            'status': 'Live',
+        }

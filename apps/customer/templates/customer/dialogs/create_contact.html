@@ -25,9 +25,10 @@
                     <input type="hidden" id="id_{{ form.account_type.name}}" name="{{ form.account_type.name}}"
                            value="{{ initials.account_type }}">
                     <div class="row border-bottom">
-                        <div class="col-md-3">{{ form.fullname|as_crispy_field }}</div>
-                        <div class="col-md-3">{{ form.telephone|as_crispy_field }}</div>
-                        <div class="col-md-6">{{ form.email|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.firstname|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.lastname|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.telephone|as_crispy_field }}</div>
+                        <div class="col-md-12">{{ form.email|as_crispy_field }}</div>
                     </div>
                     <div class="row">
                         <div class="col-12">

@@ -13,9 +13,9 @@
                       id="form-product-category-edit">
 
                     <input type="hidden" id="static_media_url" value="{% get_media_prefix %}">
-                    <input type="hidden" id="store_category_id" name="store_category_id" value="">
                     {{ form.product|as_crispy_field }}
-
+                    {{ form.category|as_crispy_field }}
+                <input type="hidden" id="new_category_id" name="new_category_id" value="">
                     {% csrf_token %}
                     <div class="row">
                     <div class="col-12">
@@ -27,10 +27,8 @@
 
                     {% for store_data in store_obj %}
                         <option value="{{ store_data.store_id }}">{{ store_data.store }}</option>
-
                     {% endfor %}
                 </select>
-
                         </div>
                         <div class="col-12">
                             <table id="product_category_table_edit" class="table table-hover table-striped align-middle table-sm"
@@ -39,7 +37,6 @@
                                 <tr>
                                     <th>Image</th>
                                     <th>Name</th>
-                                    <th>Description</th>
                                 </tr>
                                 </thead>
                             </table>
@@ -64,6 +61,7 @@
     if ($.fn.dataTable.isDataTable('#product_category_table_edit')) {
         var product_category_table_edit = $('#product_category_table_edit').DataTable();
     } else {
+        debugger;
         var product_category_table_edit = $('#product_category_table_edit').DataTable({
             "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
          "<'row'<'col-sm-12'tr>>" +
@@ -74,24 +72,14 @@
         "autoWidth": false,
         "responsive": true,
             "select": "single",
-            "rowId" : 'category_store_id',
+            "rowId" : 'id',
             "ajax": "/category/api/storecats/" + 1 + "/?format=datatables",
             "columns": [
-                {data: "category.image",
+                {data: "category_image_url",
                     render: function ( data, type, row ) {
-                    var img_path = '';
-                    if( data != null){
-                        img_path = {% get_media_prefix %} + data
-                    }
-                    else {
-                        img_path = row['category_image_url'];
-
-                    }
-                    return '<img height="50px" class="mx-auto d-block product-thumb img-responsive" src="'+img_path+'">';
+                    return '<img height="50px" class="mx-auto d-block product-thumb img-responsive" src="'+data+'">';
                  } },
-                {data: "category.name"},
-                {data: "category.name"},
-
+                {data: "name"}
             ],
         });
     }
@@ -108,11 +96,12 @@
     product_category_table_edit.on( 'select', function ( e, dt, type, indexes ) {
         if (type === 'row') {
             var store_cetegory_id = dt.row(indexes).id();
-            $('#store_category_id').val(store_cetegory_id)
+            $('#new_category_id').val(store_cetegory_id)
 
             // do something with the ID of the selected items
         }
     });
+
     </script>
 
 {% endblock javascript %}

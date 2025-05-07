@@ -462,12 +462,12 @@ def contact_create(request):
             if form_address.is_valid():
                 clean_address = form_address.cleaned_data
                 new_address = customer_obj.address_customer.create()
-                new_address.fullname = clean_address['company']
-                new_address.fullname = clean_address['fullname']
+                new_address.company = clean_address['company']
+                new_address.fullname = customer_obj.fullname
+                new_address.telephone = customer_obj.telephone
+                new_address.email = customer_obj.email
                 new_address.address_1 = clean_address['address_1']
-                new_address.telephone = clean_address['telephone']
                 new_address.label = clean_address['label']
-                new_address.email = clean_address['email']
                 new_address.city = clean_address['city']
                 new_address.area = clean_address['area']
                 new_address.postcode = clean_address['postcode']

@@ -3,7 +3,8 @@ from rest_framework import viewsets, generics
 from apps.category.models import (OcCategory, OcCategoryDescriptionBase, OcCategoryDescription, OcCategoryToStore,
                                   OcTsgCategoryStoreParent, OcTsgCategory, OcTsgCategoryParent)
 from apps.category.forms import (CategoryEditForm, CategoryBaseDescriptionForm, CategoryStoreDescriptionForm,
-                                 CategoryStoreForm, CategoryStoreParentForm,CategoryDescriptionForm, CategoryParentForm)
+                                 CategoryStoreForm, CategoryStoreParentForm,CategoryDescriptionForm, CategoryParentForm,
+                                 CategoryEditParentForm)
 from apps.sites.models import OcStore
 from .serializers import CategorySerializer, CategoryDescriptionSerialize, CategoryToStoreSerializer, CategoryStoreParentPaths, StoreCategoriesSerializer,CategoryParentPaths
 from rest_framework.response import Response
@@ -117,33 +118,26 @@ def category_details(request, pk):
 
 def category_create(request):
 
-    category_obj = OcCategory()
+    category_obj = OcTsgCategory()
     category_obj.status = 0
     category_obj.name = 'New Category Title'
     category_obj.sort_order = 999
-    category_obj.category_type_id = 1
-    category_obj.parent_id = 0
+    category_obj.parent_id = None
     category_obj.top = False
     category_obj.column = 0
-
-
-
-    is_valid = category_obj.save()
-    new_category_id = category_obj.category_id
-
-    base_desc_obj = OcCategoryDescriptionBase()
-    base_desc_obj.category_id = new_category_id
-    base_desc_obj.language_id = 1
-    base_desc_obj.name = 'New Category Title'
-    base_desc_obj.title = 'New Category Title'
-    base_desc_obj.description = 'New Description'
-    base_desc_obj.image = ''
-    base_desc_obj.meta_title = 'Meta Title'
-    base_desc_obj.meta_description = 'Meta Description'
-    base_desc_obj.meta_keyword = 'Meta Keywords'
-    base_desc_obj.adwords_name = 'Adwords Name'
-    base_desc_obj.clean_url = ''
-    base_desc_obj.save()
+    category_obj.name = 'New Category Title'
+    category_obj.title = 'New Category Title'
+    category_obj.description = 'New Description'
+    category_obj.image = ''
+    category_obj.meta_title = 'Meta Title'
+    category_obj.meta_description = 'Meta Description'
+    category_obj.meta_keywords = 'Meta Keywords'
+    category_obj.adwords_name = 'Adwords Name'
+    category_obj.clean_url = ''
+    category_obj.status = False
+    category_obj.store_id = 1
+    category_obj.save()
+    new_category_id = category_obj.pk
 
     success_url =  reverse_lazy('categorydetails', kwargs={'pk': new_category_id})
     return HttpResponseRedirect(success_url)
@@ -217,7 +211,7 @@ def category_store_parent_edit_dlg(request, pk):
     template_name = 'category/dialogs/category_site_parent_edit.html'
     category_parent_obj = get_object_or_404(OcTsgCategoryParent, pk=pk)
     if request.method == 'POST':
-        form = CategoryParentForm(request.POST, instance=category_parent_obj)
+        form = CategoryEditParentForm(request.POST, instance=category_parent_obj)
         if form.is_valid():
             form_instance = form.instance
             form.save()
@@ -225,7 +219,7 @@ def category_store_parent_edit_dlg(request, pk):
             return HttpResponseRedirect(refresh_url)
 
     else:
-        form = CategoryParentForm(instance=category_parent_obj)
+        form = CategoryEditParentForm(instance=category_parent_obj)
 
     context = {'form': form, 'pk': pk}
 
