@@ -33,16 +33,6 @@
 
                 }
             },
-            {data: "is_base",
-                render: function (data, type, row) {
-                    if (data == 1) {
-                        return '<i class="fa-solid fa-check flag-green"></i>'
-                    } else {
-                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
-                    }
-
-                }
-                },
             {data: "homepage",
                 render: function (data, type, row) {
                     if (data == 1) {
