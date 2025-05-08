@@ -2132,7 +2132,7 @@ def order_xero_add(request, pk):
 
     order_obj = get_object_or_404(OcOrder, pk=pk)
     order_hash = order_obj.order_hash
-    if order_hash == '':
+    if order_hash == '' or order_hash is None:
         unique_id = uuid.uuid4().hex  # Generates a random UUID and gets the hex representation
         # Hash the unique identifier with MD5
         order_hash = hashlib.md5(unique_id.encode()).hexdigest()
