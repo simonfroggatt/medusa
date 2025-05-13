@@ -484,17 +484,16 @@ class materials_excl_sizes(generics.ListAPIView):
     queryset = OcTsgProductMaterial.objects.all()
     serializer_class = MaterialsSerializer
 
-    def list(self, request, *args, **kwargs):
-        size_id = kwargs['size_id']
+    def get_queryset(self, *args, **kwargs):
+        size_id = self.kwargs['size_id']
 
-        product_material_qs = OcTsgSizeMaterialComb.objects.filter(product_size__size_id=size_id).values_list('product_material__material_id')
+        # Get a flat list of material IDs linked to the given size
+        material_ids = OcTsgSizeMaterialComb.objects.filter(
+            product_size__size_id=size_id
+        ).values_list('product_material__material_id', flat=True)
 
-        product_material_list = list(chain(*product_material_qs))
-        core_material_qs = OcTsgProductMaterial.objects.exclude(material_id__in=product_material_list)
-
-        serializer = self.get_serializer(core_material_qs, many=True)
-        return Response(serializer.data)
-
+        # Exclude those materials from the queryset
+        return OcTsgProductMaterial.objects.exclude(material_id__in=material_ids)
 
 def material_spec_fetch(request, material_id):
     data =  dict()

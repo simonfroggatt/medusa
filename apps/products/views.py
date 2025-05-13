@@ -1241,7 +1241,11 @@ def related_item_add(request, pk):
     context = {'product_id': pk}
 
     related_obj = OcProductRelated.objects.filter(product_id=pk).order_by('order').last()
-    context['order_by_next'] = related_obj.order + 1
+    if related_obj:
+        next_order_id = related_obj.order + 1
+    else:
+        next_order_id = 1
+    context['order_by_next'] = next_order_id
     store_obj = OcStore.objects.exclude(store_id=0)
     context['store_obj'] = store_obj
     template_name = 'products/dialogs/related_product-add.html/'

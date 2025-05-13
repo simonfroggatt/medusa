@@ -36,9 +36,11 @@
 </div>
 {% block javascript %}
 <script>
-    window.addEventListener('load', function() {
-        $('#js-image-store_id').trigger('change')
-    })
+   document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
+        $('#js-image-store_id').trigger('change');
+    }, 50);
+});
 
 </script>
 {% endblock %}

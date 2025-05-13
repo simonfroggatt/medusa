@@ -77,7 +77,7 @@ $(function () {
     } else {
            let product_id = sessionStorage.getItem("product_id");
            var product_category_table = $('#product_category_table').DataTable({
-               "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+               "dom": "<'row'<'col-sm-6'><'col-sm-6'lT>>" +
                    "<'row'<'col-sm-12'tr>>" +
                    "<'row'<'col-sm-6'i><'col-sm-6'p>>",
                "processing": true,
@@ -522,7 +522,7 @@ $(function () {
             "responsive": true,
             "serverSide": false,
             "scroller": true,
-            "scrollY": "400",
+            "scrollY": "400px",
             "scrollCollapse": false,
             "rowId": 'id',
             "ajax": {
