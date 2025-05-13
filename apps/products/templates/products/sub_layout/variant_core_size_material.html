@@ -48,11 +48,16 @@
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row'<'col-sm-6'><'col-sm-6'>>",
                 "processing": true,
+                "pageLength": 100,
+            "paging": true,
                 "select": true,
                 "search": true,
                 "info": false,
+                "scroller": true,
+                "scrollY": "200px",
+                "scrollCollapse": true,
                 "rowId": 'size_id',
-
+                "serverSide": true,
                 "ajax": {
                     "processing": true,
                     "url": "/pricing/api/sizes?format=datatables",
@@ -62,6 +67,7 @@
                     {data: "size_width", defaultContent: ""},
                     {data: "size_height", defaultContent: ""},
                     {data: "orientation.orientation_name", defaultContent: ""},
+                    {data: "size_id", defaultContent: "", visible: false},
                 ]
             });
         };
