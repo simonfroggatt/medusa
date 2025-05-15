@@ -576,6 +576,24 @@ class OcTsgOrderBespokeImage(models.Model):
   #      super(OcTsgOrderBespokeImage, self).save(*args, **kwargs)
 
 
+class OcTsgShipmentTrackingEvent(models.Model):
+    event_id = models.AutoField(primary_key=True)
+    shipment = models.ForeignKey(OcTsgOrderShipment, on_delete=models.CASCADE, related_name='tracking_events')
+    status = models.CharField(max_length=255)  # e.g., "In Transit", "Delivered", "Out for Delivery"
+    status_code = models.CharField(max_length=50, blank=True, null=True)  # optional raw code from courier
+    event_time = models.DateTimeField()  # time of the tracking update
+    recorded_at = models.DateTimeField(auto_now_add=True)  # when we saved it
+    location = models.CharField(max_length=255, blank=True, null=True)  # optional
+    courier_message = models.TextField(blank=True, null=True)  # raw detail from courier if needed
+
+    class Meta:
+        db_table = 'oc_tsg_shipment_tracking_event'
+        ordering = ['-event_time']
+
+    def __str__(self):
+        return self.status
+
+
 
 def add_order_product_history(order_product_id, old_id, new_id):
     if old_id != new_id:
@@ -603,15 +621,28 @@ def add_payment_status_history(order_id, new_method_id, new_status_id):
     last_history = OcTsgPaymentHistory.objects.filter(order_id=order_id).order_by('-date_added').first()
     old_method_id = 0
     old_status_id = 0
+    record_status_change = 0
+    record_method_change = 0
     if last_history:
         old_method_id = last_history.payment_method_id
         old_status_id = last_history.payment_status_id
 
     #if (old_method_id != new_method_id) or (old_status_id != new_status_id):
+
     if old_status_id != new_status_id:
+        record_status_change = new_status_id
+    else:
+        record_status_change = old_status_id
+
+    if old_method_id != new_method_id:
+        record_method_change = new_method_id
+    else:
+        record_method_change = old_method_id
+
+    if old_status_id != new_status_id or old_method_id != new_method_id:
         new_history_obj = OcTsgPaymentHistory()
         new_history_obj.order_id = order_id
-        #new_history_obj.payment_method_id = new_method_id
-        new_history_obj.payment_status_id = new_status_id
+        new_history_obj.payment_method_id = record_method_change
+        new_history_obj.payment_status_id = record_status_change
         new_history_obj.comment = 'Medusa automatically added payment status history'
         new_history_obj.save()
