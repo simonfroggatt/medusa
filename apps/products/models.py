@@ -307,7 +307,7 @@ class OcTsgProductDocuments(models.Model):
 
 
 class OcTsgProductToCategory(models.Model):
-    product = models.ForeignKey(OcProduct, models.DO_NOTHING)
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='productcategory')
     category = models.ForeignKey(OcTsgCategory, models.DO_NOTHING)
     status = models.BooleanField(default=True)
     order = models.IntegerField(blank=True, null=True)

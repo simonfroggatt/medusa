@@ -30,6 +30,8 @@
                             <dd class="col-9">{{ category_obj.description|truncatechars:128 }}</dd>
                             <dt class="col-3">Clean URL</dt>
                             <dd class="col-9">{{ category_obj.clean_url }}</dd>
+                            <dt class="col-3">Priority</dt>
+                            <dd class="col-9">{{ category_obj.priority }}</dd>
                             <dt class="col-3">Status</dt>
                             <dd class="col-9">{% if category_obj.status %}
 

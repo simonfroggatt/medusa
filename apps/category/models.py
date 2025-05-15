@@ -180,6 +180,7 @@ class OcTsgCategory(models.Model):
     clean_url = models.CharField(max_length=255, blank=True, null=True)
     store = models.ForeignKey(OcStore, models.DO_NOTHING)
     status = models.BooleanField(blank=True)
+    priority = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False

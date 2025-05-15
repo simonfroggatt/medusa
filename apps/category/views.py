@@ -133,6 +133,7 @@ def category_create(request):
     category_obj.meta_description = 'Meta Description'
     category_obj.meta_keywords = 'Meta Keywords'
     category_obj.adwords_name = 'Adwords Name'
+    category_obj.priority = 0
     category_obj.clean_url = ''
     category_obj.status = False
     category_obj.store_id = 1
