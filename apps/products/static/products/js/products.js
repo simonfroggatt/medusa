@@ -1043,10 +1043,12 @@ $(function () {
                 if (data.form_is_valid) {
                     product_related_table = $('#product_related_table').DataTable();
                     product_related_table.ajax.reload();
-                    $("#modal-base").modal("hide");
-                    //reload the table
+                    //send a toast
+                    message_text = 'Related product added'
+                     add_toast_message(message_text,'Add Related', 'bg-success')
                 }
                 else {
+                    add_toast_message('Opps, something went wrong','Add Variant', 'bg-error')
                     $("#modal-base .modal-content").html(data.html_form);
                 }
             }
