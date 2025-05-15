@@ -766,7 +766,7 @@ def _create_new_company(company_obj, xero_contact_id = None):
         'firstname': company_obj.accounts_contact_firstname,
         'lastname': company_obj.accounts_contact_lastname,
         'email': company_obj.accounts_email,
-        'fullname': f"{company_obj.account_contact_fullname}"
+        'fullname': f"{company_obj.accounts_contact_fullname}"
     }
     if company_obj.website:
         company_contact['website'] = company_obj.website
