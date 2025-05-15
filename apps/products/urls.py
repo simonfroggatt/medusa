@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/post-list/products/<int:store_id>/', views.ProductsListView.as_view(), name='products_post_list'),
     path('api/store/<int:store_id>/products', views.Product_by_Store.as_view(), name='product_list_by_store'),
+    path('api/<int:product_id>/store/<int:store_id>/products', views.Product_by_Store_Excluding.as_view(), name='product_list_by_store_exc'),
     path('api/supplier/<int:supplier_id>/products', views.Product_by_Supplier.as_view(), name='product_list_by_supplier'),
 
     #products

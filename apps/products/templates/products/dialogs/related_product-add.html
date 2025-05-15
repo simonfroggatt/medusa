@@ -51,7 +51,6 @@
                     </button>
                 </div>
             </div>
-    </div>
     </form>
 </div>
 </div>
@@ -63,6 +62,7 @@
         if ($.fn.dataTable.isDataTable('#product_related_table_add')) {
             var product_related_table_add = $('#product_related_table_add').DataTable();
         } else {
+            debugger;
             var product_related_table_add = $('#product_related_table_add').DataTable({
                 "dom": "<'row'<'col-6'fl><'col-6'p>>" +
                     "<'row'<'col-12'tr>>",
@@ -78,7 +78,7 @@
                 "rowId": "id",
                 "ajax": {
                     "processing": true,
-                    "url": "/products/api/store/1/products?format=datatables",
+                    "url": "/products/api/{{product_id}}/store/1/products?format=datatables",
 
                     "type": "GET",
                 },
@@ -181,10 +181,27 @@
 
          product_related_table_add.on('select', function (e, dt, type, indexes) {
              if (type === 'row') {
-                 let related_product_id = dt.row(indexes).id();
-                 $('#new_related_id').val(related_product_id);
-                 $('#btn_related_product_add').removeClass('disabled');
+                // Get all selected rows
+                let selectedRows = dt.rows({ selected: true });
+
+                // Clear and rebuild our selected products array
+                selectedRelatedProducts = [];
+                selectedRows.every(function() {
+                    let related_product_id = this.id();
+                    selectedRelatedProducts.push(related_product_id);
+                });
+
+                // Update the hidden field with comma-separated IDs
+                $('#new_related_id').val(selectedRelatedProducts.join(','));
+
+                // Enable/disable button based on selection
+                if (selectedRelatedProducts.length > 0) {
+                    $('#btn_related_product_add').removeClass('disabled');
+                } else {
+                    $('#btn_related_product_add').addClass('disabled');
+                }
              }
+
 
         });
 
@@ -197,7 +214,8 @@
 
     $('#js-related-store_id').on('change', function () {
         let store_id = $(this).val()
-        let ajax_url = "/products/api/store/" + store_id + "/products?format=datatables"
+        let ajax_url = "/products/api/{{product_id}}/store/" + store_id + "/products?format=datatables";
+        //let ajax_url = "/products/api/store/" + store_id + "/products?format=datatables"
         let dt = $('#product_related_table_add').DataTable();
         dt.ajax.url(ajax_url).load();
     });

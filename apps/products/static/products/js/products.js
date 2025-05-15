@@ -1044,8 +1044,14 @@ $(function () {
                     product_related_table = $('#product_related_table').DataTable();
                     product_related_table.ajax.reload();
                     //send a toast
-                    message_text = 'Related product added'
-                     add_toast_message(message_text,'Add Related', 'bg-success')
+                    message_text = data.message
+                    add_toast_message(message_text, 'Related Items', 'bg-success')
+                    let dt = $('#product_related_table_add').DataTable();
+                    if (dt) { dt.ajax.reload(); }
+                    if(data.close_dlg)
+                    {
+                        $("#modal-base").modal("hide");
+                    }
                 }
                 else {
                     add_toast_message('Opps, something went wrong','Add Variant', 'bg-error')

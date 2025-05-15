@@ -1220,12 +1220,14 @@ def related_item_delete(request, pk):
     data = dict()
     context = {'related_id': pk}
     template_name = 'products/dialogs/related_product-delete.html/'
+    data['close_dlg'] = True;
 
     if request.method == 'POST':
         related_id = request.POST.get('related_id')
         related_obj = get_object_or_404(OcProductRelated, id=related_id)
         related_obj.delete()
         data['form_is_valid'] = True
+        data['message'] = "Related Item Deleted"
     else:
         data['form_is_valid'] = False
 
@@ -1250,17 +1252,38 @@ def related_item_add(request, pk):
     context['store_obj'] = store_obj
     template_name = 'products/dialogs/related_product-add.html/'
     data['form_is_valid'] = False
+    data['close_dlg'] = False
 
     if request.method == 'POST':
-        new_related_obj = OcProductRelated()
-        new_related_obj.related_id = request.POST.get('new_related_id');
-        new_related_obj.product_id = request.POST.get('product_id');
-        new_related_obj.order = request.POST.get('related_order');
-        new_related_obj.save()
-        if new_related_obj.pk:
-            data['form_is_valid'] = True
-        else:
+        product_id = request.POST.get('product_id')
+        related_order = request.POST.get('related_order', next_order_id)  # Default order to 0 if not provided
+        related_ids = request.POST.get('new_related_id', '').split(',')  # Split comma-separated IDs
+
+        created_count = 0
+        errors = []
+
+        for related_id in related_ids:
+            if related_id:  # Skip empty entries
+                try:
+                    new_related_obj = OcProductRelated(
+                        related_id=int(related_id),
+                        product_id=int(product_id),
+                        order=int(related_order)
+                    )
+                    new_related_obj.save()
+                    if new_related_obj.pk:
+                        created_count += 1
+
+                except (ValueError, IntegrityError) as e:
+                    errors.append(f"Failed to add product {related_id}: {str(e)}")
+
+        data['form_is_valid'] = created_count > 0
+        data['message'] = f"added {created_count} new related items"
+
+        if errors:
             data['form_is_valid'] = False
+            data['message'] = "\n".join(errors)
+
     else:
         data['html_form'] = render_to_string(template_name,
                                          context,
@@ -1272,6 +1295,7 @@ def related_item_add(request, pk):
 def related_item_edit(request, pk):
     data = dict()
     context = {'related_id': pk}
+    data['close_dlg'] = True;
     template_name = 'products/dialogs/related_product-edit.html/'
     related_obj = get_object_or_404(OcProductRelated, pk=pk)
     if request.method == 'POST':
@@ -1280,6 +1304,7 @@ def related_item_edit(request, pk):
         if form.is_valid():
             form.save()
             data['form_is_valid'] = True
+            data['message'] = 'Item updated'
         else:
             data['form_is_valid'] = False
 
@@ -1615,6 +1640,33 @@ class Product_by_Store(generics.ListAPIView):
 
         return queryset.order_by('product_id')
 
+class Product_by_Store_Excluding(generics.ListAPIView):
+    serializer_class = ProductStoreListSerializer
+    model = serializer_class.Meta.model
+
+    def get_queryset(self, store_id=0):
+        product_id = self.kwargs.get('product_id', 0)
+        store_id = self.kwargs.get('store_id', 0)
+
+        # Get all products already related to this product
+        related_product_ids = OcProductRelated.objects.filter(
+            product_id=product_id
+        ).values_list('related_id', flat=True)
+
+        # Base queryset
+        if store_id > 0:
+            queryset = self.model.objects.filter(store_id=store_id)
+        else:
+            queryset = self.model.objects.all()
+
+        # Exclude already related products and the product itself
+        queryset = queryset.exclude(
+            product_id__in=related_product_ids
+        ).exclude(
+            product_id=product_id
+        ).order_by('product_id')
+
+        return queryset
 
 class Product_by_Supplier(generics.ListAPIView):
     serializer_class = ProductSupplierListSerializer
