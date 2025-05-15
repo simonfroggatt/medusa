@@ -764,7 +764,7 @@ def _create_new_company(company_obj, xero_contact_id = None):
     company_contact = {
         'company': company_obj.company_name,
         'firstname': company_obj.accounts_contact_firstname,
-        'lastname': contact_names.accounts_contact_lastname,
+        'lastname': company_obj.accounts_contact_lastname,
         'email': company_obj.accounts_email,
         'fullname': f"{company_obj.account_contact_fullname}"
     }
