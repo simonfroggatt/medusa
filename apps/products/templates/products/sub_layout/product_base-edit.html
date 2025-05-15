@@ -43,7 +43,22 @@
                                     <div class="col-12">{{ form_product_desc.product|as_crispy_field }}</div>
                                     <div class="col-12">{{ form_product_desc.name|as_crispy_field }}</div>
                                     <div class="col-12">{{ form_product_desc.title|as_crispy_field }}</div>
-                                    <div class="col-12">{{ form_product_desc.clean_url|as_crispy_field }}</div>
+                                    <div class="col-12">
+                                        <div class="row align-items-center">  <!-- Aligns with neighboring fields -->
+                                            <div class="col-10 col-sm-11 pe-1">
+                                                <!-- Wider on mobile, standard on desktop -->
+                                                {{ form_product_desc.clean_url|as_crispy_field }}
+                                            </div>
+                                            <div class="col-2 col-sm-1 ps-0">  <!-- Compact button column -->
+                                                <button class="btn btn-outline-secondary py-1 px-2"
+                                                        type="button"
+                                                        id="js-create_clean"
+                                                        title="Generate clean URL">
+                                                    <i class="fa-solid fa-wand-magic-sparkles fa-sm"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-12">{{ form_product_desc.meta_title|as_crispy_field }}</div>
                                     <div class="col-12">{{ form_product_desc.meta_description|as_crispy_field }}</div>
                                     <div class="col-12">{{ form_product_desc.meta_keyword|as_crispy_field }}</div>
@@ -137,6 +152,26 @@
 
 
     </script>
+
+    <script>
+document.getElementById('js-create_clean').addEventListener('click', function() {
+  // Get the clean_url input field
+  const cleanUrlField = document.getElementById('{{ form_product_desc.clean_url.id_for_label }}');
+  // Get product name (assuming you have a name field with id 'id_name')
+  const productNameField = document.getElementById('{{ form_product_desc.name.id_for_label }}');
+  const productName = productNameField ? productNameField.value : '';
+
+  // Generate clean URL (simple version - you might want more sophisticated logic)
+  const cleanUrl = productName.toLowerCase()
+    .replace(/[^\w\s]/gi, '')  // Remove special chars
+    .trim()                     // Trim whitespace
+    .replace(/\s+/g, '-');      // Replace spaces with hyphens
+
+  // Set the value
+  cleanUrlField.value = cleanUrl;
+
+});
+</script>
 
 
 {% endblock javascript %}
