@@ -768,8 +768,8 @@ def _create_new_company(company_obj, xero_contact_id = None):
         'email': company_obj.accounts_email,
         'fullname': f"{company_obj.accounts_contact_fullname}"
     }
-    if company_obj.website:
-        company_contact['website'] = company_obj.website
+    #if company_obj.website:
+    #    company_contact['website'] = company_obj.website
 
     xero_contact_obj.add_contact_details(company_contact)
     xero_contact_obj.add_telephone(company_obj.telephone)
