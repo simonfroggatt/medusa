@@ -772,7 +772,7 @@ def _create_new_company(company_obj, xero_contact_id = None):
     #    company_contact['website'] = company_obj.website
 
     xero_contact_obj.add_contact_details(company_contact)
-    xero_contact_obj.add_telephone(company_obj.telephone)
+    xero_contact_obj.add_telephone(company_obj.accounts_telephone)
 
     company_address = {
         'address_1': company_obj.accounts_address,
