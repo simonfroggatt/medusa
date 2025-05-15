@@ -896,15 +896,16 @@ def _xero_webhook_invoice_update(invoice_id):
             order_obj.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
             payment_details = invoice_payments[0]
             order_obj.payment_date = payment_details.get('Date')
+            logger.debug(f'Order {order_obj.order_id} current payment_method_id = {order_obj.payment_method_id}')
             order_obj.payment_method_id = settings.TSG_PAYMENT_TYPE_XERO
             order_obj.save()
-            #add this to the payment history
-            new_history_obj = OcTsgPaymentHistory()
-            new_history_obj.order_id = order_obj.order_id
-            new_history_obj.payment_method_id = order_obj.payment_method_id
-            new_history_obj.payment_status_id = order_obj.payment_status_id
-            new_history_obj.comment = 'XERO - Automated update - Payment'
-            new_history_obj.save()
+            #add this to the payment history - this is done automatically now by the order class
+            #new_history_obj = OcTsgPaymentHistory()
+            #new_history_obj.order_id = order_obj.order_id
+            #new_history_obj.payment_method_id = order_obj.payment_method_id
+            #new_history_obj.payment_status_id = order_obj.payment_status_id
+            #new_history_obj.comment = 'XERO - Automated update - Payment'
+            #new_history_obj.save()
 
             logger.debug(f'Order {order_obj.order_id} marked as paid.')
         else:
