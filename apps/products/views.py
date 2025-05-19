@@ -31,10 +31,13 @@ from medusa import services
 from django.conf import settings
 import os
 
+from django.db import transaction
+
 from django.core.mail import send_mail
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from medusa.decorators import group_required
+from copy import deepcopy
 
 
 class ProductSite(viewsets.ModelViewSet):
@@ -1962,3 +1965,166 @@ def apply_template_replacements(template_string, replacements):
     for placeholder, value in replacements.items():
         result = result.replace(placeholder, str(value))
     return result
+
+
+
+#DUPLICATE
+
+def product_duplicate_dlg(request, pk):
+    data = dict()
+    context = dict()
+    template_name = 'products/dialogs/product_duplicate.html'
+    product_obj = get_object_or_404(OcProduct, pk=pk)
+    context['product_id'] = pk
+    context['product_name'] = product_obj.name
+
+
+def _product_duplicate(product_id):
+    with transaction.atomic():
+        original = OcProduct.objects.get(pk=product_id)
+
+        # Duplicate OcProduct
+        new_product = OcProduct.objects.create(
+            image=original.image,
+            tax_class=original.tax_class,
+            sort_order=original.sort_order,
+            status=False,  # Start as inactive
+            viewed=0,
+            mib_logo=original.mib_logo,
+            supplier=original.supplier,
+            bulk_group=original.bulk_group,
+            is_bespoke=original.is_bespoke,
+            template=original.template,
+            bespoke_template=original.bespoke_template,
+            exclude_bespoke=original.exclude_bespoke,
+            default_order_status=original.default_order_status
+        )
+
+    #now product to store
+
+        storeproduct_map = {}
+
+        for store_data in original.storeproduct.all():
+            new_storeproduct = OcProductToStore.objects.create(
+                product=new_product,
+                store=store_data.store,
+                status=False,
+                price_from=store_data.price_from,
+                image=store_data.image,
+                include_google_merchant=False,
+                tax_class=store_data.tax_class,
+                name=f"{store_data.name} (Copy)",
+                title=store_data.title,
+                description=store_data.description,
+                long_description=store_data.long_description,
+                meta_title=store_data.meta_title,
+                meta_description=store_data.meta_description,
+                meta_keywords=store_data.meta_keywords,
+                sign_reads=store_data.sign_reads,
+                tag=store_data.tag,
+                bulk_group=store_data.bulk_group,
+                clean_url=""
+            )
+            storeproduct_map[store_data.pk] = new_storeproduct
+
+        for old_store_id, new_store in storeproduct_map.items():
+            related_links = OcProductRelated.objects.filter(product_id=old_store_id)
+
+            for link in related_links:
+                # Only include if the related_id also exists in mapping
+                if link.related_id in storeproduct_map:
+                    OcProductRelated.objects.create(
+                        product_id=new_store.id,
+                        related_id=storeproduct_map[link.related_id].id,
+                        order=link.order
+                    )
+
+    #Duplicate OcTsgProductVariantCore and OcTsgProductVariants
+
+        core_mapping = {}
+        for core in original.corevariants.all():
+            new_core = OcTsgProductVariantCore.objects.create(
+                product=new_product,
+                size_material=core.size_material,
+                supplier=core.supplier,
+                supplier_code=core.supplier_code,
+                supplier_price=core.supplier_price,
+                exclude_fpnp=core.exclude_fpnp,
+                variant_image=core.variant_image,
+                gtin=None,  # Don't copy GTIN
+                shipping_cost=core.shipping_cost,
+                bl_live=False,
+                lead_time_override=core.lead_time_override,
+                pack_count=core.pack_count
+            )
+            core_mapping[core.pk] = new_core
+
+        variant_map = {}
+
+        for variant in OcTsgProductVariants.objects.filter(prod_var_core__product=original):
+            new_variant = OcTsgProductVariants.objects.create(
+                prod_var_core=core_mapping[variant.prod_var_core_id],
+                variant_code=None,
+                variant_overide_price=variant.variant_overide_price,
+                alt_image=variant.alt_image,
+                store=variant.store,
+                digital_artwork=variant.digital_artwork,
+                digital_artwork_price=variant.digital_artwork_price,
+                digital_artwork_def=variant.digital_artwork_def,
+                isdeleted=False
+            )
+            variant_map[variant.pk] = new_variant
+
+    #4. Duplicate Product Images
+        for img in original.productimage.all():
+            OcProductImage.objects.create(
+                product=new_product,
+                image=img.image,
+                sort_order=img.sort_order,
+                main=img.main,
+                alt_text=img.alt_text
+            )
+
+    #5 categories
+        for cat in original.productcategory.all():
+            OcTsgProductToCategory.objects.create(
+                product=new_product,
+                category=cat.category,
+                status=cat.status,
+                order=cat.order
+            )
+
+        option_mapping = {}  # map old -> new option
+
+        for option in OcTsgProductOption.objects.filter(product=original):
+            new_option = deepcopy(option)
+            new_option.pk = None
+            new_option.product = new_product
+            new_option.save()
+            option_mapping[option.pk] = new_option
+
+        # === 2. Duplicate Option Values ===
+        for old_option, new_option in option_mapping.items():
+            values = OcTsgProductOptionValues.objects.filter(product_option_id=old_option)
+            for val in values:
+                new_val = deepcopy(val)
+                new_val.pk = None
+                new_val.product_option = new_option
+                new_val.save()
+
+        # === 3. Duplicate Variant Options ===
+        # You need to have already duplicated variants and have a variant map
+        # variant_core_map: {old_core_id: new_core_id}
+        # variant_map: {old_variant_id: new_variant_id}
+
+        variant_map = {}  # ← populate this when duplicating OcTsgProductVariants
+
+        for old_variant_id, new_variant in variant_map.items():
+            variant_options = OcTsgProductVariantOptions.objects.filter(product_variant_id=old_variant_id)
+            for vopt in variant_options:
+                new_vopt = deepcopy(vopt)
+                new_vopt.pk = None
+                new_vopt.product_variant = new_variant
+                new_vopt.save()
+
+    return new_product.pk

@@ -325,3 +325,6 @@ class OcTsgProductToCategory(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_to_category'
+
+
+

@@ -292,11 +292,13 @@ class OcOrder(models.Model):
         if self.payment_status_id == 2:
             self.payment_date = dt.datetime.now()
 
+        super(OcOrder, self).save(*args, **kwargs)
+
         #update the status
         if self.order_id:
             add_order_status_history(self.order_id, self.order_status_id)
-            add_payment_status_history(self.order_id, self.payment_method_id, self.payment_status_id)
-        super(OcOrder, self).save(*args, **kwargs)
+            add_payment_status_history(self.order_id)
+
 
     class Meta:
         managed = False
@@ -617,32 +619,21 @@ def add_order_status_history(order_id, new_id):
         new_history_obj.notify = False
         new_history_obj.save()
 
-def add_payment_status_history(order_id, new_method_id, new_status_id):
-    last_history = OcTsgPaymentHistory.objects.filter(order_id=order_id).order_by('-date_added').first()
-    old_method_id = 0
-    old_status_id = 0
-    record_status_change = 0
-    record_method_change = 0
-    if last_history:
-        old_method_id = last_history.payment_method_id
-        old_status_id = last_history.payment_status_id
+def add_payment_status_history(order_id):
+    """Simplified history tracking that always uses current order values"""
+    order = OcOrder.objects.get(pk=order_id)
+    last_history = OcTsgPaymentHistory.objects.filter(
+        order_id=order_id
+    ).order_by('-date_added').first()
 
-    #if (old_method_id != new_method_id) or (old_status_id != new_status_id):
+    if (not last_history or
+            last_history.payment_method_id != order.payment_method_id or
+            last_history.payment_status_id != order.payment_status_id):
+        OcTsgPaymentHistory.objects.create(
+            order_id=order_id,
+            payment_method_id=order.payment_method_id,
+            payment_status_id=order.payment_status_id,
+            comment='Medusa automatically added payment status history'
+        )
 
-    if old_status_id != new_status_id:
-        record_status_change = new_status_id
-    else:
-        record_status_change = old_status_id
 
-    if old_method_id != new_method_id:
-        record_method_change = new_method_id
-    else:
-        record_method_change = old_method_id
-
-    if old_status_id != new_status_id or old_method_id != new_method_id:
-        new_history_obj = OcTsgPaymentHistory()
-        new_history_obj.order_id = order_id
-        new_history_obj.payment_method_id = record_method_change
-        new_history_obj.payment_status_id = record_status_change
-        new_history_obj.comment = 'Medusa automatically added payment status history'
-        new_history_obj.save()
