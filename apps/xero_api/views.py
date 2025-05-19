@@ -346,7 +346,7 @@ def xero_order_add(request, order_id, encrypted):
     data = {}
 
     order_obj = get_object_or_404(OcOrder, pk=order_id)
-
+    logger.debug(f'xero_order_add - start: Order payment method {order_obj.payment_method}')
     #don't do the encryption for now
     #TODO - make this more secure
     #f = Fernet(settings.XERO_TOKEN_FERNET)
@@ -476,6 +476,7 @@ def xero_get_order_customer(request, xero_id, encrypted):
 
 def _create_new_order(order_obj, customer_id, xero_id = None):
     data = {}
+    logger.debug(f'_create_new_order - start: Order payment method {order_obj.payment_method}')
     xero_order_obj = XeroInvoice()
 
     #set the invoice details
@@ -518,7 +519,9 @@ def _create_new_order(order_obj, customer_id, xero_id = None):
     errors = xero_order_obj.xero_api.get_error()
     if not errors:
         order_obj.xero_id = new_xero_invoice_id
+        logger.debug(f'_create_new_order - before save: Order payment method {order_obj.payment_method}')
         order_obj.save()
+        logger.debug(f'_create_new_order - after save: Order payment method {order_obj.payment_method}')
         #now check for rounding
         data['status'] = 'OK'
         data['orderID'] = new_xero_invoice_id
@@ -896,7 +899,7 @@ def _xero_webhook_invoice_update(invoice_id):
             order_obj.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
             payment_details = invoice_payments[0]
             order_obj.payment_date = payment_details.get('Date')
-            logger.debug(f'Order {order_obj.order_id} current payment_method_id = {order_obj.payment_method_id}')
+            logger.debug(f'Order {order_obj.order_id} current payment_method_id = {order_obj.payment_method}')
             #order_obj.payment_method_id = settings.TSG_PAYMENT_TYPE_XERO
             order_obj.save()
             #add this to the payment history - this is done automatically now by the order class
