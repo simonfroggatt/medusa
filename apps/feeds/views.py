@@ -184,7 +184,8 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
 
         while current_store:
             # Get category name (prefer store name, fallback to base category name)
-            cat_name = current_store.adwords_name or current_store.name
+            #cat_name = current_store.adwords_name or current_store.name
+            cat_name = current_store.name
             if cat_name:
                 path_parts.append(cat_name)
 
@@ -207,10 +208,10 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
 
         # Get the current category's adwords name or fallback to category name
         store_category = category_parent.parent
-        if store_category.adwords_name:
-            adwords_title = store_category.adwords_name
-        else:
-            adwords_title = store_category.name
+        #if store_category.adwords_name:
+        #    adwords_title = store_category.adwords_name
+        #else:
+        adwords_title = store_category.name
 
         # Append current title to path
         if current_path:
