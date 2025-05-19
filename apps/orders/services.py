@@ -1,6 +1,8 @@
 import datetime as dt
 import calendar
 from apps.orders.models import OcTsgOrderOption, OcTsgOrderProductOptions
+import logging
+logger = logging.getLogger('apps')
 def order_highlight_code(order_obj):
     """1 Live, 2 Pending, 3 Failed - """
     h_code = 3
@@ -44,7 +46,10 @@ def create_due_date(order_obj):
         due_date = order_date + dt.timedelta(days=7) #grace period
 
     order_obj.date_due = due_date
+    logger.debug(f'create_due_date: Order payment method {order_obj.payment_method}')
     order_obj.save()
+    logger.debug(f'create_due_date - saved: Order payment method {order_obj.payment_method}')
+
     return due_date
 
 
