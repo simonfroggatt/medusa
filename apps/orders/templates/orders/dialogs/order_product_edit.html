@@ -118,7 +118,7 @@
                     <div class="row">
                         <div class="form-check form-switch form-switch-md col-12">
                             <label class="form-label" for="switchShowBulk">Apply Bulk</label>
-                            <input class="form-check-input" type="checkbox" id="switchApplyBulk" name="{{ form.bulk_used.name }}" role="switch"
+                            <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk" name="{{ form.bulk_used.name }}" role="switch"
                                     {% if form.bulk_used.value %} checked {% endif %}>
                         </div>
 
@@ -200,10 +200,11 @@
 
 
    /* $("#switchApplyBulk").change(function () {
-        let product_price = "#label_{{ form.price.name }}";
-        let bl_bulk = $(this).is(":checked")
-        $(product_price).prop('readonly', $(this).is(":checked"))
-        $('#{{ form.bulk_used.name }}').val(bl_bulk);
+        $(product_price).prop('readonly', $('#switchApplyBulk').is(":checked"))
+       // $('#bulk_group_select').val({{ default_bulk }});
+        let form_id = '#js-product-edit-submit'
+       // drawBulkTable({{ default_bulk }});
+        SetPrice(true, form_id)
 
     })
 
@@ -225,8 +226,10 @@
     $("#single_unit_price").change(function () {
         let form_id = '#' + $(this).parents("form").attr('id')
         let single_price = $(this).val();
+        let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
         $('#{{ form.base_unit_price.name }}').val(single_price);
-        SetPrice(true, form_id);
+
+        SetPrice(use_bulk, form_id);
     });
 /*
     function calc_totals(price, qty) {

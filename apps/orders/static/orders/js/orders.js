@@ -464,7 +464,6 @@ $(function () {
             dataType: 'json',
             success: function (data) {
                 if (data.form_is_valid) {
-                    debugger;
                      //now check for messages
                     if (data.emails)
                     {
@@ -571,9 +570,8 @@ $(function () {
         });
         return false;
     }
-/*
+
     $(".switchApplyBulk").change(function () {
-        alert('bulk js')
         let form_id = '#' + $(this).parents("form").attr('id')
         let product_price = form_id + " #price";
         $(product_price).prop('readonly', $(this).is(":checked"))
@@ -581,7 +579,6 @@ $(function () {
 
 
     $(".calc_line_totals").change(function (element) {
-        alert('here')
         let form_id = '#' + $(this).parents("form").attr('id')
         let tax_price = 0.00;
         let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
@@ -601,7 +598,7 @@ $(function () {
         }
 
     });
-*/
+
 
     function calc_totals(price, qty) {
         return (price * qty).toFixed(2);
@@ -875,7 +872,6 @@ $(function () {
     }
 
     var updateOrderListShippingRowAjax = function (tblrowid) {
-         debugger;
          let table = $('#order_table').DataTable();
          let ajx_url = '/orders/api/orders/'+tblrowid+'/?format=datatables&status=ALL';
          $.ajax({

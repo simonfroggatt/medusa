@@ -76,9 +76,7 @@
 
 
         const bulk_table_data = {{ bulk_info|safe }}
-
             $(".switchApplyBulk").change(function () {
-
                 let form_id = '#' + $(this).parents("form").attr('id')
                 let product_price = form_id + " #{{ form.price.name }}";
                 $(product_price).prop('readonly', $(this).is(":checked"))

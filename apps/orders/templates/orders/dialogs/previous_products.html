@@ -223,6 +223,11 @@
                         "visible": false,
                         "searchable": false
                     },
+                    {
+                        data: "bulk_used",
+                        "visible": false,
+                        "searchable": false
+                    }
                 ]
             });
         }
@@ -232,16 +237,13 @@
                 let data_row = previous_product_table.row(indexes).data()
                 debugger;
                 set_product_details(data_row)
-                if(data_row['quantity'] > 1)
-                {
-                    //$('#form-previous #switchApplyBulk').prop('checked',false)
-                    let product_price =  "#form-previous #{{ form.price.name }}";
-                    $(product_price).prop('readonly', false)
-                    SetPrice(false, '#form-previous')
-                }
-                else{
-                    SetPrice(true, '#form-previous')
-                }
+
+                let was_bulk_used = data_row['bulk_used']
+                //$('#form-previous #switchApplyBulk').prop('checked',was_bulk_used)
+                let product_price =  "#form-previous #{{ form.price.name }}";
+                $(product_price).prop('readonly', false)
+                SetPrice(was_bulk_used, '#form-previous')
+
 
 
             }
@@ -266,7 +268,11 @@
              $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
              $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['price'])
             $('#form-previous #switchApplyBulk').prop('checked', data_row['bulk_used']);
-            $('#form-previous #base_unit_price').val(data_row['base_unit_price'])
+             if (data_row['base_unit_price'] !== undefined && data_row['base_unit_price'] !== null && data_row['base_unit_price'] !== '') {
+                $('#form-previous #base_unit_price').val(data_row['base_unit_price'])}
+             else
+                $('#form-previous #base_unit_price').val(data_row['price'])
+
 
             console.log(data_row)
             let formData = {};
