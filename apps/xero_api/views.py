@@ -373,6 +373,7 @@ def xero_order_add(request, order_id, encrypted):
         return data
 
     xero_order_data = _create_new_order(order_obj, xero_customer_id)
+    logger.debug(f'xero_order_add - end: Order payment method {order_obj.payment_method}')
     xero_order_data['xero_call_type'] = 'ORDER'
     return JsonResponse(xero_order_data)
 
@@ -894,12 +895,13 @@ def _xero_webhook_invoice_update(invoice_id):
         if order_obj.payment_status_id == settings.TSG_PAYMENT_STATUS_PAID:
             return False
 
+        logger.debug(f'_xero_webhook_invoice_update - payment_method_id = {order_obj.payment_method}')
         invoice_payments = xero_invoice.get_payments()
         if invoice_payments:
             order_obj.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
             payment_details = invoice_payments[0]
             order_obj.payment_date = payment_details.get('Date')
-            logger.debug(f'Order {order_obj.order_id} current payment_method_id = {order_obj.payment_method}')
+            logger.debug(f'_xero_webhook_invoice_update - Order {order_obj.order_id} current payment_method_id = {order_obj.payment_method}')
             #order_obj.payment_method_id = settings.TSG_PAYMENT_TYPE_XERO
             order_obj.save()
             #add this to the payment history - this is done automatically now by the order class
