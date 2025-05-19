@@ -58,6 +58,8 @@ class ProductDescriptionBaseForm(forms.ModelForm):
 
         labels = {
             'mib_logo': 'Made in Britain',
+            'name': 'Product Title',
+            'title': 'Page Title (H1)'
         }
 
 
