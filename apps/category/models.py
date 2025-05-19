@@ -1,5 +1,6 @@
 from django.db import models
 from apps.sites.models import OcStore
+from medusa.models import OcTsgGoogleShoppingCategory
 from apps.products.models import OcTsgCategoryTypes
 from django.conf import settings
 
@@ -181,6 +182,7 @@ class OcTsgCategory(models.Model):
     store = models.ForeignKey(OcStore, models.DO_NOTHING)
     status = models.BooleanField(blank=True)
     priority = models.IntegerField(blank=True, null=True)
+    google_cat = models.ForeignKey(OcTsgGoogleShoppingCategory, models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False

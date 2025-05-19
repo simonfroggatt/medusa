@@ -2,6 +2,20 @@ from django.db import models
 from django.conf import settings
 
 
+class OcTsgGoogleShoppingCategory(models.Model):
+    google_cat_id = models.IntegerField(primary_key=True)
+    google_cat_name = models.CharField(max_length=2048, blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_google_shopping_category'
+        ordering = ['sort_order', 'google_cat_name']
+
+    def __str__(self):
+        return self.google_cat_name
+
+
 class OcTaxClass(models.Model):
     tax_class_id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=32)
@@ -178,3 +192,5 @@ class OcTsgOrderProductStatus(models.Model):
 
     def __str__(self):
         return self.name
+
+

@@ -1,8 +1,7 @@
 from django.db import models
 from apps.sites.models import OcStore
-from medusa.models import OcTsgCountryIso
 from django.conf import settings
-
+from medusa.models import OcTsgCountryIso
 
 class OcTsgShippingMethodTypes(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -73,3 +72,5 @@ class OcTsgCourierOptions(models.Model):
 
     def __str__(self):
         return self.courier_option_title
+
+

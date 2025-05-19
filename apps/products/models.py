@@ -3,9 +3,8 @@ from medusa.models import OcTsgCategoryTypes, OcLanguage
 from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
-from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus
 from apps.category.models import OcCategoryToStore, OcTsgCategory
-
+from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus, OcTsgGoogleShoppingCategory
 
 
 from storages.backends.s3boto3 import S3Boto3Storage
@@ -103,6 +102,10 @@ class OcProductToStore(models.Model):
     tag = models.CharField(max_length=512, blank=True, null=True)
     bulk_group = models.ForeignKey('OcTsgBulkdiscountGroups', models.DO_NOTHING, blank=True, null=True, related_name='store_product_bulkgroup')
     clean_url = models.CharField(max_length=255,blank=True, null=True, default='')
+    include_google_ads = models.BooleanField()
+    google_shopping_category = models.ForeignKey(OcTsgGoogleShoppingCategory, models.DO_NOTHING, blank=True,
+                                                 null=True)
+
 
     @property
     def image_url(self):
@@ -269,6 +272,11 @@ class OcProductImage(models.Model):
         managed = False
         db_table = 'oc_product_image'
 
+    @property
+    def image_url(self):
+        if self.image:
+            return f"{settings.MEDIA_URL}{self.image}"
+
 
 class OcStoreProductImages(models.Model):
     store_product = models.ForeignKey(OcProductToStore, models.DO_NOTHING, blank=True, null=True, related_name='storeproduct')
@@ -279,6 +287,8 @@ class OcStoreProductImages(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_store_product_images'
+
+
 
 
 class OcTsgProductDocuments(models.Model):

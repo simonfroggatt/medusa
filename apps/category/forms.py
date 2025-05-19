@@ -94,6 +94,7 @@ class CategoryDescriptionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CategoryDescriptionForm, self).__init__(*args, **kwargs)
         self.fields['store'].empty_label = None
+        self.fields['google_cat'].empty_label = None
 
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 30}), required=False)
 

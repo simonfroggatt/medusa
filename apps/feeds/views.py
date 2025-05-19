@@ -15,9 +15,10 @@ from apps.products.models import (
     OcProductToStore,
     OcTsgProductVariantCore,
     OcTsgProductVariants,
-    OcProductImage, OcProductToCategory
+    OcProductImage, OcTsgProductToCategory
 )
-from apps.category.models import OcTsgCategoryStoreParent, OcCategory, OcCategoryDescription, OcCategoryDescriptionBase, OcCategoryToStore
+from apps.pricing.models import OcTsgSizeMaterialCombPrices
+from apps.category.models import OcTsgCategoryParent, OcCategory, OcCategoryDescription, OcCategoryDescriptionBase, OcTsgCategory
 from apps.symbols.models import OcTsgProductSymbols
 from django.conf import settings
 from django.db.models import Prefetch
@@ -27,6 +28,9 @@ import re
 import logging
 logger = logging.getLogger('apps')
 import os
+
+from django.db.models import Case, When, Value, F, OuterRef, Subquery, Min, ExpressionWrapper, DecimalField, Q, Prefetch
+from django.db.models.functions import Coalesce
 
 
 def clean_description(text):
@@ -91,14 +95,16 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         condition = ET.SubElement(item, 'g:condition')
         condition.text = 'new'
 
-        gtin_value = variant.get('gtin', '')
-        mpn_value = variant.get('mpn', '')
+        gtin_value = variant.get('gtin', '').strip()
+        mpn_value = variant.get('mpn', '').strip()
 
-        gtin = ET.SubElement(item, 'g:gtin')
-        gtin.text = variant.get('gtin', '')
-        
-        mpn = ET.SubElement(item, 'g:mpn')
-        mpn.text = variant.get('mpn', '')
+        if gtin_value:
+            gtin = ET.SubElement(item, 'g:gtin')
+            gtin.text = gtin_value
+
+        if mpn_value:
+            mpn = ET.SubElement(item, 'g:mpn')
+            mpn.text = mpn_value
 
         if not gtin_value and not mpn_value:
             identifier_exists = ET.SubElement(item, 'g:identifier_exists')
@@ -109,13 +115,26 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
 
         product_type = ET.SubElement(item, 'g:product_type')
         product_type.text = product_data.get('product_type', '')
-        
+
+        shipping = ET.SubElement(item, 'g:shipping')
+        country = ET.SubElement(shipping, 'g:country')
+        country.text = 'UK'
+        service = ET.SubElement(shipping, 'g:service')
+        service.text = 'Standard'
+        shippingprice = ET.SubElement(shipping, 'g:price')
+        price_value = Decimal(variant.get('shipping_cost')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        shippingprice.text = f"{price_value} GBP"
+
+
+
+
         # Optional fields
         for field, value in variant.items():
             if field in ['color', 'size', 'material', 'pattern','product_highlight'] and value:
                 elem = ET.SubElement(item, f'g:{field}')
                 elem.text = value
-        
+
+
         if variant.get('shipping_weight'):
             weight = ET.SubElement(item, 'g:shipping_weight')
             weight.text = f"{variant['shipping_weight']} kg"
@@ -136,14 +155,26 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                 elem.text = value
 
     def _get_product_category(self, product):
+        data = dict()
 
-        product_category = OcProductToCategory.objects.filter(product=product).first()
-        if not product_category or not product_category.category_store:
+        product_category = OcTsgProductToCategory.objects.filter(product=product, status=True).first()
+        # we need to check that this category is active on the site.
+
+        if not product_category or not product_category.category:
             logger.warning(f"Product {product.product_id} does not have a valid category.")
-            return ''
-        return self._build_category_path(product_category.category_store)
+            data['category_path'] = ''
+            return data
 
-    def _build_category_path(self, starting_category_store: OcCategoryToStore):
+        if not product_category.category.status:
+            logger.warning(f"Product {product.product_id} is in a offline category.")
+            data['category_path'] = ''
+            return data
+
+        data['category_path'] = self._build_category_path(product_category.category)
+        data['google_category'] = product_category.category.google_cat_id
+        return data
+
+    def _build_category_path(self, starting_category_store: OcTsgCategory):
         """
         Build a simple 'Parent > Child > Subcategory' path for Google Merchant feed.
         No hrefs, just plain text.
@@ -153,18 +184,13 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
 
         while current_store:
             # Get category name (prefer store name, fallback to base category name)
-            cat_name = current_store.adwords_name or \
-                       current_store.name or \
-                       (
-                           current_store.category.categorybasedesc.adwords_name if current_store.category.categorybasedesc else '') or \
-                       current_store.category.name
-
+            cat_name = current_store.adwords_name or current_store.name
             if cat_name:
                 path_parts.append(cat_name)
 
             # Move to parent category
-            parent_link = OcTsgCategoryStoreParent.objects.filter(category_store=current_store).first()
-            if not parent_link or parent_link.is_base:
+            parent_link = OcTsgCategoryParent.objects.filter(category=current_store).order_by('sort_order').first()
+            if not parent_link or not parent_link.parent:
                 break
 
             current_store = parent_link.parent
@@ -172,19 +198,19 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         # Reverse to build path from top-level to lowest level
         return ' > '.join(reversed(path_parts))
 
-    def _get_category_parent(self, category_store_parent, current_path):
+    def _get_category_parent(self, category_parent, current_path):
         """
         Recursively build the category path until we reach a base category (is_base=True).
         """
-        if not category_store_parent or not category_store_parent.category_store:
+        if not category_parent:
             return ''
 
         # Get the current category's adwords name or fallback to category name
-        store_category = category_store_parent.category_store
+        store_category = category_parent.parent
         if store_category.adwords_name:
             adwords_title = store_category.adwords_name
         else:
-            adwords_title = store_category.category.categorybasedesc.adwords_name or store_category.category.name
+            adwords_title = store_category.name
 
         # Append current title to path
         if current_path:
@@ -193,11 +219,11 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
             path = adwords_title
 
         # Stop recursion if this category is marked as a base
-        if category_store_parent.is_base:
+        if category_parent is None:
             return path
 
         # Recurse up to the parent
-        parent_category = OcTsgCategoryStoreParent.objects.filter(category_store=category_store_parent.parent).first()
+        parent_category = OcTsgCategoryParent.objects.first().sort_order('sort_order')
         return self._get_category_parent(parent_category, path)
 
     def _get_product_standard(self, product):
@@ -222,7 +248,8 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         store_products = OcProductToStore.objects.filter(
             store=store,
             status=True,
-            include_google_merchant=True
+            include_google_merchant=True,
+            include_google_ads=True,
         ).select_related(
             'product',
             'product__productdescbase',
@@ -244,7 +271,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
             product_standard = self._get_product_standard(product)
 
             # Skip if product or description is missing
-            if not product or not base_desc:
+            if not product or not base_desc or not product.status:
                 continue
 
             if store_product.name:
@@ -258,38 +285,34 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                 desc = base_desc.description
 
             # need the category
-            category_path = self._get_product_category(product)
-            if not category_path:
+            category_data = self._get_product_category(product)
+            if not category_data['category_path']:
                 continue
 
-            # final_category = OcProductToCategory.objects.filter(product=product).first().category_store.category.name
+            #check if there is a product_to_store -> google cat set, otherwise get the category one
+            if store_product.google_shopping_category:
+                google_cat = store_product.google_shopping_category_id
+            else:
+                google_cat = category_data['google_category']
 
             # Base product data
             product_data = {
-                'id': f'{store.store_id}-{product.product_id}',
+                'id': f'{product.product_id}',
                 'title': title,
                 'description': desc,
-                # 'brand': store.company_name or 'Brand Name',
-                'brand': 'Safety Signs and Notices',
-                'google_product_category': '5892',
+                'brand': f'{store.name}',
+                'google_product_category': f'{google_cat}',
                 'store_url': store.url,
                 'variants': [],
-                # 'product_type': f"Safety Signs > {category_path}",
-                'product_type': f"{category_path}",
-                # Add custom labels for better ad targeting
-                # 'custom_labels': {
-                #    'custom_label_0': self._get_price_range_label(product),  # Price range
-                #    'custom_label_1': 'bespoke' if product.is_bespoke else 'standard',  # Product type
-                #    'custom_label_2': product.bulk_group.group_name if product.bulk_group else '',  # Bulk discount group
-                #    'custom_label_3': 'new_arrival' if (datetime.now() - product.date_added).days < 30 else '',  # New arrivals
-                #    'custom_label_4': 'bestseller' if product.viewed > 100 else ''  # Popular items
-                # }
+                'product_type': f"{category_data['category_path']}",
+
             }
 
             # Get all variants for this product
             core_variants = product.corevariants.all().order_by('size_material__price')
 
             index = 0
+            current_material_id = 0
             for core_variant in core_variants:
                 store_variant = next(
                     (sv for sv in getattr(core_variant, 'filtered_store_variants', []) if
@@ -305,7 +328,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                 else:
                     base_price = core_variant.size_material.price * Decimal(1.20)
 
-                variant_title = f"{base_desc.name} - {core_variant.size_material.product_size.size_name} - {core_variant.size_material.product_material.material_name}"
+                variant_title = f"{title} - {core_variant.size_material.product_size.size_name} - {core_variant.size_material.product_material.material_name}"
 
                 # check the length, if it's more than 150 then print the product id
                 if len(variant_title) > 150:
@@ -322,19 +345,30 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                     product_highlight = f"Product conforms to {product_standard}"
 
                 is_cheapest = 'cheapest_false'
-                if index == 0:
-                    is_cheapest = 'cheapest_true'
+                if core_variant.size_material.product_material_id != current_material_id:
+                    current_material_id = core_variant.size_material.product_material_id
+                    if index == 0:
+                        is_cheapest = 'cheapest_variant'
+                    else:
+                        is_cheapest = 'cheapest_material'
+                    # then we have a new material here
 
+                if index == 0:
+                    is_cheapest = 'cheapest_variant'
+                    current_material_id = core_variant.size_material.product_material_id
 
                 # tmp - test
                 product_size = core_variant.size_material.product_size
                 size_name_adwords = self._get_size_name(product_size)
 
+                shipping_cost = 3.95 * 1.2
+                if core_variant.shipping_cost > 0:
+                    shipping_cost = core_variant.shipping_cost * Decimal('1.2')
+
                 # Build variant data
                 variant_data = {
                     # 'id': f'{core_variant.prod_variant_core_id}v20',
-                    'id': f'{store.store_id}-{product.product_id}-{store_variant.prod_variant_id}',
-                    # 'group_id': f'{store.store_id}-{product.product_id}',
+                    'id': f'{store_variant.prod_variant_id}',
                     'group_id': f'{product.product_id}',
                     'title': variant_title,
                     'price': str(base_price),
@@ -342,32 +376,16 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                     'gtin': core_variant.gtin or '',
                     'mpn': core_variant.supplier_code or '',
                     'link': f"{product_link}{'&' if '?' in product_link else '?'}variantid={store_variant.prod_variant_id}",
-                    # 'shipping_weight': str(core_variant.shipping_cost) if core_variant.shipping_cost else None,
                     'size': f'{core_variant.size_material.product_size.size_name}',
-                    # 'size': size_name_adwords,
                     'material': f'{core_variant.size_material.product_material.material_name}',
                     'condition': 'new',
                     'product_highlight': product_highlight,
-                    # Add remarketing tags
-                    'custom_label_0': f"{core_variant.size_material.product_material.material_name}",
-                    # 'custom_label_1': f"{core_variant.size_material.product_size.size_name}",
-                    'custom_label_1': f'{core_variant.size_material.product_size.size_name}',
-                    'custom_label_2': f"{is_cheapest}",
-                    'custom_label_3': f"ver20",
-                    'gtin': core_variant.gtin or '',
-                    'mpn': '',
-                    # 'custom_labels': product_data['custom_labels'].copy()  # Copy base product labels
+                    'custom_label_0': f"{is_cheapest}",
+                    'custom_label_1': f"{core_variant.size_material.product_material.material_name}",
+                    'custom_label_2': f'{core_variant.size_material.product_size.size_name}',
+                    'custom_label_3': '',
+                    'shipping_cost': str(shipping_cost)
                 }
-
-                # Handle variant images
-                # if core_variant.variant_image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{core_variant.variant_image}"
-                # elif store_variant.alt_image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{store_variant.alt_image}"
-                # elif store_product.image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{store_product.image}"
-                # elif product.image:
-                #    variant_data['image_link'] = f"{settings.MEDIA_URL}{product.image}"
 
                 variant_data['image_link'] = f"{core_variant.variant_image_url}"
 
@@ -375,7 +393,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                 additional_images = []
                 product_images = product.productimage.filter(main=False).order_by('sort_order')
                 for img in product_images:
-                    additional_images.append(f"{store.url}/media/{img.image}")
+                    additional_images.append(f"{img.image_url}")
                 if additional_images:
                     variant_data['additional_image_links'] = additional_images
 
@@ -464,6 +482,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         
         # Get all products for this store
         products = self._get_product_data(store)
+        #products = self._get_product_data_mins(store)
         
         # Add each product to the feed
         for product_data in products:
