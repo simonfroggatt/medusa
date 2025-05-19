@@ -105,6 +105,8 @@ class CategoryDescriptionForm(forms.ModelForm):
 
         labels = {
             'status': 'Visible',
+            'name': 'Category Title',
+            'title': 'Page Title'
         }
 
 class CategoryParentForm(forms.ModelForm):
