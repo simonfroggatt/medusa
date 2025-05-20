@@ -469,20 +469,20 @@ function SetPrice(getbulk = true, form_id) {
     let line_price = 0.00;
     let tax_price = 0.00;
     let single_unit_price = $(form_id + ' #single_unit_price').val();
-    let base_price = $(form_id + ' #single_unit_price').val();
+    let base_price = $(form_id + ' #base_unit_price').val();
     let discount_price = 0.00;
     let qty = parseInt($(qty_field).val())
     let bulk_group_id = $(form_id + ' .bulk_group_select').val();
 
     drawBulkTable(bulk_group_id, form_id);
-    $(form_id + ' #single_unit_price').val(base_price)
+    $(form_id + ' #single_unit_price').val(single_unit_price)
 
     //Use the acutal value from the form
     let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
 
     if (use_bulk) {
         let discount = getBulkPriceDiscount(bulk_group_id, qty, form_id)
-        discount_price = (parseFloat(base_price).toFixed(2) * discount).toFixed(2);
+        discount_price = (parseFloat(single_unit_price).toFixed(2) * discount).toFixed(2);
         line_price = parseFloat(qty * discount_price).toFixed(2);
         $(product_price).val(discount_price);
 

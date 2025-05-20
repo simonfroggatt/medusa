@@ -241,7 +241,7 @@
                 $('#form-previous #switchApplyBulk').prop('checked',was_bulk_used)
                 if(was_bulk_used) {
                     //then we need to set the base unit price
-                    $('#form-previous #{{ form.bulk_used.name }}').val(1)
+                    $('#form-previous #{{ form.bulk_used.name }}').val(was_bulk_used)
                 }
                 let product_price =  "#form-previous #{{ form.price.name }}";
                 $(product_price).prop('readonly', false)
@@ -252,15 +252,15 @@
             }
         });
 
-        function set_product_details(data_row){
-              $('#form-previous #{{ form.product_id.name }}').val(data_row['product_id'])
+        function set_product_details(data_row) {
+            $('#form-previous #{{ form.product_id.name }}').val(data_row['product_id'])
             $('#form-previous #{{ form.name.name }}').val(data_row['name'])
-             $('#form-previous #{{ form.size_name.name }}').val(data_row['size_name'])
-             $('#form-previous #{{ form.width.name }}').val(data_row['width']);
+            $('#form-previous #{{ form.size_name.name }}').val(data_row['size_name'])
+            $('#form-previous #{{ form.width.name }}').val(data_row['width']);
             $('#form-previous #{{ form.height.name }}').val(data_row['height'])
             $('#form-previous #{{ form.material_name.name }}').val(data_row['material_name'])
             $('#form-previous #{{ form.orientation_name.name }}').val(data_row['orientation_name'])
-            if(data_row['product_variant']) {
+            if (data_row['product_variant']) {
                 $('#form-previous #{{ form.product_variant.name }}').val(data_row['product_variant']['prod_variant_id'])
             }
             $('#form-previous #{{ form.model.name }}').val(data_row['model'])
@@ -268,14 +268,16 @@
             $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
             $('#form-previous #{{ form.price.name }}').val(data_row['price'])
             $('#form-previous #line_total_cal').html(data_row['total']);
-             $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
-             $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['single_unit_price'])
+            $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
+            $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['single_unit_price'])
+
             let bulk_used = data_row['bulk_used']
-            $('#form-previous #switchApplyBulk').prop('checked', bulk_used);
-             //$('#form-previous #{{ form.bulk_used.name }}').val(bulk_used)
-             if (data_row['base_unit_price'] !== undefined && data_row['base_unit_price'] !== null && data_row['base_unit_price'] !== '') {
-                $('#form-previous #base_unit_price').val(data_row['base_unit_price'])}
-             else
+
+            $('#form-previous #{{ form.bulk_used.name }}').val(bulk_used)
+
+            if (data_row['base_unit_price'] !== undefined && data_row['base_unit_price'] !== null && data_row['base_unit_price'] !== '') {
+                $('#form-previous #base_unit_price').val(data_row['base_unit_price'])
+            } else
                 $('#form-previous #base_unit_price').val(data_row['single_unit_price'])
 
 
