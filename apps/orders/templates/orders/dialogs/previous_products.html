@@ -58,7 +58,7 @@
                             <div class="col-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input switchApplyBulk" type="checkbox" id="switchApplyBulk"
-                                           checked>
+                                           name="switchApplyBulk" checked>
                                     <label class="form-check-label" for="switchApplyBulk">Apply bulk discount</label>
                                 </div>
                             </div>
@@ -151,7 +151,7 @@
                 "select": true,
                 "scroller": true,
                 "scrollY": "400",
-                "scrollCollapse": true,
+                "scrollCollapse": false,
                 "rowId": 'product_id',
                 "ajax": {
                     "processing": true,
@@ -235,11 +235,14 @@
             if (type === 'row') {
                 let product_id = previous_product_table.row(indexes).id()
                 let data_row = previous_product_table.row(indexes).data()
-                debugger;
                 set_product_details(data_row)
 
                 let was_bulk_used = data_row['bulk_used']
-                //$('#form-previous #switchApplyBulk').prop('checked',was_bulk_used)
+                $('#form-previous #switchApplyBulk').prop('checked',was_bulk_used)
+                if(was_bulk_used) {
+                    //then we need to set the base unit price
+                    $('#form-previous #{{ form.bulk_used.name }}').val(1)
+                }
                 let product_price =  "#form-previous #{{ form.price.name }}";
                 $(product_price).prop('readonly', false)
                 SetPrice(was_bulk_used, '#form-previous')
@@ -266,12 +269,14 @@
             $('#form-previous #{{ form.price.name }}').val(data_row['price'])
             $('#form-previous #line_total_cal').html(data_row['total']);
              $('#form-previous #{{ form.quantity.name }}').val(data_row['quantity'])
-             $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['price'])
-            $('#form-previous #switchApplyBulk').prop('checked', data_row['bulk_used']);
+             $('#form-previous #{{ form.single_unit_price.name }}').val(data_row['single_unit_price'])
+            let bulk_used = data_row['bulk_used']
+            $('#form-previous #switchApplyBulk').prop('checked', bulk_used);
+             //$('#form-previous #{{ form.bulk_used.name }}').val(bulk_used)
              if (data_row['base_unit_price'] !== undefined && data_row['base_unit_price'] !== null && data_row['base_unit_price'] !== '') {
                 $('#form-previous #base_unit_price').val(data_row['base_unit_price'])}
              else
-                $('#form-previous #base_unit_price').val(data_row['price'])
+                $('#form-previous #base_unit_price').val(data_row['single_unit_price'])
 
 
             console.log(data_row)

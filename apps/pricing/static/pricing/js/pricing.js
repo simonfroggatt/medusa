@@ -486,7 +486,7 @@ function SetPrice(getbulk = true, form_id) {
         $(product_price).val(discount_price);
 
     } else {
-        line_price = (qty * $('#single_unit_price').val()).toFixed(2);
+        line_price = (qty * $(product_price).val()).toFixed(2);
     }
 
     tax_price = parseFloat(line_price * tax_rate).toFixed(2);
