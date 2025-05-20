@@ -95,7 +95,8 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         condition = ET.SubElement(item, 'g:condition')
         condition.text = 'new'
 
-        gtin_value = variant.get('gtin', '').strip()
+        gtin_value = ''
+        #gtin_value = variant.get('gtin', '').strip()
         mpn_value = variant.get('mpn', '').strip()
 
         if gtin_value:
