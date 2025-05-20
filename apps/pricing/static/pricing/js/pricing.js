@@ -468,6 +468,7 @@ function SetPrice(getbulk = true, form_id) {
     let product_price = form_id + " #price";
     let line_price = 0.00;
     let tax_price = 0.00;
+    let single_unit_price = $(form_id + ' #single_unit_price').val();
     let base_price = $(form_id + ' #single_unit_price').val();
     let discount_price = 0.00;
     let qty = parseInt($(qty_field).val())
@@ -486,7 +487,10 @@ function SetPrice(getbulk = true, form_id) {
         $(product_price).val(discount_price);
 
     } else {
+        $(product_price).val(single_unit_price);
         line_price = (qty * $(product_price).val()).toFixed(2);
+
+
     }
 
     tax_price = parseFloat(line_price * tax_rate).toFixed(2);

@@ -228,7 +228,6 @@
         let single_price = $(this).val();
         let use_bulk = $(form_id + ' #switchApplyBulk').is(":checked");
         $('#{{ form.base_unit_price.name }}').val(single_price);
-
         SetPrice(use_bulk, form_id);
     });
 /*
