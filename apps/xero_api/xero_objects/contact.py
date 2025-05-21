@@ -158,11 +158,13 @@ class XeroContact(XeroItem):
         }
 
         if self.do_request('Contacts/' + self.__ContactID, '', ''):
-            xero_reponse = self.xero_api.get_xero_response()
-            if xero_reponse['Contacts']:
-                xero_reponse_contact = xero_reponse['Contacts'][0]
-                outstanding = Decimal(str(xero_reponse_contact.get('AccountsReceivableOutstanding', 0)))
-                overdue = Decimal(str(xero_reponse_contact.get('AccountsReceivableOverdue', 0)))
+            xero_response = self.xero_api.get_xero_response()
+            if xero_response['Contacts']:
+                contact = xero_response['Contacts'][0]
+                balances = contact.get('Balances', {})
+                receivable = balances.get('AccountsReceivable', {})
+                outstanding = Decimal(str(receivable.get('Outstanding', 0)))
+                overdue = Decimal(str(receivable.get('Overdue', 0)))
                 data = {
                     'outstanding': outstanding,
                     'overdue': overdue
