@@ -86,7 +86,9 @@ def company_details(request, company_id):
     account_details = {'outstanding': 0,'overdue': 0}
     if company_obj.xero_id:
         account_details_xero = xero.xero_company_accounts(company_id)
-    context['account_balances'] = account_details_xero['account_details']
+        context['account_balances'] = account_details_xero['account_details']
+    else:
+        context['account_balances'] = {'outstanding': 0,'overdue': 0 }
     return render(request, template_name, context)
 
 
