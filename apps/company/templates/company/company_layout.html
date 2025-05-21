@@ -1,5 +1,6 @@
 {% extends 'partials/base.html' %}
 {% load static %}
+{% load user_tags %}
 {% block extra_css %}
    <!-- old datatables css -->
 {% endblock extra_css %}
@@ -20,12 +21,19 @@
             </div>
         </div>
         <div class="row pb-2">
-            <div class="col-12 col-sm-8 pe-0" id="card_company_main_contact">
+            {% if request.user|has_group:"superuser" %}
+                <div class="col-12 col-sm-8 pe-0" id="card_company_main_contact">
                  {% include 'company/sub_layout/company_main_details.html' %}
             </div>
             <div class="col-12 col-sm-4 ">
                  {% include 'company/sub_layout/company_account_stats.html' %}
             </div>
+                {% else %}
+                <div class="col-12 pe-0" id="card_company_main_contact">
+                 {% include 'company/sub_layout/company_main_details.html' %}
+            </div>
+            {% endif %}
+
         </div>
         <div class="row" id="company-details-tabs">
             <div class="col">
