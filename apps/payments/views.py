@@ -19,6 +19,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 @csrf_exempt
 @require_http_methods(["POST"])
 def webhook_stripe(request):
+    logger.debug(f"webhook_stripe")
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     stripe_webhook_secret = settings.STRIPE_WEBHOOK_SECRET
@@ -37,8 +38,11 @@ def webhook_stripe(request):
         payment_intent = event['data']['object']
         order_id = payment_intent.metadata.get('order_id')
         if order_id:
+            logger.debug(f"payment_intent")
+            logger.debug(payment_intent)
             try:
                 order = OcOrder.objects.get(order_id=order_id)
+                logger.debug(f"payment_intent.succeeded order payment method: {order.payment_method}")
                 order.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
                 order.payment_ref = payment_intent['id']
                 order.save()

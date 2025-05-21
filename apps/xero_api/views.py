@@ -87,7 +87,7 @@ def do_refesh_token(request):
 
 def xero_passback(request):
     template_name = 'xero_api/passback.html'
-    logger.debug(f"xero_passback - request = {request}")
+    #logger.debug(f"xero_passback - request = {request}")
     auth_code = request.GET['code']
     xero_auth = XeroAuthManager()
     xero_auth.xero_setup_token_info(auth_code)
@@ -334,10 +334,20 @@ def xero_company_account(request, company_id, encrypted):
     data['xero_call_type'] = 'COMPANY'
     return JsonResponse(data)
 
+def xero_company_accounts(company_id):
+    data = {}
+    company_obj = get_object_or_404(OcTsgCompany, pk=company_id)
+    xero_contact_data = _get_company_accounts(company_obj)
+    if xero_contact_data['status'] == 'OK':
+        data['status'] = 'OK'
+        data['account_details'] = xero_contact_data['account_balance']
+    else:
+        data['status'] = xero_contact_data['status']
+        data['error'] = xero_contact_data['error']
+        data['account_details'] = xero_contact_data['account_balance']
 
-
-
-    return JsonResponse(data)
+    data['xero_call_type'] = 'COMPANY'
+    return data
 
 #############################################   ORDER   ########################################################
 
@@ -388,6 +398,7 @@ def xero_order_update(request, order_id, encrypted):
         return JsonResponse(data)
 
     order_obj = get_object_or_404(OcOrder, pk=order_id)
+    logger.debug(f"xero_order_update payment method: {order_obj.payment_method}")
     customer_obj = order_obj.customer
     xero_customer_data = _get_order_contact_id(order_obj)
     if xero_customer_data['status'] == 'OK':
@@ -573,7 +584,7 @@ def _xero_invoice_check_rounding(order_obj, xero_order_obj):
             'description': 'Rounding',
             'account_code': xero_config.ACCOUNT_CODE_ROUNDING
         }
-        logger.debug('rounding line: ' + str(rounding_line))
+        #logger.debug('rounding line: ' + str(rounding_line))
         xero_order_obj.add_line(rounding_line)
         xero_order_obj.save_invoice()
         errors = xero_order_obj.xero_api.get_error()
@@ -593,14 +604,14 @@ def _get_order_contact_id(order_obj):
     data['contactID'] = None
 
     #does this order have a customer or is it a guest checkout
-    logger.debug(f"in _get_order_contact_id")
+    #logger.debug(f"in _get_order_contact_id")
     if order_obj.customer:
-        logger.info(f"in _get_order_contact_id - there is a customer")
+        #logger.info(f"in _get_order_contact_id - there is a customer")
         if order_obj.customer.xero_id:
-            logger.debug(f"in _get_order_contact_id XERO_ID = {order_obj.customer.xero_id}")
+            #logger.debug(f"in _get_order_contact_id XERO_ID = {order_obj.customer.xero_id}")
             contact_id = order_obj.customer.xero_id
         else:
-            logger.info(f"in _get_order_contact_id no XERO_ID")
+            #logger.info(f"in _get_order_contact_id no XERO_ID")
             if order_obj.customer.parent_company:
                 if order_obj.customer.parent_company.xero_id:
                     contact_id = order_obj.customer.parent_company.xero_id
@@ -613,8 +624,8 @@ def _get_order_contact_id(order_obj):
                         data['status'] = return_contact['status']
                         data['error'] = return_contact['error']
             else:
-                logger.info(f"in _get_order_contact_id no parent company, so adding a new contact")
-                logger.debug(f"in _get_order_contact_id customer = {order_obj.customer}")
+                #logger.info(f"in _get_order_contact_id no parent company, so adding a new contact")
+                #logger.debug(f"in _get_order_contact_id customer = {order_obj.customer}")
                 return_contact = _create_new_contact(order_obj.customer)
                 if return_contact['status'] == 'OK':
                     contact_id = return_contact['contactID']
@@ -646,8 +657,8 @@ def _get_order_contact_id(order_obj):
             country=order_obj.payment_country
         )
 
-        logger.debug(f"in _get_order_contact_id - customer_details_obj = {customer_details_obj}")
-        logger.debug(f"in _get_order_contact_id - customer_address_obj = {customer_address_obj}")
+        #logger.debug(f"in _get_order_contact_id - customer_details_obj = {customer_details_obj}")
+        #logger.debug(f"in _get_order_contact_id - customer_address_obj = {customer_address_obj}")
 
         return_contact = _create_new_contact(customer_details_obj, None, customer_address_obj, True)
         if return_contact['status'] == 'OK':
@@ -668,9 +679,9 @@ def _create_new_contact(customer_obj, xero_id = None, billing_address_guest = No
 
     data['status'] = 'OK'
     customer_names = HumanName(customer_obj.fullname)
-    logger.debug(f"in _create_new_contact - customer_obj = {customer_obj}")
-    logger.debug(f"in billing_address_guest - customer_obj = {billing_address_guest}")
-    logger.debug(f"guestCustoemr = {guest_customer}")
+    #logger.debug(f"in _create_new_contact - customer_obj = {customer_obj}")
+    #logger.debug(f"in billing_address_guest - customer_obj = {billing_address_guest}")
+    #logger.debug(f"guestCustoemr = {guest_customer}")
 
    # xero_item = XeroItem()
     # tennant_id = xero_item.get_tenant_id()
@@ -825,20 +836,21 @@ def _get_company_accounts(company_obj):
     xero_contact_id = company_obj.xero_id
     if xero_contact_id:
         xero_contact_obj = XeroContact()
+        xero_contact_obj.set_existing_id(xero_contact_id)
         xero_balance = xero_contact_obj.get_account_balance()
         errors = xero_contact_obj.xero_api.get_error()
         if not errors:
-            company_obj.xero_id = contact_id
-            company_obj.save()
             data['status'] = 'OK'
             data['account_balance'] = xero_balance
         else:
             data['status'] = 'ERROR'
             data['error'] = errors
-            data['account_balance'] = {}
+            data['account_balance'] = {'outstanding': 0,'overdue': 0 }
     else:
         data['status'] = 'OK'
-        data['account_balance'] = {}
+        data['account_balance'] = {'outstanding': 0,'overdue': 0 }
+
+    return data
 
 
 
@@ -847,7 +859,7 @@ def _get_company_accounts(company_obj):
 @csrf_protect
 @csrf_exempt
 def xero_web_hook(request):
-    logger.debug('XERO WEBHOOK')
+    #logger.debug('XERO WEBHOOK')
 
     key = xero_config.XERO_WEBHOOK_KEY
     provided_signature = request.headers.get('X-Xero-Signature')
@@ -862,7 +874,7 @@ def xero_web_hook(request):
     if provided_signature != generated_signature:
         return HttpResponse(status=401)
 
-    logger.debug('Signature match')
+    #logger.debug('Signature match')
 
     # Respond immediately
     response = HttpResponse(status=200)
@@ -876,7 +888,7 @@ def xero_web_hook(request):
 def _xero_webhook_payload(payload):
     webhook_data = json.loads(payload)
     events = webhook_data['events']
-    logger.debug(f'_xero_webhook_payload - events = {events}')
+    #logger.debug(f'_xero_webhook_payload - events = {events}')
     for event in events:
         if event['eventCategory'] == 'INVOICE':
             if event['eventType'] == 'UPDATE':
@@ -889,7 +901,7 @@ def _xero_webhook_invoice_update(invoice_id):
         try:
             order_obj = OcOrder.objects.get(xero_id=invoice_id)
         except OcOrder.DoesNotExist:
-            logger.warning(f'OcOrder with xero_id={invoice_id} not found.')
+            #logger.warning(f'OcOrder with xero_id={invoice_id} not found.')
             return False
 
         if order_obj.payment_status_id == settings.TSG_PAYMENT_STATUS_PAID:
@@ -912,8 +924,6 @@ def _xero_webhook_invoice_update(invoice_id):
             #new_history_obj.comment = 'XERO - Automated update - Payment'
             #new_history_obj.save()
 
-            logger.debug(f'Order {order_obj.order_id} marked as paid.')
-        else:
-            logger.info(f'No payments found for invoice {invoice_id}. Maybe legacy')
+            #logger.debug(f'Order {order_obj.order_id} marked as paid.')
     return True
 

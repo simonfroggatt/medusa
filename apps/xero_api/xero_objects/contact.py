@@ -5,6 +5,7 @@ from django.conf import settings
 import os
 import logging
 logger = logging.getLogger('apps')
+from decimal import Decimal
 
 class XeroContact(XeroItem):
 
@@ -149,10 +150,14 @@ class XeroContact(XeroItem):
         self.__ContactID = contact_id
         return
 
-    def get_account_balance(self, contact_id):
+    def get_account_balance(self):
         data = dict()
-        self.__ContactID = contact_id
-        if self.do_request('Contacts/' + xero_contact_id, '', ''):
+        data = {
+            'outstanding': 0,
+            'overdue': 0
+        }
+
+        if self.do_request('Contacts/' + self.__ContactID, '', ''):
             xero_reponse = self.xero_api.get_xero_response()
             if xero_reponse['Contacts']:
                 xero_reponse_contact = xero_reponse['Contacts'][0]
@@ -162,11 +167,6 @@ class XeroContact(XeroItem):
                     'outstanding': outstanding,
                     'overdue': overdue
                 }
-            else:
-                self.__ContactID = None
-        else:
-            self.__ContactID = None
-
         return data
 
 

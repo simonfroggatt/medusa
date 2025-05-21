@@ -83,9 +83,10 @@ def company_details(request, company_id):
 
     #f = Fernet(settings.XERO_TOKEN_FERNET)
     #encrypted = f.encrypt(str(company_id).encode()).decode()
-    #account_details = xero.xero_company_account(company_id, encrypted)
-    #context['account_balance'] = account_details
-
+    account_details = {'outstanding': 0,'overdue': 0}
+    if company_obj.xero_id:
+        account_details_xero = xero.xero_company_accounts(company_id)
+    context['account_balances'] = account_details_xero['account_details']
     return render(request, template_name, context)
 
 
