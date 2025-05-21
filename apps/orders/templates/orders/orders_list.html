@@ -109,8 +109,14 @@
             {
                 data: "dow",
                  render: function ( data, type, row ) {
-                    let text = data + ' (' + row.days_since_order + ')'
-                     return text
+                    var dow_text;
+                    if (row.days_since_order > 0) {
+                        dow_text = data + ' (' + row.days_since_order + ')';
+                    }
+                    else {
+                        dow_text = data;
+                    }
+                    return dow_text
                  },
                 searchable: false
 

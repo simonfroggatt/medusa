@@ -15,6 +15,7 @@ from django.conf import settings
 import os
 import json
 from datetime import date
+from django.utils.timezone import localtime
 
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -264,7 +265,7 @@ class OcOrder(models.Model):
         return delta.days
 
     def short_date(self):
-        return self.date_added.strftime('%-d %b, %H:%M')
+        return localtime(self.date_added).strftime('%-d %b, %H:%M')
 
     def get_order_status(self):
         status = ''
