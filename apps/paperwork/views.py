@@ -1195,7 +1195,12 @@ def gen_invoice(order_id):
 
     elements.append(order_total_footer)
 
-    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+    doc.build(
+        elements,
+        canvasmaker=utils.NumberedCanvas,
+        onFirstPage=lambda canvas, doc: utils.draw_footer(canvas, doc, order_obj=order_obj, add_account=True),
+        onLaterPages=lambda canvas, doc: utils.draw_footer(canvas, doc, order_obj=order_obj, add_account=True)
+    )
 
     #pdf = buffer.getvalue()
     #buffer.close()
@@ -1340,19 +1345,34 @@ def gen_proforma(order_id):
                                     ('BOX', (0, 0), (-1, -2), 0.25, colors.black),
                                     ]))
 
-    order_payment_str = utils.proforma_details_legal()
-    order_total_info = [
-        [Paragraph(order_payment_str, styles['header_main']), order_total_table]
-    ]
-    order_total_footer = Table(order_total_info, colWidths=[100*mm, 100*mm])
-    order_total_footer.setStyle(TableStyle([
-        ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('VALIGN', (1, 0), (-1, -1), "TOP")]))
+    elements.extend(generate_order_footer(order_obj, order_total_table, styles))
 
-    elements.append(order_total_footer)
+    #order_payment_str = utils.proforma_details_legal(order_obj)
 
-    doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
+    #payment_paragraph = Paragraph(order_payment_str, styles['header_main'])
+
+
+
+
+    #order_total_info = [
+    #    [Paragraph(order_payment_str, styles['header_main']), order_total_table]
+    #]
+    #order_total_footer = Table(order_total_info, colWidths=[100*mm, 100*mm])
+    #order_total_footer.setStyle(TableStyle([
+    #    ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+    #    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+    #    ('VALIGN', (1, 0), (-1, -1), "TOP")]))
+
+    #elements.append(order_total_footer)
+
+    doc.build(
+        elements,
+        canvasmaker=utils.NumberedCanvas,
+        onFirstPage=lambda canvas, doc: utils.draw_footer(canvas, doc, order_obj=order_obj, add_account=True),
+        onLaterPages=lambda canvas, doc: utils.draw_footer(canvas, doc, order_obj=order_obj, add_account=True)
+    )
+
+    #doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj, add_account=True), onLaterPages=partial(utils.draw_footer, order_obj=order_obj, add_account=True))
     return buffer
 
 def gen_shipping_page(order_id):
@@ -1895,3 +1915,53 @@ def draw_footer(canvas, doc, order_obj, is_last_page=False):
         canvas.drawString(5 * mm, 20 * mm, f"Comment: {order_obj.comment}")
 
     canvas.restoreState()
+
+
+def generate_order_footer(order_obj, order_total_table, styles):
+    elements = []
+    order_payment_str = utils.proforma_details_legal(order_obj)
+    payment_paragraph = Paragraph(order_payment_str, styles['Normal'])
+
+    # Build button
+    button = None
+    if order_obj.order_hash:
+        payment_link = (
+            f'{settings.TSG_PAYMENT_LINK}'
+            f'&order_id={order_obj.order_id}&order_hash={order_obj.order_hash}'
+        )
+        button = Table(
+            [[Paragraph(
+                f'<a href="{payment_link}"><font color="white"><b>Pay Securely Online with STRIPE</b></font></a>',
+                styles['Normal']
+            )]],
+            colWidths=[100 * mm],
+            style=TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), '#007BFF'),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TEXTCOLOR', (0, 0), (-1, -1), 'white'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ])
+        )
+
+    # Combine paragraph and button vertically into left column
+    left_column = [payment_paragraph]
+    if button:
+        left_column.append(Spacer(1, 6))
+        left_column.append(button)
+
+    # Assemble the final table: left column (legal+button), right column (totals)
+    order_total_info = [
+        [left_column, order_total_table]
+    ]
+    order_total_footer = Table(order_total_info, colWidths=[100 * mm, 100 * mm])
+    order_total_footer.setStyle(TableStyle([
+        ('ALIGN', (1, 0), (-1, -1), "RIGHT"),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('VALIGN', (1, 0), (-1, -1), "TOP"),
+    ]))
+
+    elements.append(order_total_footer)
+    return elements

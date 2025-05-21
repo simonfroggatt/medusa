@@ -264,9 +264,19 @@ def order_proforma_details_tup(order_obj):
     return order_details_tup
 
 
-def proforma_details_legal():
+def proforma_details_legal(order_obj):
     proforma_string = 'This is a Proforma Invoice for information only.<BR/>A VAT invoice will be issued upon receipt of payment.'
+    proforma_string += '<BR/><br/>Cheques payable to Safety Signs and Notices Ltd'
+    proforma_string += '<BR/><BR/>Bank Transfer: Safety Signs and Notices Ltd'
+    proforma_string += '<BR/>Sort Code: 20-25-85'
+    proforma_string += '<BR/>Account No: 93269582'
+    proforma_string += f'<BR/>Please quote reference number on all payments: <b>{order_obj.store.prefix}-{order_obj.order_id}</b>'
+    #if order_obj.order_hash:
+    #    payment_link = f'{settings.TSG_PAYMENT_LINK}&order_id={order_obj.order_id}&order_hash={order_obj.order_hash}'
+    #    proforma_string += f'<BR/><BR/>You pay securely online at the following <a href="{payment_link}">Payment link</a>'
     return proforma_string
+
+
 
 def create_product_desc(order_line, bl_orientation=True, bl_quote = False):
     product_desc = ''
@@ -356,8 +366,13 @@ def quote_valid_details(quote_obj, currency_symbol):
     return quote_valid_str
 
 
-def draw_footer(canvas, doc, order_obj):
+def draw_footer(canvas, doc, order_obj, add_account = False):
     canvas.saveState()
+    canvas.setFont('Helvetica', 8, leading=None)
+    if add_account:
+        account_str = "For bank transfers - Account Name: Safety Signs and Notices Ltd  -  Sort Code: 20-25-85  -  Account No: 93269582"
+        canvas.drawString(5 * mm, 10 * mm, account_str)
+
     footer_company_str = ""
     footer_company_str += order_obj.store.company_name
     if order_obj.store.footer_text:
@@ -365,7 +380,7 @@ def draw_footer(canvas, doc, order_obj):
     if order_obj.store.registration_number:
         footer_company_str += " Registered in England No. " + order_obj.store.registration_number
 
-    canvas.setFont('Helvetica', 8, leading=None)
+
     canvas.drawString(5 * mm, 5 * mm, footer_company_str)
     canvas.restoreState()
 
