@@ -42,6 +42,22 @@
                     <div class="col-12">{{ form.meta_keywords|as_crispy_field }}</div>
                     <div class="col-12">{{ form.tag|as_crispy_field }}</div>
                     <div class="col-12">{{ form.bulk_group|as_crispy_field }}</div>
+                    <div class="row align-items-center">  <!-- Aligns with neighboring fields -->
+                                            <div class="col-10 col-sm-11 pe-1">
+                                                <!-- Wider on mobile, standard on desktop -->
+                                                {{ form.price_from|as_crispy_field }}
+                                            </div>
+                                            <div class="col-2 col-sm-1 ps-0">  <!-- Compact button column -->
+                                                <button class="btn btn-outline-secondary py-1 px-2"
+                                                        type="button"
+                                                        id="js-create_min_price"
+                                                        title="Generate min price"
+                                                        data-url="{% url 'product_min_price_calc' form.instance.pk %}">
+                                                    <i class="fa-solid fa-wand-magic-sparkles fa-sm"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
 
                 </div>
                 <div class="col-12 col-md-8">
@@ -71,11 +87,63 @@
 
 <script>
   var t1 = tinymce.init({
-      selector: 'textarea#editor',
+      selector: '.tinymce',
   })
 
 </script>
 
+
+        <script>
+
+function fetchMinPrice() {
+    let url = $('#js-create_min_price').data('url');
+    let bulk_group_id = $('#id_bulk_group').val();
+
+    $.ajax({
+        url: url,
+        data: {
+            'bulk_group_id': bulk_group_id
+        },
+        type: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            if (data.min_price) {
+                $('#id_price_from').val(data.min_price);
+            }
+        }
+    });
+}
+
+// Trigger on dropdown change
+$('#id_bulk_group').on('change', function () {
+    fetchMinPrice();
+});
+
+// Trigger on button click
+document.getElementById('js-create_min_price').addEventListener('click', function () {
+    fetchMinPrice();
+    return false;
+});
+
+
+function AddBreak(){
+        var form = $('#frmBulkPricingEdit');
+        let url = "/bulk/{{ bulk_group_obj.bulk_group_id }}/break/add"
+        $.ajax({
+            url: url,
+            data: form.serialize(),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    let dtAvailable = $('#bulk_group_breaks_table').DataTable();
+                    dtAvailable.ajax.reload();
+                }
+            }
+        });
+        return false;
+    };
+</script>
 
 
 

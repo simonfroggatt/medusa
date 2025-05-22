@@ -113,6 +113,8 @@ urlpatterns = [
     path('document/<pk>/download', views.product_document_download, name='product_document-download'),
     path('document/<pk>/delete', views.product_document_delete, name='product_document-delete'),
 
+    #min pricing cacl
+    path('product/<int:pk>/minpricecalc', views.product_min_price_calc, name='product_min_price_calc'),
 
     #base
     path('', views.product_list, name='allproducts'),

@@ -1,3 +1,5 @@
+from os.path import exists
+
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
@@ -38,6 +40,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required, user_passes_test
 from medusa.decorators import group_required
 from copy import deepcopy
+from django.db import connection
+
 
 
 class ProductSite(viewsets.ModelViewSet):
@@ -2128,3 +2132,69 @@ def _product_duplicate(product_id):
                 new_vopt.save()
 
     return new_product.pk
+
+def product_min_price_calc(request, pk):
+    #the pk is the id of the product to store
+    data = {}
+    store_prod_obj = get_object_or_404(OcProductToStore, pk=pk)
+    product_id = store_prod_obj.product_id
+    store_id = store_prod_obj.store_id
+
+    bulk_group_id = int(request.GET.get('bulk_group_id', store_prod_obj.bulk_group_id))
+    #ON oc_product_to_store.bulk_group_id = oc_tsg_bulkdiscount_groups.bulk_group_id
+
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+                SELECT
+                    src.discount_price
+                FROM
+                    oc_product_to_store AS dest,
+                    (
+                        SELECT 
+                            MIN(ROUND(
+                                CASE
+                                    WHEN oc_tsg_product_variants.variant_overide_price > 0 THEN oc_tsg_product_variants.variant_overide_price
+                                    WHEN oc_tsg_size_material_store_combs.price > 0 THEN oc_tsg_size_material_store_combs.price
+                                    ELSE oc_tsg_size_material_comb.price
+                                END
+                                * ((100 - oc_tsg_bulkdiscount_group_breaks.discount_percent) / 100), 
+                                2
+                            )) AS discount_price,
+                            oc_product.product_id
+                        FROM
+                            oc_product
+                            INNER JOIN oc_tsg_product_variant_core 
+                                ON oc_product.product_id = oc_tsg_product_variant_core.product_id
+                            INNER JOIN oc_tsg_product_variants 
+                                ON oc_tsg_product_variant_core.prod_variant_core_id = oc_tsg_product_variants.prod_var_core_id
+                            INNER JOIN oc_tsg_size_material_comb 
+                                ON oc_tsg_product_variant_core.size_material_id = oc_tsg_size_material_comb.id
+                            LEFT JOIN oc_tsg_size_material_store_combs 
+                                ON oc_tsg_size_material_comb.id = oc_tsg_size_material_store_combs.size_material_comb_id 
+                               AND oc_tsg_size_material_store_combs.store_id = %s
+                            INNER JOIN oc_tsg_product_sizes 
+                                ON oc_tsg_size_material_comb.product_size_id = oc_tsg_product_sizes.size_id
+                            INNER JOIN oc_tsg_product_material 
+                                ON oc_tsg_size_material_comb.product_material_id = oc_tsg_product_material.material_id
+                            INNER JOIN oc_tsg_orientation 
+                                ON oc_tsg_product_sizes.orientation_id = oc_tsg_orientation.orientation_id
+                            INNER JOIN oc_tsg_bulkdiscount_groups 
+                                ON oc_tsg_bulkdiscount_groups.bulk_group_id = %s
+                            INNER JOIN oc_tsg_bulkdiscount_group_breaks 
+                                ON oc_tsg_bulkdiscount_groups.bulk_group_id = oc_tsg_bulkdiscount_group_breaks.bulk_discount_group_id 
+                        WHERE
+                            oc_tsg_product_variant_core.bl_live = 1 
+                            AND oc_tsg_product_variants.isdeleted = 0 
+                            AND oc_tsg_product_variants.store_id = %s
+                            AND oc_product.product_id = %s
+                        GROUP BY
+                            oc_product.product_id
+                    ) AS src
+                WHERE
+                    dest.product_id = src.product_id
+                    AND dest.store_id = %s;
+            """, [store_id, bulk_group_id, store_id, product_id, store_id])
+        row = cursor.fetchone()
+        data['min_price'] = row[0]
+    return JsonResponse(data)

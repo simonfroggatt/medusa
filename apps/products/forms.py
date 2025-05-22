@@ -73,7 +73,7 @@ class SiteProductDetailsForm(forms.ModelForm):
 
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
     long_description = forms.CharField(widget=TinyMCE(attrs={'rows': 20}), required=False)
-    sign_reads = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
+    #sign_reads = forms.CharField(widget=TinyMCE(attrs={'rows': 10}), required=False)
 
     class Meta:
         model = OcProductToStore

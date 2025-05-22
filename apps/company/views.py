@@ -453,7 +453,7 @@ def customer_unlink_company(request, customer_id):
         customer_obj.parent_company_id = None
         customer_obj.save()
         data['form_is_valid'] = True
-        data['redirect_url'] = reverse_lazy('company_details', kwargs={'company_id': parent_company_id})
+        data['redirect_url'] = reverse_lazy('company_details', kwargs={'company_id': current_parent_id})
     else:
         template_name = 'company/dialogs/customer_unlink_company.html'
         context = {'customer_id': customer_id}
