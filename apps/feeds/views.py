@@ -250,8 +250,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         store_products = OcProductToStore.objects.filter(
             store=store,
             status=True,
-            include_google_merchant=True,
-            include_google_ads=True,
+            include_google_merchant=True
         ).select_related(
             'product',
             'product__productdescbase',
@@ -367,6 +366,8 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                 if core_variant.shipping_cost > 0:
                     shipping_cost = core_variant.shipping_cost * Decimal('1.2')
 
+                #have we ecluded it from shopping?
+                include_ads = store_product.include_google_ads
                 # Build variant data
                 variant_data = {
                     # 'id': f'{core_variant.prod_variant_core_id}v20',
@@ -385,7 +386,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                     'custom_label_0': f"{is_cheapest}",
                     'custom_label_1': f"{core_variant.size_material.product_material.material_name}",
                     'custom_label_2': f'{core_variant.size_material.product_size.size_name}',
-                    'custom_label_3': '',
+                    'custom_label_3': f'{include_ads}',
                     'shipping_cost': str(shipping_cost)
                 }
 
