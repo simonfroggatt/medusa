@@ -394,7 +394,7 @@ def quick_quote(request):
     initial_data = {
         'language_id': 1,
         'status': 1,
-        'currency_id': 1,
+        'currency': 1,
         'tax_rate': 86,
         'days_valid': 30,
         'shipping_type': 1,

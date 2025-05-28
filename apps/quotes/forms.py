@@ -14,7 +14,7 @@ class QuoteDetailsEditForm(forms.ModelForm):
 
         fields = ['fullname', 'email', 'telephone', 'store',
                   'days_valid', 'quote_ref', 'company', 'shipping_type',
-                  'shipping_rate', 'tax_rate', 'comment', 'sent', 'currency']
+                  'shipping_rate', 'tax_rate', 'comment', 'sent']
 
         labels = {
             'fullname': 'Full Name',
