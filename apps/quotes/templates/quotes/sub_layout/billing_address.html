@@ -1,0 +1,63 @@
+ <div class="card-header quote_details">
+                <div class="row align-items-center ">
+                    <div class="col-6 ">
+                        <i class="fa-solid fa-pound-sign"></i> Billing
+                    </div>
+                    <div class="col-6 text-end">
+                        <div class="btn-group">
+                        {% if quote_obj.customer.parent_company %}
+                            <button class="btn {{ BUTTON_OK }} btn-sm" type="button" id="resetQuoteCompanyBillingAddress"
+                                    data-url="{% url 'api_quote_company_account_address' quote_obj.quote_id quote_obj.customer.parent_company.company_id %}">
+                                   <i class="fa-regular fa-coins"></i>
+                        </button>
+                        {% endif %}
+                        {% if quote_obj.customer %}
+                                <button class="btn {{ BUTTON_EXTRA }} btn-sm" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseBillingAddress"
+                                        aria-expanded="false" aria-controls="collapseBillingAddress">
+                                   <i class="fa-regular fa-location-dot"></i>
+                        </button>
+                        {% endif %}
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-quote-address-edit"
+                                        data-url="{% url 'quotebillingaddressedit' quote_obj.quote_id %}"
+                                ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+                                 {% if quote_obj.customer %}
+                                   <!-- <button type="button" class="btn btn-primary btn-sm js-quote-address-edit"
+                                            data-url="{% url 'quotebillingaddressedit' quote_obj.quote_id %}"
+                                    ><i class="fa-solid fa-search fa-pull-right"></i></button> -->
+                                {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+
+                    {% if quote_obj.customer %}
+                        <div class="row">
+                         <div class="col-12">
+                        <div class="collapse" id="collapseBillingAddress">
+                            <form method="post" id="quote_billing_addressbook" action="{% url 'quotebillingfrombook' quote_obj.quote_id %}">
+                            <input type="hidden" id="address_book_id_billing" name="address_book_id_billing" value="0">
+                            {% csrf_token %}
+                            <div class="card card-body" id="billingList">
+                                {% for addressItem in addressItem %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="addressListItem_billing" id="addressListItem-billing-{{ addressItem.address_id }}" data-address-list-id-billing="{{ addressItem.address_id }}">
+                                    <label class="form-check-label" for="flexRadioDefault1">
+                                        <strong>{{ addressItem.fullname }}</strong>, {{addressItem.address_1 }}, <strong>{{ addressItem.postcode }}</strong>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                                <button class="btn btn-success" type="button" id="js_quote_billing_address_btn">Use this address</button>
+                            </div>
+                            </form>
+                        </div>
+                        </div>
+                        </div>
+                    {% endif %}
+
+            </div>
+            <div class="card-body pb-0">
+                <div id="quote-billing">
+                   {% include 'quotes/sub_layout/billing_address_ajax.html' %}
+                </div>
+            </div>

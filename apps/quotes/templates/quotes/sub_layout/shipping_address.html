@@ -1,0 +1,67 @@
+<div class="card-header quote_details ">
+            <div class="row align-items-center ">
+                    <div class="col-6">
+                        <i class="fa-solid fa-shipping-fast"></i> Shipping
+                    </div>
+                    <div class="col-6 text-end">
+                     <div class="btn-group  ">
+                     {% if addressItem|length > 2 %}
+                               <button type="button" class="btn {{ BUTTON_ADD }} btn-sm js-quote-address-edit"
+                                        data-url="{% url 'quoteshippingaddresssearch' quote_obj.quote_id %}"
+                                        data-dlgsize="modal-lg">
+                                        <i class="fa-solid fa-search fa-pull-right ms-0"></i>
+                               </button>
+                        {% endif %}
+                         {% if quote_obj.customer %}
+                                <button class="btn {{ BUTTON_EXTRA }} btn-sm" type="button" data-bs-toggle="collapse"
+                                     data-bs-target="#collapseShippingAddress" aria-expanded="false"
+                                     aria-controls="collapseShippingAddress"
+                                    ><i class="fa-regular fa-location-dot"></i>
+                                </button>
+                             {% else %}
+                             <button type="button" class="btn {{ BUTTON_EXTRA }} btn-sm"
+                                        data-url="{% url 'quote_copy_billing' quote_obj.quote_id %}"
+                                        id="js-quote-billing-copy">
+                                        <i class="fa-solid fa-copy fa-pull-right"></i>
+                                </button>
+                         {% endif %}
+
+                                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-quote-address-edit"
+                                        data-url="{% url 'quoteshippingaddressedit' quote_obj.quote_id %}"
+                                        data-dlgsize="modal-lg">
+                                        <i class="{{ ICON_EDIT }} fa-pull-right"></i>
+                                </button>
+                        </div>
+                    </div>
+                </div>
+
+                    {% if quote_obj.customer %}
+                        <div class="row">
+                    <div class="col-12">
+                        <div class="collapse" id="collapseShippingAddress">
+                            <form method="post" id="quote_shipping_addressbook" action="{% url 'quoteshippingfrombook' quote_obj.quote_id %}">
+                            <input type="hidden" id="address_book_id_shipping" name="address_book_id_shipping" value="0">
+                            {% csrf_token %}
+                            <div class="card card-body" id="shippingList">
+                                {% for addressItem in addressItem %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="addressListItem_shipping" id="addressListItem_shipping-{{ addressItem.address_id }}" data-address-list-id-shipping="{{ addressItem.address_id }}">
+                                    <label class="form-check-label" for="flexRadioDefault1">
+                                        <strong>{{ addressItem.fullname }}</strong>, {{addressItem.address_1 }}, <strong>{{ addressItem.postcode }}</strong>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                                <button class="btn btn-success" type="button" id="js_quote_shipping_address_btn">Use this address</button>
+                            </div>
+                            </form>
+                        </div>
+                        </div>
+                </div>
+                    {% endif %}
+
+            </div>
+            <div class="card-body pb-0">
+                 <div id="quote-shipping">
+                    {% include 'quotes/sub_layout/shipping_address_ajax.html' %}
+                </div>
+            </div>

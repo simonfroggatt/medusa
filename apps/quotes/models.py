@@ -17,13 +17,28 @@ class OcTsgQuote(models.Model):
     customer = models.ForeignKey(OcCustomer, models.DO_NOTHING, blank=True, null=True, related_name='quote_customer')
     company = models.CharField(max_length=255, blank=True, null=True)
     fullname = models.CharField(max_length=255)
+    firstname = models.CharField(max_length=255, blank=True, null=True)
+    lastname = models.CharField(max_length=255, blank=True, null=True)
     email = models.CharField(max_length=96)
     telephone = models.CharField(max_length=32, blank=True, null=True)
-    quote_address = models.CharField(max_length=512, blank=True, null=True)
-    quote_city = models.CharField(max_length=128, blank=True, null=True)
-    quote_area = models.CharField(max_length=255, blank=True, null=True)
-    quote_postcode = models.CharField(max_length=10, blank=True, null=True)
-    quote_country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, blank=True, null=True)
+    payment_fullname = models.CharField(max_length=255, blank=True, null=True)
+    payment_email = models.CharField(max_length=255, blank=True, null=True)
+    payment_telephone = models.CharField(max_length=255, blank=True, null=True)
+    payment_company = models.CharField(max_length=255, blank=True, null=True)
+    payment_address = models.CharField(max_length=512, blank=True, null=True)
+    payment_city = models.CharField(max_length=128, blank=True, null=True)
+    payment_area = models.CharField(max_length=255, blank=True, null=True)
+    payment_postcode = models.CharField(max_length=10, blank=True, null=True)
+    payment_country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, blank=True, null=True)
+    shipping_company = models.CharField(max_length=255, blank=True, null=True)
+    shipping_fullname = models.CharField(max_length=255, blank=True, null=True)
+    shipping_email = models.CharField(max_length=255, blank=True, null=True)
+    shipping_telephone = models.CharField(max_length=255, blank=True, null=True)
+    shipping_address = models.CharField(max_length=512, blank=True, null=True)
+    shipping_city = models.CharField(max_length=128, blank=True, null=True)
+    shipping_area = models.CharField(max_length=255, blank=True, null=True)
+    shipping_postcode = models.CharField(max_length=10, blank=True, null=True)
+    shipping_country = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, related_name='quote_shipping_country_set', blank=True, null=True)
     comment = models.TextField(blank=True, null=True)
     total = models.DecimalField(max_digits=15, decimal_places=2)
     language_id = models.IntegerField()
@@ -37,6 +52,7 @@ class OcTsgQuote(models.Model):
     discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     shipping_type = models.ForeignKey(OcTsgShippingMethod, models.DO_NOTHING, blank=True, null=True)
     shipping_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    quote_hash = models.CharField(max_length=255, blank=True, null=True)
 
     def valid_until(self):
         ordered = dt.datetime(self.date_added.year, self.date_added.month, self.date_added.day)
@@ -60,6 +76,7 @@ class OcTsgQuoteProduct(models.Model):
     product_id = models.IntegerField()
     name = models.CharField(max_length=255)
     model = models.CharField(max_length=64)
+    supplier_code = models.CharField(max_length=64)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=4)
     discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
@@ -81,6 +98,13 @@ class OcTsgQuoteProduct(models.Model):
     bulk_used =  models.BooleanField(default=True)
     single_unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     base_unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    @property
+    def product_image_url(self):
+        if self.product_variant.alt_image_url:
+            return self.product_variant.alt_image_url
+        else:
+            return ''
 
     class Meta:
         managed = False

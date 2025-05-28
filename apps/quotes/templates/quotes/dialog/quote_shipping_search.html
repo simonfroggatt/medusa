@@ -1,0 +1,129 @@
+<div class="modal-header">
+    <h4 class="modal-title">Search for shipping address</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'quoteshippingfrombook' quote_id %}"
+                      id="js-quote-shipping-change">
+                    {% csrf_token %}
+                    <input type="hidden" id=quote_id" name="quote_id" value="{{ quote_id }}">
+                    <input type="hidden" id="quote_customer_id" name="quote_customer_id"
+                           value="{{ quote_customer_id }}">
+                    <input type="hidden" id="address_book_id_shipping" name="address_book_id_shipping" value="0">
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="table_shipping_search" class="table table-hover table-striped align-middle table-sm"
+                                   style="width:100%">
+                                <thead>
+                                <tr>
+                                    <th class="col-2">Company</th>
+                                    <th class="col-2">Contact</th>
+                                    <th class="col-2">Postcode</th>
+                                    <th class="col-6">Address</th>
+                                </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                                <button type="submit" id="btn_search_add_update" class="btn {{ BUTTON_EDIT }} pull-right" disabled="true">Use Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+
+    var table_shipping_search = $('#table_shipping_search').DataTable( {
+        "dom": "<'row'<'col-6'f><'col-6'lT>>" +
+         "<'row'<'col-12'tr>>" +
+         "",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "serverSide": false,
+        "select": true,
+        "rowId" : 'address_id',
+        "ajax": {
+                 "processing": true,
+                "url": "/quotes/api/shippingsearch/{{ quote_id }}?format=datatables",
+                "type" : "GET",
+            },
+        "deferRender": false,
+        "order": [[ 1, "desc" ]],
+
+        columns :[
+
+            {
+                data: "company",
+            },
+            {
+                data: "fullname",
+            },
+            {
+                data: "postcode",
+            },
+            {
+                "data": "address_1",
+                "searchable": false,
+                render: function (data, type, row) {
+                    let fulladdress_text = data;
+                    if(row['address_2'])
+                        fulladdress_text += ", " + row['address_2'];
+
+                    fulladdress_text += " " + row['city'] + ", " + row['area'] + " <strong>" + row['postcode'] + "</strong>"
+                    return fulladdress_text;
+                },
+            },
+           {data: "firstname", "visible": false},
+            {data: "lastname", "visible": false},
+            {data: "email", "visible": false},
+           {data: "address_1", "visible": false},
+           {data: "address_2", "visible": false},
+            {data: "city", "visible": false},
+
+        ],
+    } );
+
+    table_shipping_search.on( 'select', function ( e, dt, type, indexes ) {
+       if (type === 'row') {
+           var address_id = dt.row(indexes).id();
+           $('#js-quote-shipping-change #address_book_id_shipping').val(address_id);
+           $('#js-quote-shipping-change #btn_search_add_update').prop("disabled", false);
+           debugger;
+
+       }
+    });
+
+    table_shipping_search.on( 'deselect', function ( e, dt, type, indexes ) {
+    if ( type === 'row' ) {
+        $('#js-quote-shipping-change #btn_search_add_update').prop("disabled", true);
+        // do something with the ID of the deselected items
+    }
+
+
+
+
+
+} );
+
+
+} );
+
+
+
+</script>

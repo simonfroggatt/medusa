@@ -64,11 +64,16 @@
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownQuoteOptions">
                         <li><a class="dropdown-item js-quote-cog-option" role="button" data-url="{% url 'quotetext' quote_obj.quote_id %}" data-dlgsize="modal-lg">Text</a></li>
-                             <li><a class="dropdown-item" href="#">Convert to Order</a></li>
+                        {% if quote_obj.customer %}
+                             <li><a role="button" class="dropdown-item js-quote-convert-form" data-url="{% url 'quote_convert_to_order' quote_obj.quote_id quote_obj.quote_hash %}" data-dlgsize="modal-sm">Convert to Order</a></li>
+                        {% else %}
+                            <li><a role="button" class="dropdown-item js-quote-convert-form" data-url="{% url 'quote_convert_to_customer' quote_obj.quote_id %}" data-dlgsize="modal-sm">Convert to Customer</a></li>
+                        {% endif %}
                         <li>
                             <a class="dropdown-item js-quote-product-edit" role="button"
                                data-url="{% url 'quotediscountchange' quote_obj.quote_id %}" data-dlgsize="modal-sm">Discount</a>
                         </li>
+
 
                         <li class="list-group-item-danger">
                             <a class="dropdown-item js-quote-product-edit" role="button"

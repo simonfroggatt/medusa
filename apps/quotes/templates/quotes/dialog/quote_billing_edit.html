@@ -1,0 +1,77 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update quote <strong>BILLING</strong> Address</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'quotebillingaddressedit' quote_id %}"
+                      id="js-quote-address-edit-submit">
+                    {% csrf_token %}
+                    <input type="hidden" id="quote_id" name="quote_id"
+                           value="{{ quote_id }}">
+                    <input type="hidden" id="quote_customer_id" name="quote_customer_id"
+                           value="{{ quote_customer_id }}">
+                    <input type="hidden" id="id_{{ form.payment_country.name }}" name="{{ form.payment_country.name }}"  value="{{ form.payment_country.value }}">
+                    <input type="hidden" id="add_address" name="add_address" value="0">
+                    <div class="row">
+                <div class="col-md-6">{{ form.payment_fullname|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.payment_telephone|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.payment_email|as_crispy_field }}</div>
+                        <div class="col-md-12 form-floating">
+                    <input  class="form-control" id="addressLookup" placeholder="Lookup">
+                    <label for="addressLookup">Search for address</label>
+                </div>
+                <div class="col-md-12">{{ form.payment_company|as_crispy_field }}</div>
+                <div class="col-md-12">{{ form.payment_address|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.payment_city|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.payment_area|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.payment_postcode|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.payment_country|as_crispy_field }}</div>
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        {% if quote_customer_id > 0 %}
+                        <button type="submit" id="add" class="btn {{ BUTTON_ADD }} pull-right">Add As New</button>
+                        {% endif %}
+                        <button type="submit" id="update" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
+                    </div>
+                </div>
+            </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+
+    $(function () {
+        let fieldMatch = {
+            'Company': 'id_{{ form.payment_company.name}}',
+            'Line1': 'id_{{ form.payment_address.name}}',
+            'Line2': 'id_{{ form.payment_address.name}}',
+            'Line3': 'id_{{ form.payment_address.name}}',
+            'City': 'id_{{ form.payment_city.name}}',
+            'ProvinceName': 'id_{{ form.payment_area.name}}',
+            'CountryIsoNumber': 'id_{{ form.payment_country.name}}',
+            'PostalCode': 'id_{{ form.payment_postcode.name}}',
+        }
+
+        let inputFields = ['#addressLookup']
+
+        let lookupBilling = TSGAddressLookup(inputFields, '', fieldMatch);//, '#js-fulladdress-billing');
+
+
+    })
+
+        $('#add').click(function() {
+            $('#add_address').val(1)
+        })
+
+</script>

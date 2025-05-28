@@ -1,0 +1,16 @@
+{% load static %}
+<div class="row col-12 pb-2 pe-0">
+    <div class="col-12 col-md-6 col-xl-4 pe-0" id="div_order_details">
+         {% include 'quotes/sub_layout/quote_details.html' %}
+    </div>
+    <div class="col-12 col-md-6 col-xl-4 pe-0">
+        <div class="card h-100 mb-0" id="div_billing-address">
+            {% include 'quotes/sub_layout/billing_address.html' %}
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-4 pe-0">
+        <div class="card h-100 mb-0" id="div_shipping-address">
+            {% include 'quotes/sub_layout/shipping_address.html' %}
+        </div>
+    </div>
+</div>

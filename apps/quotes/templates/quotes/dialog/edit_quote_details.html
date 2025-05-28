@@ -12,10 +12,7 @@
                 <form method="post" action="{% url 'quotedetailsedit' quote_id %}"
                       id="js-quote-details-edit-submit">
                     {% csrf_token %}
-                    <input type="hidden" id="language_id" name="language_id"
-                           value="{{ initials.language_id }}">
-                    <input type="hidden" id="currency" name="currency"
-                           value="{{ initials.currency }}">
+                    {{ form.currency.as_hidden }}
                     <div class="row">
                         <div class="col-md-4">{{ form.fullname|as_crispy_field }}</div>
                         <div class="col-md-4">{{ form.email|as_crispy_field }}</div>
@@ -25,11 +22,6 @@
                 <div class="col-md-4">{{ form.quote_ref|as_crispy_field }}</div>
 
                 <div class="col-md-12">{{ form.company|as_crispy_field }}</div>
-                <div class="col-md-12">{{ form.quote_address|as_crispy_field }}</div>
-                <div class="col-md-6">{{ form.quote_city|as_crispy_field }}</div>
-                        <div class="col-md-6">{{ form.quote_area|as_crispy_field }}</div>
-                        <div class="col-md-6">{{ form.quote_postcode|as_crispy_field }}</div>
-                        <div class="col-md-6">{{ form.quote_country|as_crispy_field }}</div>
                 <div class="col-md-3">{{ form.shipping_type|as_crispy_field }}</div>
                         <div class="col-md-3">{{ form.shipping_rate|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.tax_rate|as_crispy_field }}</div>
@@ -53,21 +45,6 @@
 
     shipping_rates = {{shipping_rates | safe}}
     $(function () {
-
-        let fieldMatch = {
-            'Company': 'id_{{ form.company.name}}',
-            'Line1': 'id_{{ form.quote_address.name}}',
-            'Line2': 'id_{{ form.quote_address.name}}',
-            'Line3': 'id_{{ form.quote_address.name}}',
-            'City': 'id_{{ form.quote_city.name}}',
-            'ProvinceName': 'id_{{ form.quote_area.name}}',
-            'CountryIsoNumber': 'id_{{ form.quote_country.name}}',
-            'PostalCode': 'id_{{ form.quote_postcode.name}}',
-        }
-
-
-        let inputFields = ['#id_{{ form.company.name}}', '#id_{{ form.quote_postcode.name}}', '#id_{{ form.quote_address.name}}']
-        TSGAddressLookup(inputFields, '', fieldMatch)
 
         $(document).on('change', '#id_shipping_type', function () {
             let shipping_id_selected =  $(this).val();

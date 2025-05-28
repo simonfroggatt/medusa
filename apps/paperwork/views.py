@@ -1615,6 +1615,7 @@ def gen_quote_pdf(quote_id, bl_total=True):
 
     # quote details
     shipping_address = utils.quote_shipping(quote_obj)
+    billing_address = utils.quote_billing(quote_obj)
     quote_details_dict = utils.quote_details_tup(quote_obj)
     quote_list = list(quote_details_dict.items())
     quote_details_tbl_data = []
@@ -1633,7 +1634,8 @@ def gen_quote_pdf(quote_id, bl_total=True):
         ('TOPPADDING', (0, 0), (-1, -1), 0)]))
 
     quote_tbl_info = [
-        [Paragraph(shipping_address, styles['header_main']),
+        [Paragraph(billing_address, styles['header_main']),
+         Paragraph(shipping_address, styles['header_main']),
          quote_details_table]
     ]
 
@@ -1739,6 +1741,8 @@ def gen_quote(quote_id):
 
 
 def gen_quote_paperwork(request, quote_id):
+
+
     response = HttpResponse(content_type='application/pdf')
     pdflist = []
     if 'with_total_print' in request.POST:
@@ -1756,7 +1760,10 @@ def gen_quote_paperwork(request, quote_id):
 
     merger.write(buffer)
     pdf = buffer.getvalue()
+    response['Content-Disposition'] = f'inline; filename="quote_{quote_id}.pdf"'
     response.write(pdf)
+    merger.close()
+
     return response
 
 def gen_invoice_for_emails(order_id):

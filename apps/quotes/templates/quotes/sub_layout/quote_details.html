@@ -1,5 +1,4 @@
 {% load static %}
-<div class="row col-12 pb-2 pe-0">
 <div class="card h-100 mb-0">
              <div class="card-header order_details">
                  <div class="row">
@@ -20,41 +19,46 @@
              </div>
              <div class="card-body">
              <div class="row">
-                 <div class="col-6 col-lg-4">
+                 <div class="col-12">
                      <dl class="row text-nowrap" id="quote_{{ quote_obj.quote_id }}">
-                     <dt class="col-3 col-xl-2">Reference:</dt>
-                     <dd class="col-9 col-xl-10">{{ quote_obj.quote_ref }}</dd>
                      {% if quote_obj.customer %}
-                         <dt class="col-3 col-xl-2">Company</dt>
+                         <dt class="col-3 col-lg-2">Company</dt>
                          {% if quote_obj.customer.company %}
-                              <dd class="col-9 col-xl-10">{{ quote_obj.customer.company }}</dd>
-                         {% else %}
-                             <dd class="col-9 col-xl-10"><a href="{% url 'customerdetails' quote_obj.customer.customer_id  %}">{{ quote_obj.customer.fullname }}</a>
+                              <dd class="col-9 col-lg-10"><a href="{% url 'customerdetails' quote_obj.customer.customer_id %}">{{ quote_obj.customer.company }}</a>
                              {% if quote_obj.customer.parent_company %}
-                                 - ( part of: <a href="{% url 'company_details' quote_obj.customer.parent_company.company_id %}">{{ quote_obj.customer.parent_company.company_name }}</a> )
-                             {% endif %}</dd>
-                         {% endif %}
-                     {% endif %}
+                                 <br/> ( part of: <a href="{% url 'company_details' quote_obj.customer.parent_company.company_id %}">{{ quote_obj.customer.parent_company.company_name }}</a> )
+                             {% endif %}
+                              </dd>
+                         {% else %}
+                             {% if quote_obj.customer.parent_company %}
+                                <dd class="col-9 col-lg-10">part of: <a href="{% url 'company_details' quote_obj.customer.parent_company.company_id %}">{{ quote_obj.customer.parent_company.company_name }}</a>
+                             {% else %}
+                                 <dd class="col-9"></dd>
+                             {% endif %}
 
-                     <dt class="col-3 col-xl-2">Customer:</dt>
-                     <dd class="col-9 col-xl-10">{{ quote_obj.fullname }}</dd>
+                         {% endif %}
+                             <dt class="col-3 col-lg-2">Contact</dt><dd class="col-9"><a href="{% url 'customerdetails' quote_obj.customer.customer_id  %}">{{ quote_obj.customer.fullname }}</a></dd>
+                     {% else %}
+                         {% if quote_obj.company %}
+                              <dt class="col-3 col-lg-2">Company</dt><dd class="col-9"><a href="{% url 'customerdetails' quote_obj.customer_id %}">{{ quote_obj.company }}</a></dd>
+                         {% endif %}
+                          <dt class="col-3 col-lg-2">Contact</dt><dd class="col-9">{{ quote_obj.fullname }}</dd>
+                     {% endif %}
                      <dt class="col-3 col-lg-2">Email:</dt>
                      <dd class="col-9 col-lg-10">{{ quote_obj.email }}</dd>
                      <dt class="col-3 col-lg-2">Telphone:</dt>
                      <dd class="col-9 col-lg-10">{{ quote_obj.telephone }}</dd>
-                 </dl>
-                 </div>
-                 <div class="col-6 col-lg-4">
-                     <dl class="row text-nowrap">
-                     <dt class="col-3 col-lg-2">Date:</dt>
+                     {% if quote_obj.quote_ref %}
+                         <dt class="col-3 col-xl-2">Reference:</dt>
+                         <dd class="col-9 col-xl-10">{{ quote_obj.quote_ref }}</dd>
+                     {% endif %}
+                 <dt class="col-3 col-lg-2">Date:</dt>
                      <dd class="col-9 col-lg-10">{{ quote_obj.date_added }}</dd>
                          <dt class="col-3 col-lg-2">Valid For:</dt>
                      <dd class="col-9 col-lg-10">{{ quote_obj.days_valid }} days (
                          {% if quote_obj.is_past_valid %} <span class="text-danger">
                          {% else %}   <span class="text-success">
                          {% endif %} {{ quote_obj.valid_until }} </span> )</dd>
-                     <dt class="col-3 col-lg-2">Tax Type:</dt>
-                     <dd class="col-9 col-lg-10">{{ quote_obj.tax_rate }}</dd>
                      <dt class="col-3 col-lg-2">Shipping:</dt>
                      <dd class="col-9 col-lg-10">{{ quote_obj.shipping_type }} ( {{ quote_obj.currency.symbol_left }}{{ quote_obj.shipping_type.price }} )</dd>
                      <dt class="col-3 col-lg-2">Status:</dt>
@@ -63,35 +67,9 @@
                          {% else %}
                      OPEN
                      {% endif %}</dd>
-
-
-                 </dl>
-                 </div>
-                 <div class="col-12 col-lg-4">
-                     <dl class="row text-nowrap" id="quote_address_{{ quote_obj.quote_id }}">
-                     <dt class="col-2">Address:</dt>
-                     <dd class="col-10">
-                         <address >
-                                {% if quote_obj.company %}
-                             {{ quote_obj.company }}<br>
-                                {%  endif %}
-                                {{ quote_obj.quote_address|linebreaksbr  }}<br>
-
-                                {{ quote_obj.quote_city }}<br>
-                              {% if quote_obj.quote_area %}
-                                {{ quote_obj.quote_area }}<br>
-                                {% endif %}
-                                <strong>{{ quote_obj.quote_postcode }}</strong><br>
-                            {% if quote_obj.quote_country %}
-                                {{ quote_obj.quote_country }}
-                          {% endif %}
-                            </address>
-                     </dd>
-                 </dl>
+                     </dl>
                  </div>
              </div>
 
              </div>
          </div>
-
-</div>

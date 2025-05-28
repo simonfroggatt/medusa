@@ -244,6 +244,15 @@ def product_create(request):
     new_product_obj.productdescbase.meta_keyword = "New Product"
     new_product_obj.productdescbase.save()
 
+    #add in all the product to stores to save time
+    store_obj = OcStore.objects.exclude(store_id=0)
+    for store in store_obj:
+        product_store_obj = OcProductToStore()
+        product_store_obj.product_id = new_product_obj.product_id
+        product_store_obj.store_id = store.store_id
+        product_store_obj.bulk_group_id = new_product_obj.bulk_group_id
+        product_store_obj.save()
+
     return HttpResponseRedirect(reverse_lazy('product_base_details_edit', kwargs={'product_id': new_product_obj.product_id}))
 
 

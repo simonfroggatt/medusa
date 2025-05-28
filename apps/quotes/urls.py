@@ -7,6 +7,7 @@ router = routers.SimpleRouter()
 router.register(r'quotes', views.Quotes_asJSON)
 router.register(r'quote-products', views.Quote_Products_asJSON)
 router.register(r'customer', views.Quotes_Customer)
+router.register(r'shippingsearch', views.QuoteShippingAddressList)
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -24,6 +25,27 @@ urlpatterns = [
     path('quick/', views.quick_quote, name='quotequick'),
     path('testemail', views.test_send_email),
     path('', views.quote_list, name='allquotes'),
+
+    #address details
+    path('<int:quote_id>/addresses', views.get_quote_addresses,
+         name='quoteaddresses'),
+    path('<int:quote_id>/address/billing/edit/', views.quote_billing_edit,
+         name='quotebillingaddressedit'),
+    path('<int:quote_id>/address/shipping/edit/', views.quote_shipping_edit,
+         name='quoteshippingaddressedit'),
+    path('<int:quote_id>/address/shipping/search/', views.quote_shipping_search,
+         name='quoteshippingaddresssearch'),
+    path('<int:quote_id>/address/billing/frombook', views.update_quote_billing_from_address_book,
+         name='quotebillingfrombook'),
+    path('<int:quote_id>/address/shipping/frombook', views.update_quote_shipping_from_address_book,
+         name='quoteshippingfrombook'),
+    path('<int:quote_id>/address/billing/copy', views.quote_copy_billing, name='quote_copy_billing'),
+
+    path('api/<int:quote_id>/company/<int:company_id>/accountaddress', views.company_quote_api_account_address, name='api_quote_company_account_address'),
+    path('api/<int:quote_id>/convert/<str:quote_hash>', views.convert_to_order, name='quote_convert_to_order'),
+    path('api/<int:quote_id>/convert-customer/', views.convert_to_customer, name='quote_convert_to_customer'),
+
+
     ]
 
 

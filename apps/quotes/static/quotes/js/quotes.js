@@ -20,18 +20,14 @@ $(function () {
                 },
                 {
 
-                    "data": "product_variant.prod_var_core.product.image",
+                    "data": "product_image_url",
                     "className": "center",
                     "searchable": false,
                     "sortable": false,
                     "defaultContent": 'no-image.png',
                     render: function (data, type, row) {
-                        if (data === undefined || data === null) {
-                            return '<img height="30px" class="rounded mx-auto d-block" src="'+ media_url+'stores/no-image.png">'
-                        } else {
-                            let image_src =  data;
+                             let image_src =  data;
                             return '<a href="' + image_src + '" data-lightbox="image"><img height="30px" class="rounded mx-auto d-block" src="' + image_src + '">';
-                        }
 
                     }
                 },
@@ -163,6 +159,116 @@ $(function () {
     }
 
 
+    function resetQuoteCompanyBillingAddress()
+    {
+        var btn = $(this);  // <-- HERE
+        $.ajax({
+            url: btn.attr("data-url"),  // <-- AND HERE
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                   updateAddressDiv()
+                } else {
+                    // $("#modal-base .modal-title").html("Edit Address");
+                }
+            },
+        });
+
+    }
+
+    function BillingAddressQuick() {
+        let add_id = $('input[name="addressListItem_billing"]:checked').data('addressListIdBilling');
+        $('#quote_billing_addressbook #address_book_id_billing').val(add_id)
+
+        let form = $('#quote_billing_addressbook');
+        let tmp = form.serialize();
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                updateAddressDiv()
+                $("#modal-base").modal("hide");  // <-- Close the modal
+            }
+        });
+
+        $('#collapseBillingAddress').collapse("hide");
+
+        return false;
+    }
+
+    function ShippingAddressQuick() {
+        let add_id = $('input[name="addressListItem_shipping"]:checked').data('addressListIdShipping');
+
+        $('#quote_shipping_addressbook #address_book_id_shipping').val(add_id)
+        let form = $('#quote_shipping_addressbook');
+        let tmp = form.serialize();
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                updateAddressDiv()
+                $("#modal-base").modal("hide");  // <-- Close the modal
+            }
+        });
+
+        $('#collapseShippingAddress').collapse("hide");
+        return false;
+    }
+
+    function ShippingAddressSearchQuick() {
+        let form = $('#js-quote-shipping-change');
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                updateAddressDiv()
+                $("#modal-base").modal("hide");  // <-- Close the modal
+            }
+        });
+        return false;
+    }
+
+    let updateAddressDiv = function (quote_id) {
+        $.ajax({
+            url: '/quotes/' + current_quote_id + '/addresses',
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+
+                $('#div_billing-address #quote-billing').html(data.html_billing_address)
+                $('#div_shipping-address #quote-shipping').html(data.html_shipping_address)
+            }
+        });
+        return false;
+    }
+
+    let saveAddressEditForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    updateAddressDiv()
+                    $("#modal-base").modal("hide");  // <-- Close the modal
+                } else {
+                    $("#modal-base .modal-content").html(data.html_form);
+                }
+            }
+        });
+        return false;
+    }
+
+
     $(document).on('click', '#js-quote-edit', loadForm);
     $(document).on('submit', '#js-quote-details-edit-submit', SaveDialogFormRedirect);
 
@@ -181,6 +287,18 @@ $(function () {
 
     $(document).on("submit", "#js-quote-delete-form", SaveDialogFormRedirect);
 
+    //REST BILLING ADDRESS
+    $(document).on("click", "#resetQuoteCompanyBillingAddress", resetQuoteCompanyBillingAddress);
+    $(document).on("click", "#js_quote_billing_address_btn", BillingAddressQuick);
+    $(document).on("click", "#js_quote_shipping_address_btn", ShippingAddressQuick);
+    $(document).on("submit", "#js-quote-shipping-change", ShippingAddressSearchQuick);
+    $(document).on('click', '.js-quote-address-edit', loadForm);
+    $(document).on("submit", "#js-quote-address-edit-submit", saveAddressEditForm);
+
+    $(document).on('click', '.js-quote-convert-form', loadForm);
+    $(document).on("submit", "#js-quote-convert-form", SaveDialogFormRedirect);
+
+    $(document).on('click', '#js-quote-billing-copy', resetQuoteCompanyBillingAddress);
 
 
 })

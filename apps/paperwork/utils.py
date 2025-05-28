@@ -96,6 +96,9 @@ def get_shipping_address(order_obj):
     if order_obj.shipping_postcode:
         shipping_str += order_obj.shipping_postcode + "<BR/>"
 
+    if order_obj.shipping_country:
+        shipping_str += order_obj.shipping_country + "<BR/>"
+
 
 
 
@@ -148,7 +151,9 @@ def order_billing(order_obj):
     if order_obj.payment_area:
         billing_str += order_obj.payment_area + "<BR/>"
     billing_str += order_obj.payment_postcode + "<BR/>"
-    billing_str += order_obj.payment_country
+
+    if order_obj.payment_country:
+        billing_str += order_obj.payment_country
     return billing_str
 
 
@@ -168,7 +173,7 @@ def order_shipping(order_obj):
     if order_obj.shipping_postcode:
         shipping_str += order_obj.shipping_postcode + "<BR/>"
     if order_obj.shipping_country:
-        shipping_str += order_obj.shipping_country + "<BR/>"
+        shipping_str += order_obj.shipping_country
 
     return shipping_str
 
@@ -301,24 +306,46 @@ def create_product_line_option_description(order_line):
 
 
 def quote_shipping(quote_obj):
-    shipping_str = '<b>Address:</b><BR/>'
-    shipping_str += quote_obj.fullname + "<BR/>"
-    if quote_obj.company:
-        shipping_str += quote_obj.company + "<BR/>"
+    shipping_str = '<b>Shipping Address:</b><BR/>'
+    if quote_obj.shipping_fullname:
+        shipping_str += quote_obj.shipping_fullname + "<BR/>"
+    if quote_obj.shipping_company:
+        shipping_str += quote_obj.shipping_company + "<BR/>"
 
-    if quote_obj.quote_address:
-        shipping_str += quote_obj.quote_address + "<BR/>"
+    if quote_obj.shipping_address:
+        shipping_str += quote_obj.shipping_address + "<BR/>"
 
-    if quote_obj.quote_city:
-        shipping_str += quote_obj.quote_city + "<BR/>"
+    if quote_obj.shipping_city:
+        shipping_str += quote_obj.shipping_city + "<BR/>"
 
-    if quote_obj.quote_area:
-        shipping_str += quote_obj.quote_area + "<BR/>"
+    if quote_obj.shipping_area:
+        shipping_str += quote_obj.shipping_area + "<BR/>"
 
-    if quote_obj.quote_postcode:
-        shipping_str += quote_obj.quote_postcode + "<BR/>"
+    if quote_obj.shipping_postcode:
+        shipping_str += quote_obj.shipping_postcode + "<BR/>"
     #shipping_str += quote_obj.shipping_country
     return shipping_str
+
+def quote_billing(quote_obj):
+    billing_str = '<b>Billing Address:</b><BR/>'
+    if quote_obj.payment_fullname:
+        billing_str += quote_obj.payment_fullname + "<BR/>"
+    if quote_obj.payment_company:
+        billing_str += quote_obj.payment_company + "<BR/>"
+
+    if quote_obj.payment_address:
+        billing_str += quote_obj.payment_address + "<BR/>"
+
+    if quote_obj.payment_city:
+        billing_str += quote_obj.payment_city + "<BR/>"
+
+    if quote_obj.payment_area:
+        billing_str += quote_obj.payment_area + "<BR/>"
+
+    if quote_obj.payment_postcode:
+        billing_str += quote_obj.payment_postcode + "<BR/>"
+    #billing_str += quote_obj.shipping_country
+    return billing_str
 
 
 def quote_details_tup(quote_obj):

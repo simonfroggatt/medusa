@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from django.template.loader import render_to_string
 from apps.orders.models import OcOrder, OcTsgPaymentMethod
 from apps.company.models import OcTsgCompany, OcTsgCompanyType
+from apps.quotes.models import OcTsgQuote
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView
 from django.urls import reverse_lazy
 import json
@@ -582,6 +583,89 @@ def contact_create_from_guest(request, order_id):
     success_url = reverse_lazy('customerdetails', kwargs={'customer_id': customer_obj.customer_id})
     return HttpResponseRedirect(success_url)
 
+def contact_create_from_guest_quote(request, quote_id):
+    from nameparser import HumanName
+    data = dict()
+    initial_data = {
+        'language_id': 1,
+        'status': 1,
+        'ip': '0.0.0.0',
+        'account_type': 1,
+        'safe': 1,
+        'customer_group': 1,
+        'store': 1,
+        'country': 826,
+    }
+    quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
+    if request.method == 'POST':
+        customer_obj = OcCustomer()
+        customer_obj.store_id = quote_obj.store_id
+        customer_obj.language_id = 1
+        customer_obj.customer_group_id = 1
+        customer_obj.status = 1
+        customer_obj.safe = 1
+        customer_obj.account_type_id = 1
+        customer_obj.ip = '0.0.0.0'
+        customer_obj.country_id = 826
+
+        customer_obj.fullname = quote_obj.fullname
+        payment_customer_names = HumanName(quote_obj.fullname)
+        customer_obj.firstname = payment_customer_names.first
+        customer_obj.lastname = payment_customer_names.surnames
+
+        customer_obj.email = quote_obj.email
+        customer_obj.telephone = quote_obj.telephone
+        customer_obj.company = quote_obj.company
+        customer_obj.save()
+        address_obj = OcAddress()
+        address_obj.customer = customer_obj
+        address_obj.fullname = quote_obj.payment_fullname
+        address_obj.company = quote_obj.payment_company
+        address_obj.address_1 = quote_obj.payment_address
+        address_obj.city = quote_obj.payment_city
+        address_obj.area = quote_obj.payment_area
+        address_obj.postcode = quote_obj.payment_postcode
+        address_obj.country_id = quote_obj.payment_country_id
+        address_obj.telephone = quote_obj.payment_telephone
+        address_obj.email = quote_obj.payment_email
+        address_obj.default_billing = 1
+        address_obj.default_shipping = 0
+        address_obj.save()
+
+        #check if the billing and shipping are the same
+        #create 2 arrays and compare them
+        shipping_address = [quote_obj.shipping_fullname, quote_obj.shipping_company, quote_obj.shipping_address, quote_obj.shipping_city, quote_obj.shipping_area, quote_obj.shipping_postcode, quote_obj.shipping_country_id, quote_obj.shipping_telephone, quote_obj.shipping_email]
+        payment_address = [quote_obj.payment_fullname, quote_obj.payment_company, quote_obj.payment_address, quote_obj.payment_city, quote_obj.payment_area, quote_obj.payment_postcode, quote_obj.payment_country_id, quote_obj.payment_telephone, quote_obj.payment_email]
+        #compare the arrays
+        if shipping_address == payment_address:
+            address_obj.default_shipping = 1
+            address_obj.save()
+        else:
+            address_obj_shipping = OcAddress()
+            address_obj_shipping.customer = customer_obj
+            address_obj_shipping.fullname = quote_obj.shipping_fullname
+            address_obj_shipping.company = quote_obj.shipping_company
+            address_obj_shipping.address_1 = quote_obj.shipping_address
+            address_obj_shipping.city = quote_obj.shipping_city
+            address_obj_shipping.area = quote_obj.shipping_area
+            address_obj_shipping.postcode = quote_obj.shipping_postcode
+            address_obj_shipping.country_id = quote_obj.shipping_country_id
+            address_obj_shipping.telephone = quote_obj.shipping_telephone
+            address_obj_shipping.email = quote_obj.shipping_email
+            address_obj_shipping.default_billing = 0
+            address_obj_shipping.default_shipping = 1
+            address_obj_shipping.save()
+
+        quote_obj.customer_id = customer_obj.customer_id
+        quote_obj.save()
+
+        redirect_url = reverse_lazy('customerdetails', kwargs={'customer_id': customer_obj.customer_id})
+        data['redirect_url'] = redirect_url
+        data['form_is_valid'] = True
+    else:
+        data['form_is_valid'] = False
+
+    return JsonResponse(data)
 
 
 

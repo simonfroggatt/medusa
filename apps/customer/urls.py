@@ -51,6 +51,7 @@ urlpatterns = [
     path('<int:customer_id>/xero/update', views.customer_xero_update, name='customer_xero_update'),
     #dynamics
 
+    path('fromguestquote/<int:quote_id>', views.contact_create_from_guest_quote, name='create_customer_from_guest_quote'),
 
 
   #  path('address/<int:pk>', views.customer_address_view),
