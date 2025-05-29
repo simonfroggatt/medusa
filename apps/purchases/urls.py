@@ -6,6 +6,7 @@ from django.urls import include
 from apps.purchases import views
 
 router = routers.SimpleRouter()
+router.register(r'purchases', views.Purchases)
 
 urlpatterns = [
     path('api/', include(router.urls)),

@@ -11,6 +11,7 @@ class ProductEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProductEditForm, self).__init__(*args, **kwargs)
         self.fields['status'].empty_label = None
+        self.fields['supplier'].empty_label = None
 
     class Meta:
         model = OcOrderProduct
@@ -32,7 +33,9 @@ class ProductEditForm(forms.ModelForm):
             'bulk_discount',
             'bulk_used',
             'single_unit_price',
-            'base_unit_price'
+            'base_unit_price',
+            'supplier',
+            'supplier_code'
         ]
 
         labels = {

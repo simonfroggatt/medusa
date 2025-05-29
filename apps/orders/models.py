@@ -6,7 +6,7 @@ from apps.customer.models import OcCustomer
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from apps.shipping.models import OcTsgCourier
 from apps.options.models import  OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption, OcTsgOptionTypes
-from decimal import Decimal
+from apps.suppliers.models import OcSupplier
 from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
 from medusa.models import OcTsgOrderProductStatus
 from django.core.validators import FileExtensionValidator
@@ -363,7 +363,7 @@ class OcOrderProduct(models.Model):
     product_id = models.IntegerField()
     name = models.CharField(max_length=255)
     model = models.CharField(max_length=64)
-    supplier_code = models.CharField(max_length=64)
+    supplier_code = models.CharField(max_length=64, blank=True, null=True)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=2)
     discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
@@ -386,6 +386,7 @@ class OcOrderProduct(models.Model):
     bulk_used = models.BooleanField(default=True)
     single_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
     base_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
+    supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True, related_name='order_product_supplier')
 
 
     class Meta:

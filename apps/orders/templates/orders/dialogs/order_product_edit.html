@@ -168,27 +168,31 @@
                                             id="line_total_cal">{{ form.total.value|floatformat:2 }}</span></span>
                 </div>
             </div> <!-- END TOTAL -->
-            <div class="row"> <!-- START BUTTONS -->
-                <div class="col">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end align-text-bottom">
-                        <div class="form-check-warning form-switch form-switch-lg">
+            <div class="row">
+                <div class="col-3 ">
+                     {{ form.supplier|as_crispy_field }}
+                </div>
+                <div class="col-3 ">
+                    {{ form.supplier_code|as_crispy_field }}
+                </div>
+                <div class="col-3">
+                    <div class="form-check-warning form-switch form-switch-lg">
                             <input class="form-check-input" type="checkbox" id="switch_exclude_discount_edit"
                                    name="switch_exclude_discount_edit" role="switch"
                                     {% if form.exclude_discount.value %} checked {% endif %}>
                             <label class="form-check-label" for="switch_exclude_discount_edit">Exclude from
                                 discount</label>
-                        </div>
-                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">
+                    </div>
+                </div>
+                <div class="col-3 d-flex gap-2 align-items-center justify-content-end">
+                    <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">
                             Cancel
                         </button>
                         <button type="submit" id="update" class="btn pull-right {{ BUTTON_UPDATE }}  ">
                             Update
                         </button>
-                    </div>
                 </div>
-            </div> <!-- END BUTTONS -->
-
-
+            </div>
         </form>
     </div>
 </div>
