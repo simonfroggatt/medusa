@@ -101,10 +101,11 @@ class OcTsgQuoteProduct(models.Model):
 
     @property
     def product_image_url(self):
-        if self.product_variant.alt_image_url:
-            return self.product_variant.alt_image_url
-        else:
-            return ''
+        img_str = f"{settings.MEDIA_URL}stores/no-image.png"
+        if self.product_variant:
+            if self.product_variant.alt_image_url:
+                img_str = self.product_variant.alt_image_url
+        return img_str
 
     class Meta:
         managed = False
