@@ -7,13 +7,13 @@ router = routers.SimpleRouter()
 router.register(r'sizes', views.Sizes)
 router.register(r'materials', views.Materials)
 router.register(r'sizematerials', views.SizeMaterials)
-#router.register(r'prices', views.BasePrices.as_view())
+router.register(r'prices', views.BasePrices)
 router.register(r'storeprices', views.StorePrices)
 router.register(r'bespokeprices', views.BespokePrices)
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/prices/', views.BasePrices.as_view()),
+    #path('api/prices/', views.BasePrices),
     path('sizes/', views.all_sizes, name='allsizes'),
     path('sizes/create/', views.size_create, name='create_size'),
     path('sizes/<int:pk>/edit/', views.SizeUpdateView.as_view(), name='edit_size'),

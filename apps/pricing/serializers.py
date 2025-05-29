@@ -39,13 +39,17 @@ class BasePricesSerializer(serializers.ModelSerializer):
 class BespokePricesSerializer(serializers.ModelSerializer):
 
     square_meter_value = serializers.SerializerMethodField(read_only=True)
+    sq_diff = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = OcTsgSizeMaterialComb
-        fields = ['id', 'price', 'product_size', 'product_material', 'square_meter_value']
+        fields = ['id', 'price', 'product_size', 'product_material', 'square_meter_value', 'sq_diff']
         depth = 1
 
     def get_square_meter_value(self, obj):
         return (obj.product_size.size_width * obj.product_size.size_height) / (1000 * 1000)
+
+    def get_sq_diff(self, obj):
+        return obj.diff
 
 class StoreSimpleSerializer(serializers.ModelSerializer):
 

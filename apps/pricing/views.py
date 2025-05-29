@@ -100,7 +100,7 @@ class SizeMaterials(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class BasePrices(generics.ListAPIView):
+class BasePrices(viewsets.ModelViewSet):
     queryset = OcTsgSizeMaterialComb.objects.all()
     serializer_class = BasePricesSerializer
 
@@ -137,6 +137,7 @@ class BespokePrices(viewsets.ModelViewSet):
         height_upper = height * (1 + margin_diff)
         width_lower = width * (1-margin_diff)
         height_lower = height * (1-margin_diff)
+        current_m2 = (width / 1000) * (height / 1000)
         sql_string = "SELECT oc_tsg_size_material_comb.id, ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) AS sq, oc_tsg_size_material_comb.price, oc_tsg_product_sizes.size_name," \
                      "( ( %(width)s/ 1000 ) * (%(height)s / 1000 ) ) - ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) AS diff " \
                      "FROM oc_tsg_size_material_comb INNER JOIN oc_tsg_product_sizes ON oc_tsg_size_material_comb.product_size_id = oc_tsg_product_sizes.size_id " \
@@ -145,7 +146,7 @@ class BespokePrices(viewsets.ModelViewSet):
                      "AND (" \
                      "( ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) ) < ( (%(width_upper)s / 1000 ) * ( %(height_upper)s / 1000 ) ) " \
                      "AND ( ( oc_tsg_product_sizes.size_width / 1000 ) * ( oc_tsg_product_sizes.size_height / 1000 ) ) > ( ( %(width_lower)s / 1000 ) * ( %(height_lower)s / 1000 ) ) " \
-                     ") ORDER BY diff LIMIT 10"
+                     ") ORDER BY diff"
 
         stock_prices = OcTsgSizeMaterialComb.objects.raw(sql_string, {'width': width,
                                                                       'height': height,

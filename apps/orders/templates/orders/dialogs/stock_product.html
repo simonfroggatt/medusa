@@ -224,13 +224,14 @@
                         "<'row'<'col-12'tr>>",
                     "processing": true,
                     "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                    "pageLength": 10,
+                    "pageLength": 50,
                     "autoWidth": false,
                     "responsive": false,
                     "serverSide": true,
                     "select": true,
                     "scroller": true,
-                    "scrollY": "200",
+                    "scrollY": "200px",
+                    "paging": true,
                     "scrollCollapse": true,
                     "rowId": 'product_id',
                     "ajax": {
@@ -353,7 +354,7 @@
 
             let core_vars_tbl = $('#core_variants_table').DataTable({
                 "processing": true,
-                "pageLength": 100,
+                "pageLength": 25,
                 "paging": false,
                 "info": false,
                 "autoWidth": false,
@@ -362,7 +363,7 @@
                 "select": true,
                 "deferRender": false,
                 "scroller": true,
-                "scrollY": "200",
+                "scrollY": "200px",
                 "scrollCollapse": true,
                 "rowId": 'prod_variant_core_id',
                 "ajax": {
@@ -576,7 +577,6 @@
             }
 
             function set_product_variant_details(data_row) {
-                debugger;
                 let core_variant = data_row['prod_var_core'];
                 $('#form-stock #{{ form.size_name.name }}').val(core_variant['size_material']['product_size']['size_name'])
                 $('#form-stock #{{ form.width.name }}').val(core_variant['size_material']['product_size']['size_width'])

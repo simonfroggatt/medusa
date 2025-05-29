@@ -43,8 +43,9 @@
                                 <thead>
                                 <tr>
                                     <th class="col-5">Size</th>
-                                    <th class="col-5">Price</th>
-                                    <th class="col-2">M2</th>
+                                    <th class="col-4">Price</th>
+                                    <th class="col-1">M2</th>
+                                    <th class="col-2">Difference</th>
                                 </tr>
                                 </thead>
                             </table>
@@ -236,12 +237,12 @@
                 "dom": "<'row'<'col-6'><'col-6'>>" +
                     "<'row'<'col-12'tr>>",
                 'searching': false,
-                "info": false,
+                "info": true,
                 "processing": true,
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                "pageLength": 10,
+                "pageLength": 25,
                 "autoWidth": true,
-                "serverSide": false,
+                "serverSide": true,
                 "ajax": {
                     "processing": true,
                     "url": "/pricing/api/bespokeprices/?format=datatables&width=0&height=0&material_id=1&margin=10",
@@ -249,12 +250,15 @@
                 },
                 "select": true,
                 "scroller": true,
-                "scrollY": "300",
+                "scrollY": "300px",
+                "paging": false,
                 "scrollCollapse": true,
                 columns: [
                     {data: "product_size.size_name"},
                     {data: "price", searchable: false},
                     {data: "square_meter_value", searchable: false},
+                    {data: "sq_diff", searchable: false, sortable: true},
+                    {data: "product_material", searchable: false, visible: false},
                 ]
             });
 
@@ -317,7 +321,6 @@
             })
 
             $('#calc_button').on('click', function(){
-                debugger;
                 let str_width = $('#calc_width').val()
                 let str_height =  $('#calc_height').val()
                 $('#form-bespoke #{{ form.width.name }}').val($('#calc_width').val())

@@ -15,13 +15,15 @@ $(function () {
             "processing": true,
             "url": "/pricing/api/prices/?format=datatables",
 
-
         },
-        "deferRender": true,
+        "deferRender": false,
 
         "search": {
             "smart": true
         },
+        "paging": false,
+"scrollY": "600px",
+"scrollCollapse": false,
         columns: [
 
             {data: "product_size.size_name", defaultContent: ""},
@@ -57,6 +59,7 @@ $(function () {
         "autoWidth": false,
         "select": 'single',
         "responsive": false,
+        "serverSide": true,
         "ajax": {
             "processing": true,
             "url": "/pricing/api/storeprices/1?format=datatables"
@@ -65,6 +68,7 @@ $(function () {
         "search": {
             "regex": true
         },
+
         columns: [
             {
                 data: "store.thumb",

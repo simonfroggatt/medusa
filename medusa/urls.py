@@ -46,6 +46,7 @@ urlpatterns = [
     path('returns/', include('apps.returns.urls')),
     path('emails/', include('apps.emails.urls')),
     path('payments/', include('apps.payments.urls')),
+    path('purchases/', include('apps.purchases.urls')),
     path('', apps.authentication.views.do_login, name='apps-pages-starter'),
     path('admin/', admin.site.urls),
     path('tinymce/', include('tinymce.urls')),

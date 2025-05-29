@@ -28,13 +28,13 @@
                                 <ul class="sub-menu" aria-expanded="false">
                                     <li><a href="{% url 'allorders' %}">All Orders</a></li>
                                     <li class="nav-item">
-  <a href="{% url 'neworders' %}" class="nav-link d-flex align-items-center">
-    New Orders
-    {% if new_orders_count %}
-      <span class="badge bg-danger ms-2">{{ new_orders_count }}</span>
-    {% endif %}
-  </a>
-</li>
+                                      <a href="{% url 'neworders' %}" class="nav-link d-flex align-items-center">
+                                        New Orders
+                                        {% if new_orders_count %}
+                                          <span class="badge bg-danger ms-2">{{ new_orders_count }}</span>
+                                        {% endif %}
+                                      </a>
+                                    </li>
                                     <li><a href="{% url 'liveorders' %}" >Live Orders</a></li>
                                     {% if request.user|has_group:"superuser" %}
                                     <li><a href="{% url 'failedorders' %}">Failed Orders</a></li>
@@ -64,6 +64,18 @@
                                     <li><a href="{% url 'allsuppliers' %}" >Suppliers</a></li>
                                 </ul>
                             </li>
+                            {% if request.user|has_group:"superuser" %}
+                                <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class="fa-solid fa-boxes-packing"></i>
+                                    <span>Purchases</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="{%  url 'open_purchases' %}" >New</a></li>
+                                    <li><a href="{%  url 'sent_purchases' %}" >Sent</a></li>
+                                </ul>
+                            </li>
+                            {% endif %}
                             
                             {% if request.user|has_group:"superuser" %}
 
