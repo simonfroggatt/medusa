@@ -68,6 +68,13 @@ class OcStore(models.Model):
             return f"{settings.MEDIA_URL}no-image.png"
 
     @property
+    def store_thumb_cdn_url(self):
+        if self.thumb:
+            return f"{settings.MEDIA_URL}stores/branding/logos/{self.thumb}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
+
+    @property
     def store_logo_url(self):
         if self.logo:
             return f"{settings.MEDIA_URL}{self.logo}"

@@ -13,8 +13,8 @@
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownOrderOptions">
                         <li class="list-group-item-danger">
-                            <a class="dropdown-item js-order-product-edit" role="button"
-                               data-url="" data-dlgsize="modal-sm">Duplicate</a>
+                            <a class="dropdown-item js-product-dlg" role="button"
+                               data-url="{% url 'product_duplicate' product_obj.product_id %}" data-dlgsize="modal-sm">Duplicate</a>
                            </li>
                         <hr>
                         <li class="list-group-item-danger">

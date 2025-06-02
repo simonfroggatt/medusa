@@ -12,8 +12,8 @@ urlpatterns = [
     path('api/', include(router.urls)),
 
     #base
-    path('', views.open_purchases, name='open_purchases'),
-    path('', views.sent_purchases, name='sent_purchases'),
+    path('new', views.open_purchases, name='open_purchases'),
+    path('sent', views.sent_purchases, name='sent_purchases'),
 
     ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

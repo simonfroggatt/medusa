@@ -1,0 +1,123 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+      <div class="row top_bar">
+            <div class="col-3 col-lg-2">
+
+            </div>
+            <div class="col-3 col-lg-4">
+
+            </div>
+            <div class="col-6 col-lg-6">
+                {% include 'purchases/sub_layout/purchases_list_navbar.html' %}
+            </div>
+        </div>
+    <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table id="purchases_list_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th width="50px">Website</th>
+                                        <th >Supplier</th>
+                                        <th >Order</th>
+                                        <th >Customer Order Date</th>
+                                        <th class="text-end">&nbsp;</th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+
+    <script>
+    $(document).ready(function() {
+
+    if ( $.fn.dataTable.isDataTable( '#purchases_list_table' ) ) {
+        let purchases_list_table = $('#purchases_list_table').DataTable();
+    }
+    else {
+        let purchases_list_table = $('#purchases_list_table').DataTable({
+            "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 50,
+            "autoWidth": false,
+            "responsive": true,
+            "serverSide": true,
+            "ajax": {
+                "processing": true,
+                "url": "/purchases/api/purchases?format=datatables&status={{purchase_status}}",
+                "type": "GET",
+            },
+            "deferRender": true,
+            "search": {
+                "regex": true
+            },
+            columns: [
+
+                {
+                    data: "store_logo",
+
+                sortable: false,
+                searchable: false,
+                class: "align-middle",
+                render: function ( data, type, row ) {
+                    let store_logo = '<img height="15px" src="' + data + '">';
+                    return store_logo
+                 }
+                },
+                {
+                    data: "supplier.company",
+                },
+                {
+                    data: "order_id",
+                    render: function ( data, type, row ) {
+                    let order_url = `/orders/${data}`;
+                    return `<a href="${order_url}">${data}</a>`;
+                 }
+                },
+                {
+                    data: "order_date",
+                },
+                {
+                    data: "order_product_id",
+                    sortable: false,
+                    className: 'text-end',
+                    render: function (data, type, row) {
+
+                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" role="button" href="' + data + '"><i class="{{ ICON_EDIT }} fa-sm"></i></a>';
+                        let delete_icon = '<a class="btn btn-danger btn-tsg-row" role="button" href="delete/' + row['id'] + '"><i class="{{ ICON_DELETE }} fa-sm"></i></a>'
+
+
+                        return /*delete_icon + "  " +*/ edit_icon;
+                        ;
+                    }
+                },
+            ]
+        });
+    }
+
+
+
+
+} );
+
+
+
+</script>
+
+{% endblock javascript %}

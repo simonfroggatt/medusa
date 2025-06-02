@@ -64,7 +64,7 @@ class ProductDescriptionBase(serializers.ModelSerializer):
 class ProductVariantCoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgProductVariantCore
-        fields = ['supplier_code', 'supplier_price']
+        fields = ['supplier_code', 'supplier_price', 'supplier_id']
 
 
 class ProductToStoreInfoSerializer(serializers.ModelSerializer):

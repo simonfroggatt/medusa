@@ -107,10 +107,14 @@
             {% else %}
                 <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
             {% endif %}
+                {{ form.supplier_code.as_hidden }}
+                {{ form.supplier.as_hidden }}
                 <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
                  <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
                 <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
+
+
                 <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
                 <input type="hidden" id="{{ form.width.name }}" name="{{ form.width.name }}">
                 <input type="hidden" id="{{ form.height.name }}" name="{{ form.height.name }}">
@@ -587,6 +591,10 @@
                // let product_variant_id = data_row['prod_variant_id'];
                 $('#form-stock #{{ form.product_variant.name }}').val(data_row['prod_variant_id'])
                 $('#form-stock #{{ form.model.name }}').val(data_row['variant_code'])
+
+                $('#form-stock #id_{{ form.supplier_code.name }}').val(core_variant['supplier_code'])
+                $('#form-stock #id_{{ form.supplier.name }}').val(core_variant['supplier']['id'])
+
 
                 if (data_row['variant_overide_price'] > 0) {
                     $('#form-stock #{{ form.price.name }}').val(data_row['variant_overide_price'])

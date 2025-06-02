@@ -1987,9 +1987,27 @@ def product_duplicate_dlg(request, pk):
     data = dict()
     context = dict()
     template_name = 'products/dialogs/product_duplicate.html'
-    product_obj = get_object_or_404(OcProduct, pk=pk)
     context['product_id'] = pk
-    context['product_name'] = product_obj.name
+
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        if product_id:
+            new_product_pk = _product_duplicate(product_id)
+            data['form_is_valid'] = True
+            data['new_product_pk'] = new_product_pk
+            data['redirect_url'] = reverse_lazy('product_details', kwargs={'product_id': new_product_pk})
+        else:
+            data['form_is_valid'] = False
+    else:
+        data['form_is_valid'] = False
+        data['product_id'] = pk
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)
+
 
 
 def _product_duplicate(product_id):
@@ -2011,6 +2029,23 @@ def _product_duplicate(product_id):
             bespoke_template=original.bespoke_template,
             exclude_bespoke=original.exclude_bespoke,
             default_order_status=original.default_order_status
+        )
+
+    #product_base descoptions
+        original_base = original.productdescbase
+        OcProductDescriptionBase.objects.create(
+            product=new_product,
+            language=original_base.language,
+            name=f"{original_base.name} (Copy)",
+            title=original_base.title,
+            description=original_base.description,
+            long_description=original_base.long_description,
+            meta_title=original_base.meta_title,
+            meta_description=original_base.meta_description,
+            meta_keyword=original_base.meta_keyword,
+            sign_reads=original_base.sign_reads,
+            tag=original_base.tag,
+            clean_url=f"{original_base.clean_url}-copy" or "",  # Ensure clean_url is not None
         )
 
     #now product to store
@@ -2066,7 +2101,7 @@ def _product_duplicate(product_id):
                 variant_image=core.variant_image,
                 gtin=None,  # Don't copy GTIN
                 shipping_cost=core.shipping_cost,
-                bl_live=False,
+                bl_live=True,
                 lead_time_override=core.lead_time_override,
                 pack_count=core.pack_count
             )

@@ -76,7 +76,9 @@ class ProductAddForm(forms.ModelForm):
             'bulk_discount',
             'bulk_used',
             'single_unit_price',
-            'base_unit_price'
+            'base_unit_price',
+            'supplier',
+            'supplier_code'
         ]
 
         labels = {

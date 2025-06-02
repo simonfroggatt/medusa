@@ -1134,6 +1134,8 @@ $(function () {
          return false;
      });
 
+    $(document).on("submit", '#form-product_duplicate', SaveDialogFormRedirect);
+
 
 
     /**                                                          START - product additioanl images                                                  */

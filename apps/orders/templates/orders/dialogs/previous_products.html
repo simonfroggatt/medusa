@@ -31,8 +31,13 @@
                 {% else %}
                     <input type="hidden" id="{{ form.quote.name }}" name="{{ form.quote.name }}" value="{{ quote_id }}">
                 {% endif %}
+                {{ form.supplier_code.as_hidden }}
+                {{ form.supplier.as_hidden }}
                 <input type="hidden" id="{{ form.product_id.name }}" name="{{ form.product_id.name }}">
                 <input type="hidden" id="{{ form.product_variant.name }}" name="{{ form.product_variant.name }}">
+
+
+
                 <input type="hidden" id="{{ form.name.name }}" name="{{ form.name.name }}">
                 <input type="hidden" id="{{ form.model.name }}" name="{{ form.model.name }}">
                 <input type="hidden" id="{{ form.size_name.name }}" name="{{ form.size_name.name }}">
@@ -228,6 +233,26 @@
                         data: "bulk_used",
                         "visible": false,
                         "searchable": false
+                    },
+                    {
+                        data: "supplier_code",
+                        "visible": false,
+                        "searchable": false
+                    },
+                    {
+                        data: "supplier.id",
+                        "visible": false,
+                        "searchable": false
+                    },
+                    {
+                        data: "orientation_name",
+                        "visible": false,
+                        "searchable": false
+                    },
+                    {
+                        data: "product_variant.prod_variant_id",
+                        "visible": false,
+                        "searchable": false
                     }
                 ]
             });
@@ -261,6 +286,7 @@
             $('#form-previous #{{ form.height.name }}').val(data_row['height'])
             $('#form-previous #{{ form.material_name.name }}').val(data_row['material_name'])
             $('#form-previous #{{ form.orientation_name.name }}').val(data_row['orientation_name'])
+            debugger;
             if (data_row['product_variant']) {
                 $('#form-previous #{{ form.product_variant.name }}').val(data_row['product_variant']['prod_variant_id'])
             }
@@ -281,6 +307,8 @@
             } else
                 $('#form-previous #base_unit_price').val(data_row['single_unit_price'])
 
+            $('#form-previous #id_{{ form.supplier_code.name }}').val(data_row['supplier_code'])
+            $('#form-previous #id_{{ form.supplier.name }}').val(data_row['supplier']['id'])
 
             console.log(data_row)
             let formData = {};

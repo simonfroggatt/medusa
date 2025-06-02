@@ -264,6 +264,7 @@ class OcOrder(models.Model):
         delta = today - ordered
         return delta.days
 
+    @property
     def short_date(self):
         return localtime(self.date_added).strftime('%-d %b, %H:%M')
 
@@ -387,7 +388,6 @@ class OcOrderProduct(models.Model):
     single_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
     base_unit_price = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, default=0.00)
     supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True, related_name='order_product_supplier')
-
 
     class Meta:
         managed = False

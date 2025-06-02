@@ -3,6 +3,7 @@ from medusa.models import OcTaxRate, OcTsgCountryIso, OcTsgFileTypes
 from apps.shipping.models import OcTsgShippingMethod
 from apps.sites.models import OcStore, OcCurrency
 from apps.customer.models import OcCustomer
+from apps.suppliers.models import OcSupplier
 from apps.products.models import OcTsgProductVariants, OcTsgBulkdiscountGroups
 from apps.options.models import OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption, OcTsgOptionTypes
 import datetime as dt
@@ -76,7 +77,7 @@ class OcTsgQuoteProduct(models.Model):
     product_id = models.IntegerField()
     name = models.CharField(max_length=255)
     model = models.CharField(max_length=64)
-    supplier_code = models.CharField(max_length=64)
+    supplier_code = models.CharField(max_length=64, blank=True, null=True)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=15, decimal_places=4)
     discount = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
@@ -98,6 +99,8 @@ class OcTsgQuoteProduct(models.Model):
     bulk_used =  models.BooleanField(default=True)
     single_unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     base_unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    supplier = models.ForeignKey(OcSupplier, models.DO_NOTHING, blank=True, null=True,
+                                 related_name='quote_product_supplier')
 
     @property
     def product_image_url(self):

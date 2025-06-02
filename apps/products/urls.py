@@ -116,6 +116,9 @@ urlpatterns = [
     #min pricing cacl
     path('product/<int:pk>/minpricecalc', views.product_min_price_calc, name='product_min_price_calc'),
 
+    #duplicate a product
+    path('product/<int:pk>/duplicate', views.product_duplicate_dlg, name='product_duplicate'),
+
     #base
     path('', views.product_list, name='allproducts'),
 
