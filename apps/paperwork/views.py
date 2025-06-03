@@ -1794,6 +1794,19 @@ def gen_proforma_for_emails(order_id):
     return pdf
 
 
+def gen_quote_for_emails(quote_id, bl_total=True):
+    pdflist = []
+    pdflist.append(gen_quote_pdf(quote_id, bl_total))
+
+    merger = PdfFileMerger()
+    for pdf_buffer in pdflist:
+        merger.append(PdfFileReader(stream=pdf_buffer))
+        pdf_buffer.close()
+    buffer = BytesIO()
+    merger.write(buffer)
+    pdf = buffer.getvalue()
+
+    return pdf
 
 def set_printed(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)

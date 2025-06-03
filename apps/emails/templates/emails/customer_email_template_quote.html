@@ -1,0 +1,108 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Email Customer - {{ quote_obj.quote_id }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <h3 class="text-center">{{ email_template_title }}</h3>
+    <hr>
+    <div class="email_dialog">
+                <form method="post" action="{% url 'send_customer_email_quote' %}"
+              id="js-quote-email-form">
+                    <input type="hidden" name="quote_id" value="{{ quote_obj.quote_id }}">
+                    <input type="hidden" name="enum_type" value="{{ enum_type }}">
+
+                    {% csrf_token %}
+                        <div class="row">
+                            <div class="col-4 email_col_details">
+                                <h4>Email Details</h4>
+                                <div class="form-group pb-2">
+                                    <label for="email_subject">Subject</label>
+                                    <input type="text" id="email_subject" name="email_subject" class="form-control"
+                                        value="{{ email_subject }}" placeholder="name@customer.com" required="required">
+                                </div>
+                                <div class="form-group pb-2">
+                        <label for="email_address">Email Addresses (separate with comma)</label>
+                        <input type="text" id="email_address" name="email_address" class="form-control"
+                               value="{{ email_to }}" placeholder="email1@example.com, email2@example.com" required="required"
+                               pattern="^([\w+-.%]+@[\w-.]+\.[A-Za-z]{2,4},?\s*)+$"
+                               title="Enter valid email addresses separated by commas">
+                        <div class="invalid-feedback">
+                            Please enter valid email addresses separated by commas
+                        </div>
+                    </div>
+                                <div class="form-group">
+                                    <label for="email_address_reply">Reply Address</label>
+                                    <input type="email" id="email_address_reply" name="email_address_reply" class="form-control"
+                                           value="{{ email_from }}" placeholder="reply@totalsafetygroup.com" required="required">
+                                </div>
+
+
+                            </div>
+                            <div class="col-8 email_col_message">
+                                <h4>Email Contents</h4>
+                                <textarea id="email_message" name="email_message" class="form-control tinymce" rows="20">{{ email_content }}</textarea>
+                            </div>
+                        </div>
+                    <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end" id="shipit_actions">
+                                    <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" role="switch" name="switchCheckTotal" id="switchCheckTotal" checked>
+                          <label class="form-check-label" for="switchCheckTotal">Include totals</label>
+                        </div>
+                                    <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Close</button>
+                                    <button type="submit" id="update" class="btn {{ BUTTON_UPDATE }} pull-right"> Send</button>
+                                </div>
+                            </div>
+                        </div>
+                </form>
+            </div>
+        </div>
+
+{% block extrajs %}
+<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+
+<script>
+    tinymce.init({
+        selector: 'textarea.tinymce',
+        height: 600,
+        plugins: [
+
+        ],
+        toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                alignleft aligncenter alignright alignjustify | \
+                bullist numlist outdent indent | removeformat | help',
+        content_css: [
+            '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+            '//www.tiny.cloud/css/codepen.min.css'
+        ],
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+
+    });
+    // Email validation
+    document.getElementById('email_address').addEventListener('input', function(e) {
+        const emails = e.target.value.split(',').map(email => email.trim());
+        const emailPattern = /^[\w+-.%]+@[\w-.]+\.[A-Za-z]{2,4}$/;
+
+        let allValid = true;
+        for (let email of emails) {
+            if (email && !emailPattern.test(email)) {
+                allValid = false;
+                break;
+            }
+        }
+
+        if (allValid) {
+            e.target.classList.remove('is-invalid');
+            e.target.classList.add('is-valid');
+        } else {
+            e.target.classList.remove('is-valid');
+            e.target.classList.add('is-invalid');
+        }
+    });
+</script>
+{% endblock %}

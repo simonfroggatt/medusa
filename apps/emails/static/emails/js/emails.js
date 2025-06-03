@@ -21,4 +21,5 @@ $(function () {
 
 
     $(document).on("submit", "#js-order-email-form", SendEmail);
+    $(document).on("submit", "#js-quote-email-form", SendEmail);
 });

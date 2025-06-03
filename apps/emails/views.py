@@ -5,6 +5,8 @@ from apps.orders.models import OcOrder, OcTsgOrderShipment
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.shortcuts import get_object_or_404
+
+from apps.quotes.models import OcTsgQuote
 from apps.templating.models import OcTsgTemplates
 from apps.shipping.models import OcTsgCourier
 from django.conf import settings
@@ -15,7 +17,8 @@ from googleapiclient.errors import HttpError
 from django.core.mail import EmailMessage
 import base64
 import os
-from apps.paperwork.views import gen_invoice_for_emails, gen_proforma_for_emails
+from apps.paperwork.views import gen_invoice_for_emails, gen_proforma_for_emails, gen_quote_for_emails
+from nameparser import HumanName
 
 import logging
 logger = logging.getLogger('apps')
@@ -101,6 +104,13 @@ def customer_failed_payment(request, order_id):
     return JsonResponse(data)
 
 
+def customer_quote(request, quote_id):
+    enum_type = 'TEMPLATE_CUSTOMER_QUOTE'
+    template_title = 'Customer Quote'
+    data = dict()
+    data['html_form'] = load_email_template_quotes(request, quote_id, enum_type, template_title)
+    return JsonResponse(data)
+
 
 def load_email_template(request, order_id, email_enum, template_title, additional_replacements=None):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
@@ -132,6 +142,57 @@ def load_email_template(request, order_id, email_enum, template_title, additiona
         '{{accounts_email}}': store_obj.accounts_email_address,
         '{{store_address}}': store_obj.address,
         '{{sales_email}}': store_obj.email_address
+    }
+
+    # Merge additional replacements if provided
+    if additional_replacements:
+        replacements.update(additional_replacements)
+
+    template_header = apply_template_replacements(template_raw_header, replacements)
+    template_footer = apply_template_replacements(store_obj.email_footer_text, replacements)
+    replacements['{{store_email_footer}}'] = template_footer
+    template_content = apply_template_replacements(template_obj.main, replacements)
+
+    context['email_subject'] = template_header
+    context['email_content'] = template_content
+    data =  render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return data
+
+def load_email_template_quotes(request, quote_id, email_enum, template_title, additional_replacements=None):
+    quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
+    to_email = quote_obj.payment_email or quote_obj.email
+    store_obj = quote_obj.store
+    template_name = 'emails/customer_email_template_quote.html'
+
+    context = {'quote_obj': quote_obj}
+    context['email_to'] = to_email
+    context['email_from'] = store_obj.accounts_email_address
+    context['email_template_title'] = template_title
+    context['enum_type'] = email_enum
+
+    # now get the template stuff
+    template_obj = OcTsgTemplates.objects.filter(store_id=store_obj.store_id,
+                                                 template_type__enum_val=email_enum).first()
+    template_raw_header = template_obj.subject
+
+    fullname = quote_obj.payment_fullname or quote_obj.fullname
+    quote_names = HumanName(fullname)
+    firstname = quote_names.first
+
+    replacements = {
+        '{{quote_number}}': f"Q-{store_obj.prefix}-{quote_obj.quote_id}",
+        '{{store_name}}': store_obj.name,
+        '{{store_website}}': store_obj.website,
+        '{{company_name}}': store_obj.company_name,
+        '{{firstname}}': firstname,  # example of adding more replacements
+        '{{quote_date}}': quote_obj.date_added.strftime('%Y-%m-%d'),
+        '{{accounts_email}}': store_obj.accounts_email_address,
+        '{{store_address}}': store_obj.address,
+        '{{sales_email}}': store_obj.email_address,
+        '{{valid_days}}': quote_obj.days_valid,
     }
 
     # Merge additional replacements if provided
@@ -202,6 +263,44 @@ def send_customer_email(request):
             data['success'] = False
             return JsonResponse(data)
 
+def send_customer_email_quote(request):
+    if request.method == 'POST':
+        quote_id = request.POST['quote_id']
+        email_to = request.POST['email_address']
+        email_from = request.POST['email_address_reply']
+        email_subject = request.POST['email_subject']
+        email_content = request.POST['email_message']
+        enum_type = request.POST['enum_type']
+        bl_totals = request.POST.get('switchCheckTotal', False)
+
+        quote_obj = get_object_or_404(OcTsgQuote, pk=quote_id)
+        store_obj = quote_obj.store
+
+        attachments = []
+        #depending on the email type, we may need to add attachments
+        if enum_type == 'TEMPLATE_CUSTOMER_QUOTE':
+            quote_pdf = gen_quote_for_emails(quote_id, bl_totals)
+            if quote_pdf:
+                pdf_filename = f'Quote-{store_obj.prefix}-{quote_obj.quote_id}.pdf'
+                attachments.append((pdf_filename, quote_pdf, 'application/pdf'))
+
+
+        #convert the email to a list
+        email_to = [email_to]
+
+        # Format the from_email with a display name
+        from_email_with_name = f"Total Safety Group <{email_from}>"
+
+        send_status = send_email(email_to, email_from, email_subject, email_content, attachments)
+        data = dict()
+        if send_status['success']:
+            data['message'] = 'Email sent successfully'
+            data['success'] = True
+            return JsonResponse(data)
+        else:
+            data['message'] = f'Email failed to send: {send_status["message"]}'
+            data['success'] = False
+            return JsonResponse(data)
 
 def send_email(email_to, email_from, email_subject, email_content, attachments=None):
     load_dotenv()

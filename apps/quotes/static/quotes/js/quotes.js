@@ -158,6 +158,28 @@ $(function () {
         return false;
     }
 
+    function EmailQuote() {
+        let frm = $('#form-quote-email')
+        let data = frm.serialize();
+        let url = frm.attr("action");
+        $.ajax({
+            url: url,  // <-- AND HERE
+            type: 'post',
+            data: data,
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    add_toast_message('Email sent successfully','Email Sent', 'bg-success')
+                } else {
+                    // $("#modal-base .modal-title").html("Edit Address");
+                }
+            },
+        });
+
+
+        return false;
+    }
+
 
     function resetQuoteCompanyBillingAddress()
     {
@@ -283,7 +305,11 @@ $(function () {
     $(document).on('click', '.js-quote-cog-option', loadForm);
 
     $(document).on("click", "#dropdownMenuPrintQuote", PrintQuote);
+    $(document).on("click", "#menuEmailQuote", loadForm);
     $(document).on("submit", "#js-quote-discount-change-form", SaveDialogFormRedirect);
+
+
+
 
     $(document).on("submit", "#js-quote-delete-form", SaveDialogFormRedirect);
 
