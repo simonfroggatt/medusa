@@ -245,6 +245,8 @@ $(function () {
 
                 }
                 },
+                { data: "order_by",
+                    sortable: true},
                 {
                     data: "prod_variant_core_id",
                     sortable: false,

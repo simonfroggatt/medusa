@@ -115,7 +115,7 @@ class CoreVariantSerializer(serializers.ModelSerializer):
     size_material = SizeMaterialCombSerializer(read_only=True)
     class Meta:
         model = OcTsgProductVariantCore
-        fields = ['prod_variant_core_id','supplier_code', 'supplier_price', 'variant_image_url', 'gtin', 'bl_live', 'size_material', 'pack_count']
+        fields = ['prod_variant_core_id','supplier_code', 'supplier_price', 'variant_image_url', 'gtin', 'bl_live', 'size_material', 'pack_count', 'order_by']
         depth = 3
 
 

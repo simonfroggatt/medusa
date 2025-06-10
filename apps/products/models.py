@@ -156,6 +156,7 @@ class OcTsgProductVariantCore(models.Model):
     bl_live = models.BooleanField()
     lead_time_override = models.IntegerField(default=0)
     pack_count = models.IntegerField(default=1)
+    order_by = models.IntegerField(blank=True, null=True, default=99)
 
 
     class Meta:

@@ -282,15 +282,12 @@ def product_details(request, product_id):
 
 
 class BaseVariantListView(viewsets.ModelViewSet):
-    queryset = OcTsgProductVariantCore.objects.all()
     serializer_class = CoreVariantSerializer
 
-    def list(self, request, *args, **kwargs):
-        product_id = kwargs['product_id']
-        variant_list = OcTsgProductVariantCore.objects.filter(product_id=product_id)
+    def get_queryset(self):
+        product_id = self.kwargs.get('product_id')
+        return OcTsgProductVariantCore.objects.filter(product_id=product_id).order_by('order_by', 'prod_variant_core_id')
 
-        serializer = self.get_serializer(variant_list, many=True)
-        return Response(serializer.data)
 
 
 class CoreVariantProductStoreExcludeListView(viewsets.ModelViewSet):
