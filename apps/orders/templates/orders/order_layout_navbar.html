@@ -45,7 +45,7 @@
                             </label>
                         </div>
                             <hr>
-                            <p>Exclude</p>
+                            <p>INCLUDE</p>
                             <div class="form-check">
                             <input class="form-check-input" type="checkbox"  id="print_shipped" name="print_shipped" value=0 >
                             <label class="form-check-label" for="print_shipped">
@@ -76,6 +76,12 @@
                         <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_proforma' order_obj.order_id %}">Pro-forma</a></li>
                         <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_tracking' order_obj.order_id %}">Tracking</a></li>
                         <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_failed' order_obj.order_id %}">Failed Order</a></li>
+                    {% if supplies %}
+                        <hr>
+                        {% for supply in supplies %}
+                            <li><a class="dropdown-item js-supplier-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_supplier_email' order_obj.order_id supply.supplier_id %}">{{ supply.supplier__code }}</a></li>
+                        {% endfor %}
+                    {%  endif %}
                     </ul>
                 </div>
 

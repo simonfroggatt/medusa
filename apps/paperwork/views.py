@@ -1499,13 +1499,13 @@ def gen_merged_paperwork(request, order_id):
     response = HttpResponse(content_type='application/pdf')
     pdflist=[]
 
-    bl_exclude_shipped = False
-    bl_exclude_backorder = False
+    bl_exclude_shipped = True
+    bl_exclude_backorder = True
     if 'print_shipped' in request.POST:
-        bl_exclude_shipped = True
+        bl_exclude_shipped = False
 
     if 'print_backorder' in request.POST:
-        bl_exclude_backorder = True
+        bl_exclude_backorder = False
 
     if 'print_picklist' in request.POST:
         #pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
