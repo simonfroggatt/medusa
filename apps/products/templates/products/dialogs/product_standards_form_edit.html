@@ -1,0 +1,47 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4>Add Product Standard</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'product-standards-edit' pk %}"
+                      id="form-product-standards-add">
+                    {{ form.product.as_hidden }}
+                    {{ form.id.as_hidden }}
+
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-6">
+                            {{ form.compliance|as_crispy_field }}
+                        </div>
+                        <div class="col-6">
+                            {{ form.code|as_crispy_field }}
+                        </div>
+                        <div class="col-4">
+                            {{ form.photolume|as_crispy_field }}
+                        </div>
+                        <div class="col-4">
+                            {{ form.reflective|as_crispy_field }}
+                        </div>
+                        <div class="col-4">
+                            {{ form.status|as_crispy_field }}
+                        </div>
+                        <div class="col-md-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                                <button type="submit" id="add" class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+

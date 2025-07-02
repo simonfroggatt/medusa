@@ -5,15 +5,16 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
     OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
-    OcProductImage, OcStoreProductImages, OcTsgProductDocuments, OcTsgProductToCategory
+    OcProductImage, OcStoreProductImages, OcTsgProductDocuments, OcTsgProductToCategory, OcTsgProductStandard
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
 from .serializers import (ProductListSerializer, CoreVariantSerializer, ProductVariantSerializer, \
     StoreCoreProductVariantSerialize, ProductStoreSerializer, CategorySerializer, ProductSymbolSerialzer, \
     ProductSiteVariantOptionsSerializer, ProductCoreVariantOptionsSerializer, RelatedBaseDescriptionSerializer, \
-    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer, ProductOptionsValueSerializer, ProductOptionsCurrentSerializer, ProductOptionValuesSerializer)
+    RelatedSerializer, ProductStoreListSerializer, RelatedByStoreProductSerializer, ProductSupplierListSerializer,
+                          ProductOptionsValueSerializer, ProductOptionsCurrentSerializer, ProductOptionValuesSerializer, ProductStandardSerializer)
 
-from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols
-from apps.symbols.serializers import SymbolSerializer
+from apps.symbols.models import OcTsgSymbols, OcTsgProductSymbols, OcTsgSymbolStandard
+from apps.symbols.serializers import SymbolSerializer, SymbolStandardSerializer
 from apps.orders.models import OcTsgProductOption
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgOptionClassGroupValues, OcTsgOptionClassGroups, \
@@ -25,12 +26,13 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .forms import ProductForm, ProductDescriptionBaseForm, SiteProductDetailsForm, ProductCategoryForm, \
     VariantCoreOptionsForm, VariantCoreForm, VariantCoreEditForm, SiteVariantOptionsForm, VariantCoreOptionsOrderForm, \
     SiteProductVariantForm, AdditionalProductStoreImages, AdditionalProductImageForm, AddionalProductImageEditForm, \
-    ProductDocumentForm, RelatedEditForm, ProductOptionEditForm, ProductOptionSortEditForm, ProductOptionSortEditForm
+    ProductDocumentForm, RelatedEditForm, ProductOptionEditForm, ProductOptionSortEditForm, ProductOptionSortEditForm, OcTsgProductStandardForm
 from django.urls import reverse_lazy
 from itertools import chain
 from apps.sites.models import OcStore
 from medusa import services
 from django.conf import settings
+from rest_framework.generics import ListAPIView
 import os
 
 from django.db import transaction
@@ -64,7 +66,7 @@ class ProductSymbols(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ProductSymbolsAvailable(viewsets.ModelViewSet):
+class ProductSymbolsAvailable_old(viewsets.ModelViewSet):
     queryset = OcTsgSymbols.objects.all()
     serializer_class = SymbolSerializer
 
@@ -75,6 +77,22 @@ class ProductSymbolsAvailable(viewsets.ModelViewSet):
         serializer = SymbolSerializer(product_symbol_obj, many=True)
         return Response(serializer.data)
 
+class ProductSymbolsAvailable(viewsets.ModelViewSet):
+    serializer_class = SymbolStandardSerializer
+    queryset = OcTsgSymbolStandard.objects.all()
+
+    def get_queryset(self):
+        product_id = self.kwargs.get('pk')
+        used_symbol_ids = OcTsgProductSymbols.objects.filter(
+            product_id=product_id
+        ).values_list('symbol_standard_id', flat=True)
+
+        return OcTsgSymbolStandard.objects.exclude(pk__in=used_symbol_ids)
+
+    def list(self, request, pk=None):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 class Category(viewsets.ModelViewSet):
     queryset = OcTsgProductToCategory.objects.all()
@@ -561,19 +579,19 @@ def product_category_delete(request, pk):
                                              )
     return JsonResponse(data)
 
-def add_product_symbol(request, product_id, symbol_id):
+def add_product_symbol(request, product_id, symbol_standard_id):
     data = dict()
 
     if request.method == 'POST':
         #check the product symbol does not already exist
-        product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_id=symbol_id)
+        product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_standard_id=symbol_standard_id)
         if not product_symbol_obj:
             product_symbol_obj = OcTsgProductSymbols()
             product_symbol_obj.product_id = product_id
-            product_symbol_obj.symbol_id = symbol_id
+            product_symbol_obj.symbol_standard_id = symbol_standard_id
             product_symbol_obj.save(force_insert=True)
             #now test it got added:
-            product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_id=symbol_id)
+            product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_standard_id=symbol_standard_id)
             data['is_saved'] = product_symbol_obj.exists()
         else:
             data['is_saved'] = False
@@ -584,11 +602,11 @@ def add_product_symbol(request, product_id, symbol_id):
     return JsonResponse(data)
 
 
-def delete_product_symbol(request, product_id, symbol_id):
+def delete_product_symbol(request, product_id, symbol_standard_id):
     data = dict()
 
     if request.method == 'POST':
-        product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_id=symbol_id)
+        product_symbol_obj = OcTsgProductSymbols.objects.filter(product_id=product_id).filter(symbol_standard_id=symbol_standard_id)
         product_symbol_obj.delete()
         data['is_saved'] = True
     else:
@@ -2238,4 +2256,87 @@ def product_min_price_calc(request, pk):
             """, [store_id, bulk_group_id, store_id, product_id, store_id])
         row = cursor.fetchone()
         data['min_price'] = row[0]
+    return JsonResponse(data)
+
+
+
+class product_standards_list(ListAPIView):
+    serializer_class = ProductStandardSerializer
+    def get_queryset(self):
+        product_id = self.kwargs['product_id']
+        return OcTsgProductStandard.objects.filter(product_id=product_id)
+
+
+def product_standards_list_add(request, product_id):
+    template_name = 'products/dialogs/product_standards_form.html'
+    context = {}
+    data = dict()
+    context['product_id'] = product_id
+    if request.method == 'POST':
+        form = OcTsgProductStandardForm(request.POST)
+        if form.is_valid():
+            form.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+            data['errors'] = form.errors
+    else:
+        # set product_id to the initilial value of the form
+        product = get_object_or_404(OcProduct, pk=product_id)
+        initial_data = {
+            'product': product,
+        }
+        form = OcTsgProductStandardForm(initial=initial_data)
+
+    context['form'] = form
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+
+def product_standards_list_edit(request, pk):
+    template_name = 'products/dialogs/product_standards_form_edit.html'
+    context = {}
+    data = dict()
+    if request.method == 'POST':
+        product_standard_obj = get_object_or_404(OcTsgProductStandard, pk=pk)
+        form = OcTsgProductStandardForm(request.POST, instance=product_standard_obj)
+        if form.is_valid():
+            form.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+            data['errors'] = form.errors
+    else:
+        # set symbol_id to the initilial value of the form
+        product_standard_obj = get_object_or_404(OcTsgProductStandard, pk=pk)
+        form = OcTsgProductStandardForm(instance=product_standard_obj)
+
+    context['form'] = form
+    context['pk'] = pk
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
+    return JsonResponse(data)
+
+def product_standards_list_delete(request, pk):
+    template_name = 'products/dialogs/product_standards_delete.html'
+    context = {}
+    context['pk'] = pk
+    data = dict()
+    if request.method == 'POST':
+        product_standard_obj = get_object_or_404(OcTsgProductStandard, pk=pk)
+        product_standard_obj.delete()
+        data['form_is_valid'] = True
+    else:
+        product_standard_obj = get_object_or_404(OcTsgProductStandard, pk=pk)
+        context['product_standard'] = product_standard_obj
+
+    data['html_form'] = render_to_string(template_name,
+                                         context,
+                                         request=request
+                                         )
     return JsonResponse(data)

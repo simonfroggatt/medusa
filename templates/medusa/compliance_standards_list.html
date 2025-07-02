@@ -1,0 +1,60 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<h1>{{ heading }}</h1>
+<a href="{% url 'compliance-standards-add' %}" class="btn btn-primary mb-3">Add New Compliance Standard</a>
+<table id="compliance-standards-table" class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Title</th>
+            <th>Authority</th>
+            <th>Region</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+</table>
+    {% endblock %}
+    {% block javascript %}
+<script>
+$(document).ready(function() {
+    $('#compliance-standards-table').DataTable({
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "serverSide": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "{% url 'compliance-standards-list-api' %}?format=datatables",
+             },
+        "deferRender": false,
+         "search": {
+            "regex": true
+        },
+        "columns": [
+            { "data": "id" },
+            { "data": "code" },
+            { "data": "title" },
+            { "data": "authority" },
+            { "data": "region" },
+            { "data": "status" },
+            {
+                "data": "id",
+                "render": function(data, type, row, meta) {
+                    return '<a href="/compliance-standards/' + data + '/edit/">Edit</a> | <a href="/compliance-standards/' + data + '/delete/">Delete</a>';
+                },
+                "orderable": false,
+                "searchable": false
+            }
+        ],
+    });
+});
+</script>
+{% endblock  %}

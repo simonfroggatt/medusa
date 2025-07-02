@@ -6,6 +6,7 @@ from apps.pages import views
 router = routers.SimpleRouter()
 router.register(r'blogs', views.Blogs)
 router.register(r'info', views.Information)
+router.register(r'faq', views.Information)
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -15,9 +16,15 @@ urlpatterns = [
     path('blogs/<int:pk>/delete', views.BlogDelete.as_view(), name='blogdelete'),
     path('blogs/<int:blog_id>/deletedlg', views.blog_delete_dlg, name='blogdeletedlg'),
     path('blogs/', views.allBlogs, name='allblogs'),
+
     path('info/', views.allInfo, name='allinfo'),
     path('info/new', views.info_create, name='infocreate'),
     path('info/<int:pk>/edit', views.InfoUpdate.as_view(), name='infoupdate'),
     path('info/<int:pk>/delete', views.InfoDelete.as_view(), name='infodelete'),
     path('info/<int:information_id>/deletedlg', views.info_delete_dlg, name='infodeletedlg'),
+
+    path('faq/', views.allfaqs, name='allfaqs'),
+    path('faq/new', views.faq_create, name='faqcreate'),
+
+
     ]

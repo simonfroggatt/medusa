@@ -1,7 +1,7 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
     OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage, \
-    OcTsgProductDocuments, OcProductRelated, OcTsgProductToCategory
+    OcTsgProductDocuments, OcProductRelated, OcTsgProductToCategory, OcTsgProductStandard
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions,  OcTsgProductOption, OcTsgProductOptionValues
 
@@ -296,3 +296,8 @@ class ProductOptionSortEditForm(forms.ModelForm):
         model = OcTsgProductOptionValues
         fields = ['sort_order']
 
+
+class OcTsgProductStandardForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgProductStandard
+        fields = '__all__'

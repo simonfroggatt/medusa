@@ -55,3 +55,15 @@ def sent_purchases(request):
     context['purchase_status'] = 'SENT'
 
     return render(request, template_name, context)
+
+
+def get_supplier_list(order_id):
+    #get a list of the suppliers
+    supplier_list = OcOrderProduct.objects.filter(
+        order_id=order_id,
+        supplier_id__isnull=False,
+        status_id__in=[settings.TSG_ORDER_PRODUCT_SUPPLIER_ITEM]
+    ).exclude(
+        supplier_id=settings.TSG_SUPPLIER_ID
+    ).values('supplier_id', 'supplier__code').distinct()
+    return supplier_list

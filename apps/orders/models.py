@@ -30,8 +30,7 @@ class OcOrderQuerySet(models.QuerySet):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         order_status_excl = [99, 1, 7]
 
-        return self.exclude(order_status_id__in=order_status_excl) \
-            .filter(payment_status_id__in=valid_status, is_legacy=False)
+        return self.exclude(order_status_id__in=order_status_excl).filter(payment_status_id__in=valid_status, is_legacy=False)
 
     def new(self):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS

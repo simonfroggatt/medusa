@@ -79,6 +79,11 @@
                                    role="tab">
                                     <i class="fa-solid fa-folder-open"></i> Documents</a>
                             </li>
+                            <li>
+                                <a class="nav-link" id="standards-tab" data-bs-toggle="tab" href="#tab-standards"
+                                   role="tab">
+                                    <i class="fa-solid fa-file-certificate"></i> Standards</a>
+                            </li>
                         </ul>
                         <div class="tab-content">
                             <div role="tabpanel" id="tab-orders" class="tab-pane fade show active">
@@ -124,6 +129,11 @@
                             <div role="tabpanel" id="tab-categories" class="tab-pane fade">
                                 <div class="panel-body">
                                      {% include 'products/sub_layout/product_category-list.html' %}
+                                </div>
+                            </div>
+                            <div role="tabpanel" id="tab-standards" class="tab-pane fade">
+                                <div class="panel-body" id="div-product_standards">
+                                    {% include 'products/sub_layout/product_standards-list.html' with product_id=product_obj.product_id %}
                                 </div>
                             </div>
                         </div>

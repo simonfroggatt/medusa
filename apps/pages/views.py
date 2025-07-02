@@ -102,6 +102,13 @@ def allInfo(request):
     context = {'heading': "Information"}
     return render(request, template_name, context)
 
+def allfaqs(request):
+    template_name = 'pages/faq/faq_list.html'
+    context = {'heading': "FAQs"}
+    return render(request, template_name, context)
+
+
+
 
 class BlogUpdate(UpdateView):
     model = OcTsgBlogs
@@ -192,4 +199,36 @@ class InfoDelete(DeleteView):
     success_url = reverse_lazy('allinfo')
 
 
+def faq_create(request):
+    template = 'pages/info/information_create.html'
+    context = {}
+    context['heading'] = "FAQ"
+    context['pageview'] = "New FAQ"
+
+    if request.method == 'POST':
+        form = InformationDetailsEditForm(request.POST)
+        if form.is_valid():
+            form.save()
+            success_url = reverse_lazy('allfaqs')
+            return HttpResponseRedirect(success_url)
+
+    else:
+        info_obj = OcInformationDescription
+        info_iniitials = {
+            'title': 'New Information',
+            'description': 'Some nice information in here',
+            'meta_title': '',
+            'meta_description': '',
+            'meta_keyword': '',
+            'store': 1,
+            'language': 1,
+            'sort_order': 1,
+            'bottom': False,
+            'status': False,
+
+        }
+
+    form = InformationDetailsEditForm(instance=info_obj, initial=info_iniitials)
+    context['form'] = form
+    return render(request, template, context)
 

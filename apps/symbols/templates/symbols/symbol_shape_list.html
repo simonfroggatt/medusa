@@ -1,0 +1,57 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<h1>{{ heading }}</h1>
+<a href="{% url 'symbol-shape-add' %}" class="btn btn-primary mb-3">Add New Shape</a>
+<table id="symbol_shape_table" class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+</table>
+    {% endblock %}
+    {% block javascript %}
+<script>
+$(document).ready(function() {
+    $('#symbol_shape_table').DataTable({
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "serverSide": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "{% url 'symbol-shape-list-api' %}?format=datatables",
+             },
+        "deferRender": false,
+         "search": {
+            "regex": true
+        },
+        "columns": [
+            { "data": "name" },
+            {
+                 data: "id",
+
+                sortable: false,
+                className: 'text-md-end text-start',
+                render: function ( data, type, row ) {
+                let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" role="button" href="/symbols/symbol-shapes/' + data + '/edit/"><i class="{{ ICON_EDIT }} "></i></a>';
+                let delete_icon = '<a  class="btn {{ BUTTON_DELETE }} btn-tsg-row js-symbol-delete" role="button" href="/symbols/symbol-shapes/' + data + '/delete/"><i class="{{ ICON_DELETE }} "></i></a>';
+                return delete_icon + "  " + edit_icon;
+                //    return  data_button
+                },
+
+                "orderable": false,
+                "searchable": false
+            }
+        ],
+    });
+});
+</script>
+{% endblock  %}

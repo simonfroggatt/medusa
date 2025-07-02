@@ -25,10 +25,7 @@
                                     <thead>
                                     <tr>
                                         <th>Image</th>
-                                        <th>Ref No.</th>
-                                        <th>Referent</th>
-                                        <th>Category</th>
-                                        <th>Standard</th>
+                                        <th>Title</th>
                                         <th width="50px" class="float-end">&nbsp</th>
                                     </tr>
                                     </thead>
@@ -78,10 +75,7 @@
                     return '<img class="rounded mx-auto d-block product-thumb" src="' + data+'">';
                 }
             },
-            {data: "refenceno"},
             {data: "referent"},
-            {data: "category.title"},
-            {data: "standard.title"},
             {
                 data: "id",
                 sortable: false,

@@ -1,16 +1,15 @@
 from django import forms
-from apps.symbols.models import OcTsgSymbols
+from apps.symbols.models import OcTsgSymbols, OcTsgSymbolStandard, OcTsgSymbolShape, OcTsgSymbolPurposes, OcTsgSymbolCategory
 from django.conf import settings
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
 
 class SymbolsForm(forms.ModelForm):
-    humanbehav = forms.CharField(widget=TinyMCE(attrs={'rows': 2}), required=False, label='Human Behaviour')
 
     def __init__(self, *args, **kwargs):
         super(SymbolsForm, self).__init__(*args, **kwargs)
-        self.fields['category'].empty_label = None
-        self.fields['standard'].empty_label = None
+        self.fields['shape'].empty_label = None
+        #self.fields['standard'].empty_label = None
 
 
     def get_symbol_image_url(self, symbol):
@@ -23,3 +22,31 @@ class SymbolsForm(forms.ModelForm):
             'svg_path': SvgAndImageFormField,
         }
 
+        labels = {
+            'referent': 'Description',
+        }
+
+class OcTsgSymbolStandardForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgSymbolStandard
+        fields = '__all__'
+
+
+
+
+class SymbolShapeForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgSymbolShape
+        fields = '__all__'
+
+
+
+class SymbolPurposeForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgSymbolPurposes
+        fields = '__all__'
+
+class SymbolCategoryForm(forms.ModelForm):
+    class Meta:
+        model = OcTsgSymbolCategory
+        fields = '__all__'

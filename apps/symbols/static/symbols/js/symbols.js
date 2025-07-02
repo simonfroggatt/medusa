@@ -138,7 +138,9 @@ $(function () {
             "rowId": 'id',
             "ajax": {
                 "processing": true,
-                "url": "/products/api/productsymbols-available/"+product_id+"?format=datatables",
+               // "url": "/products/api/productsymbols-available/"+product_id+"?format=datatables",
+                "url": "/products/api/"+product_id+"/available-symbols?format=datatables",
+
               },
             "deferRender": true,
 
@@ -178,8 +180,8 @@ $(function () {
      product_no_symbol_table.on('select', function (e, dt, type, indexes) {
         if (type === 'row') {
             let data = dt.row(indexes).id();
-            let variant_url = "/products/api/productsymbols-available/"+data+"?format=datatables";
-
+            //let variant_url = "/products/api/productsymbols-available/"+data+"?format=datatables";
+            let variant_url = "/products/api/"+data+"/available-symbols?format=datatables"
             product_missing_symbol_table_available.ajax.url(variant_url).load()
 
             let active_url = "/products/api/productsymbols/"+data+"?format=datatables"
@@ -193,7 +195,7 @@ $(function () {
       $(document).on("click", ".js-product-missing-symbol-edit", AddRemoveProductSymbol);
       sessionStorage.setItem("product_missing_id", 0);
 
-
+      $(document).on("click", ".js-product-missing-symbol-edit", AddRemoveProductSymbol);
 
 });
 

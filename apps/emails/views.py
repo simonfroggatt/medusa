@@ -18,6 +18,7 @@ from django.core.mail import EmailMessage
 import base64
 import os
 from apps.paperwork.views import gen_invoice_for_emails, gen_proforma_for_emails, gen_quote_for_emails
+from apps.suppliers.models import OcSupplier
 from nameparser import HumanName
 
 import logging
@@ -477,3 +478,42 @@ def _setup_medusa_email(order_id, enum_type, additional_replacements=None):
     data = {'subject': template_header, 'body': template_content}
     return data
 
+def supplier_send_order(request, order_id, supplier_id):
+    """
+    Send an order to a supplier via email.
+    """
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    supplier_obj = get_object_or_404(OcSupplier, pk=supplier_id)
+
+    email_to = supplier_obj.order_email
+    email_from = order_obj.store.accounts_email_address
+    email_subject = f"New Order: {order_obj.order_id} for {supplier_obj.company}"
+
+    replacements = {
+        '{{supplier_company}}': supplier_obj.company,
+        '{{order_number}}': f"{order_obj.store.prefix}-{order_obj.order_id}",
+        '{{store_name}}': order_obj.store.name,
+        '{{store_website}}': order_obj.store.website,
+        '{{company_name}}': order_obj.store.company_name,
+        '{{order_date}}': order_obj.date_added.strftime('%Y-%m-%d'),
+        '{{accounts_email}}': order_obj.store.accounts_email_address,
+        '{{store_address}}': order_obj.store.address,
+        '{{sales_email}}': order_obj.store.email_address
+    }
+
+    email_content = load_email_template(request, order_id, 'TEMPLATE_SUPPLIER_ORDER', 'New Supplier Order', replacements)
+
+    attachments = []
+    # Add any attachments if necessary
+
+    send_status = send_email([email_to], email_from, email_subject, email_content, attachments)
+
+    data = dict()
+    if send_status['success']:
+        data['message'] = 'Email sent successfully'
+        data['success'] = True
+        return JsonResponse(data)
+    else:
+        data['message'] = f'Email failed to send: {send_status["message"]}'
+        data['success'] = False
+        return JsonResponse(data)

@@ -47,6 +47,15 @@ urlpatterns = [
     path('emails/', include('apps.emails.urls')),
     path('payments/', include('apps.payments.urls')),
     path('purchases/', include('apps.purchases.urls')),
+    path('compliance-standards/', views.compliance_standards_list, name='compliance-standards-list'),
+    
+    path('compliance-standards/add/', views.ComplianceStandardsCreateView.as_view(), name='compliance-standards-add'),
+    path('compliance-standards/<int:pk>/edit/', views.ComplianceStandardsUpdateView.as_view(), name='compliance-standards-edit'),
+    path('compliance-standards/<int:pk>/delete/', views.ComplianceStandardsDeleteView.as_view(), name='compliance-standards-delete'),
+
+    path('api/compliance-standards/', views.ComplianceStandardsListAPIView.as_view(), name='compliance-standards-list-api'),
+
+    
     path('', apps.authentication.views.do_login, name='apps-pages-starter'),
     path('admin/', admin.site.urls),
     path('tinymce/', include('tinymce.urls')),

@@ -1,0 +1,48 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+<h1>{{ heading }}</h1>
+
+<table id="standards-table" class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Symbol</th>
+            <th>Compliance</th>
+            <th>Purpose</th>
+            <th>Code</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+</table>
+<script>
+$(document).ready(function() {
+    $('#standards-table').DataTable({
+        "ajax": "{% url 'standards-list-api' %}?format=datatables",
+        "columns": [
+            { "data": "id" },
+            { "data": "symbol" },
+            { "data": "compliance" },
+            { "data": "purpose" },
+            { "data": "code" },
+            { "data": "status" },
+            {
+                "data": "id",
+                "render": function(data, type, row, meta) {
+                    return '<a href="/symbols/standards/' + data + '/edit/">Edit</a> | <a href="/symbols/standards/' + data + '/delete/">Delete</a>';
+                },
+                "orderable": false,
+                "searchable": false
+            }
+        ],
+        "processing": true,
+        "serverSide": false
+    });
+});
+</script>
+{% endblock %} 

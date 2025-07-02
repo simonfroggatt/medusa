@@ -11,7 +11,7 @@ router.register(r'productsite', views.ProductSite)
 router.register(r'categories', views.Category)
 router.register(r'related', views.Related)
 router.register(r'productsymbols', views.ProductSymbols)
-router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
+#router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
 router.register(r'product_core_variant_options', views.ProductCoreVariantOption)
 router.register(r'product_site_variant_options', views.ProductSiteVariantOption)
 router.register(r'product_site_variant_options_classes', views.ProductSiteVariantOptionClasses)
@@ -29,7 +29,8 @@ urlpatterns = [
     path('api/<int:product_id>/store/<int:store_id>/products', views.Product_by_Store_Excluding.as_view(), name='product_list_by_store_exc'),
     path('api/supplier/<int:supplier_id>/products', views.Product_by_Supplier.as_view(), name='product_list_by_supplier'),
 
-    #products
+    path('api/<int:pk>/available-symbols/',views.ProductSymbolsAvailable.as_view({'get': 'list'}),name='product-symbols-available'),
+                  #products
     path('api/productsite/<int:product_id>/<int:store_id>', views.ProductSite.as_view({'get': 'list'}), name='products_site_list'),
     path('<int:product_id>', views.product_details, name='product_details'),
     path('<int:product_id>/edit', views.product_edit_base, name='product_base_details_edit'),
@@ -75,8 +76,8 @@ urlpatterns = [
 
 
     #symbols
-    path('api/product/<int:product_id>/addproductsymbol/<int:symbol_id>', views.add_product_symbol, name='products_symbol_add'),
-    path('api/product/<int:product_id>/deleteproductsymbol/<int:symbol_id>', views.delete_product_symbol, name='products_symbol_delete'),
+    path('api/product/<int:product_id>/addproductsymbol/<int:symbol_standard_id>', views.add_product_symbol, name='products_symbol_add'),
+    path('api/product/<int:product_id>/deleteproductsymbol/<int:symbol_standard_id>', views.delete_product_symbol, name='products_symbol_delete'),
 
     #related items
     path('related/<int:product_id>/store/<int:store_id>', views.RelatedItemByStore.as_view({'get': 'list'}), name='related_product-store'),
@@ -118,6 +119,12 @@ urlpatterns = [
 
     #duplicate a product
     path('product/<int:pk>/duplicate', views.product_duplicate_dlg, name='product_duplicate'),
+
+    #standards
+    path('<int:product_id>/standards', views.product_standards_list.as_view(), name='productstandardslist'),
+    path('<int:product_id>/standards/add/', views.product_standards_list_add, name='product-standards-add'),
+    path('<int:pk>/standards/edit/', views.product_standards_list_edit, name='product-standards-edit'),
+    path('<int:pk>/standards/delete/', views.product_standards_list_delete, name='product-standards-delete'),
 
     #base
     path('', views.product_list, name='allproducts'),

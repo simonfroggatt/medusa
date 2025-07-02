@@ -93,6 +93,7 @@ def create_daily_payment_method_data(pd_data_in, date_range):
         payment_type_summary.append(payment_summary_data_point)
         total_orders += payment_method_count
 
+    payment_type_summary.sort(key=lambda x: x['total'], reverse=True)
 
     summary_data = {'total_value': total_value, 'total_orders': total_orders, 'payment_totals_by_type': payment_type_summary}
     return_data = {'data_set': chart_data, 'summary': summary_data}
@@ -159,6 +160,8 @@ def create_weekly_payment_method_data(pd_data_in, date_range):
                                       'total': payment_method_total}
         payment_type_summary.append(payment_summary_data_point)
         total_orders += payment_method_count
+
+    payment_type_summary.sort(key=lambda x: x['total'], reverse=True)
 
     summary_data = {'total_value': total_value, 'total_orders': total_orders,
                     'payment_totals_by_type': payment_type_summary}
@@ -260,9 +263,12 @@ def create_monthly_payment_method_data(pd_data_in, date_range):
             payment_type_summary.append(payment_summary_data_point)
             total_orders += payment_method_count
 
+        payment_type_summary.sort(key=lambda x: x['total'], reverse=True)
+
         summary_data = {'total_value': total_value, 'total_orders': total_orders,
                         'payment_totals_by_type': payment_type_summary}
-        return_data = {'data_set': chart_data, 'summary': summary_data}
+
+
 
     return {'data_set': chart_data, 'summary': summary_data, 'range': {'start': dt.datetime.strftime(date_range['start'], "%Y-%m-%d"), 'end': dt.datetime.strftime(date_range['end'] -  dt.timedelta(days=1), "%Y-%m-%d")}}
 

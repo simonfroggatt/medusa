@@ -4,7 +4,7 @@ from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from apps.category.models import OcCategoryToStore, OcTsgCategory
-from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus, OcTsgGoogleShoppingCategory
+from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus, OcTsgGoogleShoppingCategory, OcTsgComplianceStandards
 
 
 from storages.backends.s3boto3 import S3Boto3Storage
@@ -73,6 +73,8 @@ class OcProductDescriptionBase(models.Model):
     long_description = models.TextField(blank=True, null=True)
     sign_reads = models.TextField(blank=True, null=True)
     clean_url = models.CharField(max_length=255, blank=True, null=True, default='')
+    standards = models.ForeignKey(OcTsgComplianceStandards, models.DO_NOTHING, blank=True, null=True)
+    standards_code = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -328,4 +330,17 @@ class OcTsgProductToCategory(models.Model):
         db_table = 'oc_tsg_product_to_category'
 
 
-
+class OcTsgProductStandard(models.Model):
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING)
+    compliance = models.ForeignKey(OcTsgComplianceStandards, models.DO_NOTHING)
+    code = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True, db_comment='Any specific notes for this combination')
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+    photolume = models.BooleanField(default=False)
+    reflective = models.BooleanField(default=False)
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_standard'
+        unique_together = (('product', 'compliance'),)

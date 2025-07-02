@@ -37,6 +37,7 @@ from medusa import services
 import operator
 import hashlib
 import uuid
+from apps.purchases import views as purchase_view
 
 from apps.returns.models import OcTsgReturnOrder
 
@@ -327,6 +328,8 @@ def order_details(request, order_id):
         nav_dict["previous_url"] = reverse_lazy('order_details', kwargs={'order_id': previous_order_id})
     except:
         nav_dict["previous_url"] = ""
+
+    context['supplies'] = purchase_view.get_supplier_list(order_id)
 
     context['breadcrumbs'] = breadcrumbs
 

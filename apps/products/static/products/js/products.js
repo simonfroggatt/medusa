@@ -496,10 +496,40 @@ $(function () {
                      return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';
                     },
                 },
-                {data: "symbol.refenceno"},
-                {data: "symbol.referent"},
+                {data: "symbol_standard.compliance.code"},
+                {data: "symbol_standard.code"},
                 {
-                    data: "symbol.id",
+                data: "symbol_standard.photolume",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+            {
+                data: "symbol_standard.reflective",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+            {
+                data: "symbol_standard.status",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+                {
+                    data: "symbol_standard.id",
                     render: function (data, type, row) {
                         let remove_icon = '<a class="btn btn-warning btn-tsg-row js-product-symbol-edit" role="button" data-url="api/product/' + product_id +'/deleteproductsymbol/' + data + '"><i class="fa-solid fa-minus"></i></a>';
                         return remove_icon
@@ -529,7 +559,9 @@ $(function () {
             "rowId": 'id',
             "ajax": {
                 "processing": true,
-                "url": "/products/api/productsymbols-available/"+product_id+"?format=datatables",
+                //"url": "/products/api/productsymbols-available/"+product_id+"?format=datatables",
+                "url": "/products/api/"+product_id+"/available-symbols?format=datatables",
+
                 "type": "GET",
             },
             "deferRender": false,
@@ -556,8 +588,39 @@ $(function () {
                      return '<img class="rounded mx-auto d-block product-thumb" src="'+img_path+'" height="50px">';
                     },
                 },
-                {data: "refenceno"},
-                {data: "referent"},
+                {data: "compliance.code"},
+                {data: "code"},
+                {
+                data: "photolume",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+            {
+                data: "reflective",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+            {
+                data: "status",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+
 
 
             ]
@@ -1387,6 +1450,99 @@ $(function () {
         });
         return false;
     }
+
+
+    /**** STANDARDS ****/
+
+    if ($.fn.dataTable.isDataTable('#product_standard_table'))
+     {
+
+         var product_standard_table = $('#product_standard_table').DataTable();
+     }
+     else {
+         let product_id = sessionStorage.getItem("product_id");
+          var product_standard_table = $('#product_standard_table').DataTable( {
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing" : true,
+        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
+        "pageLength": 25,
+        "autoWidth": true,
+        "responsive": true,
+        "serverSide": true,
+        "ajax": {
+                 "processing": true,
+                 "url": "/products/" + product_id + "/standards?format=datatables"
+             },
+        "deferRender": false,
+         "search": {
+            "regex": true
+        },
+        columns :[
+            {
+                data: "code",
+            },
+            {data: "compliance.code"},
+            {
+                data: "photolume",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+            {
+                data: "reflective",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+            {
+                data: "status",
+                render: function (data) {
+                    if (data == 1) {
+                        return '<i class="fa-solid fa-check flag-green"></i>'
+                    } else {
+                        return '<i class="fa-solid fa-xmark fa-xl  flag-red"></i>'
+                    }
+                }
+            },
+            {
+                data: "id",
+                sortable: false,
+                className: 'text-md-end text-start',
+                render: function ( data, type, row ) {
+                 let edit_icon = '<a class="btn '+ button_context['BUTTON_EDIT'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/standards/edit/" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
+                 let delete_icon = '<a  class="btn '+ button_context['BUTTON_DELETE'] +' btn-tsg-row js-product-dlg" role="button" data-url="' + data + '/standards/delete/"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>';
+
+
+                return delete_icon + "  " + edit_icon;
+                //    return  data_button
+                }
+            }
+
+        ]
+    } );
+     }
+
+         $(document).on("click", "#js_add_product_standard", loadForm);
+
+         $(document).on("click", ".js-product-standard-delete", loadForm);
+         $(document).on("click", ".js-product-standard-edit", loadForm);
+
+
+         $(document).on('submit', '#form-product-standards-add', function () {
+            SaveDialogUpdateTable('product_standard_table', $(this));
+            return false;
+        });
+
 
 })
 

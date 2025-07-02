@@ -13,8 +13,14 @@ urlpatterns = [
 
     #quotes
     path('quote/<int:quote_id>/customer_quote', views.customer_quote, name='show_customer_email_quote'),
+
     path('send_customer_email/quote', views.send_customer_email_quote, name='send_customer_email_quote'),
 
+    #suppliers
+    path('order/<int:order_id>/supplier/<int:supplier_id>', views.supplier_send_order, name='send_supplier_email'),
+
     path('send_customer_email', views.send_customer_email, name='send_customer_email'),
+
+
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

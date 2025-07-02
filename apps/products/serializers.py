@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
-    OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, OcTsgProductToCategory
+    OcTsgSizeMaterialComb, OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, OcTsgProductToCategory, OcTsgProductStandard
 from apps.options.models import OcTsgProductVariantOptions, OcTsgProductOption, OcTsgProductOptionValues
 from apps.category.models import OcCategoryToStore
 from apps.pricing.models import OcTsgSizeMaterialCombPrices
@@ -178,10 +178,7 @@ class ProductSymbolSerialzer(serializers.ModelSerializer):
         model = OcTsgProductSymbols
         fields = [field.name for field in model._meta.fields]
         fields.extend(['symbol_image_url'])
-
-
-
-        depth = 1
+        depth = 2
 
 class ProductCoreVariantOptionsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -329,3 +326,9 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
         depth = 2
 
+
+class ProductStandardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgProductStandard
+        fields = '__all__'
+        depth = 2

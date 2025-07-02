@@ -194,3 +194,22 @@ class OcTsgOrderProductStatus(models.Model):
         return self.name
 
 
+class OcTsgComplianceStandards(models.Model):
+    code = models.CharField(unique=True, max_length=50, db_comment='bs-5499, iso-3864, solas-chapter-iii')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    authority = models.CharField(max_length=100, blank=True, null=True, db_comment='BSI, IMO, DfT, HSE')
+    regulation_url = models.CharField(max_length=500, blank=True, null=True)
+    effective_date = models.DateField(blank=True, null=True)
+    region = models.CharField(max_length=50, blank=True, null=True, db_comment='UK, EU, International, UAE')
+    mandatory = models.IntegerField(blank=True, null=True)
+    industry_sectors = models.CharField(max_length=255, blank=True, null=True, db_comment='Comma-separated: maritime,construction,general-workplace')
+    status = models.IntegerField(blank=True, null=True)
+    benefit = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_compliance_standards'
+
+    def __str__(self):
+        return self.code

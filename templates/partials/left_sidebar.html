@@ -71,7 +71,15 @@
                                     <span>Purchases</span>
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
-                                    <li><a href="{%  url 'open_purchases' %}" >New</a></li>
+                                    <li class="nav-item">
+                                      <a href="{% url 'open_purchases' %}" class="nav-link d-flex align-items-center">
+                                        New
+                                        {% if new_supplier_purchases_count %}
+                                          <span class="badge bg-danger ms-2">{{ new_supplier_purchases_count }}</span>
+                                        {% endif %}
+                                      </a>
+                                    </li>
+
                                     <li><a href="{%  url 'sent_purchases' %}" >Sent</a></li>
                                 </ul>
                             </li>
@@ -89,8 +97,20 @@
                                 <ul class="sub-menu" aria-expanded="false">
                                     <li><a href="{%  url 'allproducts' %}" >Products</a></li>
                                     <li><a href="{% url 'allcategories' %}" >Categories</a></li>
-                                     <li><a href="{% url 'allsymbols' %}" >Symbols</a></li>
 
+
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class="fa-solid fa-ban"></i>
+                                    <span>Symbology</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                     <li><a href="{% url 'allsymbols' %}" >Symbols</a></li>
+                                     <li><a href="{% url 'compliance-standards-list' %}" >Standards</a></li>
+                                     <li><a href="{% url 'category-list' %}" >Categories</a></li>
+                                     <li><a href="{% url 'shape-list' %}" >Shapes</a></li>
                                 </ul>
                             </li>
 
@@ -114,6 +134,7 @@
                                 <ul class="sub-menu" aria-expanded="false">
                                     <li><a href="{%  url 'allblogs' %}" >Blogs</a></li>
                                     <li><a href="{%  url 'allinfo' %}" >Information</a></li>
+                                    <li><a href="{%  url 'allfaqs' %}" >FAQ</a></li>
                                 </ul>
                             </li>
 
