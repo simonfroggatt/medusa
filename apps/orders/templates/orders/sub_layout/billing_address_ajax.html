@@ -18,10 +18,11 @@
                                 {% if order_obj.payment_address_2 %}
                                     {{ order_obj.payment_address_2|linebreaksbr }}<br>
                                 {% endif %}
+                            {{ order_obj.payment_city }}<br>
                                  {% if order_obj.payment_area %}
                                 {{ order_obj.payment_area }}<br>
                                 {% endif %}
-                                {{ order_obj.payment_city }}<br>
+
                                 <strong>{{ order_obj.payment_postcode }}</strong><br>
                                 {{ order_obj.payment_country }}
                             </address>

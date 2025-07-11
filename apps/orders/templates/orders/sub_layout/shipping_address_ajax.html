@@ -17,10 +17,11 @@
                                 {% if order_obj.shipping_address_2 %}
                                     {{ order_obj.shipping_address_2|linebreaksbr }}<br>
                                 {% endif %}
+                            {{ order_obj.shipping_city }}<br>
                                  {% if order_obj.shipping_area %}
                                 {{ order_obj.shipping_area }}<br>
                                 {% endif %}
-                                {{ order_obj.shipping_city }}<br>
+
                                 <strong>{{ order_obj.shipping_postcode }}</strong><br>
                                 {{ order_obj.shipping_country }}
                             </address>

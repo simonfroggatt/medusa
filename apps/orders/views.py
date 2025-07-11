@@ -872,6 +872,8 @@ def update_order_billing_from_address_book(request, order_id):
             order_obj.payment_email = address_obj.email
             order_obj.payment_telephone = address_obj.telephone
             order_obj.payment_address_1 = address_obj.address_1
+            if address_obj.address_2:
+                order_obj.payment_address_1 += "f\n{address_obj.address_2}"
             order_obj.payment_city = address_obj.city
             order_obj.payment_area = address_obj.area
             order_obj.payment_postcode = address_obj.postcode
@@ -895,6 +897,8 @@ def update_order_shipping_from_address_book(request, order_id):
             order_obj.shipping_email = address_obj.email
             order_obj.shipping_telephone = address_obj.telephone
             order_obj.shipping_address_1 = address_obj.address_1
+            if address_obj.address_2:
+                order_obj.shipping_address_1 += f"\n{address_obj.address_2}"
             order_obj.shipping_city = address_obj.city
             order_obj.shipping_area = address_obj.area
             order_obj.shipping_postcode = address_obj.postcode
