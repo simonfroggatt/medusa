@@ -51,4 +51,21 @@ class OcInformationDescription(models.Model):
         return self.title
 
 
+class OcTsgExtraTemplateType(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_extra_template_type'
+
+class OcTsgExtraTemplate(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    template_path = models.CharField(max_length=255, blank=True, null=True)
+    template_type = models.ForeignKey(OcTsgExtraTemplateType, models.DO_NOTHING, db_column='template_type', blank=True, null=True)
+    contents = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_extra_template'
+
 

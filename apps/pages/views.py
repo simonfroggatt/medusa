@@ -107,7 +107,10 @@ def allfaqs(request):
     context = {'heading': "FAQs"}
     return render(request, template_name, context)
 
-
+def allExtra(request):
+    template_name = 'pages/extra/extra_list.html'
+    context = {'heading': "Extra"}
+    return render(request, template_name, context)
 
 
 class BlogUpdate(UpdateView):

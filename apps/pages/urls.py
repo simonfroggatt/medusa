@@ -23,6 +23,12 @@ urlpatterns = [
     path('info/<int:pk>/delete', views.InfoDelete.as_view(), name='infodelete'),
     path('info/<int:information_id>/deletedlg', views.info_delete_dlg, name='infodeletedlg'),
 
+    path('extra/', views.allExtra, name='allextra'),
+    path('extra/new', views.info_create, name='extracreate'),
+    path('extra/<int:pk>/edit', views.InfoUpdate.as_view(), name='extraupdate'),
+    path('extra/<int:pk>/delete', views.InfoDelete.as_view(), name='extradelete'),
+    path('extra/<int:information_id>/deletedlg', views.info_delete_dlg, name='extradeletedlg'),
+
     path('faq/', views.allfaqs, name='allfaqs'),
     path('faq/new', views.faq_create, name='faqcreate'),
 

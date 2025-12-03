@@ -5,6 +5,7 @@ from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from apps.category.models import OcCategoryToStore, OcTsgCategory
 from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus, OcTsgGoogleShoppingCategory, OcTsgComplianceStandards
+from apps.pages.models import OcTsgExtraTemplate
 
 
 from storages.backends.s3boto3 import S3Boto3Storage
@@ -344,3 +345,16 @@ class OcTsgProductStandard(models.Model):
         managed = False
         db_table = 'oc_tsg_product_standard'
         unique_together = (('product', 'compliance'),)
+
+
+
+class OcTsgProductExtraInfo(models.Model):
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, blank=True, null=True)
+    template = models.ForeignKey(OcTsgExtraTemplate, models.DO_NOTHING, blank=True, null=True)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING, blank=True, null=True)
+    status = models.IntegerField(blank=True, null=True)
+    sort_order = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_extra_info'

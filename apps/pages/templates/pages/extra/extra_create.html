@@ -1,0 +1,74 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+{% block content %}
+        <form method="post" action="{% url 'infocreate' %}">
+            {{ form.media }}
+            {% csrf_token %}
+            <div class="row">
+<div class="form-group">
+    <div class="row">
+                    <div class="col-12 col-md-4">
+                        <div class="row">
+                            <div class="col-12">{{ form.title|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.store|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.meta_title|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.clean_url|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.meta_description|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.meta_keyword|as_crispy_field }}</div>
+                            <div class="col-3">{{ form.sort_order|as_crispy_field }}</div>
+                            <div class="col-3">{{ form.bottom|as_crispy_field }}</div>
+                            <div class="col-3">{{ form.status|as_crispy_field }}</div>
+                            <div class="col-12">{{ form.language|as_crispy_field }}</div>
+                        </div>
+
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <div class="col-md-12">{{ form.description|as_crispy_field }}</div>
+                    </div>
+                </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn {{ BUTTON_CANCEL }} " onclick="location.href='{% url 'allinfo' %}'">Cancel</button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_ADD }} pull-right">Add</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+{% endblock content %}
+
+{% block javascript %}
+
+
+<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+
+<script>
+  var t1 = tinymce.init({
+      selector: 'textarea#editor',
+  })
+
+</script>
+
+
+
+
+
+
+{% endblock javascript %}
+
+
+
+
+
+

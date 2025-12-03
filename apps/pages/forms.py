@@ -1,5 +1,5 @@
 from django import forms
-from apps.pages.models import OcTsgBlogs, OcInformationDescription
+from apps.pages.models import OcTsgBlogs, OcInformationDescription, OcTsgExtraTemplate
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
 
@@ -42,3 +42,12 @@ class InformationDetailsEditForm(forms.ModelForm):
             'status': 'Information Live',
             'bottom': 'Show in footer',
         }
+
+
+class ExtraDetailsEditForm(forms.ModelForm):
+    contents = forms.CharField(widget=TinyMCE(attrs={'rows': 30}))
+
+    class Meta:
+        model = OcTsgExtraTemplate
+
+        fields = '__all__'
