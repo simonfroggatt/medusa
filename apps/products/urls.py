@@ -14,7 +14,7 @@ router.register(r'productsymbols', views.ProductSymbols)
 #router.register(r'productsymbols-available', views.ProductSymbolsAvailable)
 router.register(r'product_core_variant_options', views.ProductCoreVariantOption)
 router.register(r'product_site_variant_options', views.ProductSiteVariantOption)
-router.register(r'product_site_variant_options_classes', views.ProductSiteVariantOptionClasses)
+router.register(r'product_site_variant_options_classes', views.ProductSiteVariantOptionClasses, basename='product_site_variant_options')
 
 router.register(r'productoptions', views.ProductOptions)
 router.register(r'productoptions-active', views.ProductOptionsActive)

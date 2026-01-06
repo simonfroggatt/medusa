@@ -6,7 +6,7 @@ from django.urls import include
 router = routers.SimpleRouter()
 router.register(r'quotes', views.Quotes_asJSON)
 router.register(r'quote-products', views.Quote_Products_asJSON)
-router.register(r'customer', views.Quotes_Customer)
+router.register(r'customer', views.Quotes_Customer, basename='customer')
 router.register(r'shippingsearch', views.QuoteShippingAddressList)
 
 urlpatterns = [

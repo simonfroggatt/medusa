@@ -6,7 +6,8 @@ from apps.pages import views
 router = routers.SimpleRouter()
 router.register(r'blogs', views.Blogs)
 router.register(r'info', views.Information)
-router.register(r'faq', views.Information)
+router.register(r'faq', views.Information, basename='faq')
+urlpatterns = router.urls
 
 urlpatterns = [
     path('api/', include(router.urls)),

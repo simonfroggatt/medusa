@@ -7,8 +7,8 @@ from apps.quotes.views import create_quote_customer
 
 router = routers.SimpleRouter()
 router.register(r'customerslist', views.customer_list_asJSON_s)
-router.register(r'customerslist/company', views.customer_list_bycompany)
-router.register(r'previousorders', views.previous_orders)
+router.register(r'customerslist/company', views.customer_list_bycompany, basename='occustomer-bycompany')
+router.register(r'previousorders', views.previous_orders, basename='customer-previousorders')
 
 urlpatterns = [
     path('api/', include(router.urls)),

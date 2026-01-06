@@ -7,9 +7,9 @@ router = routers.SimpleRouter()
 router.register(r'sizes', views.Sizes)
 router.register(r'materials', views.Materials)
 router.register(r'sizematerials', views.SizeMaterials)
-router.register(r'prices', views.BasePrices)
+router.register(r'prices', views.BasePrices, basename='prices')
 router.register(r'storeprices', views.StorePrices)
-router.register(r'bespokeprices', views.BespokePrices)
+router.register(r'bespokeprices', views.BespokePrices, basename='bespokeprices')
 
 urlpatterns = [
     path('api/', include(router.urls)),

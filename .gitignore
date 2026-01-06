@@ -3,6 +3,9 @@
 .env
 /apps/dashboard/migrations/
 medusa/wsgi.py
+.idea/
+misc.xml
+requirements_old.txt
 !/apps/xero_api/config.py
 /static/libs/bootstrap/
 /static/libs/jquery-ui-dist/

@@ -6,7 +6,7 @@ from apps.company import views
 
 router = routers.SimpleRouter()
 router.register(r'companylist', views.company_list_asJSON)
-router.register(r'companylistbystore', views.company_list_bystore)
+router.register(r'companylistbystore', views.company_list_bystore, basename='companylistbystore')
 
 
 urlpatterns = [

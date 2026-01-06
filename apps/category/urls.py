@@ -11,7 +11,7 @@ router.register(r'category', views.Categories)
 router.register(r'descriptions', views.CategoryDescriptions)
 router.register(r'tostores', views.CategoryToStoreDescriptions)
 router.register(r'sitepaths', views.CategoryStoreToParents)
-router.register(r'storecats', views.StoreCategories)
+router.register(r'storecats', views.StoreCategories, basename='storecats')
 
 
 urlpatterns = [
