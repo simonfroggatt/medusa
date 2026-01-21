@@ -7,6 +7,9 @@
                          <img height="20px" src="
                     {% get_media_prefix %}stores/branding/logos/{{ customer_obj.store.thumb }}">
                          Main Contact
+                         {% if customer_obj.collect %}
+                             <i class="fa-solid fa-hand-holding-box" title="Customer collects by default"></i>
+                         {% endif %}
                      </div>
                      <div class="col-3">
                        <div class="float-end pe-0">

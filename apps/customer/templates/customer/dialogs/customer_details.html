@@ -33,6 +33,12 @@
                 <div class="col-md-12">{{ form.email|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.telephone|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.mobile|as_crispy_field }}</div>
+            </div>
+            <div class="row d-flex align-items-end">
+                <div class="col-md-6">{{ form.account_type|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.collect|as_crispy_field }}</div>
+            </div>
+            <div class="row">
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>

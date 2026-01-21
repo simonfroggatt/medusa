@@ -232,7 +232,8 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
         #get the standard for the product
         product_symbols = OcTsgProductSymbols.objects.filter(product=product).first()
         if product_symbols:
-            return product_symbols.symbol.standard.title
+            return product_symbols.symbol_standard.compliance.title
+           # return product_symbols.symbol.standard.title
         else:
             return ''
 

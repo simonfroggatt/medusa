@@ -58,6 +58,7 @@ class OcCustomer(models.Model):
     discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     notes = models.CharField(max_length=2048, blank=True, null=True)
     archived = models.BooleanField(default=False)
+    collect = models.BooleanField(default=False)
 
     class Meta:
         managed = False

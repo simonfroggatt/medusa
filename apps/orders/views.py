@@ -1929,6 +1929,26 @@ def get_shipping_cost(order_id, subtotal):
     shipping_label = ''
     #first check if there is pricing override or size
     order_obj = get_object_or_404(OcOrder, pk=order_id)
+
+    # Check if customer collects by default - set shipping to free collection
+    if order_obj.customer and order_obj.customer.collect:
+        order_totals_obj = OcOrderTotal.objects.filter(order_id=order_id).filter(code='shipping').first()
+        if order_totals_obj:
+            order_totals_obj.value = 0.00
+            order_totals_obj.title = 'Collection'
+            order_totals_obj.save()
+        else:
+            order_totals_obj = OcOrderTotal()
+            order_totals_obj.order_id = order_id
+            order_totals_obj.code = 'shipping'
+            order_totals_obj.value = 0.00
+            order_totals_obj.title = 'Collection'
+            order_totals_obj.save()
+        order_obj.shipping_method = 'Collection'
+        order_obj.shipping_code = 'COL'
+        order_obj.save()
+        return
+
     qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
 
     for product in qs_products.iterator():

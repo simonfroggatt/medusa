@@ -12,6 +12,9 @@
             <div class="col-4 col-lg-4">
                 <h2>{{ order_obj.store.prefix }}-<a id="js-order-number"
                         href="javascript: copy_orderno_to_clipboard({{ order_obj.order_id }})">{{ order_obj.order_id }}</a>
+                    {% if order_obj.customer and order_obj.customer.collect %}
+                        <i class="fa-solid fa-hand-holding-box ms-2" title="Customer collects by default"></i>
+                    {% endif %}
                     <img src="{% get_media_prefix %}stores/branding/logos/{{ order_obj.store.thumb }}" class="img-responsive tsg-thumbnail"
                          alt="{{ order_obj.store.name }}">
                     {% if order_obj.xero_id %}

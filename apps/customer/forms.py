@@ -46,7 +46,6 @@ class CustomerForm(forms.ModelForm):
 
         self.fields['firstname'].required = True
         self.fields['lastname'].required = True
-
         self.fields['parent_company'].widget = forms.HiddenInput()
 
     class Meta:
@@ -60,6 +59,7 @@ class CustomerForm(forms.ModelForm):
 
         labels = {
             'notes': 'Comments and Notes',
+            'collect': 'Customer collects by Default'
         }
 
 
