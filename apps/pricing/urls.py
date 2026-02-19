@@ -10,6 +10,7 @@ router.register(r'sizematerials', views.SizeMaterials)
 router.register(r'prices', views.BasePrices, basename='prices')
 router.register(r'storeprices', views.StorePrices)
 router.register(r'bespokeprices', views.BespokePrices, basename='bespokeprices')
+router.register(r'variantshippingrates', views.VariantShippingRates, basename='variantshippingrates')
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -34,6 +35,11 @@ urlpatterns = [
     path('prices/<int:pk>/store/delete', views.store_price_combo_delete, name='storepricecombodelete'),
     path('prices/<int:size_material_id>/store/create', views.store_price_combo_create, name='storepricecombocreate'),
     path('materials/details/<int:material_id>', views.material_details, name='materialdetails'),
+
+    #need to get a list of all the shipping rates for the size_material_id
+    path('prices/shippingqty/<int:size_material_id>/create',  views.price_shipping_create, name='shippingqtycreate'),
+    path('prices/shippingqty/<int:pk>/edit',  views.material_details, name='priceshipping_update'),
+    path('prices/shippingqty/<int:pk>/delete',  views.material_details, name='priceshipping_delete'),
 
 
     path('material/spec/upload', views.material_spec_upload, name='material_spec-upload'),

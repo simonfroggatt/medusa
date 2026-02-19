@@ -8,7 +8,7 @@ from apps.shipping.models import OcTsgCourier
 from apps.options.models import  OcTsgOptionClass, OcTsgOptionValues, OcOptionValues, OcTsgProductOption, OcTsgOptionTypes
 from apps.suppliers.models import OcSupplier
 from medusa.models import OcTsgCountryIso, OcTaxRate, OcTsgFileTypes
-from medusa.models import OcTsgOrderProductStatus
+from medusa.models import OcTsgOrderProductStatus, AuthUser
 from django.core.validators import FileExtensionValidator
 from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
@@ -596,6 +596,25 @@ class OcTsgShipmentTrackingEvent(models.Model):
     def __str__(self):
         return self.status
 
+
+class OcTsgActivityType(models.Model):
+    title = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_activity_type'
+
+
+class OcTsgOrderActivity(models.Model):
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING)
+    activity_type = models.ForeignKey(OcTsgActivityType, models.DO_NOTHING, db_column='activity_type')
+    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+    date_added = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_order_activity'
 
 
 def add_order_product_history(order_product_id, old_id, new_id):

@@ -1,0 +1,34 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Create Size Material Shipping</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <form method="post" action="{% url 'shippingqtycreate' size_material_id %}" id="form-price-shipping-create">
+            {% csrf_token %}
+            {{ form.size_material_comb.as_hidden }}
+            <h3>Set the new qty and prices</h3>
+            <div class="row">
+
+                <div class="col-md-4">{{ form.qty_min|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.qty_max|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.shipping_price|as_crispy_field }}</div>
+                <div class="col-md-3">{{ form.store|as_crispy_field }}</div>
+                 <div class="col-md-3">{{ form.iso|as_crispy_field }}</div>
+                <div class="col-md-3">{{ form.status|as_crispy_field }}</div>
+                <div class="col-md-3">{{ form.bl_contact|as_crispy_field }}</div>
+
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_ADD }} pull-right">Add</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

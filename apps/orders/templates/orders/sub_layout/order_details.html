@@ -3,99 +3,131 @@
     <div class="card-header order_details btn-toolbar align-items-center justify-content-between">
         <div>
             Order Details
+            {% if order_obj.printed %}
+            <i class="fa-solid fa-print text-success ms-2"></i>
+            {% endif %}
         </div>
         <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
             <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-order-details-edit"
-                    data-url="{% url 'orderdetailsedit' order_obj.order_id %}"
-                    data-dlgsize=""
-            ><i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+                data-url="{% url 'orderdetailsedit' order_obj.order_id %}" data-dlgsize=""><i
+                    class="{{ ICON_EDIT }} fa-pull-right"></i></button>
         </div>
     </div>
-             <div class="card-body">
-                 <dl class="row text-nowrap" id="order_{{ order_obj.order_id }}">
-                     {% if order_obj.customer %}
-                         <dt class="col-3">Company</dt>
-                         {% if order_obj.customer.company %}
-                              <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id %}">{{ order_obj.customer.company }}</a>
-                             {% if order_obj.customer.parent_company %}
-                                 <br/> ( part of: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a> )
-                             {% endif %}
-                              </dd>
-                         {% else %}
-                             {% if order_obj.customer.parent_company %}
-                                <dd class="col-9">part of: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a>
-                             {% else %}
-                                 <dd class="col-9"></dd>
-                             {% endif %}
+    <div class="card-body">
+        <dl class="row text-nowrap" id="order_{{ order_obj.order_id }}">
+            {% if order_obj.customer %}
+            <dt class="col-3">Company</dt>
+            {% if order_obj.customer.company %}
+            <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id %}">{{
+                    order_obj.customer.company }}</a>
+                {% if order_obj.customer.parent_company %}
+                <br /> ( part of: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{
+                    order_obj.customer.parent_company.company_name }}</a> )
+                {% endif %}
+            </dd>
+            {% else %}
+            {% if order_obj.customer.parent_company %}
+            <dd class="col-9">part of: <a
+                    href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{
+                    order_obj.customer.parent_company.company_name }}</a>
+                {% else %}
+            <dd class="col-9"></dd>
+            {% endif %}
 
-                         {% endif %}
-                             <dt class="col-3">Contact</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{ order_obj.customer.fullname }}</a></dd>
-                     {% else %}
-                         {% if order_obj.company %}
-                              <dt class="col-3">Company</dt><dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer_id %}">{{ order_obj.company }}</a></dd>
-                         {% endif %}
-                          <dt class="col-3">Contact</dt><dd class="col-9">{{ order_obj.fullname }}</dd>
-                     {% endif %}
+            {% endif %}
+            <dt class="col-3">Contact</dt>
+            <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer.customer_id  %}">{{
+                    order_obj.customer.fullname }}</a></dd>
+            {% else %}
+            {% if order_obj.company %}
+            <dt class="col-3">Company</dt>
+            <dd class="col-9"><a href="{% url 'customerdetails' order_obj.customer_id %}">{{ order_obj.company }}</a>
+            </dd>
+            {% endif %}
+            <dt class="col-3">Contact</dt>
+            <dd class="col-9">{{ order_obj.fullname }}</dd>
+            {% endif %}
 
-                     <dt class="col-3">Order No:</dt>
-                     <dd class="col-9">{{ order_obj.order_id }}</dd>
-                    {% if order_obj.customer_order_ref %}
-                     <dt class="col-3">Purchase Ref:</dt>
-                     <dd class="col-9">{{ order_obj.customer_order_ref|default:"&nbsp;" }}</dd>
-                    {% endif %}
-                     <dt class="col-3">Date:</dt>
-                     <dd class="col-9">{{ order_obj.date_added }}</dd>
-                    {% if order_obj.date_due %}
-                        <dt class="col-3">Due Date:</dt>
-                        <dd class="col-9">
-                            {% now "Y-m-d" as today %}
-                            {% if order_obj.date_due|date:"Y-m-d" < today %}
-                                <span class="text-danger">{{ order_obj.date_due }}</span>
-                            {% else %}
-                                <span>{{ order_obj.date_due }}</span>
-                            {% endif %}
-                        </dd>
-                    {% endif %}
-
-                     <dt class="col-3">Status:</dt>
-                     <dd class="col-9">{{ order_obj.order_status.name }}</dd>
-                     <dt class="col-3">Payment:</dt>
-                     <dd class="col-9">{{order_obj.payment_method.method_name }} - {{order_obj.payment_status.name }}</dd>
-                 <dt class="col-3">Source:</dt>
-                     <dd class="col-9">{{ order_obj.order_type.order_type_name }}</dd>
-                     <dt class="col-3">Shipment:
-                         {% if shippingObj %}
-                        <a class="btn btn-sm" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
-                            <li class="fa-solid fa-hourglass-half"></li>
-                        </a>
-                         {% endif %}
-                     </dt>
-                    {% if shippingObj %}
-                        <dd class="col-9 text-wrap">
-                            <img class="img-responsive " height="15px"
-                                src="{% static "" %}images/{{shippingObj.first.shipping_courier.courier_logo }}">
-                                ({{shippingObj.first.shipping_courier_method }}) <strong class="{{shippingObj.first.shipping_status.status_colour }}">
-                                {{shippingObj.first.shipping_status }}</strong> on {{shippingObj.first.date_added|date:"D d M Y H:i:s" }} -
-                            <strong>{{shippingObj.first.tracking_number }}</strong>
-                        <dl class="collapse row" id="collapseExample">
-                            {% for shipping_info in shippingObj|slice:'1:' %}
-                                 <dt class="col-0">
-
-                                 </dt>
-                            <dd class="col-12">
-                                <img class="img-responsive " height="15px"
-                                src="{% static "" %}images/{{shipping_info.shipping_courier.courier_logo }}">
-                                ({{shipping_info.shipping_courier_method }}) <strong class="{{shipping_info.shipping_status.status_colour }}">
-                                {{shipping_info.shipping_status }}</strong> on {{shipping_info.date_added|date:"D d M Y H:i:s" }} -
-                                <strong>{{shipping_info.tracking_number }}</strong></dd>
-                            {% endfor %}
-                        </dl>
-                        </dd>
+            <dt class="col-3">Order No:</dt>
+            <dd class="col-9">{{ order_obj.order_id }}</dd>
+            {% if order_obj.customer_order_ref %}
+            <dt class="col-3">Purchase Ref:</dt>
+            <dd class="col-9">{{ order_obj.customer_order_ref|default:"&nbsp;" }}</dd>
+            {% endif %}
+            <dt class="col-3">Date:</dt>
+            <dd class="col-9">{{ order_obj.date_added }}</dd>
+            {% comment %}
+            {% if order_obj.date_due %}
+            <dt class="col-3">Due Date:</dt>
+            <dd class="col-9">
+                {% now "Y-m-d" as today %}
+                {% if order_obj.date_due|date:"Y-m-d" < today %} <span class="text-danger">{{ order_obj.date_due
+                    }}</span>
                     {% else %}
-                        <dd class="col-9">Not yet shipped</dd>
+                    <span>{{ order_obj.date_due }}</span>
                     {% endif %}
+            </dd>
+            {% endif %}
+            {% endcomment %}
+
+            <dt class="col-3">Status:</dt>
+            <dd class="col-9">{{ order_obj.order_status.name }}</dd>
+            <dt class="col-3">Payment:</dt>
+            <dd class="col-9">{{order_obj.payment_method.method_name }} - {{order_obj.payment_status.name }}</dd>
+            {% comment %}
+            <dt class="col-3">Source:</dt>
+            <dd class="col-9">{{ order_obj.order_type.order_type_name }}</dd>
+            {% endcomment %}
+
+            {% comment %}
+            check if the ticket has been printed in the roder activity table. if so, when and by who
+            {% endcomment %}
+            {% if printed_details %}
+            <dt class="col-3">Ticket:</dt>
+            <dd class="col-9">{{printed_details.date_added}} by {{printed_details.user.username}}</dd>
+            {% endif %}
 
 
-                 </dl>
-             </div>
-         </div>
+
+            <dt class="col-3">Shipment:
+                {% if shippingObj %}
+                <a class="btn btn-sm" data-bs-toggle="collapse" href="#collapseExample" role="button"
+                    aria-expanded="false" aria-controls="collapseExample">
+                    <li class="fa-solid fa-hourglass-half"></li>
+                </a>
+                {% endif %}
+            </dt>
+            {% if shippingObj %}
+            <dd class="col-9 text-wrap">
+                <img class="img-responsive " height="15px"
+                    src="{% static "" %}images/{{shippingObj.first.shipping_courier.courier_logo }}">
+                ({{shippingObj.first.shipping_courier_method }}) <strong
+                    class="{{shippingObj.first.shipping_status.status_colour }}">
+                    {{shippingObj.first.shipping_status }}</strong> on {{shippingObj.first.date_added|date:"D d M Y
+                H:i:s" }} -
+                <strong>{{shippingObj.first.tracking_number }}</strong>
+                <dl class="collapse row" id="collapseExample">
+                    {% for shipping_info in shippingObj|slice:'1:' %}
+                    <dt class="col-0">
+
+                    </dt>
+                    <dd class="col-12">
+                        <img class="img-responsive " height="15px"
+                            src="{% static "" %}images/{{shipping_info.shipping_courier.courier_logo }}">
+                        ({{shipping_info.shipping_courier_method }}) <strong
+                            class="{{shipping_info.shipping_status.status_colour }}">
+                            {{shipping_info.shipping_status }}</strong> on {{shipping_info.date_added|date:"D d M Y
+                        H:i:s" }} -
+                        <strong>{{shipping_info.tracking_number }}</strong>
+                    </dd>
+                    {% endfor %}
+                </dl>
+            </dd>
+            {% else %}
+            <dd class="col-9">Not yet shipped</dd>
+            {% endif %}
+
+
+        </dl>
+    </div>
+</div>

@@ -100,6 +100,8 @@ $(function () {
         ]
     });
 
+
+
     $('#select_prices_by_store_id').on('change', function () {
         let newval = $(this).val()
         let ajax_url = "/pricing/api/storeprices/" + newval + "?format=datatables"
@@ -306,6 +308,8 @@ $(function () {
 
     $(document).on('click', '#quick_price_manual_copy', createManualPriceText);
     $(document).on('click', '#quick_price_manual_copy_bulk', createManualBulkText);
+
+    $(document).on("click", "#price_shipping_create", loadForm);
 
 
 

@@ -837,6 +837,7 @@ $(function () {
     $(document).on("submit", "#js-order-ship-it", SaveOrderShipIt);
 
     $(document).on("submit", "#js-order-delete-form", saveOrderDeleteForm);
+    $(document).on("submit", "#js-order-duplicate-form", SaveDialogFormRedirect);
 
     $(document).on("submit", "#js-order-tax-change-rate", SaveOrderShippingChoiceEditForm);
     $(document).on("submit", "#js-order-discount-change-form", SaveOrderDiscountForm);

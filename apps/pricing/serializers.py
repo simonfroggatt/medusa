@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
+from apps.products.models import OcTsgShippingSizeMaterialRates
 from apps.sites.models import OcStore
 
 
@@ -65,4 +66,11 @@ class StorePriceSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgSizeMaterialCombPrices
         fields = ['id', 'price', 'size_material_comb', 'store']
+        depth = 1
+
+
+class VariantShippingRatesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OcTsgShippingSizeMaterialRates
+        fields = '__all__'
         depth = 1

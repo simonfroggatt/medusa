@@ -6,9 +6,8 @@ from django.template.loader import render_to_string
 
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
      OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, \
-     OcTsgOrderOption, OcOrderHistory, OcTsgPaymentHistory, OcTsgOrderBespokeImage#,calc_order_totals, recalc_order_product_tax
-from apps.products.models import OcTsgBulkdiscountGroups, OcProduct, \
-     OcTsgProductVariantCore, OcTsgProductVariants
+     OcTsgOrderOption, OcOrderHistory, OcTsgPaymentHistory, OcTsgOrderBespokeImage, OcTsgOrderActivity#,calc_order_totals, recalc_order_product_tax,
+from apps.products.models import OcTsgBulkdiscountGroups, OcProduct
 from apps.pricing.models import OcTsgProductMaterial
 from apps.options.models import (OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
     OcTsgOptionValueDynamics, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues)
@@ -363,8 +362,13 @@ def order_details(request, order_id):
     context['order_history'] = OcOrderHistory.objects.filter(order_id=order_id).order_by('-date_added')
     context['payment_history'] = OcTsgPaymentHistory.objects.filter(order_id=order_id).order_by('-date_added')
 
+    #add in the order activity
+    #check if the ticket has been printed in the roder activity table. if so, when and by who
+    if OcTsgOrderActivity.objects.filter(order_id=order_id, activity_type_id=settings.TSG_ORDER_ACTIVITY_TYPE_PRINTED).exists():
+        context['printed_details'] = OcTsgOrderActivity.objects.filter(order_id=order_id, activity_type_id=settings.TSG_ORDER_ACTIVITY_TYPE_PRINTED).first()
 
-
+    else:
+        context['printed_details'] = False
     return render(request, template_name, context)
 
 
@@ -1121,6 +1125,7 @@ def order_duplicate(request):
         order_obj.order_type_id = 1
         order_obj.payment_method_id = 8
         order_obj.customer_order_ref = ''
+        order_obj.xero_id = ''
 
         new_order_id = order_obj.order_id
 

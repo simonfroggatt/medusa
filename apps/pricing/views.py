@@ -6,11 +6,11 @@ from django.core import serializers
 from django.template.loader import render_to_string
 from apps.pricing.models import OcTsgProductSizes, OcTsgProductMaterial, OcTsgSizeMaterialComb, \
     OcTsgSizeMaterialCombPrices, OcTsgMaterialSpec
-from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer, BespokePricesSerializer
+from apps.pricing.serializers import SizesSerializer, MaterialsSerializer, BasePricesSerializer, StorePriceSerializer, BespokePricesSerializer, VariantShippingRatesSerializer
 from apps.pricing.forms import SizesForm, MaterialsBSForm, MaterialForm, SizeMaterialCombo, StorePriceComboForm, \
-    MaterialSpecForm
+    MaterialSpecForm, SizeMaterialShippingForm
 from apps.sites.models import OcStore
-from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants, OcProductToStore
+from apps.products.models import OcTsgProductVariantCore, OcTsgProductVariants, OcProductToStore, OcTsgShippingSizeMaterialRates
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
@@ -97,6 +97,16 @@ class SizeMaterials(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         materials_obj = OcTsgSizeMaterialComb.objects.filter(product_size__size_id=pk).order_by('price')
         serializer = self.get_serializer(materials_obj, many=True)
+        return Response(serializer.data)
+
+
+class VariantShippingRates(viewsets.ModelViewSet):
+    queryset = OcTsgShippingSizeMaterialRates.objects.all()
+    serializer_class = VariantShippingRatesSerializer
+
+    def retrieve(self, request, pk=None):
+        prices = OcTsgShippingSizeMaterialRates.objects.filter(size_material_comb_id=pk)
+        serializer = self.get_serializer(prices, many=True)
         return Response(serializer.data)
 
 
@@ -719,3 +729,34 @@ def pricing_text_product_materials(request):
     return JsonResponse(data)
 
 
+def price_shipping_create(request, size_material_id):
+    data = dict()
+    context = {}
+
+    if request.method == 'POST':
+        form = SizeMaterialShippingForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # need to do a force insert or create a new id for this table
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        obj_size_material_shipping_initials = {
+            'size_material_comb': size_material_id,
+            'price': 0.00,
+            'iso_id': 826
+        }
+        form_obj = SizeMaterialShippingForm(initial=obj_size_material_shipping_initials)
+        context['form'] = form_obj
+
+
+        context['size_material_id'] = size_material_id
+        template_name = 'pricing/dialogs/price_shipping_create.html'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)

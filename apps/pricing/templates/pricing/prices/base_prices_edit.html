@@ -33,12 +33,84 @@
 </div>
             </div>
         </form>
+    <br>
+    <div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <table id="size_material_shipping_table" class="table table-hover table-striped align-middle table-sm"
+                       style="width:100%">
+                    <thead>
+                    <tr>
+                        <th class="col-3">Min Qty</th>
+                        <th class="col-2">Max Qty</th>
+                        <th class="col-2">Price (£)</th>
+                        <th class="col-2">ISO</th>
+                        <th class="col-1">Status</th>
+                        <th class="col-1">Contact</th>
+                        <th class="col-1 float-end">&nbsp</th>
+                    </tr>
+                    </thead>
+                </table>
+                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn {{ BUTTON_ADD }}" id="price_shipping_create" data-url="/pricing/prices/shippingqty/{{ object.id }}/create" data-dlg-size="lg">Add</button>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock content %}
 
 {% block javascript %}
 
 
+<script>
+var size_material_shipping_table = $('#size_material_shipping_table').DataTable({
+        "dom": "<'row'<'col-sm-6'f><'col-sm-6'lT>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "processing": true,
+        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        "pageLength": 25,
+        "autoWidth": false,
+        "select": 'single',
+        "responsive": false,
+        "serverSide": true,
+        "ajax": {
+            "processing": true,
+            "url": "/pricing/api/variantshippingrates/{{ object.id }}?format=datatables"
+        },
+        "deferRender": false,
+        "search": {
+            "regex": true
+        },
+
+        columns: [
+
+            {data: "qty_min", defaultContent: ""},
+            {data: "qty_max", defaultContent: ""},
+            {data: "shipping_price", defaultContent: ""},
+             {data: "iso.iso2", defaultContent: ""},
+            {data: "status", defaultContent: ""},
+            {data: "bl_contact", defaultContent: ""},
+            {
+                data: "id",
+                sortable: false,
+                className: 'text-end',
+                render: function (data, type, row) {
+                    let edit_icon = '<a class="btn ' + button_context['BUTTON_EDIT'] + ' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/shippingqty/' + data + '/edit"><i class="' + icons_context['ICON_EDIT'] + ' fa-sm"></i></a>';
+                    let delete_icon = '<a class="btn ' + button_context['BUTTON_DELETE'] + ' btn-tsg-row js-pricing-edit" role="button" data-url="/pricing/prices/shippingqty/' + data + '/delete"><i class="' + icons_context['ICON_DELETE'] + ' fa-sm"></i></a>'
+                    return delete_icon + "  " + edit_icon;
+                }
+            }
+
+        ]
+    });
+
+    //now create the price shipping create dialog
+
+</script>
 
 
 

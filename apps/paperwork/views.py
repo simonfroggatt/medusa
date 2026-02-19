@@ -1,6 +1,6 @@
 import requests
 from django.shortcuts import  get_object_or_404
-from apps.orders.models import OcOrder
+from apps.orders.models import OcOrder, OcTsgOrderActivity
 from apps.quotes.models import OcTsgQuote
 import os
 import json
@@ -1814,6 +1814,9 @@ def set_printed(request, order_id):
     order_obj.order_status_id = settings.TSG_ORDER_STATUS_PROCESSED
     order_obj.save()
     _push_to_xero(request, order_id)
+
+    #add an order activity
+    OcTsgOrderActivity.objects.create(order=order_obj, activity_type_id=settings.TSG_ORDER_ACTIVITY_TYPE_PRINTED, user_id=request.user.id, description='Order printed')
 
 
 def _push_to_xero(request, order_id):

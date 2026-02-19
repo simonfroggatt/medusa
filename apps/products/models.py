@@ -4,8 +4,9 @@ from apps.sites.models import OcStore
 from django.conf import settings
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from apps.category.models import OcCategoryToStore, OcTsgCategory
-from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus, OcTsgGoogleShoppingCategory, OcTsgComplianceStandards
+from medusa.models import OcTaxRate, OcSupplier, OcTaxClass, OcTsgFileTypes, OcTsgOrderProductStatus, OcTsgGoogleShoppingCategory, OcTsgComplianceStandards, OcTsgCountryIso
 from apps.pages.models import OcTsgExtraTemplate
+from apps.shipping.models import OcTsgCourier
 
 
 from storages.backends.s3boto3 import S3Boto3Storage
@@ -160,6 +161,7 @@ class OcTsgProductVariantCore(models.Model):
     lead_time_override = models.IntegerField(default=0)
     pack_count = models.IntegerField(default=1)
     order_by = models.IntegerField(blank=True, null=True, default=99)
+    exclude_variant_shipping = models.BooleanField(default=False)
 
 
     class Meta:
@@ -358,3 +360,23 @@ class OcTsgProductExtraInfo(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_extra_info'
+
+
+
+class OcTsgShippingSizeMaterialRates(models.Model):
+    size_material_comb = models.ForeignKey(OcTsgSizeMaterialComb, models.DO_NOTHING)
+    store = models.ForeignKey(OcStore, models.DO_NOTHING)
+    iso = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING, blank=True, null=True)
+    qty_min = models.IntegerField()
+    qty_max = models.IntegerField(blank=True, null=True)
+    shipping_price = models.DecimalField(max_digits=10, decimal_places=2)
+    courier = models.ForeignKey(OcTsgCourier, models.DO_NOTHING, blank=True, null=True)
+    status = models.BooleanField(default=True)
+    priority = models.IntegerField(blank=True, null=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(blank=True, null=True)
+    bl_contact = models.BooleanField(default=False)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_shipping_size_material_rates'

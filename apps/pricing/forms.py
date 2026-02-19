@@ -1,6 +1,8 @@
 from django import forms
 from .models import OcTsgProductSizes, OcTsgOrientation, OcTsgProductMaterial, OcTsgSizeMaterialComb, \
     OcTsgSizeMaterialCombPrices, OcTsgMaterialSpec
+from apps.sites.models import OcStore
+from apps.products.models import OcTsgShippingSizeMaterialRates
 from bootstrap_modal_forms.forms import BSModalModelForm
 from django.conf import settings
 from tinymce.widgets import TinyMCE
@@ -75,3 +77,18 @@ class MaterialSpecForm(forms.ModelForm):
     widgets = {
         'material': forms.Select(attrs={"hidden": True}),
     }
+
+class SizeMaterialShippingForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(SizeMaterialShippingForm, self).__init__(*args, **kwargs)
+        self.fields['store'].empty_label = None
+        self.fields['store'].queryset = OcStore.objects.filter(store_id__gt=0)
+        self.fields['iso'].empty_label = None
+
+
+    class Meta:
+        model = OcTsgShippingSizeMaterialRates
+        fields = '__all__'
+
+
