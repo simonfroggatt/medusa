@@ -38,8 +38,8 @@ urlpatterns = [
 
     #need to get a list of all the shipping rates for the size_material_id
     path('prices/shippingqty/<int:size_material_id>/create',  views.price_shipping_create, name='shippingqtycreate'),
-    path('prices/shippingqty/<int:pk>/edit',  views.material_details, name='priceshipping_update'),
-    path('prices/shippingqty/<int:pk>/delete',  views.material_details, name='priceshipping_delete'),
+    path('prices/shippingqty/<int:pk>/edit',  views.price_shipping_edit, name='priceshipping_update'),
+    path('prices/shippingqty/<int:pk>/delete',  views.price_shipping_delete, name='priceshipping_delete'),
 
 
     path('material/spec/upload', views.material_spec_upload, name='material_spec-upload'),

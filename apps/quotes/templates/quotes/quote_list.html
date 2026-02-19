@@ -1,34 +1,35 @@
 {% extends 'partials/base.html' %}
 {% load static %}
 {% block extra_css %}
-   <!-- old datatables css -->
+<!-- old datatables css -->
 {% endblock extra_css %}
 
 {% block content %}
 
-    <div class="row">
-                    <div class="col-lg-12">
-                        <div class="ibox">
-                            <div class="ibox-content">
-                                <table id="quote_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
-                                    <thead>
-                                    <tr>
-                                        <th width="50px">Website</th>
-                                        <th >Quote</th>
-                                        <th class="col-2">Date</th>
-                                        <th >Company</th>
-                                        <th >Contact</th>
-                                        <th >Email</th>
-                                        <th class="col-1">Status</th>
-                                        <th class="col-1">Total</th>
-                                        <th class="text-end">&nbsp;</th>
-                                    </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <table id="quote_table" class="table table-hover table-striped align-middle table-sm"
+                    style="width:100%">
+                    <thead>
+                        <tr>
+                            <th width="50px">Website</th>
+                            <th>Quote</th>
+                            <th class="col-2">Date</th>
+                            <th>Company</th>
+                            <th>Contact</th>
+                            <th>Email</th>
+                            <th class="col-1">Status</th>
+                            <th class="col-1">Total</th>
+                            <th class="text-end">&nbsp;</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock content %}
 
@@ -36,111 +37,110 @@
 
 
 
-    <script>
-    $(document).ready(function() {
+<script>
+    $(document).ready(function () {
 
-    var quote_table = $('#quote_table').DataTable( {
-        "dom": "<'row'<'col-6'f><'col-6'lT>>" +
-         "<'row'<'col-12'tr>>" +
-         "<'row'<'col-6'i><'col-6'p>>",
-        "processing" : true,
-        "lengthMenu" : [[10,25,50,100,-1], [10,25,50,100,"All"]],
-        "pageLength": 25,
-        "autoWidth": true,
-        "responsive": true,
-        "serverSide": false,
-        "rowId" : 'quote_id',
-        "ajax": {
-                 "processing": true,
+        var quote_table = $('#quote_table').DataTable({
+            "dom": "<'row'<'col-6'f><'col-6'lT>>" +
+                "<'row'<'col-12'tr>>" +
+                "<'row'<'col-6'i><'col-6'p>>",
+            "processing": true,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "pageLength": 25,
+            "autoWidth": true,
+            "responsive": true,
+            "serverSide": true,
+            "rowId": 'quote_id',
+            "ajax": {
+                "processing": true,
                 "url": "/quotes/api/quotes?format=datatables",
-                "type" : "GET",
+                "type": "GET",
             },
-        "deferRender": false,
-        "order": [[ 1, "desc" ]],
-        columns :[
+            "deferRender": false,
+            "order": [[1, "desc"]],
+            columns: [
 
-            {
-                data: "store",
-                sortable: false,
-                searchable: false,
-                name: "store.name",
-                render: function ( data, type, row ) {
-                     let image_src = '{% get_media_prefix %}' + 'stores/branding/logos/' + data.thumb;
-                    return '<img height="15px" src="' + image_src + '">'
-                 }
-            },
-            {
-                data: "quote_id",
-                 render: function ( data, type, row ) {
-                    let url = '/quotes/' + data;
-                    return '<a href="' + url + '">'+ data + '</a>';
-                 },
-                searchable: true,
-                sortable: true
-            },
-            {
-                data: "date_added",
-            },
-            {
-                data: "company",
-
-            },
-            {
-                data: "fullname",
-                render : function (data, type, row) {
-                    if(data) {
-                        if(row['customer']){
-                            let url = '/customer/details/' + row['customer']['customer_id']
-                            return '<a href="' + url + '">'+ data + '</a>';
-                        }
-                        else {
-                            return data
-                        }
-                    }else
-                        return ""
-                },
-            },
-            {
-                data: "email",
-
-            },
-            {
-                data: "sent",
-                render: function ( data, type, row ) {
-                    if (data == 1) {
-                        return '<span class="badge rounded-pill badge-soft-success">SENT</span>'
-                    }else {
-                        return '<span class="badge rounded-pill badge-soft-danger">OPEN</span>'
+                {
+                    data: "store",
+                    sortable: false,
+                    searchable: false,
+                    name: "store.name",
+                    render: function (data, type, row) {
+                        let image_src = '{% get_media_prefix %}' + 'stores/branding/logos/' + data.thumb;
+                        return '<img height="15px" src="' + image_src + '">'
                     }
+                },
+                {
+                    data: "quote_id",
+                    render: function (data, type, row) {
+                        let url = '/quotes/' + data;
+                        return '<a href="' + url + '">' + data + '</a>';
+                    },
+                    searchable: true,
+                    sortable: true
+                },
+                {
+                    data: "date_added",
+                },
+                {
+                    data: "company",
 
-                 }
-            },
-            {
-                data: "total",
-                class: "text-end",
-                render: function ( data, type, row ) {
-                    return parseFloat(data).toFixed(2);
-                 }
-            },
-            {
-                data: "quote_id",
-                sortable: false,
-                className: 'text-end',
-                render: function (data, type, row) {
+                },
+                {
+                    data: "fullname",
+                    render: function (data, type, row) {
+                        if (data) {
+                            if (row['customer']) {
+                                let url = '/customer/details/' + row['customer']['customer_id']
+                                return '<a href="' + url + '">' + data + '</a>';
+                            }
+                            else {
+                                return data
+                            }
+                        } else
+                            return ""
+                    },
+                },
+                {
+                    data: "email",
 
-                    let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
-                    let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" role="button" href="' + data + '"><i class="{{ ICON_EDIT }} "></i></a>'
-                    return btn_grp +  edit_icon + '</div>'
-                }
-            },
-            {data: "payment_postcode", "visible": false, searchable: true},
-            {data: "shipping_postcode", "visible": false, searchable: true},
-        ],
-    } );
+                },
+                {
+                    data: "sent",
+                    render: function (data, type, row) {
+                        if (data == 1) {
+                            return '<span class="badge rounded-pill badge-soft-success">SENT</span>'
+                        } else {
+                            return '<span class="badge rounded-pill badge-soft-danger">OPEN</span>'
+                        }
 
-} );
-    </script>
+                    }
+                },
+                {
+                    data: "total",
+                    class: "text-end",
+                    render: function (data, type, row) {
+                        return parseFloat(data).toFixed(2);
+                    }
+                },
+                {
+                    data: "quote_id",
+                    sortable: false,
+                    className: 'text-end',
+                    render: function (data, type, row) {
+
+                        let btn_grp = '<div class="btn-group" role="group" aria-label="Order status">'
+                        let edit_icon = '<a class="btn {{ BUTTON_EDIT }} btn-tsg-row" role="button" href="' + data + '"><i class="{{ ICON_EDIT }} "></i></a>'
+                        return btn_grp + edit_icon + '</div>'
+                    }
+                },
+                { data: "payment_postcode", "visible": false, searchable: true },
+                { data: "shipping_postcode", "visible": false, searchable: true },
+            ],
+        });
+
+    });
+</script>
 
 
 {% endblock javascript %}
-

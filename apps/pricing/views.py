@@ -743,17 +743,77 @@ def price_shipping_create(request, size_material_id):
             data['form_is_valid'] = False
 
     else:
+        # Query DB for the last entry to pre-fill qty_min and price
+        last_rate = OcTsgShippingSizeMaterialRates.objects.filter(
+            size_material_comb_id=size_material_id
+        ).order_by('-qty_max').first()
+
+        if last_rate:
+            qty_min_default = last_rate.qty_max + 1
+            price_default = last_rate.shipping_price
+        else:
+            qty_min_default = 0
+            price_default = 0.00
+
         obj_size_material_shipping_initials = {
             'size_material_comb': size_material_id,
-            'price': 0.00,
+            'qty_min': qty_min_default,
+            'shipping_price': price_default,
             'iso_id': 826
         }
         form_obj = SizeMaterialShippingForm(initial=obj_size_material_shipping_initials)
         context['form'] = form_obj
 
-
         context['size_material_id'] = size_material_id
         template_name = 'pricing/dialogs/price_shipping_create.html'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)
+
+
+def price_shipping_edit(request, pk):
+    data = dict()
+    context = {}
+    obj_shipping = get_object_or_404(OcTsgShippingSizeMaterialRates, pk=pk)
+
+    if request.method == 'POST':
+        form = SizeMaterialShippingForm(request.POST, instance=obj_shipping)
+        if form.is_valid():
+            form.save()
+            data['form_is_valid'] = True
+        else:
+            data['form_is_valid'] = False
+
+    else:
+        form_obj = SizeMaterialShippingForm(instance=obj_shipping)
+        context['form'] = form_obj
+        context['pk'] = pk
+        context['size_material_id'] = obj_shipping.size_material_comb_id
+        template_name = 'pricing/dialogs/price_shipping_edit.html'
+        data['html_form'] = render_to_string(template_name,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)
+
+
+def price_shipping_delete(request, pk):
+    data = dict()
+    context = {}
+    obj_shipping = get_object_or_404(OcTsgShippingSizeMaterialRates, pk=pk)
+
+    if request.method == 'POST':
+        obj_shipping.delete()
+        data['form_is_valid'] = True
+
+    else:
+        context['pk'] = pk
+        context['obj_shipping'] = obj_shipping
+        template_name = 'pricing/dialogs/price_shipping_delete.html'
         data['html_form'] = render_to_string(template_name,
                                              context,
                                              request=request
