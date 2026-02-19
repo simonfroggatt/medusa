@@ -1,0 +1,24 @@
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Delete Shipping Rate</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <p>Are you sure you want to delete this shipping rate?</p>
+    {% if obj_shipping %}
+    <ul>
+        <li><strong>Qty:</strong> {{ obj_shipping.qty_min }} - {{ obj_shipping.qty_max }}</li>
+        <li><strong>Price:</strong> {{ obj_shipping.shipping_price }}</li>
+        <li><strong>Store:</strong> {{ obj_shipping.store }}</li>
+        <li><strong>Country:</strong> {{ obj_shipping.iso }}</li>
+    </ul>
+    {% endif %}
+</div>
+<div class="modal-footer">
+    <form method="post" action="{% url 'priceshipping_delete' pk %}" id="form-price-shipping-delete">
+        {% csrf_token %}
+        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }}">Cancel</button>
+        <button type="submit" class="btn {{ BUTTON_DELETE }}">Delete</button>
+    </form>
+</div>
