@@ -7,10 +7,10 @@ from django.template.loader import render_to_string
 from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFlags, \
      OcTsgCourier, OcTsgOrderShipment, OcTsgOrderProductStatusHistory, OcTsgOrderDocuments, OcTsgOrderProductOptions, \
      OcTsgOrderOption, OcOrderHistory, OcTsgPaymentHistory, OcTsgOrderBespokeImage, OcTsgOrderActivity#,calc_order_totals, recalc_order_product_tax,
-from apps.products.models import OcTsgBulkdiscountGroups, OcProduct
+from apps.products.models import OcTsgBulkdiscountGroups, OcProduct, OcTsgShippingSizeMaterialRates, OcTsgProductVariants
 from apps.pricing.models import OcTsgProductMaterial
 from apps.options.models import (OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
-    OcTsgOptionValueDynamics, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues)
+    OcTsgOptionValueDynamics, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues, OcTsgProductVariantCore)
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer, \
@@ -31,7 +31,7 @@ from django.core import serializers
 from django.urls import reverse_lazy
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from medusa import services
 import operator
 import hashlib
@@ -1923,16 +1923,62 @@ def calc_order_totals(order_id, bl_recal_discount=True, bl_recalc_shipping=True)
     qs_order.save()
 
 
+def get_max_variant_shipping_price(order_id, store_id, iso_id):
+    """
+    For each distinct size/material combination in the order, sum the quantities
+    and find the highest applicable shipping rate from OcTsgShippingSizeMaterialRates.
+
+    Mirrors the PHP getMaxVariantShippingPrice CTE logic, but operates on
+    order products (oc_order_product) rather than the cart (oc_cart).
+
+    Returns a dict: {'shipping_price': <Decimal or 0.00>, 'bl_contact': <bool>}
+    """
+    # Step 1: Group order products by size_material_id and sum quantities.
+    # Skip variants that are explicitly excluded from variant-based shipping.
+    size_material_qty_map = {}
+    qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
+    for product in qs_products.iterator():
+        if product.product_variant:
+            prod_var_core = product.product_variant.prod_var_core
+            if not prod_var_core.exclude_variant_shipping:
+                sm_id = prod_var_core.size_material_id
+                size_material_qty_map[sm_id] = (
+                    size_material_qty_map.get(sm_id, 0) + product.quantity
+                )
+
+    # Step 2: For each size/material group find the highest matching rate.
+    # ISO filter: prefer an exact country match, but also accept a NULL iso_id
+    # (i.e. a catch-all rate). We take the highest shipping_price across all
+    # size/material groups — same as 'ORDER BY shipping_price DESC LIMIT 1' in PHP.
+    max_price = 0.00
+    bl_contact = False
+    for sm_id, qty_total in size_material_qty_map.items():
+        rate = (
+            OcTsgShippingSizeMaterialRates.objects
+            .filter(
+                size_material_comb_id=sm_id,
+                store_id=store_id,
+                status=True,
+                qty_min__lte=qty_total,
+            )
+            .filter(Q(iso_id=iso_id) | Q(iso__isnull=True))
+            .filter(Q(qty_max__isnull=True) | Q(qty_max__gte=qty_total))
+            .order_by('-shipping_price')
+            .first()
+        )
+        if rate and float(rate.shipping_price) > max_price:
+            max_price = float(rate.shipping_price)
+            bl_contact = rate.bl_contact
+
+    return {'shipping_price': max_price, 'bl_contact': bl_contact}
+
+
 def get_shipping_cost(order_id, subtotal):
     shipping_cost = 0.00
-    product_ship_price = 0.00
-    shipping_size_price = 0.00
-    shipping_subtotal_price = 0.00
     product_max_width = 0.00
     product_max_height = 0.00
-    product_size_check = 0.00
     shipping_label = ''
-    #first check if there is pricing override or size
+
     order_obj = get_object_or_404(OcOrder, pk=order_id)
 
     # Check if customer collects by default - set shipping to free collection
@@ -1954,53 +2000,92 @@ def get_shipping_cost(order_id, subtotal):
         order_obj.save()
         return
 
+    store_id = order_obj.store_id
+    iso_id = order_obj.shipping_country_name_id  # FK id to OcTsgCountryIso
+
     qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)
 
+    # Product loop: track max fixed-cost per product (type 5) and max dimensions (type 2)
+    max_single_shipping = 0.00  # type 5 - max fixed shipping_cost set on a product variant core
     for product in qs_products.iterator():
         if product.product_variant:
-            #check for a fixed cost
-            if product.product_variant.prod_var_core.shipping_cost > product_ship_price:
-                product_ship_price = product.product_variant.prod_var_core.shipping_cost
-            #check the sizes whilst we are at it
+            core_ship_cost = product.product_variant.prod_var_core.shipping_cost
+            if core_ship_cost and float(core_ship_cost) > max_single_shipping:
+                max_single_shipping = float(core_ship_cost)
             if product.width > product_max_width:
                 product_max_width = product.width
             if product.height > product_max_height:
                 product_max_height = product.height
 
-    #first check
-    if product_ship_price > shipping_cost:
-        shipping_label = 'Product Cost'
-        shipping_cost = product_ship_price
+    # --- Type 6: variant size/material rate ---
+    variant_rate = get_max_variant_shipping_price(order_id, store_id, iso_id)
+    variant_shipping_price = variant_rate['shipping_price']
+    bl_contact = variant_rate['bl_contact']
 
+    # --- Type 2: size-based shipping ---
     product_size_check = max(product_max_width, product_max_height)
-    #now check to see which shipping method we need to use
-    #method type 1 - price, 2 - length, 3 - weight
-    store_id = order_obj.store_id
-    #type 1 - subtotal
-    shipping_method_subtotal_obj = OcTsgShippingMethod.objects.filter(store_id=store_id).filter(status=1).filter(method_type_id=1).filter(lower_range__lte=subtotal, upper_range__gte=subtotal).first()
-    if shipping_method_subtotal_obj:
-        shipping_subtotal_price = shipping_method_subtotal_obj.price
-        if shipping_subtotal_price > shipping_cost:
-            shipping_cost = shipping_subtotal_price
-            shipping_label = shipping_method_subtotal_obj.title
+    size_method = OcTsgShippingMethod.objects.filter(
+        store_id=store_id, status=1, method_type_id=2,
+        lower_range__lte=product_size_check, upper_range__gte=product_size_check
+    ).first()
+    size_set = size_method is not None
+    size_shipping_price = float(size_method.price) if size_method else 0.00
 
-    #type 2 -
-    shipping_method_size_obj = OcTsgShippingMethod.objects.filter(store_id=store_id).filter(status=1).filter(
-        method_type_id=2).filter(lower_range__lte=product_size_check, upper_range__gte=product_size_check).first()
-    if shipping_method_size_obj:
-        shipping_size_price = shipping_method_size_obj.price
-        if shipping_size_price > shipping_cost:
-            shipping_cost = shipping_size_price
-            shipping_label = shipping_method_size_obj.title
+    # ---------------------------------------------------------------
+    # Priority rules (mirroring PHP shipping logic):
+    #   Type 7 (bl_contact)  → overrides everything, contact us for quote
+    #   Types 2/5/6 apply    → override type 1; use highest of the three
+    #   Type 1 (subtotal)    → fallback only when none of 2/5/6/7 apply
+    # ---------------------------------------------------------------
 
+    if bl_contact:
+        # Type 7: contact us for delivery quote - no calculable price
+        contact_method = OcTsgShippingMethod.objects.filter(
+            store_id=store_id, status=1, method_type_id=7
+        ).first()
+        shipping_cost = 0.00
+        shipping_label = contact_method.title if contact_method else 'Contact Us for Delivery Quote'
 
-    #shipping_cost = max(shipping_subtotal_price, product_ship_price, shipping_size_price)
+    elif size_set or variant_shipping_price > 0:
+        # Types 2/5/6 apply - type 1 subtotal is suppressed
+
+        # Type 5: fixed per-product cost, but only if higher than variant price
+        if max_single_shipping > variant_shipping_price:
+            type5_method = OcTsgShippingMethod.objects.filter(
+                store_id=store_id, status=1, method_type_id=5
+            ).first()
+            shipping_cost = max_single_shipping
+            shipping_label = type5_method.title if type5_method else 'Product Shipping'
+
+        # Type 6: variant rate overrides if higher
+        if variant_shipping_price > shipping_cost:
+            type6_method = OcTsgShippingMethod.objects.filter(
+                store_id=store_id, status=1, method_type_id=6
+            ).first()
+            shipping_cost = variant_shipping_price
+            shipping_label = type6_method.title if type6_method else 'Variant Shipping'
+
+        # Type 2: size-based rate overrides if higher
+        if size_shipping_price > shipping_cost:
+            shipping_cost = size_shipping_price
+            shipping_label = size_method.title
+
+    else:
+        # Type 1: subtotal/price range - used only as fallback
+        price_method = OcTsgShippingMethod.objects.filter(
+            store_id=store_id, status=1, method_type_id=1,
+            lower_range__lte=subtotal, upper_range__gte=subtotal
+        ).first()
+        if price_method:
+            shipping_cost = float(price_method.price)
+            shipping_label = price_method.title
+
     order_totals_obj = OcOrderTotal.objects.filter(order_id=order_id).filter(code='shipping').first()
     if order_totals_obj:
-        if order_totals_obj.value < shipping_cost:
-            order_totals_obj.value = shipping_cost
-            order_totals_obj.title = shipping_label
-            order_totals_obj.save()
+        #if order_totals_obj.value < shipping_cost:
+        order_totals_obj.value = shipping_cost
+        order_totals_obj.title = shipping_label
+        order_totals_obj.save()
     else:
         order_totals_obj = OcOrderTotal()
         order_totals_obj.order_id = order_id

@@ -455,6 +455,25 @@ $(function () {
         });
     }
 
+    let LoadRmShipLabel = function () {
+        var btn = $(this);
+        let dlg_size = btn.attr("data-dlgsize")
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                $("#modal-base #modal-outer").removeClass('modal-sm model-lg modal-xl modal-fullscreen')
+                $("#modal-base #modal-outer").addClass(dlg_size)
+                $("#modal-base .modal-content").html('<div class="modal-body text-center py-5"><span class="spinner-border"></span> Verifying address...</div>');
+                $("#modal-base").modal("show");
+            },
+            success: function (data) {
+                $("#modal-base .modal-content").html(data.html_form);
+            },
+        });
+    }
+
     let SaveOrderShipIt = function () {
         var form = $(this);
         $.ajax({
@@ -835,6 +854,8 @@ $(function () {
 
     $(document).on('click', '.js-order-ship-it', LoadOrderShipIt);
     $(document).on("submit", "#js-order-ship-it", SaveOrderShipIt);
+
+    $(document).on('click', '.js-rm-ship-label', LoadRmShipLabel);
 
     $(document).on("submit", "#js-order-delete-form", saveOrderDeleteForm);
     $(document).on("submit", "#js-order-duplicate-form", SaveDialogFormRedirect);

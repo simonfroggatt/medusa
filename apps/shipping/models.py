@@ -74,3 +74,75 @@ class OcTsgCourierOptions(models.Model):
         return self.courier_option_title
 
 
+class AddressVerification(models.Model):
+    class Status(models.TextChoices):
+        VERIFIED = "verified", "Verified"
+        NEEDS_REVIEW = "needs_review", "Needs review"
+        FAILED = "failed", "Failed"
+        OVERRIDDEN = "overridden", "Overridden"
+
+
+    order = models.ForeignKey('orders.OcOrder', models.DO_NOTHING, related_name='address_verification')
+
+    # Customer-provided (input) fields
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    input_company = models.CharField(max_length=255, null=True, blank=True)
+    input_phone = models.CharField(max_length=50, null=True, blank=True)
+    input_email = models.CharField(max_length=255, null=True, blank=True)
+
+    input_line1 = models.CharField(max_length=255)
+    input_line2 = models.CharField(max_length=255, null=True, blank=True)
+    input_line3 = models.CharField(max_length=255, null=True, blank=True)
+    input_city = models.CharField(max_length=100, null=True, blank=True)
+    input_area = models.CharField(max_length=100, null=True, blank=True)
+    input_postcode = models.CharField(max_length=20, null=True, blank=True)
+    input_country_code = models.CharField(max_length=2)
+    input_hash = models.CharField(max_length=64)
+
+    # Verified / cleansed fields
+    verified_line1 = models.CharField(max_length=255, null=True, blank=True)
+    verified_line2 = models.CharField(max_length=255, null=True, blank=True)
+    verified_line3 = models.CharField(max_length=255, null=True, blank=True)
+    verified_city = models.CharField(max_length=100, null=True, blank=True)
+    verified_area = models.CharField(max_length=100, null=True, blank=True)
+    verified_postcode = models.CharField(max_length=20, null=True, blank=True)
+    verified_country_code = models.CharField(max_length=2, null=True, blank=True)
+
+    # Provider metadata
+    provider = models.CharField(max_length=50, default="loqate")
+    provider_reference = models.CharField(max_length=128, null=True, blank=True)
+    verification_level = models.CharField(max_length=50, null=True, blank=True)
+    confidence_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    result_codes = models.CharField(max_length=255, null=True, blank=True)
+
+    # Raw payloads (kept as text to match LONGTEXT)
+    provider_request_json = models.TextField(null=True, blank=True)
+    provider_response_json = models.TextField(null=True, blank=True)
+
+    # State / audit
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.NEEDS_REVIEW,
+    )
+    override_reason = models.CharField(max_length=255, null=True, blank=True)
+    overridden_by_user_id = models.IntegerField(null=True, blank=True)
+
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = "oc_tsg_address_verification"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["input_hash", "input_country_code"],
+                name="uq_input_hash_country",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["order"], name="idx_order_id"),
+            models.Index(fields=["status"], name="idx_status"),
+            models.Index(fields=["verified_at"], name="idx_verified_at"),
+        ]

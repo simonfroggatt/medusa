@@ -1,0 +1,334 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .address-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; }
+    .status-box { padding: 1rem; border-radius: 6px; display: none; }
+    .status-box.success { background: #d4edda; border: 1px solid #c3e6cb; }
+    .status-box.error { background: #f8d7da; border: 1px solid #f5c6cb; }
+    .spinner-border-sm { width: 1rem; height: 1rem; border-width: .15em; }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="wrapper wrapper-content">
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    {% for bc in breadcrumbs %}
+                    <li class="breadcrumb-item"><a href="{{ bc.url }}">{{ bc.name }}</a></li>
+                    {% endfor %}
+                    <li class="breadcrumb-item active">DX Label</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 d-flex align-items-center mb-3">
+            <img src="{% static 'shipping/images/dx_logo.png' %}" alt="DX Delivery" height="40" class="me-3">
+            <h4 class="mb-0">DX Delivery &mdash; Create Label for Order #{{ order_id }}</h4>
+        </div>
+    </div>
+
+    <!-- Order shipping address (from Medusa) -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Shipping Address (from order)</strong></div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Name</label>
+                            <input type="text" class="form-control form-control-sm" id="recipient_name"
+                                   value="{{ order.shipping_fullname|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Company</label>
+                            <input type="text" class="form-control form-control-sm" id="company"
+                                   value="{{ order.shipping_company|default_if_none:'' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Address Line 1</label>
+                            <input type="text" class="form-control form-control-sm" id="address_line1"
+                                   value="{{ order.shipping_address_1|default_if_none:'' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Address Line 2</label>
+                            <input type="text" class="form-control form-control-sm" id="address_line2"
+                                   value="{{ order.shipping_address_2|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Town</label>
+                            <input type="text" class="form-control form-control-sm" id="town"
+                                   value="{{ order.shipping_city|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">County</label>
+                            <input type="text" class="form-control form-control-sm" id="county"
+                                   value="{{ order.shipping_area|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Postcode</label>
+                            <input type="text" class="form-control form-control-sm" id="postcode"
+                                   value="{{ order.shipping_postcode|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" class="form-control form-control-sm" id="email"
+                                   value="{{ order.shipping_email|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Phone</label>
+                            <input type="text" class="form-control form-control-sm" id="phone"
+                                   value="{{ order.shipping_telephone|default_if_none:'' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DX Address Lookup (postcodes.io) -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Address Verification</strong>
+                    <button class="btn btn-sm btn-outline-primary" id="btn-dx-lookup">
+                        <i class="fa fa-search"></i> Verify Postcode
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="dx-address-status" class="mb-2"></div>
+                    <div id="dx-address-results"></div>
+                    <div id="dx-address-comparison" style="display:none;">
+                        <h6 class="mt-2">Comparison</h6>
+                        <table class="table table-sm table-bordered" id="dx-compare-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Your Address</th>
+                                    <th>Lookup Result</th>
+                                    <th>Match</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <button class="btn btn-sm btn-success" id="btn-use-dx-address" style="display:none;">
+                            <i class="fa fa-check"></i> Use Lookup Address
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service selection + weight -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Service &amp; Weight</strong></div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Service</label>
+                            <select class="form-select form-select-sm" id="service_key">
+                                {% for key, svc in services.items %}
+                                <option value="{{ key }}">{{ svc.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Weight (kg)</label>
+                            <input type="number" class="form-control form-control-sm" id="weight_kg" value="1.0" min="0.1" step="0.1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Items</label>
+                            <input type="number" class="form-control form-control-sm" id="num_items" value="1" min="1">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Reference</label>
+                            <input type="text" class="form-control form-control-sm" id="reference"
+                                   value="Order #{{ order_id }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="row">
+        <div class="col-12">
+            <button class="btn btn-primary" id="btn-create-shipment">
+                <i class="fa fa-paper-plane"></i> Create DX Shipment
+            </button>
+            <span id="create-spinner" style="display:none;">
+                <span class="spinner-border spinner-border-sm"></span> Creating...
+            </span>
+        </div>
+    </div>
+
+    <!-- Status / result -->
+    <div class="row mt-3">
+        <div class="col-md-8">
+            <div id="status-box" class="status-box"></div>
+        </div>
+    </div>
+
+    <!-- Label download (shown after shipment created) -->
+    <div class="row mt-3" id="label-section" style="display:none;">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header"><strong>Label</strong></div>
+                <div class="card-body">
+                    <p>Consignment: <strong id="dx-consignment"></strong></p>
+                    <a id="btn-download-label" class="btn btn-success" target="_blank">
+                        <i class="fa fa-download"></i> Download PDF Label
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+
+    var csrfToken = '{{ csrf_token }}';
+    var selectedDxAddress = null;
+
+    // ── DX Address Lookup (postcodes.io) ─────────────────────────────────
+    $('#btn-dx-lookup').on('click', function() {
+        var postcode = $('#postcode').val().trim();
+        if (!postcode) { alert('Enter a postcode first.'); return; }
+
+        $('#dx-address-status').html('<span class="spinner-border spinner-border-sm"></span> Verifying...');
+        $('#dx-address-results').empty();
+        $('#dx-address-comparison').hide();
+
+        $.ajax({
+            url: '/shipping/api/dx/address-lookup/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': csrfToken},
+            data: JSON.stringify({postcode: postcode}),
+            success: function(resp) {
+                if (!resp.ok || !resp.addresses || resp.addresses.length === 0) {
+                    $('#dx-address-status').html('<span class="text-warning">No results found for this postcode.</span>');
+                    return;
+                }
+                var addr = resp.addresses[0];
+                selectedDxAddress = addr;
+                $('#dx-address-status').html('<span class="text-success">Postcode verified.</span>');
+
+                var fields = [
+                    {label: 'Post Town', ours: $('#town').val(), theirs: addr.posttown || ''},
+                    {label: 'County', ours: $('#county').val(), theirs: addr.county || ''},
+                    {label: 'Postcode', ours: $('#postcode').val(), theirs: addr.postcode || ''},
+                ];
+
+                var tbody = '';
+                var allMatch = true;
+                fields.forEach(function(f) {
+                    var match = f.ours.trim().toUpperCase() === f.theirs.trim().toUpperCase();
+                    if (!match && f.theirs) allMatch = false;
+                    var icon = match ? '<i class="fa fa-check text-success"></i>' : (f.theirs ? '<i class="fa fa-times text-danger"></i>' : '<i class="fa fa-minus text-muted"></i>');
+                    tbody += '<tr><td>' + f.label + '</td><td>' + f.ours + '</td><td>' + f.theirs + '</td><td>' + icon + '</td></tr>';
+                });
+
+                $('#dx-compare-table tbody').html(tbody);
+                $('#dx-address-comparison').show();
+                $('#btn-use-dx-address').toggle(!allMatch);
+
+                if (allMatch) {
+                    $('#dx-address-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Address matches postcode lookup.</span>');
+                } else {
+                    $('#dx-address-status').html('<span class="text-warning"><i class="fa fa-exclamation-triangle"></i> Some fields differ. You can apply the lookup result below.</span>');
+                }
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Lookup failed';
+                $('#dx-address-status').html('<span class="text-danger">' + msg + '</span>');
+            }
+        });
+    });
+
+    // ── Use lookup address ───────────────────────────────────────────────
+    $('#btn-use-dx-address').on('click', function() {
+        if (!selectedDxAddress) return;
+        if (selectedDxAddress.posttown) $('#town').val(selectedDxAddress.posttown);
+        if (selectedDxAddress.county) $('#county').val(selectedDxAddress.county);
+        if (selectedDxAddress.postcode) $('#postcode').val(selectedDxAddress.postcode);
+        $(this).hide();
+        $('#dx-address-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Lookup address applied to form.</span>');
+    });
+
+    // ── Create DX Shipment ───────────────────────────────────────────────
+    $('#btn-create-shipment').on('click', function() {
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $('#create-spinner').show();
+        $('#status-box').hide();
+
+        var payload = {
+            recipient_name: $('#recipient_name').val(),
+            address_line1:  $('#address_line1').val(),
+            address_line2:  $('#address_line2').val(),
+            town:           $('#town').val(),
+            county:         $('#county').val(),
+            postcode:       $('#postcode').val(),
+            country_code:   'GB',
+            weight_kg:      parseFloat($('#weight_kg').val()) || 1.0,
+            service_key:    $('#service_key').val(),
+            reference:      $('#reference').val(),
+            email:          $('#email').val(),
+            phone:          $('#phone').val(),
+            num_items:      parseInt($('#num_items').val()) || 1,
+        };
+
+        $.ajax({
+            url: '/shipping/api/dx/create-shipment/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': csrfToken},
+            data: JSON.stringify(payload),
+            success: function(resp) {
+                btn.prop('disabled', false);
+                $('#create-spinner').hide();
+                if (resp.ok) {
+                    var data = resp.data;
+                    var consignment = data.consignmentNumber || data.consignment_number || '';
+                    $('#status-box').removeClass('error').addClass('success').html(
+                        '<strong>Shipment created!</strong> Consignment: ' + consignment
+                    ).show();
+                    if (consignment) {
+                        $('#dx-consignment').text(consignment);
+                        $('#btn-download-label').attr('href', '/shipping/api/dx/label/' + consignment + '/');
+                        $('#label-section').show();
+                    }
+                } else {
+                    $('#status-box').removeClass('success').addClass('error').html(
+                        '<strong>Error:</strong> ' + resp.error
+                    ).show();
+                }
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false);
+                $('#create-spinner').hide();
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Request failed';
+                $('#status-box').removeClass('success').addClass('error').html(
+                    '<strong>Error:</strong> ' + msg
+                ).show();
+            }
+        });
+    });
+
+});
+</script>
+{% endblock javascript %}

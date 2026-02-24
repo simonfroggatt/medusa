@@ -1,0 +1,527 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .address-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; }
+    .address-card h6 { margin-bottom: .75rem; color: #495057; }
+    .rm-match { border-left: 4px solid #28a745; }
+    .rm-mismatch { border-left: 4px solid #dc3545; }
+    .status-box { padding: 1rem; border-radius: 6px; display: none; }
+    .status-box.success { background: #d4edda; border: 1px solid #c3e6cb; }
+    .status-box.error { background: #f8d7da; border: 1px solid #f5c6cb; }
+    #rm-address-results { max-height: 200px; overflow-y: auto; }
+    .spinner-border-sm { width: 1rem; height: 1rem; border-width: .15em; }
+    .confidence-badge { font-size: 1.5rem; font-weight: bold; display: inline-block; padding: .25rem .75rem; border-radius: .5rem; }
+    .confidence-high { background: #d4edda; color: #155724; }
+    .confidence-medium { background: #fff3cd; color: #856404; }
+    .confidence-low { background: #f8d7da; color: #721c24; }
+    .verify-match { color: #28a745; }
+    .verify-mismatch { color: #dc3545; font-weight: bold; }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="wrapper wrapper-content">
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    {% for bc in breadcrumbs %}
+                    <li class="breadcrumb-item"><a href="{{ bc.url }}">{{ bc.name }}</a></li>
+                    {% endfor %}
+                    <li class="breadcrumb-item active">Royal Mail Label</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 d-flex align-items-center mb-3">
+            <img src="{% static 'shipping/images/rm_logo.png' %}" alt="Royal Mail" height="40" class="me-3">
+            <h4 class="mb-0">Royal Mail &mdash; Create Label for Order #{{ order_id }}</h4>
+        </div>
+    </div>
+
+    <!-- Order shipping address (from Medusa) -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Shipping Address (from order)</strong></div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Name</label>
+                            <input type="text" class="form-control form-control-sm" id="recipient_name"
+                                   value="{{ order.shipping_fullname|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Company</label>
+                            <input type="text" class="form-control form-control-sm" id="company"
+                                   value="{{ order.shipping_company|default_if_none:'' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Address Line 1</label>
+                            <input type="text" class="form-control form-control-sm" id="address_line1"
+                                   value="{{ address_line1 }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Address Line 2</label>
+                            <input type="text" class="form-control form-control-sm" id="address_line2"
+                                   value="{{ address_line2 }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Address Line 3</label>
+                            <input type="text" class="form-control form-control-sm" id="address_line3"
+                                   value="{{ address_line3 }}">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">City</label>
+                            <input type="text" class="form-control form-control-sm" id="city"
+                                   value="{{ order.shipping_city|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Area / County</label>
+                            <input type="text" class="form-control form-control-sm" id="area"
+                                   value="{{ order.shipping_area|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Postcode</label>
+                            <input type="text" class="form-control form-control-sm" id="postcode"
+                                   value="{{ order.shipping_postcode|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" class="form-control form-control-sm" id="email"
+                                   value="{{ order.shipping_email|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Phone</label>
+                            <input type="text" class="form-control form-control-sm" id="phone"
+                                   value="{{ order.shipping_telephone|default_if_none:'' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RM Address Lookup -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Royal Mail Address Check</strong>
+                    <button class="btn btn-sm btn-outline-primary" id="btn-rm-lookup">
+                        <i class="fa fa-search"></i> Lookup Postcode
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="rm-address-status" class="mb-2"></div>
+                    <div id="rm-address-results"></div>
+                    <div id="rm-address-comparison" style="display:none;">
+                        <h6 class="mt-2">Comparison</h6>
+                        <table class="table table-sm table-bordered" id="rm-compare-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Your Address</th>
+                                    <th>RM Address</th>
+                                    <th>Match</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <button class="btn btn-sm btn-success" id="btn-use-rm-address" style="display:none;">
+                            <i class="fa fa-check"></i> Use RM Address
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loqate Address Verification -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong><i class="fa fa-shield"></i> Address Verification (Loqate)</strong>
+                    <button class="btn btn-sm btn-outline-info" id="btn-verify-address">
+                        <i class="fa fa-check-circle"></i> Verify Address
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="verify-status" class="mb-2"></div>
+                    <div id="verify-result" style="display:none;">
+                        <div class="row">
+                            <div class="col-md-3 text-center">
+                                <p class="mb-1 text-muted small">Confidence Score</p>
+                                <span id="verify-confidence" class="confidence-badge">—</span>
+                                <p class="mt-1 mb-0"><small id="verify-level" class="text-muted"></small></p>
+                                <p class="mb-0"><small id="verify-avc" class="text-muted font-monospace"></small></p>
+                            </div>
+                            <div class="col-md-9">
+                                <table class="table table-sm table-bordered mb-2" id="verify-compare-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Field</th>
+                                            <th>Your Address</th>
+                                            <th>Verified Address</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                                <button class="btn btn-sm btn-success" id="btn-use-verified" style="display:none;">
+                                    <i class="fa fa-check"></i> Apply Verified Address
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service selection + weight -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Service &amp; Weight</strong></div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Service</label>
+                            <select class="form-select form-select-sm" id="service_key">
+                                {% for key, svc in services.items %}
+                                <option value="{{ key }}">{{ svc.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Weight (g)</label>
+                            <input type="number" class="form-control form-control-sm" id="weight_grams" value="500" min="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Reference</label>
+                            <input type="text" class="form-control form-control-sm" id="reference"
+                                   value="Order #{{ order_id }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="row">
+        <div class="col-12">
+            <button class="btn btn-primary" id="btn-create-order">
+                <i class="fa fa-paper-plane"></i> Create Click &amp; Drop Order
+            </button>
+            <span id="create-spinner" style="display:none;">
+                <span class="spinner-border spinner-border-sm"></span> Creating...
+            </span>
+        </div>
+    </div>
+
+    <!-- Status / result -->
+    <div class="row mt-3">
+        <div class="col-md-8">
+            <div id="status-box" class="status-box"></div>
+        </div>
+    </div>
+
+    <!-- Label download (shown after order created) -->
+    <div class="row mt-3" id="label-section" style="display:none;">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header"><strong>Label</strong></div>
+                <div class="card-body">
+                    <p>Order created: <strong id="cd-order-id"></strong></p>
+                    <p>Tracking: <strong id="cd-tracking"></strong></p>
+                    <a id="btn-download-label" class="btn btn-success" target="_blank">
+                        <i class="fa fa-download"></i> Download PDF Label
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+
+    var csrfToken = '{{ csrf_token }}';
+    var selectedRmAddress = null;
+
+    // ── RM Address Lookup ────────────────────────────────────────────────
+    $('#btn-rm-lookup').on('click', function() {
+        var postcode = $('#postcode').val().trim();
+        if (!postcode) { alert('Enter a postcode first.'); return; }
+
+        $('#rm-address-status').html('<span class="spinner-border spinner-border-sm"></span> Looking up...');
+        $('#rm-address-results').empty();
+        $('#rm-address-comparison').hide();
+
+        $.ajax({
+            url: '/shipping/api/rm/address-lookup/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': csrfToken},
+            data: JSON.stringify({postcode: postcode}),
+            success: function(resp) {
+                if (!resp.ok || !resp.addresses || resp.addresses.length === 0) {
+                    $('#rm-address-status').html('<span class="text-warning">No addresses found for this postcode.</span>');
+                    return;
+                }
+                $('#rm-address-status').html('<span class="text-success">' + resp.addresses.length + ' address(es) found. Click one to compare.</span>');
+                var html = '<div class="list-group list-group-flush">';
+                resp.addresses.forEach(function(addr, idx) {
+                    var line = [addr.addressline1, addr.addressline2, addr.addressline3, addr.posttown, addr.postcode].filter(Boolean).join(', ');
+                    html += '<a href="#" class="list-group-item list-group-item-action rm-addr-pick" data-idx="' + idx + '">' + line + '</a>';
+                });
+                html += '</div>';
+                $('#rm-address-results').html(html);
+
+                // store for comparison
+                $('#rm-address-results').data('addresses', resp.addresses);
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Lookup failed';
+                $('#rm-address-status').html('<span class="text-danger">' + msg + '</span>');
+            }
+        });
+    });
+
+    // ── Compare selected RM address with form ────────────────────────────
+    $(document).on('click', '.rm-addr-pick', function(e) {
+        e.preventDefault();
+        var idx = $(this).data('idx');
+        var addresses = $('#rm-address-results').data('addresses');
+        var rm = addresses[idx];
+        selectedRmAddress = rm;
+
+        var fields = [
+            {label: 'Address Line 1', ours: $('#address_line1').val(), theirs: rm.addressline1 || ''},
+            {label: 'Address Line 2', ours: $('#address_line2').val(), theirs: rm.addressline2 || ''},
+            {label: 'City / Post Town', ours: $('#city').val(), theirs: rm.posttown || ''},
+            {label: 'Postcode', ours: $('#postcode').val(), theirs: rm.postcode || ''},
+        ];
+
+        var tbody = '';
+        var allMatch = true;
+        fields.forEach(function(f) {
+            var match = f.ours.trim().toUpperCase() === f.theirs.trim().toUpperCase();
+            if (!match) allMatch = false;
+            var icon = match ? '<i class="fa fa-check text-success"></i>' : '<i class="fa fa-times text-danger"></i>';
+            tbody += '<tr><td>' + f.label + '</td><td>' + f.ours + '</td><td>' + f.theirs + '</td><td>' + icon + '</td></tr>';
+        });
+
+        $('#rm-compare-table tbody').html(tbody);
+        $('#rm-address-comparison').show();
+        $('#btn-use-rm-address').toggle(!allMatch);
+
+        if (allMatch) {
+            $('#rm-address-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Address matches Royal Mail records.</span>');
+        } else {
+            $('#rm-address-status').html('<span class="text-warning"><i class="fa fa-exclamation-triangle"></i> Address differs from Royal Mail records. You can use the RM address below.</span>');
+        }
+    });
+
+    // ── Use RM address ───────────────────────────────────────────────────
+    $('#btn-use-rm-address').on('click', function() {
+        if (!selectedRmAddress) return;
+        $('#address_line1').val(selectedRmAddress.addressline1 || '');
+        $('#address_line2').val(selectedRmAddress.addressline2 || '');
+        $('#city').val(selectedRmAddress.posttown || '');
+        $('#postcode').val(selectedRmAddress.postcode || '');
+        $(this).hide();
+        $('#rm-address-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> RM address applied to form.</span>');
+    });
+
+    // ── Loqate Address Verification ──────────────────────────────────────
+    var verifiedAddress = null;
+
+    $('#btn-verify-address').on('click', function() {
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $('#verify-status').html('<span class="spinner-border spinner-border-sm"></span> Verifying address with Loqate...');
+        $('#verify-result').hide();
+        verifiedAddress = null;
+
+        var payload = {
+            order_id:     {{ order_id }},
+            line1:        $('#address_line1').val(),
+            line2:        $('#address_line2').val(),
+            line3:        $('#address_line3').val(),
+            city:         $('#city').val(),
+            area:         $('#area').val(),
+            postcode:     $('#postcode').val(),
+            country_code: 'GB',
+            company:      $('#company').val(),
+            name:         $('#recipient_name').val(),
+            phone:        $('#phone').val(),
+            email:        $('#email').val(),
+        };
+
+        $.ajax({
+            url: '/shipping/api/verify-address/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': csrfToken},
+            data: JSON.stringify(payload),
+            success: function(resp) {
+                btn.prop('disabled', false);
+                if (!resp.ok) {
+                    $('#verify-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
+                    return;
+                }
+
+                verifiedAddress = resp.verified_address;
+                var score = resp.confidence_score;
+                var cssClass = score >= 80 ? 'confidence-high' : (score >= 40 ? 'confidence-medium' : 'confidence-low');
+                var statusLabel = resp.status === 'verified' ? 'Verified' : (resp.status === 'needs_review' ? 'Needs Review' : 'Failed');
+
+                $('#verify-confidence').text(score.toFixed(0) + '%').removeClass('confidence-high confidence-medium confidence-low').addClass(cssClass);
+                $('#verify-level').text('Level: ' + resp.verification_level + ' | Status: ' + statusLabel);
+                $('#verify-avc').text('AVC: ' + resp.avc);
+
+                // Build comparison table
+                var fields = [
+                    {label: 'Address Line 1', input: $('#address_line1').val(), verified: resp.verified_address.line1},
+                    {label: 'Address Line 2', input: $('#address_line2').val(), verified: resp.verified_address.line2},
+                    {label: 'Address Line 3', input: $('#address_line3').val(), verified: resp.verified_address.line3},
+                    {label: 'City',           input: $('#city').val(),          verified: resp.verified_address.city},
+                    {label: 'Area / County',  input: $('#area').val(),          verified: resp.verified_address.area},
+                    {label: 'Postcode',       input: $('#postcode').val(),      verified: resp.verified_address.postcode},
+                ];
+
+                var tbody = $('#verify-compare-table tbody');
+                tbody.empty();
+                var hasDiff = false;
+                $.each(fields, function(i, f) {
+                    var inputNorm = (f.input || '').trim().toLowerCase();
+                    var verifiedNorm = (f.verified || '').trim().toLowerCase();
+                    var match = (inputNorm === verifiedNorm);
+                    if (!match && f.verified) hasDiff = true;
+                    var icon = match ? '<i class="fa fa-check verify-match"></i>' : '<i class="fa fa-times verify-mismatch"></i>';
+                    var verifiedClass = match ? '' : 'verify-mismatch';
+                    tbody.append(
+                        '<tr><td>' + f.label + '</td><td>' + (f.input || '—') + '</td>' +
+                        '<td class="' + verifiedClass + '">' + (f.verified || '—') + '</td>' +
+                        '<td class="text-center">' + icon + '</td></tr>'
+                    );
+                });
+
+                if (hasDiff) {
+                    $('#btn-use-verified').show();
+                } else {
+                    $('#btn-use-verified').hide();
+                }
+
+                $('#verify-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Verification complete. Result saved.</span>');
+                $('#verify-result').show();
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false);
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Verification request failed';
+                $('#verify-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + msg + '</span>');
+            }
+        });
+    });
+
+    // ── Apply verified address ────────────────────────────────────────────
+    $('#btn-use-verified').on('click', function() {
+        if (!verifiedAddress) return;
+        if (verifiedAddress.line1) $('#address_line1').val(verifiedAddress.line1);
+        if (verifiedAddress.line2) $('#address_line2').val(verifiedAddress.line2);
+        if (verifiedAddress.line3) $('#address_line3').val(verifiedAddress.line3);
+        if (verifiedAddress.city) $('#city').val(verifiedAddress.city);
+        if (verifiedAddress.area) $('#area').val(verifiedAddress.area);
+        if (verifiedAddress.postcode) $('#postcode').val(verifiedAddress.postcode);
+        $(this).hide();
+        $('#verify-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Verified address applied to form.</span>');
+    });
+
+    // ── Create Click & Drop order ────────────────────────────────────────
+    $('#btn-create-order').on('click', function() {
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $('#create-spinner').show();
+        $('#status-box').hide();
+
+        var orderSubtotal = {{ order_subtotal }};
+        var payload = {
+            recipient_name: $('#recipient_name').val(),
+            company_name:   $('#company').val(),
+            address_line1:  $('#address_line1').val(),
+            address_line2:  $('#address_line2').val(),
+            address_line3:  '',
+            city:           $('#city').val(),
+            county:         $('#area').val(),
+            postcode:       $('#postcode').val(),
+            country_code:   'GB',
+            weight_grams:   parseInt($('#weight_grams').val()) || 500,
+            service_key:    $('#service_key').val(),
+            package_format: 'parcel',
+            reference:      $('#reference').val(),
+            email:          $('#email').val(),
+            phone:          $('#phone').val(),
+            subtotal:       orderSubtotal,
+            total:          orderSubtotal,
+        };
+
+        $.ajax({
+            url: '/shipping/api/rm/create-order/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': csrfToken},
+            data: JSON.stringify(payload),
+            success: function(resp) {
+                btn.prop('disabled', false);
+                $('#create-spinner').hide();
+                if (resp.ok) {
+                    var data = resp.data;
+                    var orderId = '';
+                    var tracking = '';
+                    // Click & Drop returns different shapes; handle both
+                    if (data.createdOrders && data.createdOrders.length) {
+                        orderId = data.createdOrders[0].orderIdentifier || '';
+                        tracking = data.createdOrders[0].trackingNumber || '';
+                    } else {
+                        orderId = data.orderIdentifier || data.order_id || '';
+                        tracking = data.trackingNumber || '';
+                    }
+                    $('#status-box').removeClass('error').addClass('success').html(
+                        '<strong>Order created!</strong> ID: ' + orderId + ' | Tracking: ' + tracking
+                    ).show();
+                    if (orderId) {
+                        $('#cd-order-id').text(orderId);
+                        $('#cd-tracking').text(tracking || 'Pending');
+                        $('#btn-download-label').attr('href', '/shipping/api/rm/label/' + orderId + '/');
+                        $('#label-section').show();
+                    }
+                } else {
+                    $('#status-box').removeClass('success').addClass('error').html(
+                        '<strong>Error:</strong> ' + resp.error
+                    ).show();
+                }
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false);
+                $('#create-spinner').hide();
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Request failed';
+                $('#status-box').removeClass('success').addClass('error').html(
+                    '<strong>Error:</strong> ' + msg
+                ).show();
+            }
+        });
+    });
+
+});
+</script>
+{% endblock javascript %}

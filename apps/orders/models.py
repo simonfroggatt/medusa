@@ -324,6 +324,7 @@ class OcTsgShippingStatus(models.Model):
 class OcTsgOrderShipment(models.Model):
     order_shipment_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(OcOrder, models.DO_NOTHING, blank=True, null=True, related_name='ordershipping')
+    courier_shipping_id = models.IntegerField(blank=True, null=True)
     tracking_number = models.CharField(max_length=255)
     shipping_courier = models.ForeignKey(OcTsgCourier, models.DO_NOTHING, blank=True, null=True, related_name='shipmentcourier')
     shipping_courier_method = models.CharField(max_length=255, blank=True, null=True)

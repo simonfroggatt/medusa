@@ -1,0 +1,388 @@
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"><i class="fa-solid fa-tag"></i> Royal Mail — Ship & Label — Order #{{ order_id }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container-fluid">
+
+        {% if loqate_error %}
+        <div class="alert alert-warning mb-3">
+            <i class="fa fa-exclamation-triangle"></i> Address verification failed: {{ loqate_error }}
+        </div>
+        {% endif %}
+
+        <!-- Confidence score -->
+        <div class="row mb-3">
+            <div class="col-12 text-center">
+                {% if confidence_score >= 80 %}
+                    <span class="badge bg-success fs-5 px-3 py-2">Confidence: {{ confidence_score }}%</span>
+                {% elif confidence_score >= 40 %}
+                    <span class="badge bg-warning text-dark fs-5 px-3 py-2">Confidence: {{ confidence_score }}%</span>
+                {% elif confidence_score > 0 %}
+                    <span class="badge bg-danger fs-5 px-3 py-2">Confidence: {{ confidence_score }}%</span>
+                {% else %}
+                    <span class="badge bg-secondary fs-5 px-3 py-2">Not verified</span>
+                {% endif %}
+                <br>
+                <small class="text-muted">AVC: {{ avc }} &nbsp;|&nbsp; Level: {{ verification_level }}</small>
+            </div>
+        </div>
+
+        <!-- Address comparison: Order vs Verified — side by side -->
+        <div class="row mb-3">
+            <!-- Order address (left) -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <strong>Order Address</strong>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted" style="width:100px">Line 1</td><td id="order-line1">{{ addr_line1 }}</td></tr>
+                            <tr><td class="text-muted">Line 2</td><td id="order-line2">{{ addr_line2 }}</td></tr>
+                            <tr><td class="text-muted">Line 3</td><td id="order-line3">{{ addr_line3 }}</td></tr>
+                            <tr><td class="text-muted">City</td><td id="order-city">{{ order_obj.shipping_city|default_if_none:'' }}</td></tr>
+                            <tr><td class="text-muted">County</td><td id="order-area">{{ order_obj.shipping_area|default_if_none:'' }}</td></tr>
+                            <tr><td class="text-muted">Postcode</td><td id="order-postcode">{{ order_obj.shipping_postcode|default_if_none:'' }}</td></tr>
+                        </table>
+                    </div>
+                    <div class="card-footer text-center">
+                        <button type="button" class="btn btn-outline-primary btn-sm js-use-order-addr">
+                            <i class="fa fa-arrow-down"></i> Use Order Address
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verified address (right) -->
+            <div class="col-md-6">
+                <div class="card h-100 {% if confidence_score >= 80 %}border-success{% elif confidence_score >= 40 %}border-warning{% else %}border-danger{% endif %}">
+                    <div class="card-header {% if confidence_score >= 80 %}bg-success text-white{% elif confidence_score >= 40 %}bg-warning{% else %}bg-danger text-white{% endif %}">
+                        <strong>Verified Address (Loqate)</strong>
+                    </div>
+                    <div class="card-body">
+                        {% if verified_address %}
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted" style="width:100px">Line 1</td><td id="verified-line1">{{ verified_address.line1|default_if_none:'' }}</td></tr>
+                            <tr><td class="text-muted">Line 2</td><td id="verified-line2">{{ verified_address.line2|default_if_none:'' }}</td></tr>
+                            <tr><td class="text-muted">Line 3</td><td id="verified-line3">{{ verified_address.line3|default_if_none:'' }}</td></tr>
+                            <tr><td class="text-muted">City</td><td id="verified-city">{{ verified_address.city|default_if_none:'' }}</td></tr>
+                            <tr><td class="text-muted">County</td><td id="verified-area">{{ verified_address.area|default_if_none:'' }}</td></tr>
+                            <tr><td class="text-muted">Postcode</td><td id="verified-postcode">{{ verified_address.postcode|default_if_none:'' }}</td></tr>
+                        </table>
+                        {% else %}
+                        <p class="text-muted mb-0">No verified address available.</p>
+                        {% endif %}
+                    </div>
+                    {% if verified_address %}
+                    <div class="card-footer text-center">
+                        <button type="button" class="btn btn-outline-success btn-sm js-use-verified-addr">
+                            <i class="fa fa-arrow-down"></i> Use Verified Address
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected address (hidden, populated by JS) -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card border-primary" id="selected-address-card" style="display:none;">
+                    <div class="card-header bg-primary text-white">
+                        <strong><i class="fa fa-check-circle"></i> Selected Address</strong>
+                    </div>
+                    <div class="card-body py-2">
+                        <span id="selected-summary"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Quick service buttons -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <label class="form-label fw-bold">Quick Service</label>
+                <div class="btn-group w-100" role="group">
+                    <button type="button" class="btn btn-outline-primary js-service-quick" data-service="tracked_24">
+                        <i class="fa fa-truck-fast"></i> Tracked 24
+                    </button>
+                    <button type="button" class="btn btn-primary js-service-quick active" data-service="tracked_48">
+                        <i class="fa fa-truck"></i> Tracked 48
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service + Weight + Reference -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Service</label>
+                <select class="form-select form-select-sm" id="rm-dlg-service">
+                    {% for key, svc in services.items %}
+                    <option value="{{ key }}" {% if key == 'tracked_48' %}selected{% endif %}>{{ svc.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Weight (g)</label>
+                <input type="number" class="form-control form-control-sm" id="rm-dlg-weight" value="500" min="1">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label fw-bold">Reference</label>
+                <input type="text" class="form-control form-control-sm" id="rm-dlg-reference" value="Order #{{ order_id }}">
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Send tracking / invoice + mark shipped -->
+        <div class="row mb-3">
+            <div class="col-12 col-md-6">
+                <!-- send tracking -->
+                <div class="input-group">
+                    <div class="input-group-text">
+                        <label class="form-check-label pe-1" for="rm-dlg-checkSendTracking">Send Tracking</label>
+                        <input class="form-check-input" type="checkbox" id="rm-dlg-checkSendTracking" value="1" checked>
+                    </div>
+                    <input type="text" class="form-control" id="rm-dlg-sendTrackingEmail" value="{{ order_obj.shipping_email|default_if_none:'' }}">
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <!-- send invoice -->
+                <div class="input-group">
+                    <div class="input-group-text">
+                        <label class="form-check-label pe-1" for="rm-dlg-checkSendInvoice">Send Invoice</label>
+                        <input class="form-check-input" type="checkbox" id="rm-dlg-checkSendInvoice" value="1" checked>
+                    </div>
+                    <input type="text" class="form-control" id="rm-dlg-sendInvoiceEmail" value="{{ order_obj.payment_email|default_if_none:'' }}">
+                </div>
+            </div>
+            <span class="form-text">Separate emails with a comma ","</span>
+        </div>
+        <div class="row mb-3">
+            <div class="col-6">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="rm-dlg-checkSetShipped" value="1" checked>
+                    <label class="form-check-label" for="rm-dlg-checkSetShipped">Mark shipped</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status / result area -->
+        <div id="rm-dlg-status" class="mb-2"></div>
+        <div id="rm-dlg-result" style="display:none;">
+            <div class="alert alert-success">
+                <strong>Shipment created!</strong>
+                Tracking: <strong id="rm-dlg-tracking"></strong>
+                <a id="rm-dlg-label-link" class="btn btn-sm btn-success ms-3" target="_blank">
+                    <i class="fa fa-download"></i> Download Label
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-warning" id="btn-rm-dlg-simulate">
+        <i class="fa-solid fa-flask"></i> Simulate Ship &amp; Label
+    </button>
+    <button type="button" class="btn btn-danger" id="btn-rm-dlg-create" disabled>
+        <i class="fa-solid fa-tag"></i> Create Shipment & Label
+    </button>
+</div>
+
+<script>
+(function() {
+    var csrfToken = '{{ csrf_token }}';
+    var orderId = {{ order_id }};
+    var chosenAddress = null;
+
+    // ── Quick service buttons ──────────────────────────────────────────
+    $('.js-service-quick').on('click', function() {
+        var svc = $(this).data('service');
+        $('#rm-dlg-service').val(svc);
+        $('.js-service-quick').removeClass('btn-primary active').addClass('btn-outline-primary');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary active');
+    });
+
+    // keep buttons in sync if dropdown changes manually
+    $('#rm-dlg-service').on('change', function() {
+        var val = $(this).val();
+        $('.js-service-quick').removeClass('btn-primary active').addClass('btn-outline-primary');
+        $('.js-service-quick[data-service="' + val + '"]').removeClass('btn-outline-primary').addClass('btn-primary active');
+    });
+
+    // ── Use Order Address ──────────────────────────────────────────────
+    $('.js-use-order-addr').on('click', function() {
+        chosenAddress = {
+            line1: $('#order-line1').text().trim(),
+            line2: $('#order-line2').text().trim(),
+            line3: $('#order-line3').text().trim(),
+            city:  $('#order-city').text().trim(),
+            area:  $('#order-area').text().trim(),
+            postcode: $('#order-postcode').text().trim(),
+        };
+        showSelected('Order Address');
+    });
+
+    // ── Use Verified Address ───────────────────────────────────────────
+    $('.js-use-verified-addr').on('click', function() {
+        chosenAddress = {
+            line1: $('#verified-line1').text().trim(),
+            line2: $('#verified-line2').text().trim(),
+            line3: $('#verified-line3').text().trim(),
+            city:  $('#verified-city').text().trim(),
+            area:  $('#verified-area').text().trim(),
+            postcode: $('#verified-postcode').text().trim(),
+        };
+        showSelected('Verified Address');
+    });
+
+    function showSelected(label) {
+        var parts = [chosenAddress.line1, chosenAddress.line2, chosenAddress.line3, chosenAddress.city, chosenAddress.area, chosenAddress.postcode].filter(Boolean);
+        $('#selected-summary').text(label + ': ' + parts.join(', '));
+        $('#selected-address-card').show();
+        $('#btn-rm-dlg-create').prop('disabled', false);
+        // highlight chosen card
+        $('.js-use-order-addr').closest('.card').removeClass('border-primary border-3');
+        $('.js-use-verified-addr').closest('.card').removeClass('border-primary border-3');
+        if (label === 'Order Address') {
+            $('.js-use-order-addr').closest('.card').addClass('border-primary border-3');
+        } else {
+            $('.js-use-verified-addr').closest('.card').addClass('border-primary border-3');
+        }
+    }
+
+    // ── Create Shipment & Label ────────────────────────────────────────
+    $('#btn-rm-dlg-create').on('click', function() {
+        if (!chosenAddress) return;
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $('#rm-dlg-status').html('<span class="spinner-border spinner-border-sm"></span> Creating RM shipment...');
+        $('#rm-dlg-result').hide();
+
+        var payload = {
+            recipient_name: '{{ order_obj.shipping_fullname|default_if_none:"" }}',
+            company_name:   '{{ order_obj.shipping_company|default_if_none:"" }}',
+            address_line1:  chosenAddress.line1,
+            address_line2:  chosenAddress.line2,
+            address_line3:  chosenAddress.line3,
+            city:           chosenAddress.city,
+            county:         chosenAddress.area,
+            postcode:       chosenAddress.postcode,
+            country_code:   'GB',
+            weight_grams:   parseInt($('#rm-dlg-weight').val()) || 500,
+            service_key:    $('#rm-dlg-service').val(),
+            reference:      $('#rm-dlg-reference').val(),
+            email:          '{{ order_obj.shipping_email|default_if_none:"" }}',
+            phone:          '{{ order_obj.shipping_telephone|default_if_none:"" }}',
+            send_tracking:  $('#rm-dlg-checkSendTracking').is(':checked') ? 1 : 0,
+            tracking_email: $('#rm-dlg-sendTrackingEmail').val(),
+            send_invoice:   $('#rm-dlg-checkSendInvoice').is(':checked') ? 1 : 0,
+            invoice_email:  $('#rm-dlg-sendInvoiceEmail').val(),
+            mark_shipped:   $('#rm-dlg-checkSetShipped').is(':checked') ? 1 : 0,
+        };
+
+        $.ajax({
+            url: '/shipping/api/rm/ship-label/' + orderId + '/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': csrfToken},
+            data: JSON.stringify(payload),
+            success: function(resp) {
+                btn.prop('disabled', true);
+                if (resp.ok) {
+                    $('#rm-dlg-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Shipment created successfully.</span>');
+                    $('#rm-dlg-tracking').text(resp.tracking || 'Pending');
+                    if (resp.label_url) {
+                        $('#rm-dlg-label-link').attr('href', resp.label_url).show();
+                    }
+                    $('#rm-dlg-result').show();
+                } else {
+                    btn.prop('disabled', false);
+                    $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
+                }
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false);
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Request failed';
+                $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + msg + '</span>');
+            }
+        });
+    });
+    // ── Simulate Ship & Label ─────────────────────────────────────────
+    $('#btn-rm-dlg-simulate').on('click', function() {
+        if (!chosenAddress) {
+            $('#rm-dlg-status').html('<span class="text-warning"><i class="fa fa-exclamation-triangle"></i> Please select an address first.</span>');
+            return;
+        }
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $('#rm-dlg-status').html('<span class="spinner-border spinner-border-sm"></span> Simulating shipment...');
+        $('#rm-dlg-result').hide();
+
+        var payload = {
+            simulate: 1,
+            recipient_name: '{{ order_obj.shipping_fullname|default_if_none:"" }}',
+            company_name:   '{{ order_obj.shipping_company|default_if_none:"" }}',
+            address_line1:  chosenAddress.line1,
+            address_line2:  chosenAddress.line2,
+            address_line3:  chosenAddress.line3,
+            city:           chosenAddress.city,
+            county:         chosenAddress.area,
+            postcode:       chosenAddress.postcode,
+            country_code:   'GB',
+            weight_grams:   parseInt($('#rm-dlg-weight').val()) || 500,
+            service_key:    $('#rm-dlg-service').val(),
+            reference:      $('#rm-dlg-reference').val(),
+            email:          '{{ order_obj.shipping_email|default_if_none:"" }}',
+            phone:          '{{ order_obj.shipping_telephone|default_if_none:"" }}',
+            send_tracking:  $('#rm-dlg-checkSendTracking').is(':checked') ? 1 : 0,
+            tracking_email: $('#rm-dlg-sendTrackingEmail').val(),
+            send_invoice:   $('#rm-dlg-checkSendInvoice').is(':checked') ? 1 : 0,
+            invoice_email:  $('#rm-dlg-sendInvoiceEmail').val(),
+            mark_shipped:   $('#rm-dlg-checkSetShipped').is(':checked') ? 1 : 0,
+            confidence_score: '{{ confidence_score }}',
+            verification_level: '{{ verification_level }}',
+            result_codes: '{{ avc }}',
+        };
+
+        $.ajax({
+            url: '/shipping/api/rm/ship-label/' + orderId + '/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': csrfToken},
+            data: JSON.stringify(payload),
+            success: function(resp) {
+                btn.prop('disabled', false);
+                if (resp.ok) {
+                    $('#rm-dlg-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Simulation complete.</span>');
+                    $('#rm-dlg-tracking').text(resp.tracking || 'SIM-NONE');
+                    $('#rm-dlg-label-link').hide();
+                    $('#rm-dlg-result').show();
+                    var msgs = [];
+                    if (resp.emails && resp.emails.tracking) msgs.push('Tracking email: ' + (resp.emails.tracking.success ? 'Sent' : resp.emails.tracking.message));
+                    if (resp.emails && resp.emails.invoice) msgs.push('Invoice email: ' + (resp.emails.invoice.success ? 'Sent' : resp.emails.invoice.message));
+                    if (msgs.length) {
+                        $('#rm-dlg-status').append('<br><small>' + msgs.join(' &bull; ') + '</small>');
+                    }
+                } else {
+                    $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
+                }
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false);
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Request failed';
+                $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + msg + '</span>');
+            }
+        });
+    });
+
+})();
+</script>

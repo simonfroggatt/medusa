@@ -32,10 +32,24 @@ urlpatterns = [
     #ROYALMAIL
     path('api/royalmail/webhook/', views.royalmail_webhook, name='royalmail_webhook'),
 
+    # Royal Mail — label page + AJAX
+    path('rm/<int:order_id>/', views.rm_label_page, name='rm_label_page'),
+    path('api/rm/address-lookup/', views.api_rm_address_lookup, name='api_rm_address_lookup'),
+    path('api/rm/create-order/', views.api_rm_create_order, name='api_rm_create_order'),
+    path('api/rm/label/<int:cd_order_id>/', views.api_rm_label, name='api_rm_label'),
+    path('api/rm/ship-label/<int:order_id>/', views.rm_ship_label_dialog, name='rm_ship_label_dialog'),
+
     #FEDEX
 
     #DPD
 
-    #DX
+    # DX — label page + AJAX
+    path('dx/<int:order_id>/', views.dx_label_page, name='dx_label_page'),
+    path('api/dx/address-lookup/', views.api_dx_address_lookup, name='api_dx_address_lookup'),
+    path('api/dx/create-shipment/', views.api_dx_create_shipment, name='api_dx_create_shipment'),
+    path('api/dx/label/<str:consignment_number>/', views.api_dx_label, name='api_dx_label'),
+
+    # Loqate — address verification
+    path('api/verify-address/', views.api_verify_address, name='api_verify_address'),
 
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
