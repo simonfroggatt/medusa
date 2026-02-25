@@ -644,6 +644,7 @@ def rm_ship_label_dialog(request, order_id):
                     'input_city': order_obj.shipping_city or '',
                     'input_area': order_obj.shipping_area or '',
                     'input_postcode': order_obj.shipping_postcode or '',
+                    'verified_company': body.get('company_name', ''),
                     'verified_line1': chosen_line1,
                     'verified_line2': chosen_line2,
                     'verified_line3': chosen_line3,
@@ -727,6 +728,60 @@ def rm_ship_label_dialog(request, order_id):
             tracking = created_orders[0].get('trackingNumber', '')
 
         label_url = f'/shipping/api/rm/label/{cd_order_id}/' if cd_order_id else ''
+
+        # ── Save address verification record ─────────────────────────────
+        import hashlib
+        from django.utils import timezone as tz
+        from apps.shipping.models import AddressVerification
+
+        chosen_line1 = body.get('address_line1', '')
+        chosen_line2 = body.get('address_line2', '')
+        chosen_line3 = body.get('address_line3', '')
+        chosen_city = body.get('city', '')
+        chosen_area = body.get('county', '')
+        chosen_postcode = body.get('postcode', '')
+        chosen_country = body.get('country_code', 'GB')
+
+        raw_addr1 = (order_obj.shipping_address_1 or '').strip()
+        addr_parts = [p.strip() for p in raw_addr1.splitlines() if p.strip()]
+        orig_line1 = addr_parts[0] if len(addr_parts) > 0 else ''
+        orig_line2 = addr_parts[1] if len(addr_parts) > 1 else (order_obj.shipping_address_2 or '').strip()
+        orig_line3 = addr_parts[2] if len(addr_parts) > 2 else ''
+        hash_input = f'{orig_line1}|{orig_line2}|{orig_line3}|{order_obj.shipping_city}|{order_obj.shipping_postcode}'.lower()
+        input_hash = hashlib.sha256(hash_input.encode()).hexdigest()
+
+        AddressVerification.objects.update_or_create(
+            input_hash=input_hash,
+            input_country_code=chosen_country,
+            defaults={
+                'order': order_obj,
+                'input_name': order_obj.shipping_fullname or '',
+                'input_company': order_obj.shipping_company or '',
+                'input_phone': order_obj.shipping_telephone or '',
+                'input_email': order_obj.shipping_email or '',
+                'input_line1': orig_line1,
+                'input_line2': orig_line2,
+                'input_line3': orig_line3,
+                'input_city': order_obj.shipping_city or '',
+                'input_area': order_obj.shipping_area or '',
+                'input_postcode': order_obj.shipping_postcode or '',
+                'verified_company': body.get('company_name', ''),
+                'verified_line1': chosen_line1,
+                'verified_line2': chosen_line2,
+                'verified_line3': chosen_line3,
+                'verified_city': chosen_city,
+                'verified_area': chosen_area,
+                'verified_postcode': chosen_postcode,
+                'verified_country_code': chosen_country,
+                'provider': 'loqate',
+                'provider_reference': str(cd_order_id) if cd_order_id else '',
+                'verification_level': body.get('verification_level', ''),
+                'confidence_score': float(body.get('confidence_score', 0)) or None,
+                'result_codes': body.get('result_codes', ''),
+                'status': 'verified',
+                'verified_at': tz.now(),
+            },
+        )
 
         # ── Save shipment record ────────────────────────────────────────
         from apps.orders.models import OcTsgOrderShipment

@@ -100,6 +100,7 @@ class AddressVerification(models.Model):
     input_hash = models.CharField(max_length=64)
 
     # Verified / cleansed fields
+    verified_company = models.CharField(max_length=255, null=True, blank=True)
     verified_line1 = models.CharField(max_length=255, null=True, blank=True)
     verified_line2 = models.CharField(max_length=255, null=True, blank=True)
     verified_line3 = models.CharField(max_length=255, null=True, blank=True)

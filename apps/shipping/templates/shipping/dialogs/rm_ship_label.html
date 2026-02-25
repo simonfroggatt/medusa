@@ -40,6 +40,7 @@
                     </div>
                     <div class="card-body">
                         <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted" style="width:100px">Company</td><td id="order-company">{{ order_obj.shipping_company|default_if_none:'' }}</td></tr>
                             <tr><td class="text-muted" style="width:100px">Line 1</td><td id="order-line1">{{ addr_line1 }}</td></tr>
                             <tr><td class="text-muted">Line 2</td><td id="order-line2">{{ addr_line2 }}</td></tr>
                             <tr><td class="text-muted">Line 3</td><td id="order-line3">{{ addr_line3 }}</td></tr>
@@ -65,6 +66,7 @@
                     <div class="card-body">
                         {% if verified_address %}
                         <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted" style="width:100px">Company</td><td id="verified-company">{{ order_obj.shipping_company|default_if_none:'' }}</td></tr>
                             <tr><td class="text-muted" style="width:100px">Line 1</td><td id="verified-line1">{{ verified_address.line1|default_if_none:'' }}</td></tr>
                             <tr><td class="text-muted">Line 2</td><td id="verified-line2">{{ verified_address.line2|default_if_none:'' }}</td></tr>
                             <tr><td class="text-muted">Line 3</td><td id="verified-line3">{{ verified_address.line3|default_if_none:'' }}</td></tr>
@@ -98,6 +100,20 @@
                         <span id="selected-summary"></span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Recipient details (editable) -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold" for="rm-dlg-recipient-name">Recipient Name</label>
+                <input type="text" class="form-control" id="rm-dlg-recipient-name"
+                       value="{{ order_obj.shipping_fullname|default_if_none:'' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold" for="rm-dlg-phone">Phone Number</label>
+                <input type="text" class="form-control" id="rm-dlg-phone"
+                       value="{{ order_obj.shipping_telephone|default_if_none:'' }}">
             </div>
         </div>
 
@@ -268,7 +284,7 @@
         $('#rm-dlg-result').hide();
 
         var payload = {
-            recipient_name: '{{ order_obj.shipping_fullname|default_if_none:"" }}',
+            recipient_name: $('#rm-dlg-recipient-name').val(),
             company_name:   '{{ order_obj.shipping_company|default_if_none:"" }}',
             address_line1:  chosenAddress.line1,
             address_line2:  chosenAddress.line2,
@@ -281,12 +297,15 @@
             service_key:    $('#rm-dlg-service').val(),
             reference:      $('#rm-dlg-reference').val(),
             email:          '{{ order_obj.shipping_email|default_if_none:"" }}',
-            phone:          '{{ order_obj.shipping_telephone|default_if_none:"" }}',
+            phone:          $('#rm-dlg-phone').val(),
             send_tracking:  $('#rm-dlg-checkSendTracking').is(':checked') ? 1 : 0,
             tracking_email: $('#rm-dlg-sendTrackingEmail').val(),
             send_invoice:   $('#rm-dlg-checkSendInvoice').is(':checked') ? 1 : 0,
             invoice_email:  $('#rm-dlg-sendInvoiceEmail').val(),
             mark_shipped:   $('#rm-dlg-checkSetShipped').is(':checked') ? 1 : 0,
+            confidence_score: '{{ confidence_score }}',
+            verification_level: '{{ verification_level }}',
+            result_codes: '{{ avc }}',
         };
 
         $.ajax({
@@ -329,7 +348,7 @@
 
         var payload = {
             simulate: 1,
-            recipient_name: '{{ order_obj.shipping_fullname|default_if_none:"" }}',
+            recipient_name: $('#rm-dlg-recipient-name').val(),
             company_name:   '{{ order_obj.shipping_company|default_if_none:"" }}',
             address_line1:  chosenAddress.line1,
             address_line2:  chosenAddress.line2,
@@ -342,7 +361,7 @@
             service_key:    $('#rm-dlg-service').val(),
             reference:      $('#rm-dlg-reference').val(),
             email:          '{{ order_obj.shipping_email|default_if_none:"" }}',
-            phone:          '{{ order_obj.shipping_telephone|default_if_none:"" }}',
+            phone:          $('#rm-dlg-phone').val(),
             send_tracking:  $('#rm-dlg-checkSendTracking').is(':checked') ? 1 : 0,
             tracking_email: $('#rm-dlg-sendTrackingEmail').val(),
             send_invoice:   $('#rm-dlg-checkSendInvoice').is(':checked') ? 1 : 0,
