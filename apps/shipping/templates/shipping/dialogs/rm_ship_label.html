@@ -119,16 +119,39 @@
 
         <hr>
 
-        <!-- Quick service buttons -->
+        <!-- Quick service buttons — 8 combos: 4 formats × Tracked 24 / 48 -->
         <div class="row mb-3">
-            <div class="col-12">
-                <label class="form-label fw-bold">Quick Service</label>
-                <div class="btn-group w-100" role="group">
-                    <button type="button" class="btn btn-outline-primary js-service-quick" data-service="tracked_24">
-                        <i class="fa fa-truck-fast"></i> Tracked 24
+            <div class="col-6">
+                <label class="form-label fw-bold text-primary">Tracked 24</label>
+                <div class="d-grid gap-1">
+                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_letter">
+                        <i class="fa fa-envelope"></i> Letter
                     </button>
-                    <button type="button" class="btn btn-primary js-service-quick active" data-service="tracked_48">
-                        <i class="fa fa-truck"></i> Tracked 48
+                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_large_letter">
+                        <i class="fa fa-envelope-open"></i> Large Letter
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_small_parcel">
+                        <i class="fa fa-box"></i> Small Parcel
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_medium_parcel">
+                        <i class="fa fa-boxes-stacked"></i> Medium Parcel
+                    </button>
+                </div>
+            </div>
+            <div class="col-6">
+                <label class="form-label fw-bold text-success">Tracked 48</label>
+                <div class="d-grid gap-1">
+                    <button type="button" class="btn btn-outline-success btn-sm js-service-quick" data-service="tracked_48_letter">
+                        <i class="fa fa-envelope"></i> Letter
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm js-service-quick active" data-service="tracked_48_large_letter">
+                        <i class="fa fa-envelope-open"></i> Large Letter
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm js-service-quick" data-service="tracked_48_small_parcel">
+                        <i class="fa fa-box"></i> Small Parcel
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm js-service-quick" data-service="tracked_48_medium_parcel">
+                        <i class="fa fa-boxes-stacked"></i> Medium Parcel
                     </button>
                 </div>
             </div>
@@ -140,7 +163,7 @@
                 <label class="form-label fw-bold">Service</label>
                 <select class="form-select form-select-sm" id="rm-dlg-service">
                     {% for key, svc in services.items %}
-                    <option value="{{ key }}" {% if key == 'tracked_48' %}selected{% endif %}>{{ svc.label }}</option>
+                    <option value="{{ key }}" {% if key == 'tracked_48_large_letter' %}selected{% endif %}>{{ svc.label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -205,9 +228,7 @@
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-    <button type="button" class="btn btn-warning" id="btn-rm-dlg-simulate">
-        <i class="fa-solid fa-flask"></i> Simulate Ship &amp; Label
-    </button>
+    
     <button type="button" class="btn btn-danger" id="btn-rm-dlg-create" disabled>
         <i class="fa-solid fa-tag"></i> Create Shipment & Label
     </button>
@@ -220,18 +241,32 @@
     var chosenAddress = null;
 
     // ── Quick service buttons ──────────────────────────────────────────
+    function resetServiceButtons() {
+        $('.js-service-quick').each(function() {
+            var is24 = $(this).data('service').indexOf('tracked_24') === 0;
+            $(this).removeClass('btn-primary btn-success active')
+                   .addClass(is24 ? 'btn-outline-primary' : 'btn-outline-success');
+        });
+    }
+    function activateServiceButton(btn) {
+        var is24 = btn.data('service').indexOf('tracked_24') === 0;
+        btn.removeClass(is24 ? 'btn-outline-primary' : 'btn-outline-success')
+           .addClass((is24 ? 'btn-primary' : 'btn-success') + ' active');
+    }
+
     $('.js-service-quick').on('click', function() {
         var svc = $(this).data('service');
         $('#rm-dlg-service').val(svc);
-        $('.js-service-quick').removeClass('btn-primary active').addClass('btn-outline-primary');
-        $(this).removeClass('btn-outline-primary').addClass('btn-primary active');
+        resetServiceButtons();
+        activateServiceButton($(this));
     });
 
     // keep buttons in sync if dropdown changes manually
     $('#rm-dlg-service').on('change', function() {
         var val = $(this).val();
-        $('.js-service-quick').removeClass('btn-primary active').addClass('btn-outline-primary');
-        $('.js-service-quick[data-service="' + val + '"]').removeClass('btn-outline-primary').addClass('btn-primary active');
+        resetServiceButtons();
+        var btn = $('.js-service-quick[data-service="' + val + '"]');
+        if (btn.length) activateServiceButton(btn);
     });
 
     // ── Use Order Address ──────────────────────────────────────────────
