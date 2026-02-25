@@ -320,7 +320,7 @@
 
         var payload = {
             recipient_name: $('#rm-dlg-recipient-name').val(),
-            company_name:   '{{ order_obj.shipping_company|default_if_none:"" }}',
+            company_name:   $('#order-company').text().trim(),
             address_line1:  chosenAddress.line1,
             address_line2:  chosenAddress.line2,
             address_line3:  chosenAddress.line3,
@@ -361,73 +361,6 @@
                     $('#rm-dlg-result').show();
                 } else {
                     btn.prop('disabled', false);
-                    $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
-                }
-            },
-            error: function(xhr) {
-                btn.prop('disabled', false);
-                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Request failed';
-                $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + msg + '</span>');
-            }
-        });
-    });
-    // ── Simulate Ship & Label ─────────────────────────────────────────
-    $('#btn-rm-dlg-simulate').on('click', function() {
-        if (!chosenAddress) {
-            $('#rm-dlg-status').html('<span class="text-warning"><i class="fa fa-exclamation-triangle"></i> Please select an address first.</span>');
-            return;
-        }
-        var btn = $(this);
-        btn.prop('disabled', true);
-        $('#rm-dlg-status').html('<span class="spinner-border spinner-border-sm"></span> Simulating shipment...');
-        $('#rm-dlg-result').hide();
-
-        var payload = {
-            simulate: 1,
-            recipient_name: $('#rm-dlg-recipient-name').val(),
-            company_name:   '{{ order_obj.shipping_company|default_if_none:"" }}',
-            address_line1:  chosenAddress.line1,
-            address_line2:  chosenAddress.line2,
-            address_line3:  chosenAddress.line3,
-            city:           chosenAddress.city,
-            county:         chosenAddress.area,
-            postcode:       chosenAddress.postcode,
-            country_code:   'GB',
-            weight_grams:   parseInt($('#rm-dlg-weight').val()) || 500,
-            service_key:    $('#rm-dlg-service').val(),
-            reference:      $('#rm-dlg-reference').val(),
-            email:          '{{ order_obj.shipping_email|default_if_none:"" }}',
-            phone:          $('#rm-dlg-phone').val(),
-            send_tracking:  $('#rm-dlg-checkSendTracking').is(':checked') ? 1 : 0,
-            tracking_email: $('#rm-dlg-sendTrackingEmail').val(),
-            send_invoice:   $('#rm-dlg-checkSendInvoice').is(':checked') ? 1 : 0,
-            invoice_email:  $('#rm-dlg-sendInvoiceEmail').val(),
-            mark_shipped:   $('#rm-dlg-checkSetShipped').is(':checked') ? 1 : 0,
-            confidence_score: '{{ confidence_score }}',
-            verification_level: '{{ verification_level }}',
-            result_codes: '{{ avc }}',
-        };
-
-        $.ajax({
-            url: '/shipping/api/rm/ship-label/' + orderId + '/',
-            method: 'POST',
-            contentType: 'application/json',
-            headers: {'X-CSRFToken': csrfToken},
-            data: JSON.stringify(payload),
-            success: function(resp) {
-                btn.prop('disabled', false);
-                if (resp.ok) {
-                    $('#rm-dlg-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> Simulation complete.</span>');
-                    $('#rm-dlg-tracking').text(resp.tracking || 'SIM-NONE');
-                    $('#rm-dlg-label-link').hide();
-                    $('#rm-dlg-result').show();
-                    var msgs = [];
-                    if (resp.emails && resp.emails.tracking) msgs.push('Tracking email: ' + (resp.emails.tracking.success ? 'Sent' : resp.emails.tracking.message));
-                    if (resp.emails && resp.emails.invoice) msgs.push('Invoice email: ' + (resp.emails.invoice.success ? 'Sent' : resp.emails.invoice.message));
-                    if (msgs.length) {
-                        $('#rm-dlg-status').append('<br><small>' + msgs.join(' &bull; ') + '</small>');
-                    }
-                } else {
                     $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
                 }
             },
