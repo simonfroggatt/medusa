@@ -716,16 +716,17 @@ def rm_ship_label_dialog(request, order_id):
             logger.exception('RM create_order failed')
             return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
 
-        if not result.get('ok'):
-            return JsonResponse({'ok': False, 'error': result.get('error', 'RM API error')}, status=400)
+        created_orders = result.get('createdOrders', [])
+        failed_orders = result.get('failedOrders', [])
 
-        rm_data = result.get('data', {})
-        cd_order_id = None
-        tracking = ''
-        created_orders = rm_data.get('createdOrders', [])
-        if created_orders:
-            cd_order_id = created_orders[0].get('orderIdentifier', {}).get('orderId')
-            tracking = created_orders[0].get('trackingNumber', '')
+        if not created_orders:
+            error_msg = 'RM API error'
+            if failed_orders:
+                error_msg = str(failed_orders[0].get('errors', failed_orders))
+            return JsonResponse({'ok': False, 'error': error_msg}, status=400)
+
+        cd_order_id = created_orders[0].get('orderIdentifier', {}).get('orderId')
+        tracking = created_orders[0].get('trackingNumber', '')
 
         label_url = f'/shipping/api/rm/label/{cd_order_id}/' if cd_order_id else ''
 
