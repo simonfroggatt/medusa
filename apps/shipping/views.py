@@ -731,7 +731,8 @@ def rm_ship_label_dialog(request, order_id):
             error_msg = 'RM API error'
             if failed_orders:
                 error_msg = str(failed_orders[0].get('errors', failed_orders))
-            return JsonResponse({'ok': False, 'error': error_msg}, status=400)
+            logger.warning('[RM-DEBUG] No created orders. failed_orders=%s, full_result=%s', failed_orders, result)
+            return JsonResponse({'ok': False, 'error': error_msg, 'rm_response': result}, status=400)
 
         cd_order_id = created_orders[0].get('orderIdentifier', {}).get('orderId')
         tracking = created_orders[0].get('trackingNumber', '')
