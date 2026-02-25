@@ -692,6 +692,11 @@ def rm_ship_label_dialog(request, order_id):
         subtotal_row = OcOrderTotal.objects.filter(order=order_obj, code='sub_total').first()
         order_subtotal = float(subtotal_row.value) if subtotal_row else float(order_obj.total)
 
+        # TODO: TEMP DEBUG — remove after testing
+        logger.warning('[RM-DEBUG] Payload to RM: recipient=%s, addr1=%s, city=%s, postcode=%s, service=%s, weight=%s',
+                        body.get('recipient_name'), body.get('address_line1'), body.get('city'),
+                        body.get('postcode'), body.get('service_key'), body.get('weight_grams'))
+
         try:
             result = create_order(
                 recipient_name = body.get('recipient_name', ''),
@@ -715,6 +720,9 @@ def rm_ship_label_dialog(request, order_id):
         except Exception as exc:
             logger.exception('RM create_order failed')
             return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+        # TODO: TEMP DEBUG — remove after testing
+        logger.warning('[RM-DEBUG] Full RM API response: %s', json.dumps(result, default=str))
 
         created_orders = result.get('createdOrders', [])
         failed_orders = result.get('failedOrders', [])
