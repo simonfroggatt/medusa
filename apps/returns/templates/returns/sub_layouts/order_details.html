@@ -21,7 +21,7 @@
                               </dd>
                          {% else %}
                              {% if order_obj.customer.parent_company %}
-                                <dd class="col-9">part of: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a>
+                                <dd class="col-9">part of: <a href="{% url 'company_details' order_obj.customer.parent_company.company_id %}">{{ order_obj.customer.parent_company.company_name }}</a></dd>
                              {% else %}
                                  <dd class="col-9"></dd>
                              {% endif %}

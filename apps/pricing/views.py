@@ -749,8 +749,8 @@ def price_shipping_create(request, size_material_id):
         ).order_by('-qty_max').first()
 
         if last_rate:
-            qty_min_default = last_rate.qty_max + 1
-            price_default = last_rate.shipping_price
+            qty_min_default = (last_rate.qty_max or 0) + 1
+            price_default = last_rate.shipping_price or 0.00
         else:
             qty_min_default = 0
             price_default = 0.00
