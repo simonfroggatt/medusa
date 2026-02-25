@@ -42,12 +42,12 @@ _ADDR_KEY   = getattr(settings, 'RM_ADDRESS_API_KEY', '')   # separate key for a
 # From your Click & Drop account — adjust if your account has different codes.
 # Append 'S' to a service code for signature-on-delivery variant (e.g. TRN24S).
 SERVICE_CODES = {
-    'tracked_24':        {'code': 'TPN24',  'label': 'Tracked 24'},
-    'tracked_48':        {'code': 'TPS48',  'label': 'Tracked 48'},
-    'tracked_24_lbt':    {'code': 'TRN24',  'label': 'Tracked 24 LBT'},
-    'tracked_48_lbt':    {'code': 'TRS48',  'label': 'Tracked 48 LBT'},
-    'special_9am':       {'code': 'SD9',    'label': 'Special Delivery Guaranteed by 9am'},
-    'special_1pm':       {'code': 'SD1',    'label': 'Special Delivery Guaranteed by 1pm'},
+    'tracked_24':        {'code': 'TPN24',  'label': 'Tracked 24',     'format': 'parcel'},
+    'tracked_48':        {'code': 'TPS48',  'label': 'Tracked 48',     'format': 'parcel'},
+    'tracked_24_lbt':    {'code': 'TRN24',  'label': 'Tracked 24 LBT', 'format': 'largeLetter'},
+    'tracked_48_lbt':    {'code': 'TRS48',  'label': 'Tracked 48 LBT', 'format': 'largeLetter'},
+    'special_9am':       {'code': 'SD9',    'label': 'Special Delivery Guaranteed by 9am', 'format': 'parcel'},
+    'special_1pm':       {'code': 'SD1',    'label': 'Special Delivery Guaranteed by 1pm', 'format': 'parcel'},
 }
 
 # Package format identifiers accepted by the API
@@ -276,7 +276,7 @@ def create_order(
         'packages': [
             {
                 'weightInGrams':          weight_grams,
-                'packageFormatIdentifier': package_format,
+                'packageFormatIdentifier': svc.get('format', package_format),
             }
         ],
         'postageDetails': {
