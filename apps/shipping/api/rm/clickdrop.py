@@ -42,19 +42,12 @@ _ADDR_KEY   = getattr(settings, 'RM_ADDRESS_API_KEY', '')   # separate key for a
 # From your Click & Drop account — adjust if your account has different codes.
 # Append 'S' to a service code for signature-on-delivery variant (e.g. TRN24S).
 SERVICE_CODES = {
-    # Tracked 24 — by package format
-    'tracked_24_letter':       {'code': 'TPN24',  'label': 'Tracked 24 Letter',        'format': 'letter'},
-    'tracked_24_large_letter': {'code': 'TPN24',  'label': 'Tracked 24 Large Letter',  'format': 'largeLetter'},
-    'tracked_24_small_parcel': {'code': 'TPN24',  'label': 'Tracked 24 Small Parcel',  'format': 'smallParcel'},
-    'tracked_24_medium_parcel':{'code': 'TPN24',  'label': 'Tracked 24 Medium Parcel', 'format': 'mediumParcel'},
-    # Tracked 48 — by package format
-    'tracked_48_letter':       {'code': 'TPS48',  'label': 'Tracked 48 Letter',        'format': 'letter'},
-    'tracked_48_large_letter': {'code': 'TRS48',  'label': 'Tracked 48 Large Letter',  'format': 'largeLetter'},
-    'tracked_48_small_parcel': {'code': 'TPS48',  'label': 'Tracked 48 Small Parcel',  'format': 'smallParcel'},
-    'tracked_48_medium_parcel':{'code': 'TPS48',  'label': 'Tracked 48 Medium Parcel', 'format': 'mediumParcel'},
-    # Special Delivery
-    'special_9am':             {'code': 'SD9',    'label': 'Special Delivery 9am',      'format': 'parcel'},
-    'special_1pm':             {'code': 'SD1',    'label': 'Special Delivery 1pm',      'format': 'parcel'},
+    # Tracked 24
+    'tracked_24_large_letter': {'code': 'TPN24', 'label': 'Tracked 24 Large Letter', 'format': 'largeLetter'},
+    'tracked_24_parcel':       {'code': 'TPN24', 'label': 'Tracked 24 Parcel',        'format': 'parcel'},
+    # Tracked 48
+    'tracked_48_large_letter': {'code': 'TPS48', 'label': 'Tracked 48 Large Letter', 'format': 'largeLetter'},
+    'tracked_48_parcel':       {'code': 'TPS48', 'label': 'Tracked 48 Parcel',        'format': 'parcel'},
 }
 
 # Package format identifiers accepted by the API
