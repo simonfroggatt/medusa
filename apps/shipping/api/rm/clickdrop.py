@@ -42,10 +42,10 @@ _ADDR_KEY   = getattr(settings, 'RM_ADDRESS_API_KEY', '')   # separate key for a
 # From your Click & Drop account — adjust if your account has different codes.
 # Append 'S' to a service code for signature-on-delivery variant (e.g. TRN24S).
 SERVICE_CODES = {
-    'tracked_24':        {'code': 'TRN24',  'label': 'Tracked 24'},
-    'tracked_48':        {'code': 'TRN48',  'label': 'Tracked 48'},
-    'tracked_24_sig':    {'code': 'TRN24S', 'label': 'Tracked 24 Signature'},
-    'tracked_48_sig':    {'code': 'TRN48S', 'label': 'Tracked 48 Signature'},
+    'tracked_24':        {'code': 'TPN24',  'label': 'Tracked 24'},
+    'tracked_48':        {'code': 'TPS48',  'label': 'Tracked 48'},
+    'tracked_24_lbt':    {'code': 'TRN24',  'label': 'Tracked 24 LBT'},
+    'tracked_48_lbt':    {'code': 'TRS48',  'label': 'Tracked 48 LBT'},
     'special_9am':       {'code': 'SD9',    'label': 'Special Delivery Guaranteed by 9am'},
     'special_1pm':       {'code': 'SD1',    'label': 'Special Delivery Guaranteed by 1pm'},
 }
