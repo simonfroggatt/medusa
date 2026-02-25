@@ -27,6 +27,7 @@ from reportlab.pdfbase.pdfmetrics import registerFont
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from apps.orders.models import OcTsgOrderShipment
 
 registerFont(TTFont('Arial','ARIAL.ttf'))
@@ -1495,6 +1496,7 @@ def gen_shipping_page(order_id):
     return buffer
 
 
+@login_required
 def gen_merged_paperwork(request, order_id):
     response = HttpResponse(content_type='application/pdf')
     pdflist=[]
@@ -1816,7 +1818,9 @@ def set_printed(request, order_id):
     _push_to_xero(request, order_id)
 
     #add an order activity
-    OcTsgOrderActivity.objects.create(order=order_obj, activity_type_id=settings.TSG_ORDER_ACTIVITY_TYPE_PRINTED, user_id=request.user.id, description='Order printed')
+    user_id = request.user.id if request.user.is_authenticated else None
+    if user_id:
+        OcTsgOrderActivity.objects.create(order=order_obj, activity_type_id=settings.TSG_ORDER_ACTIVITY_TYPE_PRINTED, user_id=user_id, description='Order printed')
 
 
 def _push_to_xero(request, order_id):
