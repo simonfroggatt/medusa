@@ -775,7 +775,7 @@ def product_core_variant_add(request, pk):
         variant_core_obj = OcTsgProductVariantCore()
         variant_core_initials = {'product': product_obj, 'size_material_id': 1, 'supplier': 1, 'supplier_code': 'code',
                                  'supplier_price': 0.00, 'exclude_fpnp': False, 'gtin': '', 'shipping_cost': 0.00,
-                                 'bl_live': True, 'lead_time_override': 0, 'pack_count': 1}
+                                 'bl_live': True, 'lead_time_override': 0, 'pack_count': 1, 'lead_time_override_range': 0}
         form_obj = VariantCoreForm(instance=variant_core_obj, initial=variant_core_initials)
         data['form_is_valid'] = False
 
@@ -2118,6 +2118,7 @@ def _product_duplicate(product_id):
                 shipping_cost=core.shipping_cost,
                 bl_live=True,
                 lead_time_override=core.lead_time_override,
+                lead_time_override_range=core.lead_time_override_range,
                 pack_count=core.pack_count
             )
             core_mapping[core.pk] = new_core

@@ -159,6 +159,7 @@ class OcTsgProductVariantCore(models.Model):
     shipping_cost = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
     lead_time_override = models.IntegerField(default=0)
+    lead_time_override_range = models.IntegerField(default=0)
     pack_count = models.IntegerField(default=1)
     order_by = models.IntegerField(blank=True, null=True, default=99)
     exclude_variant_shipping = models.BooleanField(default=False)
