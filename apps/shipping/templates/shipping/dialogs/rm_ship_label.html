@@ -321,6 +321,7 @@
                     $('#rm-dlg-tracking').text(resp.tracking || 'Pending');
                     if (resp.label_url) {
                         $('#rm-dlg-label-link').attr('href', resp.label_url).show();
+                        window.open(resp.label_url, '_blank');
                     }
                     $('#rm-dlg-result').show();
                 } else {

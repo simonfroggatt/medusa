@@ -716,6 +716,7 @@ def rm_ship_label_dialog(request, order_id):
                 company_name   = body.get('company_name', ''),
                 subtotal       = order_subtotal,
                 total          = order_subtotal,
+                include_label  = True,
             )
         except Exception as exc:
             logger.exception('RM create_order failed')
@@ -734,7 +735,7 @@ def rm_ship_label_dialog(request, order_id):
             logger.warning('[RM-DEBUG] No created orders. failed_orders=%s, full_result=%s', failed_orders, result)
             return JsonResponse({'ok': False, 'error': error_msg, 'rm_response': result}, status=400)
 
-        cd_order_id = created_orders[0].get('orderIdentifier', {}).get('orderId')
+        cd_order_id = created_orders[0].get('orderIdentifier')
         tracking = created_orders[0].get('trackingNumber', '')
 
         label_url = f'/shipping/api/rm/label/{cd_order_id}/' if cd_order_id else ''
