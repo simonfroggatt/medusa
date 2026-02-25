@@ -44,7 +44,7 @@ _ADDR_KEY   = getattr(settings, 'RM_ADDRESS_API_KEY', '')   # separate key for a
 SERVICE_CODES = {
     # Tracked 24 — by package format
     'tracked_24_letter':       {'code': 'TPN24',  'label': 'Tracked 24 Letter',        'format': 'letter'},
-    'tracked_24_large_letter': {'code': 'TRN24',  'label': 'Tracked 24 Large Letter',  'format': 'largeLetter'},
+    'tracked_24_large_letter': {'code': 'TPN24',  'label': 'Tracked 24 Large Letter',  'format': 'largeLetter'},
     'tracked_24_small_parcel': {'code': 'TPN24',  'label': 'Tracked 24 Small Parcel',  'format': 'smallParcel'},
     'tracked_24_medium_parcel':{'code': 'TPN24',  'label': 'Tracked 24 Medium Parcel', 'format': 'mediumParcel'},
     # Tracked 48 — by package format
@@ -303,6 +303,9 @@ def create_order(
         }
 
     payload = {'items': [order_item]}
+    # TODO: TEMP DEBUG — remove after testing
+    logger.warning('[RM-DEBUG] Service: %s, Code: %s, Format: %s', service_key, svc['code'], svc.get('format', 'N/A'))
+    logger.info(f'[RM-ClickDrop] POST payload to create_order: {json.dumps(payload, default=str)}')
     result = _post('/orders', payload)
     logger.info(f'[RM-ClickDrop] Created order: {result}')
     return result
