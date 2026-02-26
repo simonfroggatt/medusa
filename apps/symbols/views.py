@@ -73,8 +73,6 @@ def symbol_create(request):
             'svg_path': '',
             'image_width': 0,
             'image_height': 0,
-
-
         }
 
     form = SymbolsForm(instance=symbol_obj, initial=symbol_iniitials)

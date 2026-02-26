@@ -37,8 +37,7 @@ class OcTsgSymbolCategory(models.Model):
 
 class OcTsgSymbols(models.Model):
     image_path = models.ImageField(upload_to='symbols/thumbs/', blank=True, null=True, )
-    svg_path = models.ImageField(upload_to='stores/symbols/svg/', width_field='image_width',
-                                 height_field='image_height', blank=True)
+    svg_path = models.ImageField(upload_to='stores/symbols/svg/', blank=True)
     referent = models.CharField(max_length=255, blank=True, null=True)
     function = models.CharField(max_length=1024, blank=True, null=True)
     content = models.CharField(max_length=1024, blank=True, null=True)

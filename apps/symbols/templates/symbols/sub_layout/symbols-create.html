@@ -19,7 +19,7 @@
             <div class="row">
 <div class="form-group">
          <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-10">
                     <div class="row">
                         <div class="col-1">
                             <img src="{% get_media_prefix %}{{ form.svg_path.value }}" height="100">
@@ -29,15 +29,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">{{ form.refenceno|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.category|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.standard|as_crispy_field }}</div>
+                 <div class="col-md-2">{{ form.shape|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.referent|as_crispy_field }}</div>
                 <div class="col-md-6">{{ form.function|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.content|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.hazard|as_crispy_field }}</div>
                 <div class="col-md-12">{{ form.humanbehav|as_crispy_field }}</div>
-                <div class="col-md-12">{{ form.title|as_crispy_field }}</div>
+             <div class="col-md-6">{{ form.image_width|as_crispy_field }}</div>
+             <div class="col-md-6">{{ form.image_height|as_crispy_field }}</div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" class="btn {{ BUTTON_CANCEL }} " onclick="location.href='{{ return_url }}'">Cancel</button>

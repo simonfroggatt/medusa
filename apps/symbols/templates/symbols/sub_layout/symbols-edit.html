@@ -36,6 +36,8 @@
                     <div class="col-md-6">{{ form.content|as_crispy_field }}</div>
                     <div class="col-md-6">{{ form.hazard|as_crispy_field }}</div>
                     <div class="col-md-12">{{ form.humanbehav|as_crispy_field }}</div>
+                     <div class="col-md-6">{{ form.image_width|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.image_height|as_crispy_field }}</div>
                     <div class="col-12">
                         <h3>Symbol Standards</h3>
                         <button type="button" class="btn btn-sm btn-primary" id="js_add_symbol_standard" data-url="{%  url 'symbol-standards-add' symbol_id %}"

@@ -21,6 +21,10 @@ class SymbolsForm(forms.ModelForm):
         field_classes = {
             'svg_path': SvgAndImageFormField,
         }
+        widgets = {
+            'image_width': forms.NumberInput(attrs={'min': 0}),
+            'image_height': forms.NumberInput(attrs={'min': 0}),
+        }
 
         labels = {
             'referent': 'Description',

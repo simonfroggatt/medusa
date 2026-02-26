@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/rm/create-order/', views.api_rm_create_order, name='api_rm_create_order'),
     path('api/rm/label/<int:cd_order_id>/', views.api_rm_label, name='api_rm_label'),
     path('api/rm/ship-label/<int:order_id>/', views.rm_ship_label_dialog, name='rm_ship_label_dialog'),
+    path('manifest/', views.rm_manifest, name='rm_manifest'),
 
     #FEDEX
 

@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import logging
 import json
@@ -906,3 +907,52 @@ def rm_ship_label_dialog(request, order_id):
 
     data['html_form'] = render_to_string(template_name, context, request=request)
     return JsonResponse(data)
+
+
+# ── Royal Mail Manifest ───────────────────────────────────────────────────────
+
+@login_required
+def rm_manifest(request):
+    """
+    Royal Mail End of Day Manifest page.
+    Shows manifest creation form and handles manifest generation.
+    """
+    from apps.shipping.api.rm.clickdrop import create_manifest, get_label
+    
+    if request.method == 'POST':
+        try:
+            # Create manifest for all eligible orders
+            result = create_manifest()
+            
+            if 'manifestNumber' in result:
+                manifest_number = result['manifestNumber']
+                
+                # Try to get the manifest PDF if available
+                manifest_pdf = None
+                if 'documentPdf' in result:
+                    import base64
+                    manifest_pdf = base64.b64decode(result['documentPdf'])
+                
+                return JsonResponse({
+                    'ok': True,
+                    'manifest_number': manifest_number,
+                    'manifest_pdf': manifest_pdf is not None,
+                    'message': f'Manifest {manifest_number} created successfully'
+                })
+            else:
+                return JsonResponse({
+                    'ok': False,
+                    'error': 'Failed to create manifest'
+                })
+                
+        except Exception as e:
+            logger.exception('RM manifest creation failed')
+            return JsonResponse({
+                'ok': False,
+                'error': str(e)
+            })
+    
+    # GET request - show manifest page
+    return render(request, 'shipping/rm_manifest.html', {
+        'title': 'Royal Mail - End of Day Manifest'
+    })
