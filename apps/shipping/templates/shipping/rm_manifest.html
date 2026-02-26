@@ -1,0 +1,93 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">{{ title }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Create End of Day Manifest</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Create a Royal Mail manifest for all eligible orders (orders with labels generated and ready for collection).
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle"></i>
+                        <strong>Note:</strong> This will manifest all orders that are in "Label Generated" or "Despatched" status.
+                    </div>
+
+                    <div id="manifest-status" class="mb-3"></div>
+
+                    <button type="button" id="btn-create-manifest" class="btn btn-primary">
+                        <i class="fa fa-file-pdf"></i> Create Manifest
+                    </button>
+
+                    <div id="manifest-result" style="display: none;">
+                        <div class="alert alert-success mt-3">
+                            <strong>Manifest Created!</strong>
+                            <div>Manifest Number: <strong id="manifest-number"></strong></div>
+                            <div id="manifest-download" style="display: none;">
+                                <a href="#" id="manifest-link" class="btn btn-success ms-3" target="_blank">
+                                    <i class="fa fa-download"></i> Download Manifest PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#btn-create-manifest').on('click', function() {
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $('#manifest-status').html('<div class="spinner-border spinner-border-sm me-2"></div> Creating manifest...');
+        
+        $.ajax({
+            url: '{% url "rm_manifest" %}',
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            success: function(resp) {
+                btn.prop('disabled', false);
+                if (resp.ok) {
+                    $('#manifest-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> ' + resp.message + '</span>');
+                    $('#manifest-number').text(resp.manifest_number);
+                    
+                    if (resp.manifest_pdf) {
+                        // If PDF is available in response, create download link
+                        $('#manifest-link').attr('href', 'data:application/pdf;base64,' + resp.manifest_pdf);
+                        $('#manifest-link').attr('download', 'manifest_' + resp.manifest_number + '.pdf');
+                        $('#manifest-download').show();
+                    }
+                    
+                    $('#manifest-result').show();
+                } else {
+                    $('#manifest-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
+                }
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false);
+                var msg = xhr.responseJSON ? xhr.responseJSON.error : 'Request failed';
+                $('#manifest-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + msg + '</span>');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
