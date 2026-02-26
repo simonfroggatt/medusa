@@ -39,7 +39,7 @@
                         <strong>Order Address</strong>
                     </div>
                     <div class="card-body">
-                        <table class="table table-sm table-borderless mb-0">
+                        <table class="table table-sm table-borderless mb-0"> 
                             <tr><td class="text-muted" style="width:100px">Company</td><td id="order-company">{{ order_obj.shipping_company|default_if_none:'' }}</td></tr>
                             <tr><td class="text-muted" style="width:100px">Line 1</td><td id="order-line1">{{ addr_line1 }}</td></tr>
                             <tr><td class="text-muted">Line 2</td><td id="order-line2">{{ addr_line2 }}</td></tr>
