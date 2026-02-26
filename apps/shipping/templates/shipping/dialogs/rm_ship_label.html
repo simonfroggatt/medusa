@@ -347,6 +347,14 @@
                         window.open(resp.label_url, '_blank');
                     }
                     $('#rm-dlg-result').show();
+                    
+                    // Auto-close dialog after successful label creation
+                    setTimeout(function() {
+                        var modal = $('#rm-dlg-create').closest('.modal');
+                        if (modal.length) {
+                            modal.modal('hide');
+                        }
+                    }, 2000);
                 } else {
                     btn.prop('disabled', false);
                     $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
