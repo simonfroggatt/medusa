@@ -206,11 +206,21 @@
                                     <i class="fa-solid fa-ban-smoking"></i>
                                     <span key="t-product-symbols">Product Symbols</span>
                                 </a>
-                            </li>
-                                <li><a href="{% url 'legacyorders' %}" >Legacy Orders</a></li>
+                                </li>
+                                <li>
+                                <a href="{% url 'legacyorders' %}" class="waves-effect">
+                                    <i class="fa-solid fa-hourglass"></i>
+                                    <span key="t-legacy-orders">Legacy Orders</span>
+                                </a>
+                                </li>
 
                             {% endif %}
-                            <li><a href="{% url 'rm_manifest' %}" >End of Day Manifest</a></li>
+                            <li>
+                                <a href="{% url 'rm_manifest' %}" class="waves-effect">
+                                    <i class="fa-sharp fa-solid fa-mailbox-flag-up"></i>
+                                    <span key="t-eod-manifest">EOD Manifest</span>
+                                </a>
+                         </li>
 
                         </ul>
             
