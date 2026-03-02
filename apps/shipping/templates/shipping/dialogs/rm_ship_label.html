@@ -14,31 +14,30 @@
         {% endif %}
 
         <!-- Confidence score -->
-        <div class="row mb-3">
+        <div class="row mb-2">
             <div class="col-12 text-center">
                 {% if confidence_score >= 80 %}
-                    <span class="badge bg-success fs-5 px-3 py-2">Confidence: {{ confidence_score }}%</span>
+                    <span class="badge bg-success px-1 py-0">Confidence: {{ confidence_score }}%</span>
                 {% elif confidence_score >= 40 %}
-                    <span class="badge bg-warning text-dark fs-5 px-3 py-2">Confidence: {{ confidence_score }}%</span>
+                    <span class="badge bg-warning text-dark px-1 py-0">Confidence: {{ confidence_score }}%</span>
                 {% elif confidence_score > 0 %}
-                    <span class="badge bg-danger fs-5 px-3 py-2">Confidence: {{ confidence_score }}%</span>
+                    <span class="badge bg-danger px-1 py-0">Confidence: {{ confidence_score }}%</span>
                 {% else %}
-                    <span class="badge bg-secondary fs-5 px-3 py-2">Not verified</span>
+                    <span class="badge bg-secondary px-1 py-0">Not verified</span>
                 {% endif %}
-                <br>
-                <small class="text-muted">AVC: {{ avc }} &nbsp;|&nbsp; Level: {{ verification_level }}</small>
+                <small class="text-muted ms-2">AVC: {{ avc }} | Level: {{ verification_level }}</small>
             </div>
         </div>
 
         <!-- Address comparison: Order vs Verified — side by side -->
-        <div class="row mb-3">
+        <div class="row mb-2">
             <!-- Order address (left) -->
             <div class="col-md-6">
                 <div class="card h-100">
                     <div class="card-header bg-light">
                         <strong>Order Address</strong>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-2">
                         <table class="table table-sm table-borderless mb-0"> 
                             <tr><td class="text-muted" style="width:100px">Company</td><td id="order-company">{{ order_obj.shipping_company|default_if_none:'' }}</td></tr>
                             <tr><td class="text-muted" style="width:100px">Line 1</td><td id="order-line1">{{ addr_line1 }}</td></tr>
@@ -49,7 +48,7 @@
                             <tr><td class="text-muted">Postcode</td><td id="order-postcode">{{ order_obj.shipping_postcode|default_if_none:'' }}</td></tr>
                         </table>
                     </div>
-                    <div class="card-footer text-center">
+                    <div class="card-footer text-center p-1">
                         <button type="button" class="btn btn-outline-primary btn-sm js-use-order-addr">
                             <i class="fa fa-arrow-down"></i> Use Order Address
                         </button>
@@ -63,7 +62,7 @@
                     <div class="card-header {% if confidence_score >= 80 %}bg-success text-white{% elif confidence_score >= 40 %}bg-warning{% else %}bg-danger text-white{% endif %}">
                         <strong>Verified Address (Loqate)</strong>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-2">
                         {% if verified_address %}
                         <table class="table table-sm table-borderless mb-0">
                             <tr><td class="text-muted" style="width:100px">Company</td><td id="verified-company">{{ order_obj.shipping_company|default_if_none:'' }}</td></tr>
@@ -79,7 +78,7 @@
                         {% endif %}
                     </div>
                     {% if verified_address %}
-                    <div class="card-footer text-center">
+                    <div class="card-footer text-center p-1">
                         <button type="button" class="btn btn-outline-success btn-sm js-use-verified-addr">
                             <i class="fa fa-arrow-down"></i> Use Verified Address
                         </button>
@@ -103,64 +102,54 @@
             </div>
         </div>
 
-        <!-- Recipient details (editable) -->
-        <div class="row mb-3">
+        <!-- Recipient Name + Phone -->
+        <div class="row mb-2">
             <div class="col-md-6">
-                <label class="form-label fw-bold" for="rm-dlg-recipient-name">Recipient Name</label>
-                <input type="text" class="form-control" id="rm-dlg-recipient-name"
+                <label class="form-label fw-bold mb-1" for="rm-dlg-recipient-name">Recipient Name</label>
+                <input type="text" class="form-control form-control-sm" id="rm-dlg-recipient-name"
                        value="{{ order_obj.shipping_fullname|default_if_none:'' }}">
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-bold" for="rm-dlg-phone">Phone Number</label>
-                <input type="text" class="form-control" id="rm-dlg-phone"
+                <label class="form-label fw-bold mb-1" for="rm-dlg-phone">Phone Number</label>
+                <input type="text" class="form-control form-control-sm" id="rm-dlg-phone"
                        value="{{ order_obj.shipping_telephone|default_if_none:'' }}">
             </div>
         </div>
 
-        <hr>
-
-        <!-- Quick service buttons — 2 formats × Tracked 24 / 48 -->
-        <div class="row mb-3">
-            <div class="col-6">
-                <label class="form-label fw-bold text-primary">Tracked 24</label>
-                <div class="d-grid gap-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_large_letter">
-                        <i class="fa fa-envelope-open"></i> Large Letter
-                    </button>
-                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_parcel">
-                        <i class="fa fa-box"></i> Parcel
-                    </button>
+        <!-- Quick service buttons — compact single row -->
+        <div class="row mb-2">
+            <div class="col-12">
+                <div class="btn-group w-100" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_large_letter_1kg" title="Tracked 24 Large Letter <1kg">24 Large Letter &lt;1kg</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_large_letter_2kg" title="Tracked 24 Large Letter 1-2kg">24 Large Letter 1-2kg</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm js-service-quick" data-service="tracked_24_parcel" title="Tracked 24 Parcel">24 Parcel</button>
                 </div>
             </div>
-            <div class="col-6">
-                <label class="form-label fw-bold text-success">Tracked 48</label>
-                <div class="d-grid gap-1">
-                    <button type="button" class="btn btn-success btn-sm js-service-quick active" data-service="tracked_48_large_letter">
-                        <i class="fa fa-envelope-open"></i> Large Letter
-                    </button>
-                    <button type="button" class="btn btn-outline-success btn-sm js-service-quick" data-service="tracked_48_parcel">
-                        <i class="fa fa-box"></i> Parcel
-                    </button>
+            <div class="col-12">
+                <div class="btn-group w-100" role="group">
+                     <button type="button" class="btn btn-success btn-sm js-service-quick active" data-service="tracked_48_large_letter_1kg" title="Tracked 48 Large Letter <1kg">48 Large Letter &lt;1kg</button>
+                    <button type="button" class="btn btn-outline-success btn-sm js-service-quick" data-service="tracked_48_large_letter_2kg" title="Tracked 48 Large Letter 1-2kg">48 Large Letter 1-2kg</button>
+                    <button type="button" class="btn btn-outline-success btn-sm js-service-quick" data-service="tracked_48_parcel" title="Tracked 48 Parcel">48 Parcel</button>
                 </div>
             </div>
         </div>
 
         <!-- Service + Weight + Reference -->
-        <div class="row mb-3">
+        <div class="row mb-2">
             <div class="col-md-4">
-                <label class="form-label fw-bold">Service</label>
+                <label class="form-label fw-bold mb-1">Service</label>
                 <select class="form-select form-select-sm" id="rm-dlg-service">
                     {% for key, svc in services.items %}
-                    <option value="{{ key }}" {% if key == 'tracked_48_large_letter' %}selected{% endif %}>{{ svc.label }}</option>
+                    <option value="{{ key }}" {% if key == 'tracked_48_large_letter_1kg' %}selected{% endif %}>{{ svc.label }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label fw-bold">Weight (g)</label>
+                <label class="form-label fw-bold mb-1">Weight (g)</label>
                 <input type="number" class="form-control form-control-sm" id="rm-dlg-weight" value="500" min="1">
             </div>
             <div class="col-md-5">
-                <label class="form-label fw-bold">Reference</label>
+                <label class="form-label fw-bold mb-1">Reference</label>
                 <input type="text" class="form-control form-control-sm" id="rm-dlg-reference" value="Order #{{ order_id }}">
             </div>
         </div>
@@ -191,8 +180,8 @@
             </div>
             <span class="form-text">Separate emails with a comma ","</span>
         </div>
-        <div class="row mb-3">
-            <div class="col-6">
+        <div class="row mb-2">
+            <div class="col-12">
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" id="rm-dlg-checkSetShipped" value="1" checked>
                     <label class="form-check-label" for="rm-dlg-checkSetShipped">Mark shipped</label>

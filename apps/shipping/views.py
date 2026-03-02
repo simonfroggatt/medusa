@@ -709,7 +709,7 @@ def rm_ship_label_dialog(request, order_id):
                 postcode       = body.get('postcode', ''),
                 country_code   = body.get('country_code', 'GB'),
                 weight_grams   = int(body.get('weight_grams', 500)),
-                service_key    = body.get('service_key', 'tracked_48_large_letter'),
+                service_key    = body.get('service_key', 'tracked_48_large_letter_1kg'),
                 package_format = 'parcel',
                 reference      = body.get('reference', f'Order #{order_id}'),
                 email          = body.get('email', ''),

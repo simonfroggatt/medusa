@@ -43,12 +43,16 @@ _ADDR_KEY   = getattr(settings, 'RM_ADDRESS_API_KEY', '')   # separate key for a
 # Append 'S' to a service code for signature-on-delivery variant (e.g. TRN24S).
 SERVICE_CODES = {
     # Tracked 24
-    'tracked_24_large_letter': {'code': 'TPN24', 'label': 'Tracked 24 Large Letter', 'format': 'largeLetter'},
-    'tracked_24_parcel':       {'code': 'TPN24', 'label': 'Tracked 24 Parcel',        'format': 'parcel'},
+    'tracked_24_large_letter_1kg':  {'code': 'TRN24', 'label': 'Tracked 24 Large Letter (<1kg)', 'format': 'largeLetter'},
+    'tracked_24_large_letter_2kg':  {'code': 'TPN24', 'label': 'Tracked 24 Large Letter (1-2kg)', 'format': 'largeLetter'},
+    'tracked_24_parcel':            {'code': 'TPN24', 'label': 'Tracked 24 Parcel',              'format': 'parcel'},
     # Tracked 48
-    'tracked_48_large_letter': {'code': 'TPS48', 'label': 'Tracked 48 Large Letter', 'format': 'largeLetter'},
-    'tracked_48_parcel':       {'code': 'TPS48', 'label': 'Tracked 48 Parcel',        'format': 'parcel'},
+    'tracked_48_large_letter_1kg':  {'code': 'TRS48', 'label': 'Tracked 48 Large Letter (<1kg)', 'format': 'largeLetter'},
+    'tracked_48_large_letter_2kg':  {'code': 'TPS48', 'label': 'Tracked 48 Large Letter (1-2kg)', 'format': 'largeLetter'},
+    'tracked_48_parcel':            {'code': 'TPS48', 'label': 'Tracked 48 Parcel',              'format': 'parcel'},
 }
+
+
 
 # Package format identifiers accepted by the API
 PACKAGE_FORMATS = [
