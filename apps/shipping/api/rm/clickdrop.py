@@ -44,11 +44,9 @@ _ADDR_KEY   = getattr(settings, 'RM_ADDRESS_API_KEY', '')   # separate key for a
 SERVICE_CODES = {
     # Tracked 24
     'tracked_24_large_letter_1kg':  {'code': 'TRN24', 'label': 'Tracked 24 Large Letter (<1kg)', 'format': 'largeLetter'},
-    'tracked_24_large_letter_2kg':  {'code': 'TPN24', 'label': 'Tracked 24 Large Letter (1-2kg)', 'format': 'largeLetter'},
     'tracked_24_parcel':            {'code': 'TPN24', 'label': 'Tracked 24 Parcel',              'format': 'parcel'},
     # Tracked 48
     'tracked_48_large_letter_1kg':  {'code': 'TRS48', 'label': 'Tracked 48 Large Letter (<1kg)', 'format': 'largeLetter'},
-    'tracked_48_large_letter_2kg':  {'code': 'TPS48', 'label': 'Tracked 48 Large Letter (1-2kg)', 'format': 'largeLetter'},
     'tracked_48_parcel':            {'code': 'TPS48', 'label': 'Tracked 48 Parcel',              'format': 'parcel'},
 }
 
