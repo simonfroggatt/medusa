@@ -244,6 +244,69 @@
         if (btn.length) activateServiceButton(btn);
     });
 
+    /*
+    // Test mode - simulate successful label creation (commented out)
+    $('.js-service-quick').on('contextmenu', function(e) {
+        e.preventDefault();
+        if (!chosenAddress) return;
+        
+        var btn = $('#btn-rm-dlg-create');
+        btn.prop('disabled', true);
+        $('#rm-dlg-status').html('<span class="spinner-border spinner-border-sm"></span> Testing dialog close behavior...');
+        $('#rm-dlg-result').hide();
+
+        // Simulate success response
+        setTimeout(function() {
+            var mockResp = {
+                ok: true,
+                tracking: 'TEST123456789',
+                label_url: 'data:text/plain,test%20pdf%20content'
+            };
+            
+            $('#rm-dlg-status').html('<span class="text-success"><i class="fa fa-check-circle"></i> TEST: Shipment created successfully.</span>');
+            $('#rm-dlg-tracking').text(mockResp.tracking);
+            if (mockResp.label_url) {
+                $('#rm-dlg-label-link').attr('href', mockResp.label_url).show();
+            }
+            $('#rm-dlg-result').show();
+            
+            // Add test shipping info to the order details section for testing
+            var shippingHtml = '<img class="img-responsive" height="15px" src="/static/images/royal_mail_logo.png"> ' +
+                              '(Tracked 48) <strong class="text-success">Shipped</strong> on ' + 
+                              new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + 
+                              ' - <strong>TEST123456789</strong>';
+            
+            // Find the shipping section and update it for testing
+            var shippingDD = $('#order_' + orderId + ' dd:contains("Not yet shipped")');
+            if (shippingDD.length) {
+                shippingDD.html(shippingHtml);
+                // Also update the shipment indicator
+                var shippingDT = shippingDD.prev('dt');
+                shippingDT.find('.btn').remove();
+                shippingDT.append('<i class="fa-solid fa-check text-success"></i>');
+            }
+            
+            // Update order details to show new tracking, then close dialog and open PDF
+            if (typeof updateOrderDetails === 'function') {
+                // For testing, let's also add a visual indicator that the function was called
+                console.log('updateOrderDetails() called - check if shipping info refreshes');
+                updateOrderDetails();
+            }
+            
+            var modal = btn.closest('.modal');
+            if (modal.length) {
+                modal.on('hidden.bs.modal', function () {
+                    // Open test "PDF" after dialog is fully closed
+                    if (mockResp.label_url) {
+                        window.open(mockResp.label_url, '_blank');
+                    }
+                });
+                modal.modal('hide');
+            }
+        }, 1000);
+    });
+*/
+
     // ── Use Order Address ──────────────────────────────────────────────
     $('.js-use-order-addr').on('click', function() {
         chosenAddress = {
@@ -331,17 +394,24 @@
                     $('#rm-dlg-tracking').text(resp.tracking || 'Pending');
                     if (resp.label_url) {
                         $('#rm-dlg-label-link').attr('href', resp.label_url).show();
-                        window.open(resp.label_url, '_blank');
                     }
                     $('#rm-dlg-result').show();
                     
-                    // Auto-close dialog after successful label creation
-                    setTimeout(function() {
-                        var modal = $('#rm-dlg-create').closest('.modal');
-                        if (modal.length) {
-                            modal.modal('hide');
-                        }
-                    }, 2000);
+                    // Update order details to show new tracking, then close dialog and open PDF
+                    if (typeof updateOrderDetails === 'function') {
+                        updateOrderDetails();
+                    }
+                    
+                    var modal = btn.closest('.modal');
+                    if (modal.length) {
+                        modal.on('hidden.bs.modal', function () {
+                            // Open PDF after dialog is fully closed
+                            if (resp.label_url) {
+                                window.open(resp.label_url, '_blank');
+                            }
+                        });
+                        modal.modal('hide');
+                    }
                 } else {
                     btn.prop('disabled', false);
                     $('#rm-dlg-status').html('<span class="text-danger"><i class="fa fa-times-circle"></i> ' + resp.error + '</span>');
