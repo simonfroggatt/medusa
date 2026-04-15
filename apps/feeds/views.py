@@ -323,6 +323,11 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                 )
                 if not store_variant:
                     continue
+                
+                # Exclude variants where exclude_google_ads is True
+                if store_variant.exclude_google_ads:
+                    logger.info(f"Excluding product variant {store_variant.prod_variant_id} from Google Merchant feed due to exclude_google_ads=True")
+                    continue
 
                 # Calculate variant price
                 if store_variant.variant_overide_price:

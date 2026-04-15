@@ -192,6 +192,7 @@ class OcTsgProductVariants(models.Model):
     digital_artwork_price = models.FloatField(blank=True, null=True)
     digital_artwork_def = models.IntegerField(blank=True, null=True)
     isdeleted = models.BooleanField()
+    exclude_google_ads = models.BooleanField(default=False)
 
 
     class Meta:
