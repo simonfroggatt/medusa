@@ -389,6 +389,9 @@ $(function () {
                     },
                 },
                 {
+                    data: "orderby"
+                },
+                {
                     data: "prod_variant_id",
                     sortable: false,
                     className: 'text-md-end text-start',

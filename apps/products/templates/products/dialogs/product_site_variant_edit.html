@@ -26,7 +26,7 @@
                 <div class="col-8">
                     {{ form.alt_image|as_crispy_field }}
                 </div>
-                <div class="col-6 pt-2">
+                <div class="col-5 pt-2">
                     <label for="id_{{ form.variant_code.id }}" class="form-label" id="variantcode_lbl">Variant Code</label>
                     <div class="input-group">
                         <input type="text" name="{{ form.variant_code.name }}" id="id_{{ form.variant_code.name }}" class="form-control" placeholder="" aria-label="variant code" aria-describedby="variantcode"
@@ -37,11 +37,14 @@
                         Automatic site code is {{ auto_code }}
                     </div>
                 </div>
-                <div class="col-6 pt-2">
+                <div class="col-5 pt-2">
                     {{ form.variant_overide_price|as_crispy_field}}
                     <div id="currentDefaultPrice" class="form-text">
                         Current default prices is {{ product_variant_obj.prod_var_core.size_material.price }}
                     </div>
+                </div>
+                <div class="col-2 pt-2">
+                    {{ form.orderby|as_crispy_field}}
                 </div>
 
 

@@ -128,7 +128,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcTsgProductVariants
         fields = ['prod_variant_id', 'variant_code', 'variant_overide_price', 'prod_var_core', 'alt_image', 'store',
-                  'isdeleted', 'alt_image_url', 'store_size_material_price', 'site_variant_image_url']
+                  'isdeleted', 'alt_image_url', 'store_size_material_price', 'site_variant_image_url', 'orderby']
         depth = 4
 
     def get_store_size_material_price(self, obj):
