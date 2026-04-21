@@ -394,23 +394,13 @@
                     $('#rm-dlg-tracking').text(resp.tracking || 'Pending');
                     if (resp.label_url) {
                         $('#rm-dlg-label-link').attr('href', resp.label_url).show();
+                        window.open(resp.label_url, '_blank');
                     }
                     $('#rm-dlg-result').show();
                     
-                    // Update order details to show new tracking, then close dialog and open PDF
+                    // Update order details to show new tracking
                     if (typeof updateOrderDetails === 'function') {
                         updateOrderDetails();
-                    }
-                    
-                    var modal = btn.closest('.modal');
-                    if (modal.length) {
-                        modal.on('hidden.bs.modal', function () {
-                            // Open PDF after dialog is fully closed
-                            if (resp.label_url) {
-                                window.open(resp.label_url, '_blank');
-                            }
-                        });
-                        modal.modal('hide');
                     }
                 } else {
                     btn.prop('disabled', false);
