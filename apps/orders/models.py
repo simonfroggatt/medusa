@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from apps.sites.models import OcStore
 from django.utils import timezone
 import datetime as dt
@@ -36,6 +37,20 @@ class OcOrderQuerySet(models.QuerySet):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         return self.filter(order_status_id=1).filter(payment_status_id__in=valid_status, is_legacy=False)
 
+    def artwork(self):
+        valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
+        #14 - order product status
+        product_status = 14
+        
+        return self.filter(
+            Q(order_status_id=1) & 
+            Q(payment_status_id__in=valid_status) & 
+            Q(is_legacy=False)
+        ).filter(
+            Q(order_products__status=product_status) |
+            Q(order_products__isnull=True)
+        ).distinct()
+
     def failed(self):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         return self.exclude(payment_status_id__in=valid_status).exclude(order_status_id=99)
@@ -64,6 +79,9 @@ class OcOrderManager(models.Manager):
 
     def new(self):
         return self.get_queryset().new()
+
+    def artwork(self):
+        return self.get_queryset().artwork()
 
     def failed(self):
         return self.get_queryset().failed()

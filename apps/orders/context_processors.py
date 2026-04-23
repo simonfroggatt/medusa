@@ -7,6 +7,11 @@ def new_orders_count(request):
         'new_orders_count': OcOrder.objects.new().count()
     }
 
+def artwork_orders_count(request):
+    return {
+        'artwork_orders_count': OcOrder.objects.artwork().count()
+    }
+
 def new_supplier_purchases_count(request):
     status_filter_list = [settings.TSG_ORDER_PRODUCT_SUPPLIER_ITEM]
 

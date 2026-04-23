@@ -36,6 +36,14 @@
                                       </a>
                                     </li>
                                     <li><a href="{% url 'liveorders' %}" >Live Orders</a></li>
+                                    <li class="nav-item">
+                                      <a href="{% url 'artworkorders' %}" class="nav-link d-flex align-items-center">
+                                        Artwork
+                                        {% if artwork_orders_count %}
+                                          <span class="badge bg-success ms-2">{{ artwork_orders_count }}</span>
+                                        {% endif %}
+                                      </a>
+                                    </li>
                                     {% if request.user|has_group:"superuser" %}
                                     <li><a href="{% url 'failedorders' %}">Failed Orders</a></li>
                                     {% endif %}

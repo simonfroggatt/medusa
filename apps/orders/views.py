@@ -98,6 +98,13 @@ def new_order_list(request):
     return render(request, template_name, context)
 
 
+def artwork_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'heading': 'Artwork Uploaded'}
+    context['order_status'] = 'ARTWORK'
+    return render(request, template_name, context)
+
+
 def failed_order_list(request):
     template_name = 'orders/orders_list.html'
     context = {'heading': 'Failed Orders'}
@@ -125,6 +132,8 @@ class Orders_asJSON(viewsets.ModelViewSet):
             queryset = self.model.objects.live()
         elif status == 'NEW':
             queryset = self.model.objects.new()
+        elif status == 'ARTWORK':
+            queryset = self.model.objects.artwork()
         elif status == 'FAILED':
             queryset = self.model.objects.failed()
         elif status == 'LEGACY':

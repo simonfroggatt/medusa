@@ -81,6 +81,7 @@ urlpatterns = [
     path('live', views.live_order_list, name='liveorders'),
     path('all', views.order_list, name='allorders'),
     path('new', views.new_order_list, name='neworders'),
+    path('artwork', views.artwork_order_list, name='artworkorders'),
     path('failed', views.failed_order_list, name='failedorders'),
     path('legacy', views.legacy_order_list, name='legacyorders'),
 
