@@ -41,8 +41,10 @@ class OcOrderQuerySet(models.QuerySet):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         #14 - order product status
         product_status = 14
+
+
         
-        return self.filter(
+        queryset = self.filter(
             Q(order_status_id=1) & 
             Q(payment_status_id__in=valid_status) & 
             Q(is_legacy=False)
@@ -50,6 +52,14 @@ class OcOrderQuerySet(models.QuerySet):
             Q(order_products__status=product_status) |
             Q(order_products__isnull=True)
         ).distinct()
+        
+        # Log the query for debugging
+        import logging
+        logger = logging.getLogger('apps')
+        logger.info(f"Artwork orders query SQL: {queryset.query}")
+        logger.info(f"Artwork orders count: {queryset.count()}")
+        
+        return queryset
 
     def failed(self):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
