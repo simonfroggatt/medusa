@@ -64,6 +64,8 @@ urlpatterns = [
 
     path('<int:order_id>/bespokeproduct/<int:bespoke_order_product_id>', views.bespoke_order_product, name='orderproductbespoke'),
 
+    path('<int:order_id>/product-status-change/', views.order_product_status_bulk, name='orderproductstatusbulk'),
+
 
     path('api/<int:order_id>/updateshipping/', views.order_shipping_change, name='ordershippingchange'),
     path('api/<int:order_id>/shipit/', views.order_ship_it, name='ordershipit'),

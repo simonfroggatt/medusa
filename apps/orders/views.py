@@ -12,6 +12,7 @@ from apps.pricing.models import OcTsgProductMaterial
 from apps.options.models import (OcTsgProductVariantOptions, OcTsgOptionClass, OcTsgOptionValues, \
     OcTsgOptionValueDynamics, OcTsgProductOptionValues, OcTsgProductOption, OcOptionValues, OcTsgProductVariantCore)
 from apps.pricing.models import OcTsgSizeMaterialComb, OcTsgSizeMaterialCombPrices
+from medusa.models import OcTsgOrderProductStatus
 from .serializers import OrderListSerializer, OrderProductListSerializer, OrderTotalsSerializer, \
     OrderPreviousProductListSerializer, OrderFlagsListSerializer, OrderProductStatusHistorySerializer, \
     CustomerPreviousOrdersSerializer
@@ -735,6 +736,35 @@ def order_product_delete(request, order_id, order_product_id):
                                              request=request
                                              )
         return JsonResponse(data)
+
+def order_product_status_bulk(request, order_id):
+    data = dict()
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    if request.method == 'POST':
+        #then we need to go through and set all the order products to the selected status
+        order_product_ids = request.POST.get('order_product_ids', '')
+        status = request.POST.get('new_status', '')
+        # Convert comma-separated string back to list for the filter
+        product_id_list = order_product_ids.split(',') if order_product_ids else []
+        OcOrderProduct.objects.filter(order_id=order_id, order_product_id__in=product_id_list).update(status=status)
+        data['form_is_valid'] = True
+
+    else:
+        order_product_ids = request.GET.getlist('product_ids[]', '')
+        # Convert list to comma-separated string for the hidden field
+        order_product_ids_str = ','.join(order_product_ids) if order_product_ids else ''
+        data['form_is_valid'] = False
+        template = 'orders/dialogs/product_status_bulk.html'
+
+        product_status_obj = OcTsgOrderProductStatus.objects.all()
+
+        context = {'order_id': order_id, 'product_status_obj': product_status_obj, 'order_product_ids': order_product_ids_str}
+        data['html_form'] = render_to_string(template,
+                                             context,
+                                             request=request
+                                             )
+
+    return JsonResponse(data)
 
 
 def order_billing_edit(request, order_id):

@@ -1,0 +1,33 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title"> Change Product <strong>STATUS</strong></h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'orderproductstatusbulk' order_id %}" id="js-product-status-submit">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_product_ids" value="{{ order_product_ids }}">
+                    <p>Choose the new status for these products</p>
+                    <select class="form-select pb-2" aria-label="Default select" id="new_status" name="new_status">
+                        {% for product_status in product_status_obj %}
+                            <option value="{{ product_status.status_id }}">{{ product_status.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                <div class="col-md-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }} ">Cancel</button>
+                        <button type="submit" id="update" class="btn {{ BUTTON_OK }} pull-right">Update</button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

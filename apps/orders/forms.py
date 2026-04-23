@@ -272,3 +272,4 @@ class OrderDocumentForm(forms.ModelForm):
     widgets = {
         'order': forms.Select(attrs={"hidden": True}),
     }
+

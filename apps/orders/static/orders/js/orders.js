@@ -12,6 +12,7 @@ $(function () {
         "processing": true,
         "select": true,
         "info": false,
+        "rowId": "order_product_id",
         "ajax": "/orders/api/order-products/" + current_order_id + "/?format=datatables",
         "columns": [
             {
@@ -868,6 +869,7 @@ $(function () {
 
     $(document).on("submit", "#js-order-shipping-change", ShippingAddressSearchQuick);
 
+    $(document).on("submit", "#js-product-status-submit", saveOrderProductStatusForm);
 
     //order documents
     $(document).on("submit", "#form_order_document", DocumentUpload);
@@ -917,7 +919,119 @@ $(function () {
         });
     }
 
-})
+
+
+    $('#order_product_list').DataTable().on('select', function (e, dt, type, indexes) {
+        if(dt.rows('.selected').data().length > 0)
+        {
+            $('#js-order-product-status-button').prop('disabled', false);
+        }
+        else {
+            $('#js-order-product-status-button').prop('disabled', true);
+        }
+    });
+
+    $('#order_product_list').DataTable().on('deselect', function (e, dt, type, indexes) {
+        if(dt.rows('.selected').data().length > 0)
+        {
+            $('#js-order-product-status-button').prop('disabled', false);
+        }
+        else {
+            $('#js-order-product-status-button').prop('disabled', true);
+        }
+    });
+
+
+    const statusButton = document.querySelector('#js-order-product-status-button');
+
+    if (statusButton) {
+        statusButton.addEventListener('click', function () {
+
+            //get a list of selected rows
+        //get a list of selected rows
+        let selectedRows = $('#order_product_list').DataTable().rows('.selected').data();
+        //and save the order_product_id's in a list
+        let selectedIds = [];
+        // Convert to array if needed and extract order_product_id
+        for (let i = 0; i < selectedRows.length; i++) {
+
+            selectedIds.push(selectedRows[i].order_product_id);
+        }
+        if (selectedIds.length === 0) {
+            return;
+        }
+        
+        // Load the status change dialog
+        loadOrderProductStatusDialog(selectedIds);
+        return false;
+        });
+    } else {
+        console.log('Status button not found in DOM!');
+        return false;
+    }
+
+    function saveOrderProductStatusForm()    {
+    var form = $(this);
+    $.ajax({
+        url: form.attr("action"),
+        data: form.serialize(),
+        type: form.attr("method"),
+        dataType: 'json',
+        success: function (data) {
+            if (data.form_is_valid) {
+                $("#modal-base").modal("hide");
+                // Update the DataTable rows to show new status
+
+                    let dtAvailable = $('#order_product_list').DataTable();
+                    dtAvailable.ajax.reload();
+                    updateOrderFlags()
+                // Clear selection
+                let table = $('#order_product_list').DataTable();
+                table.rows().deselect();
+                $('#js-order-product-status-button').prop('disabled', true);
+            } else {
+                $("#modal-base .modal-content").html(data.html_form);
+            }
+        }
+    });
+    return false;
+}
+
+
+});
+
+
+let loadOrderProductStatusDialog = function (selectedIds) {
+    let dlg_size = 'modal-md';
+    $.ajax({
+        url: '/orders/' + current_order_id + '/product-status-change/',
+        type: 'get',
+        data: { 
+            product_ids: selectedIds,
+            format: 'json'
+        },
+        dataType: 'json',
+        beforeSend: function () {
+            $("#modal-base #modal-outer").removeClass('modal-sm modal-lg modal-xl modal-fullscreen')
+            $("#modal-base #modal-outer").addClass(dlg_size)
+            $("#modal-base").modal("show");
+            //update the table
+
+
+        },
+        success: function (data) {
+            if (data.form_is_valid) {
+                $("#modal-base").modal("hide")
+
+            } else {
+                $("#modal-base .modal-content").html(data.html_form);
+            }
+        },
+    });
+     return false;
+}
+
+
 
 function copy_orderno_to_clipboard(order_number) {
     const el = document.createElement('textarea');
