@@ -42,22 +42,20 @@ class OcOrderQuerySet(models.QuerySet):
         #14 - order product status
         product_status = 14
 
-
-        
-        queryset = self.filter(
-            Q(order_status_id=1) & 
-            Q(payment_status_id__in=valid_status) & 
-            Q(is_legacy=False)
+        order_status_excl = [99, 1, 7]
+        queryset = self.exclude(order_status_id__in=order_status_excl).filter(
+            payment_status_id__in=valid_status, 
+            is_legacy=False
         ).filter(
             Q(order_products__status=product_status) |
             Q(order_products__isnull=True)
         ).distinct()
         
         # Log the query for debugging
-        import logging
-        logger = logging.getLogger('apps')
-        logger.info(f"Artwork orders query SQL: {queryset.query}")
-        logger.info(f"Artwork orders count: {queryset.count()}")
+       # import logging
+       # logger = logging.getLogger('apps')
+       # logger.info(f"Artwork orders query SQL: {queryset.query}")
+       # logger.info(f"Artwork orders count: {queryset.count()}")
         
         return queryset
 
