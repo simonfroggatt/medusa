@@ -12,6 +12,12 @@ def artwork_orders_count(request):
         'artwork_orders_count': OcOrder.objects.artwork().count()
     }
 
+def js_version(request):
+    from django.conf import settings
+    return {
+        'js_version': settings.JS_VERSION
+    }
+
 def new_supplier_purchases_count(request):
     status_filter_list = [settings.TSG_ORDER_PRODUCT_SUPPLIER_ITEM]
 
