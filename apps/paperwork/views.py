@@ -1953,7 +1953,7 @@ def generate_order_footer(order_obj, order_total_table, styles):
     button = None
     if order_obj.order_hash:
         payment_link = (
-            f'{settings.TSG_PAYMENT_LINK}'
+            f'{order_obj.store.url}{settings.TSG_PAYMENT_LINK}'
             f'&order_id={order_obj.order_id}&order_hash={order_obj.order_hash}'
         )
         button = Table(
