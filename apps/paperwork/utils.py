@@ -24,58 +24,23 @@ def create_company_logo(company_obj):
     maxW = 90 * mm
     maxH = 20 * mm
 
-    # Determine the image source path
+    # Determine the image source path using the same approach as product images
     if company_obj.branding_dir and company_obj.logo_paperwork:
-        img_url = settings.MEDIA_URL + 'stores/branding/' + company_obj.branding_dir + '/paperwork/' + company_obj.logo_paperwork
+        img_src = 'stores/branding/' + company_obj.branding_dir + '/paperwork/' + company_obj.logo_paperwork
     else:
         # Fallback to old structure
-        if settings.STATIC_ROOT:
-            img_src = settings.STATIC_ROOT + '/paperwork/images/' + company_obj.logo_paperwork
-        else:
-            img_src = settings.STATIC_URL + '/paperwork/images/' + company_obj.logo_paperwork
-        img_url = img_src
+        img_src = 'paperwork/images/' + company_obj.logo_paperwork
 
-    # If using CDN (MEDIA_URL is a URL), download the image first
-    if img_url.startswith('http'):
-        import tempfile
-        import requests
-        from urllib.parse import urlparse
-        
-        try:
-            # Download the image to a temporary file with proper SSL handling
-            response = requests.get(img_url, timeout=10, verify=True, headers={'User-Agent': 'Mozilla/5.0'})
-            response.raise_for_status()
-            
-            # Create a temporary file
-            image_type = pathlib.Path(urlparse(img_url).path).suffix
-            with tempfile.NamedTemporaryFile(delete=False, suffix=image_type) as temp_file:
-                temp_file.write(response.content)
-                img_src = temp_file.name
-        except Exception as e:
-            # Try to use local file path if CDN fails
-            try:
-                # Convert CDN URL to local path
-                if hasattr(settings, 'MEDIA_ROOT') and settings.MEDIA_ROOT:
-                    # Extract relative path from CDN URL
-                    parsed_url = urlparse(img_url)
-                    relative_path = parsed_url.path.lstrip('/media/')
-                    local_path = os.path.join(settings.MEDIA_ROOT, relative_path)
-                    if os.path.exists(local_path):
-                        img_src = local_path
-                    else:
-                        # Final fallback to no image
-                        img_src = settings.STATIC_ROOT + '/paperwork/images/no-logo.png' if settings.STATIC_ROOT else '/static/paperwork/images/no-logo.png'
-                else:
-                    img_src = settings.STATIC_ROOT + '/paperwork/images/no-logo.png' if settings.STATIC_ROOT else '/static/paperwork/images/no-logo.png'
-            except:
-                # Ultimate fallback
-                img_src = settings.STATIC_ROOT + '/paperwork/images/no-logo.png' if settings.STATIC_ROOT else '/static/paperwork/images/no-logo.png'
-    else:
-        img_src = img_url
+    # Use the same _create_image_url function that product images use
+    try:
+        image_url = _create_image_url(img_src)
+    except:
+        # Fallback to no image if _create_image_url fails
+        image_url = settings.STATIC_ROOT + '/paperwork/images/no-logo.png' if settings.STATIC_ROOT else '/static/paperwork/images/no-logo.png'
 
     image_type = pathlib.Path(img_src).suffix
     if image_type.lower() == '.svg':
-        comp_logo = svg2rlg(img_src)
+        comp_logo = svg2rlg(image_url)
         w = comp_logo.width
         h = comp_logo.height
         scaleW = maxW / w
@@ -83,7 +48,7 @@ def create_company_logo(company_obj):
         scaleNew = min(scaleY, scaleW)
         comp_logo.scale(scaleNew, scaleNew)
     else:
-        comp_logo = Image(img_src)
+        comp_logo = Image(image_url)
         comp_logo._restrictSize(maxW, maxH)
 
     return comp_logo
