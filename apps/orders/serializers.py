@@ -84,6 +84,7 @@ class OrderListSerializer(serializers.ModelSerializer):
             from django.conf import settings
             return f"{settings.MEDIA_URL}stores/branding/{obj.store.branding_dir}/logos/{obj.store.thumb}"
         else:
+            from django.conf import settings
             return f"{settings.MEDIA_URL}no-image.png"
 
     def get_highlight_code(self, obj):
