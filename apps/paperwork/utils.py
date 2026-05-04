@@ -24,22 +24,37 @@ def create_company_logo(company_obj):
     maxW = 90 * mm
     maxH = 20 * mm
 
+    # Debug: Print company object details
+    print(f"DEBUG: company_obj.branding_dir = {getattr(company_obj, 'branding_dir', 'MISSING')}")
+    print(f"DEBUG: company_obj.logo_paperwork = {getattr(company_obj, 'logo_paperwork', 'MISSING')}")
+
     # Determine the image source path using the same approach as product images
     if company_obj.branding_dir and company_obj.logo_paperwork:
         img_src = 'stores/branding/' + company_obj.branding_dir + '/paperwork/' + company_obj.logo_paperwork
+        print(f"DEBUG: Using new branding path: {img_src}")
     else:
-        # Fallback to old structure
-        img_src = 'paperwork/images/' + company_obj.logo_paperwork
+        # Fallback to old structure - use MEDIA path for local, STATIC for CDN
+        if settings.CDN:
+            img_src = 'paperwork/images/' + company_obj.logo_paperwork
+        else:
+            img_src = 'stores/branding/paperwork/' + company_obj.logo_paperwork
+        print(f"DEBUG: Using fallback path: {img_src}")
 
     # Use the same _create_image_url function that product images use
     try:
         image_url = _create_image_url(img_src)
-    except:
+        print(f"DEBUG: _create_image_url returned: {image_url}")
+    except Exception as e:
         # Fallback to no image if _create_image_url fails
+        print(f"DEBUG: _create_image_url failed: {e}")
         image_url = settings.STATIC_ROOT + '/paperwork/images/no-logo.png' if settings.STATIC_ROOT else '/static/paperwork/images/no-logo.png'
+        print(f"DEBUG: Using fallback image: {image_url}")
 
     image_type = pathlib.Path(img_src).suffix
+    print(f"DEBUG: Image type: {image_type}")
+    
     if image_type.lower() == '.svg':
+        print(f"DEBUG: Processing as SVG")
         comp_logo = svg2rlg(image_url)
         w = comp_logo.width
         h = comp_logo.height
@@ -48,6 +63,7 @@ def create_company_logo(company_obj):
         scaleNew = min(scaleY, scaleW)
         comp_logo.scale(scaleNew, scaleNew)
     else:
+        print(f"DEBUG: Processing as regular image")
         comp_logo = Image(image_url)
         comp_logo._restrictSize(maxW, maxH)
 
