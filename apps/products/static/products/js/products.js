@@ -25,11 +25,11 @@ $(function () {
 
              columns: [
                  {
-                     data: "store.thumb",
+                     data: "store",
                      sortable: false,
                      searchable: false,
                      render: function (data, type, row) {
-                         let image_src = media_url + "stores/branding/logos/" + data;
+                         let image_src = media_url + 'stores/branding/' + data.branding_dir + '/logos/' + data.thumb;
                          return '<img height="15px" src="' + image_src + '">'
                      }
                  },
@@ -96,11 +96,12 @@ $(function () {
                },
                columns: [
                    {
-                       data: "category.store.thumb",
+                       data: "category.store",
                        sortable: false,
                        searchable: false,
                        render: function (data, type, row) {
-                           let image_src = media_url + "stores/branding/logos/" + data;
+
+                           let image_src = media_url + 'stores/branding/' + data.branding_dir + '/logos/' + data.thumb;
                            return '<img height="15px" src="' + image_src + '">'
                        }
                    },
@@ -355,9 +356,9 @@ $(function () {
                 "url": "/products/api/storevariants/" + js_product_id + "/0?format=datatables",
             },
             columns: [
-                {data: "store.thumb",
+                {data: "store",
                     render: function ( data, type, row ) {
-                    let image_src = media_url + "stores/branding/logos/" + data;
+                    let image_src =  media_url + 'stores/branding/' + data.branding_dir +'/logos/' + data.thumb || media_url + 'no-image.png';
                     return '<img height="15px" src="' + image_src + '">'
                  }},
                 {
@@ -427,9 +428,9 @@ $(function () {
                 "url": "/products/related/" + js_product_id + "/store/0?format=datatables",
             },
             columns: [
-                {data: "product_related_store.store__thumb",
+                {data: "product_related_store",
                     render: function ( data, type, row ) {
-                    let image_src =  media_url + 'stores/branding/logos/' + data;
+                    let image_src = data.store_thumb_url || media_url + 'no-image.png';
                     return '<img height="15px" src="' + image_src + '">'
                  }},
 

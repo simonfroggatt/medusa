@@ -56,7 +56,7 @@ class StoreSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcStore
-        fields = ['store_id', 'thumb']
+        fields = ['store_id', 'thumb', 'branding_dir']
 
 
 class StorePriceSerializer(serializers.ModelSerializer):

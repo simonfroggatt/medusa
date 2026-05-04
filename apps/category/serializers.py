@@ -37,7 +37,7 @@ class StoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcStore
-        fields = ['store_id', 'thumb', 'store_cats']
+        fields = ['store_id', 'thumb', 'store_cats', 'branding_dir']
 
 
 class CategoryDescriptionSerialize(serializers.ModelSerializer):

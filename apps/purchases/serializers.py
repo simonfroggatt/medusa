@@ -6,7 +6,7 @@ class ShortStoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcStore
-        fields = ['store_id', 'thumb']
+        fields = ['store_id', 'thumb', 'branding_dir']
 
 class OrdersWithSupplierItemsSerializer(serializers.ModelSerializer):
     class Meta:

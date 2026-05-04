@@ -25,8 +25,12 @@ def create_company_logo(company_obj):
 
     if settings.STATIC_ROOT:
         img_src = settings.STATIC_ROOT + '/paperwork/images/' + company_obj.logo_paperwork
+        img_src = settings.MEDIA_URL + 'stores/branding/' + company_obj.branding_dir + '/paperwork/' + company_obj.logo_paperwork
     else:
         img_src = settings.STATIC_URL + '/paperwork/images/'  + company_obj.logo_paperwork
+        img_src = settings.MEDIA_URL + 'stores/branding/' + company_obj.branding_dir + '/paperwork/' + company_obj.logo_paperwork
+
+
     #img_src = settings.STATIC_ROOT +'/paperwork/images/' + company_obj.logo_paperwork
 
     image_type = pathlib.Path(img_src).suffix

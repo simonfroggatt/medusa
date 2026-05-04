@@ -11,7 +11,7 @@ class ShortStoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OcStore
-        fields = ['store_id', 'thumb']
+        fields = ['store_id', 'thumb', 'branding_dir']
 
 class OrderStatusSerializer(serializers.ModelSerializer):
 
@@ -55,13 +55,14 @@ class OrderListSerializer(serializers.ModelSerializer):
     product_flags = serializers.SerializerMethodField(read_only=True)
     shipping_flag = serializers.SerializerMethodField(read_only=True)
     highlight_code = serializers.SerializerMethodField(read_only=True)
+    store_branding_thumb_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OcOrder
         fields = [field.name for field in model._meta.fields]
         read_only_fields = (['short_date'])
         fields.extend(['dow', 'days_since_order', 'is_order', 'orderflags', 'product_flags', 'shipping_flag',
-                       'short_date', 'highlight_code'])
+                       'short_date', 'highlight_code', 'store_branding_thumb_url'])
 
         depth = 1
 
@@ -76,6 +77,14 @@ class OrderListSerializer(serializers.ModelSerializer):
             'shipping_status'
             ).values('shipping_status__status_title', 'shipping_status__status_colour').first()
         return shipping_status
+
+    def get_store_branding_thumb_url(self, obj):
+        """Get the store's branding thumb URL using the new branding structure"""
+        if obj.store.thumb and obj.store.branding_dir:
+            from django.conf import settings
+            return f"{settings.MEDIA_URL}stores/branding/{obj.store.branding_dir}/logos/{obj.store.thumb}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
 
     def get_highlight_code(self, obj):
         return serv.order_highlight_code(obj)

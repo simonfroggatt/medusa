@@ -24,11 +24,11 @@ $(function () {
             "order": [[1, "asc"]],
             columns: [
                 {
-                    data: "store.thumb",
+                    data: "store",
                     sortable: false,
                     searchable: false,
                     render: function (data, type, row) {
-                        let image_src = media_url + "stores/branding/logos/" + data;
+                        let image_src =  media_url + + 'stores/branding/' + data.branding_dir +'/logos/' + data.thumb;
                         return '<img height="15px" src="' + image_src + '">'
                     }
                 },

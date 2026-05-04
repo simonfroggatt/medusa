@@ -75,7 +75,7 @@ $(function () {
                 sortable: false,
                 searchable: false,
                 render: function ( data, type, row ) {
-                    let image_src =  media_url + 'stores/branding/logos/' + data.thumb
+                    let image_src =  media_url + + 'stores/branding/' + data.branding_dir +'/logos/' + data.thumb;
                     return '<img height="15px" src="' + image_src + '">'
                  }
             },

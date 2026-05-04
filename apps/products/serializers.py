@@ -159,12 +159,21 @@ class StoreCoreProductVariantSerialize(serializers.ModelSerializer):
 
 
 class ProductStoreSerializer(serializers.ModelSerializer):
+    store_thumb_url = serializers.SerializerMethodField(read_only=True)
+    
     class Meta:
         model = OcProductToStore
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['image_url'])
+        fields.extend(['image_url', 'store_thumb_url'])
 
         depth = 1
+    
+    def get_store_thumb_url(self, obj):
+        """Get the store's branding thumb URL using the new branding structure"""
+        if obj.store.thumb and obj.store.branding_dir:
+            return f"{settings.MEDIA_URL}stores/branding/{obj.store.branding_dir}/logos/{obj.store.thumb}"
+        else:
+            return f"{settings.MEDIA_URL}no-image.png"
 
 
 class CategorySerializer_old(serializers.ModelSerializer):
@@ -229,8 +238,13 @@ class RelatedSerializer(serializers.ModelSerializer):
 
 
     def get_product_related_store(self, obj):
-        productstore = OcProductToStore.objects.select_related('store').filter(pk=obj.related_id).values('store__thumb')
-        return productstore.first()
+        from django.conf import settings
+        productstore = OcProductToStore.objects.select_related('store').filter(pk=obj.related_id).values('store__thumb', 'store__branding_dir').first()
+        if productstore and productstore['store__thumb'] and productstore['store__branding_dir']:
+            productstore['store_thumb_url'] = f"{settings.MEDIA_URL}stores/branding/{productstore['store__branding_dir']}/logos/{productstore['store__thumb']}"
+        else:
+            productstore['store_thumb_url'] = f"{settings.MEDIA_URL}no-image.png"
+        return productstore
 
 
 class ProductStoreListSerializer(serializers.ModelSerializer):

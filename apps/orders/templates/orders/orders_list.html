@@ -80,7 +80,7 @@
                 name: "store.name",
                 class: "align-middle",
                 render: function ( data, type, row ) {
-                    let image_src = '{% get_media_prefix %}stores/branding/logos/' + data.thumb;
+                    let image_src = row.store_branding_thumb_url;
                     let store_logo = '<img height="15px" src="' + image_src + '" title="'+data.name+'">';
                     //return '<img height="15px" src="' + image_src + '">'
                     let order_type_icon = row['order_type']['order_type_icon']
@@ -245,6 +245,7 @@
            {data: "product_flags", "visible": false, searchable: false },
            {data: "highlight_code", "visible": false, searchable: false },
             {data: "order_type", "visible": false, searchable: false },
+            {data: "store_branding_thumb_url", "visible": false, searchable: false },
         ],
         "createdRow": function( row, data, dataIndex ) {
            /* if ( data.order_status.order_status_id != 15 ) {

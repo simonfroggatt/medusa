@@ -69,12 +69,11 @@
         },
         columns :[
             {
-                data: "thumb",
+                data: "store_thumb_url",
                 sortable: false,
                 searchable: false,
                 render: function ( data, type, row ) {
-                    let image_src = media_context + "stores/branding/logos/" + data;
-                    return '<img height="15px" src="' + image_src + '">'
+                    return '<img height="15px" src="' + data + '">'
                  }
             },
             {data: "name"},

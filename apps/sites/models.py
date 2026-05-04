@@ -54,6 +54,7 @@ class OcStore(models.Model):
     meta_title = models.CharField(max_length=128, blank=True, null=True)
     meta_description = models.CharField(max_length=256, blank=True, null=True)
     meta_keywords = models.CharField(max_length=256, blank=True, null=True)
+    branding_dir = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -63,23 +64,23 @@ class OcStore(models.Model):
     @property
     def store_thumb_url(self):
         if self.thumb:
-            return f"{settings.MEDIA_URL}{self.thumb}"
+            return f"{settings.MEDIA_URL}stores/branding/{self.branding_dir}/logos/{self.thumb}"
         else:
             return f"{settings.MEDIA_URL}no-image.png"
 
     @property
     def store_thumb_cdn_url(self):
         if self.thumb:
-            return f"{settings.MEDIA_URL}stores/branding/logos/{self.thumb}"
+            return f"{settings.MEDIA_URL}stores/branding/{self.branding_dir}/logos/{self.thumb}"
         else:
             return f"{settings.MEDIA_URL}no-image.png"
 
     @property
     def store_logo_url(self):
         if self.logo:
-            return f"{settings.MEDIA_URL}{self.logo}"
+            return f"{settings.MEDIA_URL}stores/branding/{self.branding_dir}/logos/{self.logo}"
         else:
-            return f"{settings.MEDIA.URL}no-image.png"
+            return f"{settings.MEDIA_URL}no-image.png"
 
     def __str__(self):
         return self.name

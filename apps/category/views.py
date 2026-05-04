@@ -72,6 +72,7 @@ class CategoryStoreEdit(UpdateView):
         context['heading'] = "SITE text"
         context['category_name'] = category_obj.category.name
         context['store_thumb'] = category_obj.store.thumb
+        context['store'] = category_obj.store
         return context
 
     def get_success_url(self):
