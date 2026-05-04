@@ -65,7 +65,7 @@ def create_company_logo(company_obj):
     else:
         print(f"DEBUG: Processing as regular image")
         comp_logo = Image(image_url)
-        comp_logo._restrictSize(maxW, maxH)
+        #comp_logo._restrictSize(maxW, maxH)
 
     return comp_logo
 
