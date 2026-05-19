@@ -51,6 +51,9 @@ class SizeMaterialCombo(forms.ModelForm):
         model = OcTsgSizeMaterialComb
         fields = '__all__'
         depth = 2
+        labels = {
+            'cos_details': 'COS Details',
+        }
 
 
 class StorePriceComboForm(forms.ModelForm):

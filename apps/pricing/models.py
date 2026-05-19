@@ -84,6 +84,7 @@ class OcTsgSizeMaterialComb(models.Model):
     price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
     weight = models.DecimalField(max_digits=10, decimal_places=5, blank=True, null=True)
+    cos_details = models.CharField(max_length=1024, blank=True, null=True)
 
     class Meta:
         managed = False

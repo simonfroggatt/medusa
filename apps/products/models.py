@@ -163,6 +163,7 @@ class OcTsgProductVariantCore(models.Model):
     pack_count = models.IntegerField(default=1)
     order_by = models.IntegerField(blank=True, null=True, default=99)
     exclude_variant_shipping = models.BooleanField(default=False)
+    cos_details = models.CharField(max_length=1024, blank=True, null=True)
 
 
     class Meta:

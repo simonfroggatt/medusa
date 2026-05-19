@@ -159,6 +159,7 @@ class VariantCoreForm(forms.ModelForm):
             'shipping_cost': 'Cost for this Shipping',
             'gtin': 'GTIN',
             'bl_live': 'LIVE',
+            'cos_details': 'COS Details',
         }
 
         field_classes = {
@@ -188,6 +189,7 @@ class VariantCoreEditForm(forms.ModelForm):
             'shipping_cost': 'Cost for this Shipping',
             'gtin': 'GTIN ',
             'bl_live': 'LIVE',
+            'cos_details': 'COS Details',
         }
 
 
