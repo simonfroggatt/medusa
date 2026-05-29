@@ -30,6 +30,10 @@
                         <div class="col-12">
                             {{ form.value|as_crispy_field }}
                         </div>
+                        <div class="col-12">
+                           <input type="checkbox" id="bl_custom_shipping" name="bl_custom_shipping" enabled="enabled" {% if bl_custom_shipping %} checked {% endif %}>
+                            <label for="bl_custom_shipping">Custom shipping</label>
+                        </div>
                     </div>
                 <div class="col-md-12">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -45,9 +49,13 @@
 
 <script>
     $('#shipping_methods_sel').on('change', function(){
-
             $('#id_value').val($(this).find(":selected").val())
-            $('#id_title').val($(this).find(":selected").html())
+            $('#bl_custom_shipping').prop('checked', false)
         }
     )
+
+    $('#id_value').on('input', function(){
+        var selectedPrice = $('#shipping_methods_sel').find(":selected").val()
+        $('#bl_custom_shipping').prop('checked', $(this).val() !== selectedPrice)
+    })
 </script>

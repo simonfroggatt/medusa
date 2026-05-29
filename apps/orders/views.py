@@ -535,6 +535,7 @@ def order_shipping_change(request, order_id):
             order_totals_obj.save()
             #and set the order details too
             order_obj = get_object_or_404(OcOrder, pk=order_id)
+            order_obj.bl_custom_shipping = 'bl_custom_shipping' in request.POST
             order_obj.shipping_method = request.POST.get('title')
             order_obj.save()
             calculate_order_total(order_id, False, False)
@@ -546,11 +547,14 @@ def order_shipping_change(request, order_id):
 
     template_name = 'orders/dialogs/update_shipping_choice.html'
     shipping_vals = serializers.serialize('json', shipping_obj)
+    order_details_obj = get_object_or_404(OcOrder, pk=order_id)
+
 
     context = {'order_id': order_id,
                'form': form,
                'shipping_methods': shipping_obj,
-               'shipping_vals': shipping_vals}
+               'shipping_vals': shipping_vals,
+               'bl_custom_shipping': order_details_obj.bl_custom_shipping}
 
     data['html_form'] = render_to_string(template_name,
                                          context,
@@ -1914,6 +1918,9 @@ def calc_order_totals(order_id, bl_recal_discount=True, bl_recalc_shipping=True)
         calc_update_product_subtotal(order_id)
 
     qs_order = OcOrder.objects.filter(pk=order_id).first()
+
+    bl_recalc_shipping = not qs_order.bl_custom_shipping
+
     order_tax_rate = Decimal(qs_order.tax_rate.rate / 100)
     order_tax_title = qs_order.tax_rate.name
     qs_products = OcOrderProduct.objects.filter(order__order_id=order_id)

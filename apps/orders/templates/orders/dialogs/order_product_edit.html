@@ -100,7 +100,7 @@
                     <div class="collapse show" id="collapseBulkDiscount">
                         <div class="row">
                             <div class="col-12" id="bulkTableDiv">
-                                <select class="form-select bulk_group_select" id="edit-bulk_group_select">
+                                <select class="form-select bulk_group_select" id="edit-bulk_group_select" name="edit-bulk_group_select">
                                     {% for bulk_group in bulk_info %}
                                         <option value="{{ bulk_group.id }}" {% if default_bulk == bulk_group.id %}
                                                 selected {% endif %}>{{ bulk_group.name }}</option>

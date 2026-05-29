@@ -271,6 +271,7 @@ class OcOrder(models.Model):
     plain_label = models.BooleanField(default=False)
     order_hash = models.CharField(max_length=256, blank=True, null=True)
     is_legacy = models.BooleanField(default=False, blank=True, null=True)
+    bl_custom_shipping   = models.BooleanField(default=False, blank=True, null=True)
 
     @property
 

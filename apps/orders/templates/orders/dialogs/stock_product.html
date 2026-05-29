@@ -131,6 +131,7 @@
                        value="{{ form.exclude_discount.value }}">
                 <input type="hidden" id="{{ form.bulk_used.name }}" name="{{ form.bulk_used.name }}"
                        value="{{ form.bulk_used.value }}">
+
                 <input type="hidden" id="{{ form.bulk_discount.name }}" name="{{ form.bulk_discount.name }}"
                        value="1">
                 <input type="hidden" id="{{ form.single_unit_price.name }}" name="{{ form.single_unit_price.name }}"
@@ -577,6 +578,8 @@
             function set_bulk_group(data_row){
                 let bulk_group_id = data_row['bulk_group']['bulk_group_id'];
                 $('#form-stock #stock-bulk_group_select').val(bulk_group_id);
+                $('#form-stock #{{ form.bulk_discount.name }}').val(bulk_group_id);
+
 
             }
 
