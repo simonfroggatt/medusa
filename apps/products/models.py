@@ -350,7 +350,7 @@ class OcTsgProductStandard(models.Model):
     class Meta:
         managed = False
         db_table = 'oc_tsg_product_standard'
-        unique_together = (('product', 'compliance'),)
+        unique_together = (('product', 'compliance','code'),)
 
 
 
