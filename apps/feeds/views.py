@@ -393,6 +393,7 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
                     'custom_label_1': f"{core_variant.size_material.product_material.material_name}",
                     'custom_label_2': f'{core_variant.size_material.product_size.size_name}',
                     'custom_label_3': f'show_in_ads_{include_ads}',
+                    'custom_label_4': f'{product.google_tag}',
                     'shipping_cost': str(shipping_cost)
                 }
 

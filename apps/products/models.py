@@ -49,6 +49,7 @@ class OcProduct(models.Model):
     exclude_bespoke = models.BooleanField( default=False)
     default_order_status = models.ForeignKey(OcTsgOrderProductStatus, models.DO_NOTHING,
                                              db_column='default_order_status', blank=True, null=True, default=1)
+    google_tag = models.CharField(max_length=255,  blank=True, null=True, default='')
 
     @property
     def image_url(self):
