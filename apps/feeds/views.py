@@ -524,3 +524,6 @@ class GoogleMerchantViewSet(viewsets.ViewSet):
 
         # Optionally return a simple response
         return Response({'success': True, 'message': f'Feed saved to {file_path}'})
+
+
+    #/feeds/api/google-merchant/generate/?site_id=1

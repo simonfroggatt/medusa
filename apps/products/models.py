@@ -196,6 +196,7 @@ class OcTsgProductVariants(models.Model):
     isdeleted = models.BooleanField()
     exclude_google_ads = models.BooleanField(default=False)
     orderby = models.IntegerField(blank=True, null=True, default=99)
+    show_google_ads = models.BooleanField(default=False)
 
 
     class Meta:
