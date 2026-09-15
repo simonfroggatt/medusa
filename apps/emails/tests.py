@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 from unittest import mock
 
+from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 
 from apps.emails import supplier_orders
@@ -127,6 +128,37 @@ class LineOptionsTests(SimpleTestCase):
             SimpleNamespace(class_name='Imperial Measurement', value_name='13\'1&quot;')]
 
         self.assertEqual(supplier_orders._line_options(195109), ['Imperial Measurement : 13\'1"'])
+
+
+class SupplierOrderDialogTemplateTests(SimpleTestCase):
+    def test_dialog_renders_with_display_rows(self):
+        outstanding = make_line(195109)
+        ordered = make_line(195110, status_id=supplier_orders.PRODUCT_STATUS_SUPPLIER_ORDERED)
+        ordered.supplier_code = None
+        ordered.name = 'Rules &amp; Depths'
+        suppliers = [SimpleNamespace(pk=2, code='SYMBOL', company='Symbol'),
+                     SimpleNamespace(pk=4, code=None, company='Viewtec Signs Ltd')]
+
+        html = render_to_string('emails/supplier_order_dialog.html', {
+            'order_obj': SimpleNamespace(order_id=114308),
+            'order_number': 'SSAN-114308',
+            'groups': [{'supplier': supplier, 'outstanding': 1} for supplier in suppliers],
+            'supplier_obj': suppliers[1],
+            'lines': [supplier_orders.line_display_row(line) for line in (outstanding, ordered)],
+            'status_supplier_item': supplier_orders.PRODUCT_STATUS_SUPPLIER_ITEM,
+            'status_supplier_ordered': supplier_orders.PRODUCT_STATUS_SUPPLIER_ORDERED,
+            'email_to': 'orders@example.com',
+            'email_from': 'sales@example.com',
+            'email_subject': 'Purchase Order SSAN-114308',
+            'email_content': '<p>Hello</p>',
+        })
+
+        self.assertIn('TT 770 T', html)
+        self.assertIn('SSAN-123', html)  # model code shown when there is no supplier code
+        self.assertIn('Rules &amp; Depths', html)
+        self.assertNotIn('&amp;amp;', html)
+        self.assertIn('already ordered', html)
+        self.assertIn('Send to Viewtec Signs Ltd', html)
 
 
 class LineDisplayRowTests(SimpleTestCase):

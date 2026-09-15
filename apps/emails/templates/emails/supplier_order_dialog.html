@@ -43,7 +43,7 @@
                                        value="{{ line.order_product_id }}" id="supplier_order_line_{{ line.order_product_id }}"
                                        {% if line.status_id == status_supplier_item %}checked{% endif %}>
                             </td>
-                            <td><label for="supplier_order_line_{{ line.order_product_id }}">{{ line.supplier_code|default:line.model }}</label></td>
+                            <td><label for="supplier_order_line_{{ line.order_product_id }}">{{ line.supplier_code }}</label></td>
                             <td>
                                 {{ line.name }}<br>
                                 <small class="text-muted">{{ line.size_name|default:"" }} - {{ line.material_name|default:"" }}</small>
