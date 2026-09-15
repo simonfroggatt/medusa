@@ -8,8 +8,23 @@ def new_orders_count(request):
     }
 
 def artwork_orders_count(request):
-    return {
+    counts = {
         'artwork_orders_count': OcOrder.objects.artwork().count()
+    }
+    # Admin Tools order counts ride on this already-registered processor so no settings.py change is needed
+    counts.update(_admin_order_counts(request))
+    return counts
+
+
+def _admin_order_counts(request):
+    """Sidebar badges for the Admin Tools order lists; only worked out for superusers, who are the only ones shown them."""
+    user = getattr(request, 'user', None)
+    if not (user and user.is_authenticated and user.groups.filter(name='superuser').exists()):
+        return {}
+    return {
+        'awaiting_artwork_count': OcOrder.objects.awaiting_artwork().count(),
+        'supplier_items_count': OcOrder.objects.supplier_items().count(),
+        'ready_to_collect_count': OcOrder.objects.ready_to_collect().count(),
     }
 
 def js_version(request):

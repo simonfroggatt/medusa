@@ -163,6 +163,16 @@ class MarkSupplierLinesOrderedTests(SimpleTestCase):
         self.assertIn('SYMBOL', kwargs['description'])
         self.assertIn('direct to customer', kwargs['description'])
 
+    def test_activity_uses_company_when_supplier_has_no_code(self, save, activity, transaction):
+        supplier = OcSupplier(id=4, code=None, company='Acme Signs', order_email='orders@example.com')
+
+        supplier_orders.mark_supplier_lines_ordered(make_order(), supplier, [make_line()], False,
+                                                    ['orders@example.com'], user_id=5)
+
+        description = activity.objects.create.call_args.kwargs['description']
+        self.assertIn('Acme Signs', description)
+        self.assertNotIn('None', description)
+
     def test_no_activity_without_user(self, save, activity, transaction):
         supplier_orders.mark_supplier_lines_ordered(make_order(), SUPPLIER, [make_line()], False, ['orders@example.com'])
 

@@ -177,9 +177,30 @@
                                     <span>Orders</span>
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
-                                    <li><a href="{% url 'awaitingartworkorders' %}"><i class="fa-regular fa-paintbrush flag-red me-2"></i>Awaiting Artwork</a></li>
-                                    <li><a href="{% url 'supplieritemorders' %}"><i class="fa-light fa-handshake me-2"></i>Supplier Items</a></li>
-                                    <li><a href="{% url 'readytocollectorders' %}"><i class="fa-regular fa-square-check flag-green me-2"></i>Ready to Collect</a></li>
+                                    <li class="nav-item">
+                                      <a href="{% url 'awaitingartworkorders' %}" class="nav-link d-flex align-items-center">
+                                        <i class="fa-regular fa-paintbrush flag-red me-2"></i>Awaiting Artwork
+                                        {% if awaiting_artwork_count %}
+                                          <span class="badge bg-danger ms-2">{{ awaiting_artwork_count }}</span>
+                                        {% endif %}
+                                      </a>
+                                    </li>
+                                    <li class="nav-item">
+                                      <a href="{% url 'supplieritemorders' %}" class="nav-link d-flex align-items-center">
+                                        <i class="fa-light fa-handshake me-2"></i>Supplier Items
+                                        {% if supplier_items_count %}
+                                          <span class="badge bg-warning text-dark ms-2">{{ supplier_items_count }}</span>
+                                        {% endif %}
+                                      </a>
+                                    </li>
+                                    <li class="nav-item">
+                                      <a href="{% url 'readytocollectorders' %}" class="nav-link d-flex align-items-center">
+                                        <i class="fa-regular fa-square-check flag-green me-2"></i>Ready to Collect
+                                        {% if ready_to_collect_count %}
+                                          <span class="badge bg-success ms-2">{{ ready_to_collect_count }}</span>
+                                        {% endif %}
+                                      </a>
+                                    </li>
                                 </ul>
                             </li>
                             <li>

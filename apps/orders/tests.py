@@ -2,8 +2,30 @@ from unittest import mock
 
 from django.test import RequestFactory, SimpleTestCase
 
-from apps.orders import views
+from apps.orders import context_processors, views
 from apps.orders.models import OcOrderProduct
+
+
+class AdminOrderCountsTests(SimpleTestCase):
+    def request_for(self, authenticated=True, superuser=True):
+        user = mock.Mock(is_authenticated=authenticated)
+        user.groups.filter.return_value.exists.return_value = superuser
+        return mock.Mock(user=user)
+
+    def test_not_worked_out_for_non_superusers(self):
+        with mock.patch.object(context_processors.OcOrder, 'objects') as objects:
+            self.assertEqual(context_processors._admin_order_counts(self.request_for(superuser=False)), {})
+            self.assertEqual(context_processors._admin_order_counts(self.request_for(authenticated=False)), {})
+        objects.awaiting_artwork.assert_not_called()
+
+    def test_superuser_gets_admin_list_counts(self):
+        with mock.patch.object(context_processors.OcOrder, 'objects') as objects:
+            objects.awaiting_artwork.return_value.count.return_value = 2
+            objects.supplier_items.return_value.count.return_value = 5
+            objects.ready_to_collect.return_value.count.return_value = 1
+            counts = context_processors._admin_order_counts(self.request_for())
+
+        self.assertEqual(counts, {'awaiting_artwork_count': 2, 'supplier_items_count': 5, 'ready_to_collect_count': 1})
 
 
 class OrderProductStatusBulkTests(SimpleTestCase):

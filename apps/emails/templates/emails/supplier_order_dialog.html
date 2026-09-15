@@ -6,7 +6,7 @@
 </div>
 <div class="modal-body">
     <form method="post" action="{% url 'supplier_order_send' order_obj.order_id %}" id="js-supplier-order-form"
-          data-supplier-id="{{ supplier_obj.pk }}" data-supplier-code="{{ supplier_obj.code }}"
+          data-supplier-id="{{ supplier_obj.pk }}" data-supplier-code="{{ supplier_obj.code|default:supplier_obj.company }}"
           data-preview-url="{% url 'supplier_order_preview' order_obj.order_id %}"
           data-dialog-url="{% url 'supplier_order_dialog' order_obj.order_id %}">
         {% csrf_token %}
@@ -20,7 +20,7 @@
                         <button type="button" class="btn btn-outline-primary js-supplier-order" data-dlgsize="modal-fullscreen"
                                 data-url="{% url 'supplier_order_dialog' order_obj.order_id %}?supplier_id={{ group.supplier.pk }}">
                     {% endif %}
-                        {{ group.supplier.code }} <span class="badge bg-secondary ms-1">{{ group.outstanding }}</span>
+                        {{ group.supplier.code|default:group.supplier.company }} <span class="badge bg-secondary ms-1">{{ group.outstanding }}</span>
                     </button>
                 {% endfor %}
             </div>
@@ -82,7 +82,7 @@
                            pattern="^([\w+-.%]+@[\w-.]+\.[A-Za-z]{2,4},?\s*)+$"
                            title="Enter valid email addresses separated by commas">
                     {% if not email_to %}
-                        <div class="form-text text-danger">{{ supplier_obj.code }} has no order email address set.</div>
+                        <div class="form-text text-danger">{{ supplier_obj.code|default:supplier_obj.company }} has no order email address set.</div>
                     {% endif %}
                 </div>
                 <div class="form-group">
@@ -98,7 +98,7 @@
         <hr>
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }}">Close</button>
-            <button type="submit" class="btn {{ BUTTON_UPDATE }}"><i class="fa-solid fa-paper-plane"></i> Send to {{ supplier_obj.code }}</button>
+            <button type="submit" class="btn {{ BUTTON_UPDATE }}"><i class="fa-solid fa-paper-plane"></i> Send to {{ supplier_obj.code|default:supplier_obj.company }}</button>
         </div>
     </form>
 </div>

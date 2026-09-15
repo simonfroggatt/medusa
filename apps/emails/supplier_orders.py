@@ -151,5 +151,5 @@ def mark_supplier_lines_ordered(order_obj, supplier_obj, lines, bl_direct, email
         if user_id:
             OcTsgOrderActivity.objects.create(
                 order=order_obj, activity_type_id=ACTIVITY_TYPE_EMAIL_SENT, user_id=user_id,
-                description=f'Supplier order emailed to {supplier_obj.code} ({", ".join(email_to)}) - '
+                description=f'Supplier order emailed to {supplier_obj.code or supplier_obj.company} ({", ".join(email_to)}) - '
                             f'{len(lines)} line(s), {delivery}')
