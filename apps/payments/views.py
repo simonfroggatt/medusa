@@ -6,7 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import TemplateView
 from django.shortcuts import get_object_or_404
-from apps.orders.models import OcOrder
+from django.utils import timezone
+from apps.orders.models import OcOrder, add_payment_status_history
 from apps.xero_api.views import xero_order_update
 from .models import OcTsgStripePayments
 import logging
@@ -40,17 +41,14 @@ def webhook_stripe(request):
         if order_id:
             logger.debug(f"payment_intent")
             logger.debug(payment_intent)
-            try:
-                order = OcOrder.objects.get(order_id=order_id)
-                logger.debug(f"payment_intent.succeeded order payment method: {order.payment_method}")
-                order.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
-                order.payment_ref = payment_intent['id']
-                order.save()
+            # Update only the payment columns. tsg_store records the payment method at the same moment, and a
+            # full order.save() from a copy loaded a moment earlier would overwrite it with 'Not attempted'.
+            if OcOrder.objects.filter(pk=order_id).update(payment_status_id=settings.TSG_PAYMENT_STATUS_PAID):
+                OcOrder.objects.filter(pk=order_id, payment_date__isnull=True).update(payment_date=timezone.now())
+                add_payment_status_history(order_id)
                 f = Fernet(settings.XERO_TOKEN_FERNET)
                 encrypted_order_num = f.encrypt(str(order_id).encode()).decode()
                 xero_order_update(request, order_id, encrypted_order_num)
-            except OcOrder.DoesNotExist:
-                pass
 
     return HttpResponse(status=200)
 

@@ -14,12 +14,13 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileRe
 from cryptography.fernet import Fernet
 from nameparser import HumanName
 
-from apps.orders.models import OcOrder, OcOrderTotal, OcTsgPaymentHistory
+from apps.orders.models import OcOrder, OcOrderTotal, OcTsgPaymentHistory, add_payment_status_history
 from apps.customer.models import OcCustomer
 from apps.company.models import OcTsgCompany
 import threading
 
 import json
+import re
 import requests
 import webbrowser
 import base64
@@ -34,6 +35,7 @@ from collections import namedtuple
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
+from django.utils import timezone
 
 import logging
 logger = logging.getLogger('apps')
@@ -531,9 +533,9 @@ def _create_new_order(order_obj, customer_id, xero_id = None):
     errors = xero_order_obj.xero_api.get_error()
     if not errors:
         order_obj.xero_id = new_xero_invoice_id
-        logger.debug(f'_create_new_order - before save: Order payment method {order_obj.payment_method}')
-        order_obj.save()
-        logger.debug(f'_create_new_order - after save: Order payment method {order_obj.payment_method}')
+        # write only xero_id: order_obj was loaded before the Xero calls, so a full save() could overwrite
+        # payment details the storefront recorded in the meantime
+        OcOrder.objects.filter(pk=order_obj.order_id).update(xero_id=new_xero_invoice_id)
         #now check for rounding
         data['status'] = 'OK'
         data['orderID'] = new_xero_invoice_id
@@ -546,7 +548,12 @@ def _create_new_order(order_obj, customer_id, xero_id = None):
             data['status'] = 'ERROR'
             data['error'] = bl_fixed['errors']
 
+        # re-read so the Xero payment uses the current payment status, method and date
+        order_obj = OcOrder.objects.get(pk=order_obj.order_id)
         if order_obj.payment_status_id == 2:
+            if not order_obj.payment_date:
+                order_obj.payment_date = timezone.now()
+                OcOrder.objects.filter(pk=order_obj.order_id).update(payment_date=order_obj.payment_date)
             xero_order_obj.add_invoice_payment(order_obj)
             payment_id = xero_order_obj.create_payment()
             errors = xero_order_obj.xero_api.get_error()
@@ -894,6 +901,24 @@ def _xero_webhook_payload(payload):
             if event['eventType'] == 'UPDATE':
                 _xero_webhook_invoice_update(event['resourceId'])
 
+_XERO_JSON_DATE = re.compile(r'/Date\((-?\d+)([+-]\d{4})?\)/')
+
+
+def _parse_xero_date(value):
+    """Xero JSON dates look like '/Date(1726272000000+0000)/' (UTC milliseconds); ISO strings are accepted too.
+    Returns an aware datetime, or None if the value can't be read."""
+    if not value:
+        return None
+    match = _XERO_JSON_DATE.fullmatch(str(value).strip())
+    if match:
+        return datetime.datetime.fromtimestamp(int(match.group(1)) / 1000, tz=datetime.timezone.utc)
+    try:
+        parsed = datetime.datetime.fromisoformat(str(value).strip())
+    except ValueError:
+        return None
+    return parsed if timezone.is_aware(parsed) else timezone.make_aware(parsed)
+
+
 def _xero_webhook_invoice_update(invoice_id):
     xero_invoice = XeroInvoice()
     returned_invoice_id = xero_invoice.get_invoice(invoice_id)
@@ -910,12 +935,21 @@ def _xero_webhook_invoice_update(invoice_id):
         logger.debug(f'_xero_webhook_invoice_update - payment_method_id = {order_obj.payment_method}')
         invoice_payments = xero_invoice.get_payments()
         if invoice_payments:
-            order_obj.payment_status_id = settings.TSG_PAYMENT_STATUS_PAID
             payment_details = invoice_payments[0]
-            order_obj.payment_date = payment_details.get('Date')
+            payment_date = _parse_xero_date(payment_details.get('Date'))
+            if not payment_date:
+                logger.warning(f'_xero_webhook_invoice_update - unreadable Xero payment date '
+                               f'{payment_details.get("Date")!r} for order {order_obj.order_id}, using now')
+                payment_date = timezone.now()
             logger.debug(f'_xero_webhook_invoice_update - Order {order_obj.order_id} current payment_method_id = {order_obj.payment_method}')
             #order_obj.payment_method_id = settings.TSG_PAYMENT_TYPE_XERO
-            order_obj.save()
+            # Update only the payment columns: a full save() would overwrite anything written since the order was
+            # loaded, and OcOrder.save() replaces payment_date with now instead of the Xero payment date
+            updated = (OcOrder.objects.filter(pk=order_obj.order_id)
+                       .exclude(payment_status_id=settings.TSG_PAYMENT_STATUS_PAID)
+                       .update(payment_status_id=settings.TSG_PAYMENT_STATUS_PAID, payment_date=payment_date))
+            if updated:
+                add_payment_status_history(order_obj.order_id)
             #add this to the payment history - this is done automatically now by the order class
             #new_history_obj = OcTsgPaymentHistory()
             #new_history_obj.order_id = order_obj.order_id
