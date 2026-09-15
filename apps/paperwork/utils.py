@@ -468,24 +468,14 @@ def order_has_options(order_id):
 
 
 def get_order_product_line_options(order_product_id):
+    """Options then add-ons for an order line, 'Name : value' one per line (<BR/> between them) for ReportLab."""
     options_obj = OcTsgOrderOption.objects.filter(order_product_id=order_product_id)
-    option_text = ''
-    option_break = ''
-    for index, option in enumerate(options_obj):
-        if index > 0:  # Check if this is not the first option
-            option_break = '<BR/>'
-        option_text += f'{option.option_name} : {option.value_name}{option_break}'
-
     addon_obj = OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id)
 
-    addon_break = ''
-    addon_text = ''
-    for index, addon in enumerate(addon_obj):
-        if index > 0:  # Check if this is not the first option
-            addon_break = '<BR/>'
-        addon_text += f'{option_break}{addon.class_name} : {addon.value_name}{addon_break}'
+    option_lines = [f'{option.option_name} : {option.value_name}' for option in options_obj]
+    option_lines += [f'{addon.class_name} : {addon.value_name}' for addon in addon_obj]
 
-    return f'{option_text}{option_break}{addon_text}'
+    return '<BR/>'.join(option_lines)
 
 def order_has_product_options(order_id):
     extra_items = OcTsgOptionTypes.objects.filter( Q(extra_product=True) | Q(extra_variant=True) ).values_list('option_type_id')

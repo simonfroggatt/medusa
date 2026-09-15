@@ -40,7 +40,7 @@ class BuildSupplierOrderEmailTests(SimpleTestCase):
         self.templates.objects.filter.return_value.first.return_value = TEMPLATE
         self.addCleanup(templates.stop)
 
-        options = mock.patch.object(supplier_orders.paperwork_utils, 'get_order_product_line_options', return_value='')
+        options = mock.patch.object(supplier_orders, '_line_options', return_value=[])
         self.options = options.start()
         self.addCleanup(options.stop)
 
@@ -64,11 +64,17 @@ class BuildSupplierOrderEmailTests(SimpleTestCase):
         self.assertNotIn('For collection', email['body'])
 
     def test_options_column_only_when_a_line_has_options(self):
-        self.options.return_value = 'Fixing : Screws'
+        self.options.return_value = ['Fixing : Screws']
         email = supplier_orders.build_supplier_order_email(make_order(), SUPPLIER, [make_line()], bl_direct=False)
 
         self.assertIn('Options', email['body'])
         self.assertIn('Fixing : Screws', email['body'])
+
+    def test_each_option_on_its_own_line(self):
+        self.options.return_value = ['Metric Measurement : 4m', 'Imperial Measurement : 13\'1"']
+        email = supplier_orders.build_supplier_order_email(make_order(), SUPPLIER, [make_line()], bl_direct=False)
+
+        self.assertIn('Metric Measurement : 4m<br>Imperial Measurement : 13&#x27;1&quot;</td>', email['body'])
 
     def test_customer_address_is_escaped(self):
         order = make_order(shipping_fullname='<b>Jo</b>')
@@ -81,6 +87,22 @@ class BuildSupplierOrderEmailTests(SimpleTestCase):
 
         with self.assertRaises(supplier_orders.SupplierOrderError):
             supplier_orders.build_supplier_order_email(make_order(), SUPPLIER, [make_line()], bl_direct=False)
+
+
+class LineOptionsTests(SimpleTestCase):
+    @mock.patch.object(supplier_orders, 'OcTsgOrderProductOptions')
+    @mock.patch.object(supplier_orders, 'OcTsgOrderOption')
+    def test_options_then_addons_one_per_entry(self, order_option, product_options):
+        order_option.objects.filter.return_value = [SimpleNamespace(option_name='Fixing', value_name='Screws')]
+        product_options.objects.filter.return_value = [
+            SimpleNamespace(class_name='Metric Measurement', value_name='4m'),
+            SimpleNamespace(class_name='Imperial Measurement', value_name='13\'1"'),
+        ]
+
+        self.assertEqual(supplier_orders._line_options(195109),
+                         ['Fixing : Screws', 'Metric Measurement : 4m', 'Imperial Measurement : 13\'1"'])
+        order_option.objects.filter.assert_called_once_with(order_product_id=195109)
+        product_options.objects.filter.assert_called_once_with(order_product_id=195109)
 
 
 class BuildSupplierOrderAttachmentsTests(SimpleTestCase):

@@ -12,9 +12,8 @@ from django.db import transaction
 from django.template.loader import render_to_string
 
 from apps.emails import views as email_views
-from apps.orders.models import OcOrderProduct, OcTsgOrderActivity, \
+from apps.orders.models import OcOrderProduct, OcTsgOrderActivity, OcTsgOrderOption, OcTsgOrderProductOptions, \
     PRODUCT_STATUS_SUPPLIER_ITEM, PRODUCT_STATUS_SUPPLIER_ORDERED
-from apps.paperwork import utils as paperwork_utils
 from apps.paperwork.views import gen_supplier_despatch_for_emails, gen_shipping_page_for_emails
 from apps.templating.models import OcTsgTemplates
 
@@ -57,6 +56,18 @@ def get_supplier_order_lines(order_id, supplier_id, order_product_ids):
     return list(_supplier_lines(order_id).filter(supplier_id=supplier_id, order_product_id__in=order_product_ids))
 
 
+def _line_options(order_product_id):
+    """'Name : value' for each option and add-on on an order line, one entry per option.
+
+    A list rather than paperwork.utils.get_order_product_line_options' <BR/>-joined string, so the email template
+    can escape each entry."""
+    options = [f'{option.option_name} : {option.value_name}'
+               for option in OcTsgOrderOption.objects.filter(order_product_id=order_product_id)]
+    options += [f'{addon.class_name} : {addon.value_name}'
+                for addon in OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id)]
+    return options
+
+
 def build_supplier_order_email(order_obj, supplier_obj, lines, bl_direct):
     """Subject and HTML body from the store's TEMPLATE_SUPPLIER_ORDER template."""
     store_obj = order_obj.store
@@ -71,7 +82,7 @@ def build_supplier_order_email(order_obj, supplier_obj, lines, bl_direct):
         'name': line.name,
         'size_name': line.size_name,
         'material_name': line.material_name,
-        'options': paperwork_utils.get_order_product_line_options(line.order_product_id),
+        'options': _line_options(line.order_product_id),
         'quantity': line.quantity,
     } for line in lines]
 

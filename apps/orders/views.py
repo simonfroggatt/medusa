@@ -39,6 +39,7 @@ import operator
 import hashlib
 import uuid
 from apps.purchases import views as purchase_view
+from apps.orders.services import apply_order_store_details
 
 from apps.returns.models import OcTsgReturnOrder
 
@@ -1226,6 +1227,8 @@ def order_duplicate(request):
         order_obj.payment_method_id = 8
         order_obj.customer_order_ref = ''
         order_obj.xero_id = ''
+        # older Medusa-created orders have a blank store_name; don't carry that onto the copy
+        apply_order_store_details(order_obj, order_obj.store)
 
         new_order_id = order_obj.order_id
 

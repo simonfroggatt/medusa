@@ -1,8 +1,9 @@
+from types import SimpleNamespace
 from unittest import mock
 
 from django.test import RequestFactory, SimpleTestCase
 
-from apps.orders import context_processors, views
+from apps.orders import context_processors, services, views
 from apps.orders.models import OcOrderProduct
 
 
@@ -44,3 +45,38 @@ class OrderProductStatusBulkTests(SimpleTestCase):
         self.assertEqual(save_mock.call_count, 2)
         save_mock.assert_called_with(update_fields=['status'])
         self.assertJSONEqual(response.content, {'form_is_valid': True})
+
+
+class ApplyOrderStoreDetailsTests(SimpleTestCase):
+    def test_copies_store_name_and_url(self):
+        order = SimpleNamespace(store_name='', store_url=None)
+
+        services.apply_order_store_details(order, SimpleNamespace(name='Safety Signs and Notices',
+                                                                  url='https://www.safetysignsandnotices.co.uk/'))
+
+        self.assertEqual(order.store_name, 'Safety Signs and Notices')
+        self.assertEqual(order.store_url, 'https://www.safetysignsandnotices.co.uk/')
+
+    def test_missing_store_name_is_blank_not_none(self):
+        order = SimpleNamespace(store_name=None, store_url=None)
+
+        services.apply_order_store_details(order, SimpleNamespace(name=None, url=None))
+
+        self.assertEqual(order.store_name, '')
+
+
+class OrderDuplicateTests(SimpleTestCase):
+    def test_copy_gets_store_name_from_its_store(self):
+        store = SimpleNamespace(name='Safety Signs and Notices', url='https://www.safetysignsandnotices.co.uk/')
+        original = mock.Mock(order_id=97247, store=store, store_name='', store_url=None)
+        request = RequestFactory().post('/orders/api/orders/duplicate', {'order_id': '97247'})
+
+        with mock.patch.object(views, 'get_object_or_404', return_value=original), \
+                mock.patch.object(views.OcOrderProduct.objects, 'filter', return_value=[]), \
+                mock.patch.object(views.OcOrderTotal.objects, 'filter', return_value=[]), \
+                mock.patch.object(views, 'reverse_lazy', return_value='/orders/97248'):
+            response = views.order_duplicate(request)
+
+        self.assertEqual(original.store_name, 'Safety Signs and Notices')
+        self.assertEqual(original.store_url, 'https://www.safetysignsandnotices.co.uk/')
+        self.assertJSONEqual(response.content, {'form_is_valid': True, 'redirect_url': '/orders/97248'})

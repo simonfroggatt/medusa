@@ -9,6 +9,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from apps.orders.models import OcOrder, OcTsgPaymentMethod
+from apps.orders.services import apply_order_store_details
 from apps.company.models import OcTsgCompany, OcTsgCompanyType
 from apps.quotes.models import OcTsgQuote
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView
@@ -297,6 +298,7 @@ def order_customer_create(request, customer_id):
         new_order_obj.store_id = customer_obj.store_id
         new_order_obj.customer_group_id = customer_obj.customer_group_id
         new_order_obj.invoice_prefix = customer_obj.store.prefix
+        apply_order_store_details(new_order_obj, customer_obj.store)
         new_order_obj.currency_id = customer_obj.store.currency_id
         new_order_obj.currency_code = customer_obj.store.currency.code
 

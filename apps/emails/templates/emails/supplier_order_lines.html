@@ -16,8 +16,7 @@
             <td style="border:1px solid #cccccc;">{{ line.name }}</td>
             <td style="border:1px solid #cccccc;">{{ line.size_name|default:"" }}</td>
             <td style="border:1px solid #cccccc;">{{ line.material_name|default:"" }}</td>
-            {# options text is built by paperwork.utils and already contains <BR/> markup #}
-            {% if bl_options %}<td style="border:1px solid #cccccc;">{{ line.options|safe }}</td>{% endif %}
+            {% if bl_options %}<td style="border:1px solid #cccccc;">{% for option in line.options %}{{ option }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>{% endif %}
             <td style="border:1px solid #cccccc;text-align:right;"><strong>{{ line.quantity }}</strong></td>
         </tr>
     {% endfor %}

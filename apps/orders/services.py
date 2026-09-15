@@ -3,6 +3,14 @@ import calendar
 from apps.orders.models import OcTsgOrderOption, OcTsgOrderProductOptions
 import logging
 logger = logging.getLogger('apps')
+
+def apply_order_store_details(order_obj, store_obj):
+    """Copy the store's name and URL onto an order. tsg_store reads oc_order.store_name (e.g. as the paid-email
+    sender, which fails when blank), so orders created in Medusa must not leave it empty."""
+    order_obj.store_name = store_obj.name or ''
+    order_obj.store_url = store_obj.url
+
+
 def order_highlight_code(order_obj):
     """1 Live, 2 Pending, 3 Failed - """
     h_code = 3
