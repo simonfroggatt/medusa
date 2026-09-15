@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, F, Count
 from apps.sites.models import OcStore
 from django.utils import timezone
 import datetime as dt
@@ -20,6 +20,14 @@ from django.utils.timezone import localtime
 
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+
+# oc_tsg_order_product_status ids used by the admin order lists
+PRODUCT_STATUS_ARTWORK_NEEDED = 2
+PRODUCT_STATUS_SUPPLIER_ITEM = 7
+PRODUCT_STATUS_SHIPPED = 8
+PRODUCT_STATUS_SHIPPED_DIRECT = 9
+PRODUCT_STATUS_READY = 11
+
 
 class OcOrderQuerySet(models.QuerySet):
     def successful(self):
@@ -59,6 +67,33 @@ class OcOrderQuerySet(models.QuerySet):
         
         return queryset
 
+    def _live_base(self):
+        """Same base filter as live(): paid, not legacy, not in excluded order statuses."""
+        valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
+        order_status_excl = [99, 1, 7]
+        return self.exclude(order_status_id__in=order_status_excl).filter(
+            payment_status_id__in=valid_status, is_legacy=False)
+
+    def awaiting_artwork(self):
+        """Live orders with at least one product flagged 'artwork needed'."""
+        return self._live_base().filter(
+            order_products__status_id=PRODUCT_STATUS_ARTWORK_NEEDED).distinct()
+
+    def supplier_items(self):
+        """Live orders with at least one product flagged 'supplier item'."""
+        return self._live_base().filter(
+            order_products__status_id=PRODUCT_STATUS_SUPPLIER_ITEM).distinct()
+
+    def ready_to_collect(self):
+        """Live orders where every product is ready (11) or already shipped (8/9),
+        and at least one product is ready."""
+        done = [PRODUCT_STATUS_READY, PRODUCT_STATUS_SHIPPED, PRODUCT_STATUS_SHIPPED_DIRECT]
+        return self._live_base().annotate(
+            _total=Count('order_products'),
+            _done=Count('order_products', filter=Q(order_products__status_id__in=done)),
+            _ready=Count('order_products', filter=Q(order_products__status_id=PRODUCT_STATUS_READY)),
+        ).filter(_total__gt=0, _done=F('_total'), _ready__gte=1)
+
     def failed(self):
         valid_status = settings.TSG_NEW_ORDER_PAYMENT_STATUS
         return self.exclude(payment_status_id__in=valid_status).exclude(order_status_id=99)
@@ -90,6 +125,15 @@ class OcOrderManager(models.Manager):
 
     def artwork(self):
         return self.get_queryset().artwork()
+
+    def awaiting_artwork(self):
+        return self.get_queryset().awaiting_artwork()
+
+    def supplier_items(self):
+        return self.get_queryset().supplier_items()
+
+    def ready_to_collect(self):
+        return self.get_queryset().ready_to_collect()
 
     def failed(self):
         return self.get_queryset().failed()

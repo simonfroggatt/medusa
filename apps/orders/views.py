@@ -34,6 +34,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.db.models import Sum, Q
 from medusa import services
+from medusa.decorators import group_required
 import operator
 import hashlib
 import uuid
@@ -106,6 +107,30 @@ def artwork_order_list(request):
     return render(request, template_name, context)
 
 
+@group_required('superuser')
+def awaiting_artwork_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'heading': 'Awaiting Artwork'}
+    context['order_status'] = 'AWAITING_ARTWORK'
+    return render(request, template_name, context)
+
+
+@group_required('superuser')
+def supplier_items_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'heading': 'Supplier Items'}
+    context['order_status'] = 'SUPPLIER_ITEMS'
+    return render(request, template_name, context)
+
+
+@group_required('superuser')
+def ready_to_collect_order_list(request):
+    template_name = 'orders/orders_list.html'
+    context = {'heading': 'Ready to Collect'}
+    context['order_status'] = 'READY_TO_COLLECT'
+    return render(request, template_name, context)
+
+
 def failed_order_list(request):
     template_name = 'orders/orders_list.html'
     context = {'heading': 'Failed Orders'}
@@ -135,6 +160,16 @@ class Orders_asJSON(viewsets.ModelViewSet):
             queryset = self.model.objects.new()
         elif status == 'ARTWORK':
             queryset = self.model.objects.artwork()
+        elif status in ('AWAITING_ARTWORK', 'SUPPLIER_ITEMS', 'READY_TO_COLLECT'):
+            # admin-only lists: mirror the @group_required('superuser') on the page views
+            user = self.request.user
+            if not (user.is_authenticated and (user.is_superuser or user.groups.filter(name='superuser').exists())):
+                return self.model.objects.none()
+            queryset = {
+                'AWAITING_ARTWORK': self.model.objects.awaiting_artwork,
+                'SUPPLIER_ITEMS': self.model.objects.supplier_items,
+                'READY_TO_COLLECT': self.model.objects.ready_to_collect,
+            }[status]()
         elif status == 'FAILED':
             queryset = self.model.objects.failed()
         elif status == 'LEGACY':
@@ -248,7 +283,26 @@ class OrderTotalsViewSet(viewsets.ModelViewSet):
     serializer_class = OrderTotalsSerializer
 
     def retrieve(self, request, pk=None):
-        order_totals = OcOrderTotal.objects.filter(order__order_id=pk)
+        order_totals = list(OcOrderTotal.objects.filter(order__order_id=pk))
+
+        items_total = discount = shipping = Decimal('0')
+        for total in order_totals:
+            if total.code == 'sub_total':
+                total.title = 'Items Total'
+                items_total = total.value
+            elif total.code == 'discount':
+                discount = total.value
+            elif total.code == 'shipping':
+                shipping = total.value
+
+        order_totals.append(OcOrderTotal(
+            code='net_total',
+            title='Net Total',
+            value=items_total - discount + shipping,
+            sort_order=4,
+        ))
+        order_totals.sort(key=lambda t: t.sort_order)
+
         serializer = self.get_serializer(order_totals, many=True)
         return Response(serializer.data)
 

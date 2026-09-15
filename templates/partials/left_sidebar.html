@@ -172,6 +172,17 @@
 
                              <li class="menu-title mt-3">Admin Tools</li>
                             <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class="fa-solid fa-clipboard-list"></i>
+                                    <span>Orders</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="{% url 'awaitingartworkorders' %}"><i class="fa-regular fa-paintbrush flag-red me-2"></i>Awaiting Artwork</a></li>
+                                    <li><a href="{% url 'supplieritemorders' %}"><i class="fa-light fa-handshake me-2"></i>Supplier Items</a></li>
+                                    <li><a href="{% url 'readytocollectorders' %}"><i class="fa-regular fa-square-check flag-green me-2"></i>Ready to Collect</a></li>
+                                </ul>
+                            </li>
+                            <li>
                                 <a href="{% url 'alltemplates' %}" class="waves-effect">
                                     <i class="fa-solid fa-sliders"></i>
                                     <span key="t-dashboard">Templates</span>

@@ -209,8 +209,27 @@ def order_invoice_details_tup(order_obj):
 
 def order_total_table(order_total_obj, currency_symbol):
     order_total_tup = []
-    order_total_data = order_total_obj.values('title', 'value')
-    for order_total_pair in list(order_total_data):
+    order_total_data = list(order_total_obj.values('code', 'title', 'value', 'sort_order'))
+
+    items_total = discount = shipping = Decimal('0')
+    for row in order_total_data:
+        if row['code'] == 'sub_total':
+            row['title'] = 'Items Total'
+            items_total = row['value']
+        elif row['code'] == 'discount':
+            discount = row['value']
+        elif row['code'] == 'shipping':
+            shipping = row['value']
+
+    order_total_data.append({
+        'code': 'net_total',
+        'title': 'Net Total',
+        'value': items_total - discount + shipping,
+        'sort_order': 4,
+    })
+    order_total_data.sort(key=lambda r: r['sort_order'])
+
+    for order_total_pair in order_total_data:
         tmp_data = [''] * 2
         tmp_data[0] = order_total_pair['title']
         value_round = round(order_total_pair['value'], 2)
