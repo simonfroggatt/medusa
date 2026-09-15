@@ -5,6 +5,7 @@ lines 'supplier item - ordered'.
 Nothing here depends on the request, so the same functions can later be driven from a
 background job instead of the Order Products dialog.
 """
+import html
 import logging
 
 from django.conf import settings
@@ -56,14 +57,38 @@ def get_supplier_order_lines(order_id, supplier_id, order_product_ids):
     return list(_supplier_lines(order_id).filter(supplier_id=supplier_id, order_product_id__in=order_product_ids))
 
 
+def _plain(value):
+    """Order data saved by tsg_store is HTML-escaped (OpenCart htmlspecialchars() all input, so " is stored as
+    &quot; and & as &amp;). Unescape it so the templates' own escaping doesn't show the entities."""
+    return html.unescape(value) if value else ''
+
+
+def line_display_row(line):
+    """An order line's text for the dialog and email, with storefront HTML entities decoded."""
+    return {
+        'order_product_id': line.order_product_id,
+        'status_id': line.status_id,
+        'supplier_code': _plain(line.supplier_code or line.model),
+        'name': _plain(line.name),
+        'size_name': _plain(line.size_name),
+        'material_name': _plain(line.material_name),
+        'quantity': line.quantity,
+    }
+
+
+def _delivery_address(order_obj):
+    fields = ('fullname', 'company', 'address_1', 'address_2', 'city', 'area', 'postcode', 'country', 'telephone')
+    return {field: _plain(getattr(order_obj, f'shipping_{field}')) for field in fields}
+
+
 def _line_options(order_product_id):
     """'Name : value' for each option and add-on on an order line, one entry per option.
 
     A list rather than paperwork.utils.get_order_product_line_options' <BR/>-joined string, so the email template
     can escape each entry."""
-    options = [f'{option.option_name} : {option.value_name}'
+    options = [f'{_plain(option.option_name)} : {_plain(option.value_name)}'
                for option in OcTsgOrderOption.objects.filter(order_product_id=order_product_id)]
-    options += [f'{addon.class_name} : {addon.value_name}'
+    options += [f'{_plain(addon.class_name)} : {_plain(addon.value_name)}'
                 for addon in OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id)]
     return options
 
@@ -77,14 +102,7 @@ def build_supplier_order_email(order_obj, supplier_obj, lines, bl_direct):
         raise SupplierOrderError(f'There is no supplier order email template for {store_obj.name}')
 
     order_number = f'{store_obj.prefix}-{order_obj.order_id}'
-    line_rows = [{
-        'supplier_code': line.supplier_code or line.model,
-        'name': line.name,
-        'size_name': line.size_name,
-        'material_name': line.material_name,
-        'options': _line_options(line.order_product_id),
-        'quantity': line.quantity,
-    } for line in lines]
+    line_rows = [dict(line_display_row(line), options=_line_options(line.order_product_id)) for line in lines]
 
     replacements = {
         '{{order_number}}': order_number,
@@ -99,7 +117,7 @@ def build_supplier_order_email(order_obj, supplier_obj, lines, bl_direct):
             'bl_options': any(row['options'] for row in line_rows),
         }),
         '{{delivery_instructions}}': render_to_string('emails/supplier_order_delivery.html', {
-            'order_obj': order_obj,
+            'address': _delivery_address(order_obj),
             'order_number': order_number,
             'bl_direct': bl_direct,
         }),

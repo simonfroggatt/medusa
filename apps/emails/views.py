@@ -509,7 +509,7 @@ def supplier_order_dialog(request, order_id):
         'order_number': f'{order_obj.store.prefix}-{order_obj.order_id}',
         'groups': groups,
         'supplier_obj': supplier_obj,
-        'lines': group['lines'],
+        'lines': [supplier_orders.line_display_row(line) for line in group['lines']],
         'status_supplier_item': supplier_orders.PRODUCT_STATUS_SUPPLIER_ITEM,
         'status_supplier_ordered': supplier_orders.PRODUCT_STATUS_SUPPLIER_ORDERED,
         'email_to': supplier_obj.order_email,

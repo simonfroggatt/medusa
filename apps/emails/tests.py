@@ -76,6 +76,21 @@ class BuildSupplierOrderEmailTests(SimpleTestCase):
 
         self.assertIn('Metric Measurement : 4m<br>Imperial Measurement : 13&#x27;1&quot;</td>', email['body'])
 
+    def test_storefront_html_entities_are_shown_as_plain_text(self):
+        # tsg_store saves input htmlspecialchars()'d, so " arrives as &quot; and & as &amp;
+        self.options.return_value = ['Imperial Measurement : 13\'1"']
+        order = make_order(shipping_company='Zetland Plants &amp; Garden Services')
+        line = make_line()
+        line.name = 'Swimming Pool Rules &amp; Depths Sign'
+
+        email = supplier_orders.build_supplier_order_email(order, SUPPLIER, [line], bl_direct=True)
+
+        self.assertIn('Swimming Pool Rules &amp; Depths Sign', email['body'])
+        self.assertIn('Zetland Plants &amp; Garden Services', email['body'])
+        self.assertIn('13&#x27;1&quot;', email['body'])
+        self.assertNotIn('&amp;amp;', email['body'])
+        self.assertNotIn('&amp;quot;', email['body'])
+
     def test_customer_address_is_escaped(self):
         order = make_order(shipping_fullname='<b>Jo</b>')
         email = supplier_orders.build_supplier_order_email(order, SUPPLIER, [make_line()], bl_direct=True)
@@ -103,6 +118,30 @@ class LineOptionsTests(SimpleTestCase):
                          ['Fixing : Screws', 'Metric Measurement : 4m', 'Imperial Measurement : 13\'1"'])
         order_option.objects.filter.assert_called_once_with(order_product_id=195109)
         product_options.objects.filter.assert_called_once_with(order_product_id=195109)
+
+    @mock.patch.object(supplier_orders, 'OcTsgOrderProductOptions')
+    @mock.patch.object(supplier_orders, 'OcTsgOrderOption')
+    def test_storefront_entities_are_decoded(self, order_option, product_options):
+        order_option.objects.filter.return_value = []
+        product_options.objects.filter.return_value = [
+            SimpleNamespace(class_name='Imperial Measurement', value_name='13\'1&quot;')]
+
+        self.assertEqual(supplier_orders._line_options(195109), ['Imperial Measurement : 13\'1"'])
+
+
+class LineDisplayRowTests(SimpleTestCase):
+    def test_decodes_entities_and_falls_back_to_model_code(self):
+        line = make_line()
+        line.supplier_code = None
+        line.name = 'Rules &amp; Depths'
+        line.size_name = None
+
+        row = supplier_orders.line_display_row(line)
+
+        self.assertEqual(row['supplier_code'], 'SSAN-123')
+        self.assertEqual(row['name'], 'Rules & Depths')
+        self.assertEqual(row['size_name'], '')
+        self.assertEqual(row['order_product_id'], 195109)
 
 
 class BuildSupplierOrderAttachmentsTests(SimpleTestCase):
