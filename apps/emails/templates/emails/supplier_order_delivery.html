@@ -1,0 +1,17 @@
+{% if bl_direct %}
+<p><strong>Please deliver this order direct to our customer.</strong> The despatch note and shipping address label are attached.</p>
+<p>
+    <strong>Delivery address</strong><br>
+    {{ order_obj.shipping_fullname }}<br>
+    {% if order_obj.shipping_company %}{{ order_obj.shipping_company }}<br>{% endif %}
+    {% if order_obj.shipping_address_1 %}{{ order_obj.shipping_address_1|linebreaksbr }}<br>{% endif %}
+    {% if order_obj.shipping_address_2 %}{{ order_obj.shipping_address_2|linebreaksbr }}<br>{% endif %}
+    {% if order_obj.shipping_city %}{{ order_obj.shipping_city }}<br>{% endif %}
+    {% if order_obj.shipping_area %}{{ order_obj.shipping_area }}<br>{% endif %}
+    {% if order_obj.shipping_postcode %}{{ order_obj.shipping_postcode }}<br>{% endif %}
+    {% if order_obj.shipping_country %}{{ order_obj.shipping_country }}{% endif %}
+</p>
+<p><strong>Delivery telephone:</strong> {{ order_obj.shipping_telephone|default:"not supplied" }}</p>
+{% else %}
+<p><strong>For collection.</strong> We will collect this order - please label it with our order reference <strong>{{ order_number }}</strong> and let us know when it is ready.</p>
+{% endif %}

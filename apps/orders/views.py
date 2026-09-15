@@ -804,7 +804,10 @@ def order_product_status_bulk(request, order_id):
         status = request.POST.get('new_status', '')
         # Convert comma-separated string back to list for the filter
         product_id_list = order_product_ids.split(',') if order_product_ids else []
-        OcOrderProduct.objects.filter(order_id=order_id, order_product_id__in=product_id_list).update(status=status)
+        # save each line rather than queryset.update() so the product status history is written
+        for order_product in OcOrderProduct.objects.filter(order_id=order_id, order_product_id__in=product_id_list):
+            order_product.status_id = int(status)
+            order_product.save(update_fields=['status'])
         data['form_is_valid'] = True
 
     else:

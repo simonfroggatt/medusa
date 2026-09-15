@@ -280,7 +280,7 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     return buffer
 
 
-def gen_dispatch_note(order_id, bl_excl_shipped=False):
+def gen_dispatch_note(order_id, bl_excl_shipped=False, order_product_ids=None):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
 
@@ -352,7 +352,10 @@ def gen_dispatch_note(order_id, bl_excl_shipped=False):
     image_max_w = 20 * mm
 
 
-    if bl_excl_shipped:
+    if order_product_ids is not None:
+        # supplier despatch notes only list the lines that supplier is sending
+        order_items = order_obj.order_products.filter(order_product_id__in=order_product_ids)
+    elif bl_excl_shipped:
         order_items = order_obj.order_products.exclude(status__in=settings.TSG_PRODUCT_STATUS_SHIPPING).exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
     else:
         order_items = order_obj.order_products.all().exclude(status__in=settings.TSG_PRODUCT_STATUS_BACKORDER)
@@ -1809,6 +1812,21 @@ def gen_quote_for_emails(quote_id, bl_total=True):
     pdf = buffer.getvalue()
 
     return pdf
+
+
+def gen_supplier_despatch_for_emails(order_id, order_product_ids):
+    buffer = gen_dispatch_note(order_id, order_product_ids=order_product_ids)
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf
+
+
+def gen_shipping_page_for_emails(order_id):
+    buffer = gen_shipping_page(order_id)
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf
+
 
 def set_printed(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)

@@ -1,0 +1,119 @@
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Order Products - {{ order_number }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form method="post" action="{% url 'supplier_order_send' order_obj.order_id %}" id="js-supplier-order-form"
+          data-supplier-id="{{ supplier_obj.pk }}" data-supplier-code="{{ supplier_obj.code }}"
+          data-preview-url="{% url 'supplier_order_preview' order_obj.order_id %}"
+          data-dialog-url="{% url 'supplier_order_dialog' order_obj.order_id %}">
+        {% csrf_token %}
+
+        {% if groups|length > 1 %}
+            <div class="btn-group mb-3" role="group" aria-label="Suppliers">
+                {% for group in groups %}
+                    {% if group.supplier.pk == supplier_obj.pk %}
+                        <button type="button" class="btn btn-primary" aria-pressed="true">
+                    {% else %}
+                        <button type="button" class="btn btn-outline-primary js-supplier-order" data-dlgsize="modal-fullscreen"
+                                data-url="{% url 'supplier_order_dialog' order_obj.order_id %}?supplier_id={{ group.supplier.pk }}">
+                    {% endif %}
+                        {{ group.supplier.code }} <span class="badge bg-secondary ms-1">{{ group.outstanding }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-4">
+                <h4>{{ supplier_obj.company }}</h4>
+
+                <h5 class="mt-3">Products</h5>
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr><th></th><th>Code</th><th>Product</th><th class="text-end">Qty</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for line in lines %}
+                        <tr>
+                            <td>
+                                <input class="form-check-input js-supplier-order-line js-supplier-order-refresh" type="checkbox"
+                                       value="{{ line.order_product_id }}" id="supplier_order_line_{{ line.order_product_id }}"
+                                       {% if line.status_id == status_supplier_item %}checked{% endif %}>
+                            </td>
+                            <td><label for="supplier_order_line_{{ line.order_product_id }}">{{ line.supplier_code|default:line.model }}</label></td>
+                            <td>
+                                {{ line.name }}<br>
+                                <small class="text-muted">{{ line.size_name|default:"" }} - {{ line.material_name|default:"" }}</small>
+                                {% if line.status_id == status_supplier_ordered %}<br><span class="badge bg-success">already ordered</span>{% endif %}
+                            </td>
+                            <td class="text-end">{{ line.quantity }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+                <h5 class="mt-3">Delivery</h5>
+                <div class="form-check">
+                    <input class="form-check-input js-supplier-order-refresh" type="radio" name="supplier_order_delivery"
+                           id="supplier_order_collect" value="collect" checked>
+                    <label class="form-check-label" for="supplier_order_collect">For collection</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-supplier-order-refresh" type="radio" name="supplier_order_delivery"
+                           id="supplier_order_direct" value="direct">
+                    <label class="form-check-label" for="supplier_order_direct">Direct to customer</label>
+                </div>
+                <div id="supplier_order_attachments" class="alert alert-info py-2 mt-2" hidden>
+                    <i class="fa-solid fa-paperclip me-1"></i> Attached: despatch note (selected products only) and shipping address.
+                </div>
+
+                <h5 class="mt-3">Email Details</h5>
+                <div class="form-group pb-2">
+                    <label for="supplier_order_subject">Subject</label>
+                    <input type="text" id="supplier_order_subject" class="form-control" value="{{ email_subject }}" required="required">
+                </div>
+                <div class="form-group pb-2">
+                    <label for="supplier_order_email_to">Email Addresses (separate with comma)</label>
+                    <input type="text" id="supplier_order_email_to" class="form-control" value="{{ email_to|default:'' }}"
+                           placeholder="orders@supplier.com" required="required"
+                           pattern="^([\w+-.%]+@[\w-.]+\.[A-Za-z]{2,4},?\s*)+$"
+                           title="Enter valid email addresses separated by commas">
+                    {% if not email_to %}
+                        <div class="form-text text-danger">{{ supplier_obj.code }} has no order email address set.</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="supplier_order_email_from">Reply Address</label>
+                    <input type="email" id="supplier_order_email_from" class="form-control" value="{{ email_from|default:'' }}" required="required">
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <h4>Email Contents</h4>
+                <textarea id="supplier_order_message" class="form-control" rows="20">{{ email_content }}</textarea>
+            </div>
+        </div>
+        <hr>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }}">Close</button>
+            <button type="submit" class="btn {{ BUTTON_UPDATE }}"><i class="fa-solid fa-paper-plane"></i> Send to {{ supplier_obj.code }}</button>
+        </div>
+    </form>
+</div>
+
+<script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
+<script>
+    // the dialog is re-rendered when switching supplier or after a send, so drop any previous editor first
+    tinymce.remove('#supplier_order_message');
+    tinymce.init({
+        selector: '#supplier_order_message',
+        height: 600,
+        plugins: [],
+        toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                alignleft aligncenter alignright alignjustify | \
+                bullist numlist outdent indent | removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+    });
+</script>

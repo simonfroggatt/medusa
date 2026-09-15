@@ -1,4 +1,5 @@
 {% load static %}
+{% load user_tags %}
 <nav class="navbar navbar-expand-md navbar-light pe-0" id="navbar-orders">
     <div class="container-fluid justify-content-end pe-0">
         <button class="navbar-toggler " type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -76,12 +77,6 @@
                         <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_proforma' order_obj.order_id %}">Pro-forma</a></li>
                         <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_tracking' order_obj.order_id %}">Tracking</a></li>
                         <li><a class="dropdown-item js-order-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_customer_email_failed' order_obj.order_id %}">Failed Order</a></li>
-                    {% if supplies %}
-                        <hr>
-                        {% for supply in supplies %}
-                            <li><a class="dropdown-item js-supplier-email" role="button" data-dlgsize="modal-fullscreen" data-url="{% url 'send_supplier_email' order_obj.order_id supply.supplier_id %}">{{ supply.supplier__code }}</a></li>
-                        {% endfor %}
-                    {%  endif %}
                     </ul>
                 </div>
 
@@ -134,6 +129,13 @@
                                 <a class="dropdown-item" role="button"
                                    href="{% url 'proforma_paperwork_pdf' order_obj.order_id %}" target="_blank" data-dlgsize="modal-sm">Generate Proforma</a>
                             </li>
+                        {% if supplies and request.user|has_group:"superuser" %}
+                            <hr>
+                            <li>
+                                <a class="dropdown-item js-supplier-order" role="button"
+                                   data-url="{% url 'supplier_order_dialog' order_obj.order_id %}" data-dlgsize="modal-fullscreen">Order Products</a>
+                            </li>
+                        {% endif %}
                         <hr>
                         <li class="list-group-item-danger">
                             <a class="dropdown-item js-order-product-edit" role="button"

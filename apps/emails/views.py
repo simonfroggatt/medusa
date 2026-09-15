@@ -20,6 +20,10 @@ import os
 from apps.paperwork.views import gen_invoice_for_emails, gen_proforma_for_emails, gen_quote_for_emails
 from apps.suppliers.models import OcSupplier
 from nameparser import HumanName
+import json
+from django.views.decorators.http import require_POST
+from medusa.decorators import group_required
+from apps.emails import supplier_orders
 
 import logging
 logger = logging.getLogger('apps')
@@ -478,42 +482,87 @@ def _setup_medusa_email(order_id, enum_type, additional_replacements=None):
     data = {'subject': template_header, 'body': template_content}
     return data
 
-def supplier_send_order(request, order_id, supplier_id):
-    """
-    Send an order to a supplier via email.
-    """
-    order_obj = get_object_or_404(OcOrder, pk=order_id)
-    supplier_obj = get_object_or_404(OcSupplier, pk=supplier_id)
-
-    email_to = supplier_obj.order_email
-    email_from = order_obj.store.accounts_email_address
-    email_subject = f"New Order: {order_obj.order_id} for {supplier_obj.company}"
-
-    replacements = {
-        '{{supplier_company}}': supplier_obj.company,
-        '{{order_number}}': f"{order_obj.store.prefix}-{order_obj.order_id}",
-        '{{store_name}}': order_obj.store.name,
-        '{{store_website}}': order_obj.store.website,
-        '{{company_name}}': order_obj.store.company_name,
-        '{{order_date}}': order_obj.date_added.strftime('%Y-%m-%d'),
-        '{{accounts_email}}': order_obj.store.accounts_email_address,
-        '{{store_address}}': order_obj.store.address,
-        '{{sales_email}}': order_obj.store.email_address
-    }
-
-    email_content = load_email_template(request, order_id, 'TEMPLATE_SUPPLIER_ORDER', 'New Supplier Order', replacements)
-
-    attachments = []
-    # Add any attachments if necessary
-
-    send_status = send_email([email_to], email_from, email_subject, email_content, attachments)
-
+@group_required('superuser')
+def supplier_order_dialog(request, order_id):
+    """Order Products dialog: one supplier at a time, pre-filled from the TEMPLATE_SUPPLIER_ORDER template."""
     data = dict()
-    if send_status['success']:
-        data['message'] = 'Email sent successfully'
-        data['success'] = True
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    groups = supplier_orders.get_supplier_order_groups(order_id)
+    if not groups:
+        data['error'] = 'There are no supplier items waiting to be ordered'
         return JsonResponse(data)
-    else:
-        data['message'] = f'Email failed to send: {send_status["message"]}'
-        data['success'] = False
+
+    supplier_id = request.GET.get('supplier_id', '')
+    group = next((g for g in groups if str(g['supplier'].pk) == supplier_id), groups[0])
+    supplier_obj = group['supplier']
+    selected_lines = [line for line in group['lines']
+                      if line.status_id == supplier_orders.PRODUCT_STATUS_SUPPLIER_ITEM]
+
+    try:
+        email = supplier_orders.build_supplier_order_email(order_obj, supplier_obj, selected_lines, bl_direct=False)
+    except supplier_orders.SupplierOrderError as exc:
+        data['error'] = str(exc)
         return JsonResponse(data)
+
+    context = {
+        'order_obj': order_obj,
+        'order_number': f'{order_obj.store.prefix}-{order_obj.order_id}',
+        'groups': groups,
+        'supplier_obj': supplier_obj,
+        'lines': group['lines'],
+        'status_supplier_item': supplier_orders.PRODUCT_STATUS_SUPPLIER_ITEM,
+        'status_supplier_ordered': supplier_orders.PRODUCT_STATUS_SUPPLIER_ORDERED,
+        'email_to': supplier_obj.order_email,
+        'email_from': order_obj.store.email_address,
+        'email_subject': email['subject'],
+        'email_content': email['body'],
+    }
+    data['form_is_valid'] = False
+    data['html_form'] = render_to_string('emails/supplier_order_dialog.html', context, request=request)
+    return JsonResponse(data)
+
+
+def _supplier_order_request(request, order_id):
+    body = json.loads(request.body)
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    supplier_obj = get_object_or_404(OcSupplier, pk=body.get('supplier_id'))
+    return body, order_obj, supplier_obj
+
+
+@group_required('superuser')
+@require_POST
+def supplier_order_preview(request, order_id):
+    """AJAX: rebuild the email body after the selected lines or delivery option change."""
+    try:
+        body, order_obj, supplier_obj = _supplier_order_request(request, order_id)
+        lines = supplier_orders.get_supplier_order_lines(order_id, supplier_obj.pk, body.get('order_product_ids', []))
+        email = supplier_orders.build_supplier_order_email(order_obj, supplier_obj, lines, bool(body.get('direct')))
+        return JsonResponse({'ok': True, 'data': {'email_content': email['body']}})
+    except supplier_orders.SupplierOrderError as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=400)
+    except Exception as exc:
+        logger.exception('Supplier order preview failed for order %s', order_id)
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=400)
+
+
+@group_required('superuser')
+@require_POST
+def supplier_order_send(request, order_id):
+    """AJAX: email the selected lines to the supplier and mark them as ordered."""
+    try:
+        body, order_obj, supplier_obj = _supplier_order_request(request, order_id)
+        email_to = [address.strip() for address in body.get('email_to', '').split(',') if address.strip()]
+        lines = supplier_orders.send_supplier_order(
+            order_obj, supplier_obj, body.get('order_product_ids', []), bool(body.get('direct')),
+            email_to, body.get('email_from', '').strip(), body.get('email_subject', ''), body.get('email_content', ''),
+            user_id=request.user.id)
+        remaining = supplier_orders.get_supplier_order_groups(order_id)
+        return JsonResponse({'ok': True, 'data': {
+            'lines': len(lines),
+            'next_supplier_id': remaining[0]['supplier'].pk if remaining else None,
+        }})
+    except supplier_orders.SupplierOrderError as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=400)
+    except Exception as exc:
+        logger.exception('Supplier order send failed for order %s', order_id)
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=400)

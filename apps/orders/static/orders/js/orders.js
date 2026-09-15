@@ -883,6 +883,89 @@ $(function () {
     //EMAILS
     $(document).on("click", ".js-order-email", loadForm);
 
+    //SUPPLIER ORDERS
+    let supplierOrderPayload = function (form) {
+        return {
+            supplier_id: form.data('supplier-id'),
+            order_product_ids: form.find('.js-supplier-order-line:checked').map(function () {
+                return $(this).val();
+            }).get(),
+            direct: form.find('input[name="supplier_order_delivery"]:checked').val() === 'direct',
+        };
+    }
+
+    let supplierOrderAjax = function (form, url, payload) {
+        return $.ajax({
+            url: url,
+            type: 'post',
+            contentType: 'application/json',
+            headers: {'X-CSRFToken': form.find('input[name="csrfmiddlewaretoken"]').val()},
+            data: JSON.stringify(payload),
+            dataType: 'json',
+        }).fail(function (xhr) {
+            let error = xhr.responseJSON ? xhr.responseJSON.error : 'Something went wrong';
+            add_toast_message(error, 'Supplier Order', 'danger', true);
+        });
+    }
+
+    let refreshSupplierOrderEmail = function () {
+        let control = $(this);
+        let form = control.closest('form');
+        let editor = tinymce.get('supplier_order_message');
+        if (editor && editor.isDirty() && !confirm('This will replace your edits to the email. Continue?')) {
+            // put the control back the way it was
+            if (control.is(':checkbox')) {
+                control.prop('checked', !control.prop('checked'));
+            } else {
+                form.find('input[name="supplier_order_delivery"]').not(control).prop('checked', true);
+            }
+            return;
+        }
+        let payload = supplierOrderPayload(form);
+        form.find('#supplier_order_attachments').prop('hidden', !payload.direct);
+        supplierOrderAjax(form, form.data('preview-url'), payload).done(function (data) {
+            if (editor) {
+                editor.setContent(data.data.email_content);
+                editor.setDirty(false);
+            }
+        });
+    }
+
+    let sendSupplierOrder = function () {
+        let form = $(this);
+        let editor = tinymce.get('supplier_order_message');
+        let payload = supplierOrderPayload(form);
+        if (payload.order_product_ids.length === 0) {
+            add_toast_message('Select at least one product to order', 'Supplier Order', 'danger', true);
+            return false;
+        }
+        payload.email_to = form.find('#supplier_order_email_to').val();
+        payload.email_from = form.find('#supplier_order_email_from').val();
+        payload.email_subject = form.find('#supplier_order_subject').val();
+        payload.email_content = editor ? editor.getContent() : form.find('#supplier_order_message').val();
+
+        let send_button = form.find('button[type="submit"]').prop('disabled', true);
+        supplierOrderAjax(form, form.attr('action'), payload).done(function (data) {
+            add_toast_message('Order emailed to ' + form.data('supplier-code'), 'Supplier Order', 'bg-success');
+            updateProductTable();
+            updateOrderFlags();
+            if (data.data.next_supplier_id) {
+                $.get(form.data('dialog-url'), {supplier_id: data.data.next_supplier_id}, function (next) {
+                    $("#modal-base .modal-content").html(next.html_form);
+                }, 'json');
+            } else {
+                $("#modal-base").modal("hide");
+            }
+        }).fail(function () {
+            send_button.prop('disabled', false);
+        });
+        return false;
+    }
+
+    $(document).on("click", ".js-supplier-order", loadForm);
+    $(document).on("change", ".js-supplier-order-refresh", refreshSupplierOrderEmail);
+    $(document).on("submit", "#js-supplier-order-form", sendSupplierOrder);
+
     //REST BILLING ADDRESS
     $(document).on("click", "#resetCompanyBillingAddress", resetCompanyBillingAddress);
 

@@ -1,0 +1,25 @@
+<table cellpadding="6" style="border-collapse:collapse;width:100%;font-family:Helvetica,Arial,sans-serif;font-size:13px;">
+    <thead>
+        <tr style="background:#f2f2f2;text-align:left;">
+            <th style="border:1px solid #cccccc;">Supplier Code</th>
+            <th style="border:1px solid #cccccc;">Description</th>
+            <th style="border:1px solid #cccccc;">Size</th>
+            <th style="border:1px solid #cccccc;">Material</th>
+            {% if bl_options %}<th style="border:1px solid #cccccc;">Options</th>{% endif %}
+            <th style="border:1px solid #cccccc;text-align:right;">Qty</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for line in lines %}
+        <tr>
+            <td style="border:1px solid #cccccc;"><strong>{{ line.supplier_code }}</strong></td>
+            <td style="border:1px solid #cccccc;">{{ line.name }}</td>
+            <td style="border:1px solid #cccccc;">{{ line.size_name|default:"" }}</td>
+            <td style="border:1px solid #cccccc;">{{ line.material_name|default:"" }}</td>
+            {# options text is built by paperwork.utils and already contains <BR/> markup #}
+            {% if bl_options %}<td style="border:1px solid #cccccc;">{{ line.options|safe }}</td>{% endif %}
+            <td style="border:1px solid #cccccc;text-align:right;"><strong>{{ line.quantity }}</strong></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

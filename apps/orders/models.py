@@ -24,6 +24,7 @@ from django.dispatch import receiver
 # oc_tsg_order_product_status ids used by the admin order lists
 PRODUCT_STATUS_ARTWORK_NEEDED = 2
 PRODUCT_STATUS_SUPPLIER_ITEM = 7
+PRODUCT_STATUS_SUPPLIER_ORDERED = 12
 PRODUCT_STATUS_SHIPPED = 8
 PRODUCT_STATUS_SHIPPED_DIRECT = 9
 PRODUCT_STATUS_READY = 11

@@ -17,7 +17,9 @@ urlpatterns = [
     path('send_customer_email/quote', views.send_customer_email_quote, name='send_customer_email_quote'),
 
     #suppliers
-    path('order/<int:order_id>/supplier/<int:supplier_id>', views.supplier_send_order, name='send_supplier_email'),
+    path('order/<int:order_id>/supplier_order', views.supplier_order_dialog, name='supplier_order_dialog'),
+    path('order/<int:order_id>/supplier_order/preview', views.supplier_order_preview, name='supplier_order_preview'),
+    path('order/<int:order_id>/supplier_order/send', views.supplier_order_send, name='supplier_order_send'),
 
     path('send_customer_email', views.send_customer_email, name='send_customer_email'),
 
