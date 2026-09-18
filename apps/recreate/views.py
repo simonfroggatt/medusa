@@ -3,7 +3,8 @@ from collections import defaultdict
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-from django.http import Http404, JsonResponse
+import requests
+from django.http import Http404, HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.templatetags.static import static
@@ -100,11 +101,41 @@ def review(request, product_id):
     return render(request, 'recreate/review.html', context)
 
 
+@staff_view
+def feed(request, name):
+    """The shop's symbol data, served by Medusa so the designer stays on one site."""
+    try:
+        data = services.feed(name)
+    except services.RecreateError:
+        raise Http404('Unknown feed')
+    except requests.RequestException as e:
+        return JsonResponse({'error': f'The shop’s feed could not be read: {e}'}, status=502)
+    if name == 'symbols':
+        # Symbol artwork comes through Medusa too (same site, no cross-site request).
+        for item in data:
+            item['url'] = reverse('recreate-symbol', args=[item['symbol_id']])
+    response = JsonResponse(data, safe=False)
+    response['Cache-Control'] = 'private, max-age=300'
+    return response
+
+
+@staff_view
+def symbol(request, symbol_id):
+    """One symbol's artwork, passed through from the shop."""
+    svg = services.symbol_svg(symbol_id)
+    if svg is None:
+        raise Http404('Symbol not found')
+    response = HttpResponse(svg, content_type='image/svg+xml')
+    response['Cache-Control'] = 'private, max-age=86400'
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
 def _open_config(row, product, request):
     """What the designer should open for this product."""
     size = services.size_by_id(row.size_id) if row.size_id else None
     return {
-        'dataUrl': services.data_url(),
+        'dataUrl': request.build_absolute_uri(reverse('recreate-feed', args=['NAME'])).replace('NAME', '{name}'),
         'suggestUrl': None,
         'translateUrl': None,
         'assetBase': static('recreate/designer/'),

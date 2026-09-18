@@ -76,6 +76,23 @@ def _feed(name):
     return response.json()
 
 
+FEEDS = ('categories', 'symbols', 'sizes')
+
+
+def feed(name):
+    """One of the shop's designer feeds, as it came."""
+    if name not in FEEDS:
+        raise RecreateError(f'Unknown feed {name}')
+    return _feed(name)
+
+
+def symbol_svg(symbol_id):
+    """One symbol's SVG from the shop (bytes, or None)."""
+    url = data_url().replace('{name}', 'svg') + '&id=' + str(int(symbol_id))
+    response = requests.get(url, timeout=30)
+    return response.content if response.status_code == 200 and b'<svg' in response.content else None
+
+
 @lru_cache(maxsize=1)
 def catalogue():
     """Usable symbols {code: {...}} and colour category keys, from the shop's designer feeds."""

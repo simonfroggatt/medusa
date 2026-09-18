@@ -5,6 +5,8 @@ from apps.recreate import views
 urlpatterns = [
     path('', views.recreation_list, name='recreate-list'),
     path('api/list/', views.recreation_list_api, name='recreate-list-api'),
+    path('api/data/<str:name>/', views.feed, name='recreate-feed'),
+    path('api/symbol/<int:symbol_id>/', views.symbol, name='recreate-symbol'),
     path('missing-symbols/', views.missing_symbols, name='recreate-missing'),
     path('approved/', views.approved, name='recreate-approved'),
     path('<int:product_id>/customise/', views.customise, name='recreate-customise'),
