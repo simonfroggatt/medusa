@@ -12,6 +12,7 @@ Settings (Django setting or environment variable):
     RECREATE_MODEL           default claude-sonnet-5
     RECREATE_STORE_ID        default 1 (Safety Signs and Notices)
     RECREATE_SIGN_DATA_URL   the shop's designer feeds, "{name}" = categories/symbols/sizes
+                             (default: the live shop; set the local one for development)
     RECREATE_PRICE_INPUT / RECREATE_PRICE_OUTPUT   USD per million tokens, for the cost estimate
 """
 import base64
@@ -58,7 +59,9 @@ def store_id():
 
 
 def data_url():
-    return setting('RECREATE_SIGN_DATA_URL', LOCAL_DATA_URL if settings.DEBUG else LIVE_DATA_URL)
+    """The shop's designer feeds. The live shop unless RECREATE_SIGN_DATA_URL says otherwise
+    (set it to LOCAL_DATA_URL in a development .env to use a local copy)."""
+    return setting('RECREATE_SIGN_DATA_URL', LIVE_DATA_URL)
 
 
 def category_key(title):
