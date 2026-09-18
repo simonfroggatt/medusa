@@ -58,6 +58,9 @@
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
                                     <li><a href="{% url 'allquotes' %}">Quotes</a></li>
+                                    {% if request.user|has_group:"sales" or request.user|has_group:"superuser" %}
+                                    <li><a href="{% url 'quotes_web_list' %}">Web Quotes</a></li>
+                                    {% endif %}
                                     <li><a href="{% url 'allquotes' %}">Cart</a></li>
                                 </ul>
                             </li>
@@ -251,6 +254,12 @@
                                 <a href="{% url 'legacyorders' %}" class="waves-effect">
                                     <i class="fa-solid fa-hourglass"></i>
                                     <span key="t-legacy-orders">Legacy Orders</span>
+                                </a>
+                                </li>
+                                <li>
+                                <a href="{% url 'recreate-list' %}" class="waves-effect">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span key="t-sign-recreations">Sign Recreations</span>
                                 </a>
                                 </li>
 

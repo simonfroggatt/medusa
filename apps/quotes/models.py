@@ -116,6 +116,9 @@ class OcTsgQuoteProduct(models.Model):
 
 
 class OcTsgQuoteStatus(models.Model):
+    # NOT IN USE. oc_tsg_quote_status now holds the customer quote statuses and no longer has
+    # these columns - querying this model fails. Use apps.quotes_web.models.QuoteStatus.
+    # Kept only because OcTsgQuoteHistory (also unused, table absent) points at it.
     quote_status_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=32)
     order_by = models.IntegerField(blank=True, null=True)

@@ -1,0 +1,33 @@
+{% load static %}
+<div class="card h-100 mb-0">
+    <div class="card-header order_details">
+        <div class="row align-items-center">
+            <div class="col-8">
+                <i class="fa-solid fa-link"></i> Customer link
+            </div>
+            <div class="col-4 text-end">
+                {% if quote.viewed_at %}
+                <span class="badge bg-info" title="Customer has opened the link">opened</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if not quote.date_sent %}
+        <p class="text-muted mb-0">The link appears here once the quote has been sent.
+            Nobody can open it before then, even with the address.</p>
+        {% elif portal_url %}
+        <p class="text-muted mb-2">Send this to the customer by {{ send_route }}.</p>
+        <div class="input-group input-group-sm mb-2">
+            <input type="text" class="form-control" id="portal-url" readonly value="{{ portal_url }}">
+            <button class="btn {{ BUTTON_EDIT }}" type="button" id="copy-portal-url-field">
+                <i class="fa-regular fa-copy"></i> Copy</button>
+        </div>
+        <a href="{{ portal_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open as the customer sees it</a>
+        {% else %}
+        <p class="text-danger mb-0">This store has no website address set
+            (<code>oc_store.url</code>), so the customer link cannot be built.</p>
+        {% endif %}
+    </div>
+</div>

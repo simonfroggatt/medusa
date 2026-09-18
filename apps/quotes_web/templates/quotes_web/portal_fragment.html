@@ -1,0 +1,152 @@
+{% comment %}
+Customer view of one quote. This is an HTML fragment, not a page: tsg_store fetches it and
+prints it inside the store's own header and footer, so it uses Bootstrap 5 classes (already
+loaded by every storefront theme) and no <html>/<head>.
+
+The Accept / Request changes forms POST back to the storefront page itself (no action
+attribute), and PHP forwards them to Medusa. Which buttons appear comes from the transition
+table, via can_accept / can_request_changes.
+{% endcomment %}
+<div class="quote-portal">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Quote {{ quote.quote_number }}</h1>
+        <span class="badge rounded-pill fs-6"
+              style="background-color: {{ quote.status.color_hex|default:'#808080' }}">
+            {{ quote.status.status_name }}</span>
+    </div>
+
+    {% if is_expired %}
+    <div class="alert alert-warning">
+        This quote expired on {{ quote.expiry_date|date:'j F Y' }}. Please contact us and we
+        will be happy to quote you again.
+    </div>
+    {% elif status_code == 'accepted' %}
+    <div class="alert alert-success">
+        Thank you - you accepted this quote on {{ quote.accepted_at|date:'j F Y' }}.
+        We will be in touch to arrange your order.
+    </div>
+    {% elif status_code == 'change_requested' %}
+    <div class="alert alert-info">
+        Thank you - we have your request and will send you an updated quote shortly.
+    </div>
+    {% elif quote.expiry_date %}
+    <p class="text-muted">Valid until {{ quote.expiry_date|date:'j F Y' }}.</p>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th class="text-end">Quantity</th>
+                    <th class="text-end">Unit price</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>
+                        {{ item.product_name }}
+                        {% if item.size_name or item.material_name %}
+                        <br><small class="text-muted">{{ item.size_name|default:'' }}{% if item.orientation_name %}
+                            ({{ item.orientation_name }}){% endif %}
+                            {% if item.material_name %}&middot; {{ item.material_name }}{% endif %}</small>
+                        {% endif %}
+                        {% for option in item.options.all %}
+                        <br><small class="text-muted">{{ option.class_name }}: {{ option.value_name }}</small>
+                        {% endfor %}
+                    </td>
+                    <td class="text-end">{{ item.quantity }}</td>
+                    <td class="text-end">
+                        {{ quote.currency.symbol_left }}{{ item.unit_price|floatformat:2 }}</td>
+                    <td class="text-end">
+                        {{ quote.currency.symbol_left }}{{ item.line_total|floatformat:2 }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">There are no items on this quote.</td></tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end">Subtotal</td>
+                    <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.subtotal }}</td>
+                </tr>
+                {% if quote.shipping_cost %}
+                <tr>
+                    <td colspan="3" class="text-end">Delivery</td>
+                    <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.shipping_cost }}</td>
+                </tr>
+                {% endif %}
+                {% if quote.discount_amount %}
+                <tr>
+                    <td colspan="3" class="text-end">Discount</td>
+                    <td class="text-end">-{{ quote.currency.symbol_left }}{{ quote.discount_amount }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td colspan="3" class="text-end">VAT</td>
+                    <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.tax_total }}</td>
+                </tr>
+                <tr class="fw-bold">
+                    <td colspan="3" class="text-end">Total</td>
+                    <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% if can_accept or can_request_changes %}
+    <div class="row g-3 mt-2">
+        {% if can_accept %}
+        <div class="col-md-6">
+            <form method="post" class="h-100">
+                <input type="hidden" name="quote_action" value="accept">
+                <div class="border rounded p-3 h-100">
+                    <h2 class="h5">Happy with this quote?</h2>
+                    <p class="text-muted">Accept it and we will be in touch to arrange your order.</p>
+                    <button type="submit" class="btn btn-success">Accept quote</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if can_request_changes %}
+        <div class="col-md-6">
+            <form method="post" class="h-100">
+                <input type="hidden" name="quote_action" value="changes">
+                <div class="border rounded p-3 h-100">
+                    <h2 class="h5">Need something changed?</h2>
+                    <label for="reason" class="form-label text-muted">
+                        Tell us what to change and we will send a new quote.</label>
+                    <textarea class="form-control mb-2" id="reason" name="reason" rows="3"
+                              maxlength="2000"></textarea>
+                    <button type="submit" class="btn btn-outline-primary">Request changes</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h2 class="h5">Prepared for</h2>
+            <p class="mb-1">{{ quote.customer_name }}</p>
+            <p class="mb-1">{{ quote.customer_phone }}</p>
+            {% if quote.customer_email %}<p class="mb-1">{{ quote.customer_email }}</p>{% endif %}
+        </div>
+        <div class="col-md-6">
+            <h2 class="h5">Quote details</h2>
+            <p class="mb-1">Quote number: {{ quote.quote_number }}</p>
+            {% if quote.date_sent %}
+            <p class="mb-1">Sent: {{ quote.date_sent|date:'j F Y' }}</p>{% endif %}
+            <p class="mb-1">Prices in {{ quote.currency.code }}, including VAT as shown.</p>
+        </div>
+    </div>
+
+    <p class="text-muted mt-4">
+        Any questions? Call us and quote {{ quote.quote_number }}.
+    </p>
+</div>

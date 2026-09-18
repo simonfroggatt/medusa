@@ -1,0 +1,66 @@
+{% load static %}
+<div class="card h-100 mb-0">
+    <div class="card-header order_details btn-toolbar align-items-center justify-content-between">
+        <div>
+            Quote Details
+            {% if is_expired %}
+            <i class="fa-solid fa-hourglass-end text-danger ms-2" title="Expired"></i>
+            {% endif %}
+        </div>
+        {% if is_editable %}
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end pe-2">
+            <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-quote-details-edit"
+                    data-url="{% url 'quotes_web_edit_header' quote.quote_id %}" data-dlgsize="">
+                <i class="{{ ICON_EDIT }} fa-pull-right"></i></button>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <dl class="row text-nowrap mb-0">
+            <dt class="col-4">Quote No:</dt>
+            <dd class="col-8">{{ quote.quote_number }}</dd>
+
+            <dt class="col-4">Status:</dt>
+            <dd class="col-8">{{ quote.status.status_name }}</dd>
+
+            <dt class="col-4">Requested:</dt>
+            <dd class="col-8">{{ quote.created_at|date:'d/m/Y H:i' }}</dd>
+
+            <dt class="col-4">Source:</dt>
+            <dd class="col-8">{{ quote.created_from }}</dd>
+
+            {% if quote.date_sent %}
+            <dt class="col-4">Sent:</dt>
+            <dd class="col-8">{{ quote.date_sent|date:'d/m/Y H:i' }}</dd>
+            {% endif %}
+
+            {% if quote.expiry_date %}
+            <dt class="col-4">Valid until:</dt>
+            <dd class="col-8">
+                {% if is_expired %}<span class="text-danger">{{ quote.expiry_date|date:'d/m/Y' }}</span>
+                {% else %}{{ quote.expiry_date|date:'d/m/Y' }}{% endif %}</dd>
+            {% endif %}
+
+            {% if quote.viewed_at %}
+            <dt class="col-4">Viewed:</dt>
+            <dd class="col-8">{{ quote.viewed_at|date:'d/m/Y H:i' }}</dd>
+            {% endif %}
+
+            {% if quote.accepted_at %}
+            <dt class="col-4">Accepted:</dt>
+            <dd class="col-8">{{ quote.accepted_at|date:'d/m/Y H:i' }}</dd>
+            {% endif %}
+
+            <dt class="col-4">Shipping:</dt>
+            <dd class="col-8">{{ quote.currency.symbol_left }}{{ quote.shipping_cost }}</dd>
+
+            {% if quote.discount_amount %}
+            <dt class="col-4">Discount:</dt>
+            <dd class="col-8">{{ quote.currency.symbol_left }}{{ quote.discount_amount }}</dd>
+            {% endif %}
+
+            <dt class="col-4">Notes:</dt>
+            <dd class="col-8 text-wrap">{{ quote.notes|default:'&nbsp;'|linebreaksbr }}</dd>
+        </dl>
+    </div>
+</div>

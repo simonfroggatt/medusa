@@ -1,0 +1,88 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="wrapper wrapper-content">
+    <div class="row top_bar">
+        <div class="col-12 col-lg-6">
+            <h2>Web Quotes</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="ibox">
+                <div class="ibox-content">
+
+                    <ul class="nav nav-pills mb-3">
+                        <li class="nav-item">
+                            <a class="nav-link {% if not current_status %}active{% endif %}"
+                               href="{% url 'quotes_web_list' %}">All</a>
+                        </li>
+                        {% for status in statuses %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if current_status == status.status_code %}active{% endif %}"
+                               href="{% url 'quotes_web_list' %}?status={{ status.status_code }}">
+                                {{ status.status_name }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <table id="web_quote_table"
+                           class="table table-hover table-striped align-middle table-sm" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Quote</th>
+                                <th>Date</th>
+                                <th>Store</th>
+                                <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Status</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for quote in quotes %}
+                            <tr>
+                                <td><a href="{% url 'quotes_web_detail' quote.quote_id %}">
+                                    {{ quote.quote_number }}</a></td>
+                                <td data-order="{{ quote.created_at|date:'Y-m-d H:i' }}">
+                                    {{ quote.created_at|date:'d/m/Y H:i' }}</td>
+                                <td>{{ quote.store.name|default:'-' }}</td>
+                                <td>{{ quote.customer_name }}</td>
+                                <td>
+                                    {{ quote.customer_phone }}
+                                    {% if quote.customer_email %}<br>{{ quote.customer_email }}{% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill font-size-12"
+                                          style="background-color: {{ quote.status.color_hex|default:'#808080' }}">
+                                        {{ quote.status.status_name }}</span>
+                                </td>
+                                <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.total }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="7" class="text-center">No web quotes yet.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    $(document).ready(function () {
+        $('#web_quote_table').DataTable({
+            "pageLength": 25,
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            "order": [[1, "desc"]],
+            "responsive": true
+        });
+    });
+</script>
+{% endblock javascript %}

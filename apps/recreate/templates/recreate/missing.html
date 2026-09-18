@@ -1,0 +1,25 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <div class="ibox"><div class="ibox-content">
+    <p class="text-muted">Symbols the AI saw on stock products but that aren't in the symbol library, most needed first.
+      After adding one, re-run those products with
+      <code>python manage.py recreate_stock_signs --status needs_symbol</code>.</p>
+    <table class="table table-sm table-striped align-middle">
+      <thead><tr><th>ISO ref</th><th>Description</th><th class="text-end">Products</th><th>Product ids</th></tr></thead>
+      <tbody>
+      {% for g in groups %}
+        <tr>
+          <td><strong>{{ g.ref }}</strong></td>
+          <td>{{ g.description }}</td>
+          <td class="text-end">{{ g.products|length }}</td>
+          <td class="small">{% for id in g.products %}<a href="{% url 'recreate-review' id %}">{{ id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-muted">Nothing missing.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+</div>
+{% endblock content %}

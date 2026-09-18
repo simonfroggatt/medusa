@@ -1,0 +1,1 @@
+Source: https://github.com/googlefonts/Arimo (commit 4a6255f269916ae7ad3fc2706b0935e7621396b8), static TTFs from fonts/ttf/. Licence: SIL OFL 1.1 (OFL.txt).

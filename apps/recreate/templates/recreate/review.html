@@ -1,0 +1,74 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <div class="row g-3">
+    <div class="col-xl-3 col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-1">{{ product.name|default:"Product" }}</h5>
+          <div class="small text-muted mb-2">#{{ row.product_id }}{% if size %} · {{ size.width }} × {{ size.height }} mm{% endif %}</div>
+          <p class="mb-2">
+            <span class="badge bg-dark" id="status-badge">{{ row.status_label }}</span>
+            {% if row.confidence is not None %}<span class="badge bg-light text-dark">AI confidence {% widthratio row.confidence 1 100 %}%</span>{% endif %}
+          </p>
+          <h6 class="mt-3">Original</h6>
+          {% if image %}<img src="{{ image }}" alt="Original product image" class="img-fluid border rounded">{% else %}<p class="text-muted">No image</p>{% endif %}
+          {% if row.sign_reads %}<h6 class="mt-3">Sign reads</h6><p class="small">{{ row.sign_reads }}</p>{% endif %}
+          {% if row.ai_notes %}<h6 class="mt-3">AI notes</h6><p class="small">{{ row.ai_notes }}</p>{% endif %}
+          {% if row.error %}<div class="alert alert-danger small">{{ row.error }}</div>{% endif %}
+          {% if row.missing_list %}
+            <h6 class="mt-3">Missing symbols</h6>
+            <ul class="small ps-3">
+              {% for m in row.missing_list %}<li><strong>{{ m.iso_ref|default:"not ISO" }}</strong> {{ m.description }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          <div class="d-grid gap-2 mt-3">
+            <button class="btn btn-outline-secondary js-status" data-status="unsuitable">Not suitable</button>
+            <button class="btn btn-outline-warning js-status" data-status="needs_symbol">Needs a symbol</button>
+            <button class="btn btn-outline-primary js-rerun">Re-run AI</button>
+          </div>
+          <p class="small text-muted mt-2 mb-0">Re-running replaces the design with a fresh AI attempt.</p>
+          {% if row.reviewed_at %}<p class="small text-muted mt-2 mb-0">Last reviewed {{ row.reviewed_at|date:"d/m/Y H:i" }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-9 col-lg-8">
+      <div class="card">
+        <iframe id="designer" src="{{ frame_url }}" title="Sign designer" style="width:100%;height:calc(100vh - 170px);min-height:720px;border:0;border-radius:6px"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+{{ statuses|json_script:"status-labels" }}
+<script>
+$(function () {
+  const csrf = '{{ csrf_token }}';
+  const setBadge = label => $('#status-badge').text(label);
+
+  $('.js-status').on('click', function () {
+    $.post("{% url 'recreate-status' row.product_id %}", {status: $(this).data('status'), csrfmiddlewaretoken: csrf})
+      .done(r => setBadge(r.label))
+      .fail(x => alert(x.responseJSON?.error || 'Could not change the status'));
+  });
+
+  $('.js-rerun').on('click', function () {
+    if (!confirm('Ask the AI again? This replaces the current design.')) return;
+    const btn = $(this).prop('disabled', true).text('Re-running…');
+    $.post("{% url 'recreate-rerun' row.product_id %}", {csrfmiddlewaretoken: csrf})
+      .done(() => location.reload())
+      .fail(x => { alert(x.responseJSON?.error || 'Re-run failed'); btn.prop('disabled', false).text('Re-run AI'); });
+  });
+
+  // The designer tells us when it has saved.
+  window.addEventListener('message', e => {
+    if (e.origin !== location.origin || e.data?.type !== 'recreate-saved') return;
+    const labels = JSON.parse(document.getElementById('status-labels').textContent);
+    setBadge(labels[e.data.status] || e.data.status);
+  });
+});
+</script>
+{% endblock javascript %}

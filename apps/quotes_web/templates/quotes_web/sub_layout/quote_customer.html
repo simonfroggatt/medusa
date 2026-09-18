@@ -1,0 +1,43 @@
+{% load static %}
+<div class="card h-100 mb-0">
+    <div class="card-header order_details">
+        <div class="row align-items-center">
+            <div class="col-6">
+                <i class="fa-solid fa-user"></i> Customer
+            </div>
+            <div class="col-6 text-end">
+                {% if quote.medusa_customer_id %}
+                <span class="badge bg-secondary">account</span>
+                {% else %}
+                <span class="badge bg-light text-dark">guest</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-4">Contact</dt>
+            <dd class="col-8">
+                {% if quote.medusa_customer_id %}
+                <a href="{% url 'customerdetails' quote.medusa_customer_id %}">{{ quote.customer_name }}</a>
+                {% else %}{{ quote.customer_name }}{% endif %}
+            </dd>
+
+            <dt class="col-4">Phone</dt>
+            <dd class="col-8">{{ quote.customer_phone }}</dd>
+
+            <dt class="col-4">Email</dt>
+            <dd class="col-8 text-wrap">
+                {% if quote.customer_email %}
+                <a href="mailto:{{ quote.customer_email }}">{{ quote.customer_email }}</a>
+                {% else %}<span class="text-muted">none given</span>{% endif %}
+            </dd>
+
+            <dt class="col-4">Store</dt>
+            <dd class="col-8">{{ quote.store.name|default:'-' }}</dd>
+
+            <dt class="col-4">Quote by</dt>
+            <dd class="col-8">{{ send_route }}</dd>
+        </dl>
+    </div>
+</div>

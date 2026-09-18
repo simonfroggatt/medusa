@@ -1,0 +1,189 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{# Laid out like the order details page (apps/orders/templates/orders/order_layout.html):
+   top bar with the store thumbnail and actions, a row of cards, then tabbed Products and
+   History. Editing controls only appear while the quote is draft or under review, and the
+   details edit uses the shared #modal-base dialog, same as orders. #}
+
+{% block content %}
+    <div class="wrapper wrapper-content layout-details">
+
+        <div class="row top_bar align-middle">
+            <div class="col-12 col-lg-5">
+                <h2>{{ quote.quote_number }}
+                    <img src="{{ quote.store.store_thumb_url }}" class="img-responsive tsg-thumbnail"
+                         alt="{{ quote.store.name }}">
+                    <span class="badge rounded-pill font-size-14"
+                          style="background-color: {{ quote.status.color_hex|default:'#808080' }}">
+                        {{ quote.status.status_name }}</span>
+                    {% if is_expired %}
+                    <span class="badge rounded-pill bg-danger font-size-14">EXPIRED</span>
+                    {% endif %}
+                </h2>
+            </div>
+            <div class="col-12 col-lg-7">
+                {% include 'quotes_web/quote_layout_navbar.html' %}
+            </div>
+        </div>
+
+        <div class="row col-12 pb-2 pe-0">
+            <div class="col-12 col-md-6 col-xl-4 pe-0" id="div_quote_details">
+                {% include 'quotes_web/sub_layout/quote_details.html' %}
+            </div>
+            <div class="col-12 col-md-6 col-xl-4 pe-0" id="div_quote_customer">
+                {% include 'quotes_web/sub_layout/quote_customer.html' %}
+            </div>
+            <div class="col-12 col-md-6 col-xl-4 pe-0" id="div_quote_link">
+                {% include 'quotes_web/sub_layout/quote_link.html' %}
+            </div>
+        </div>
+
+        <div class="row" id="quote-details-tabs">
+            <div class="col">
+                <div class="ibox">
+                    <div class="ibox-content tsg_navs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="products-tab" data-bs-toggle="tab"
+                                   href="#tab-products" role="tab">
+                                    <i class="fa-solid fa-list"></i> Products</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" id="history-tab" data-bs-toggle="tab"
+                                   href="#tab-history" role="tab">
+                                    <i class="fa-solid fa-history"></i> History</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+
+                            <div role="tabpanel" id="tab-products" class="tab-pane fade show active">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-12" id="quote_products_table">
+                                            {% include 'quotes_web/sub_layout/quote_products.html' %}
+                                        </div>
+                                    </div>
+                                    <div class="row justify-content-between">
+                                        <div class="col-12 col-md-6 border">
+                                            <h6>Staff notes:</h6>
+                                            <span id="quote_notes">
+                                                {{ quote.notes|default:'None'|linebreaksbr }}</span>
+                                        </div>
+                                        <div class="col-12 col-md-4 text-end order-first order-md-last">
+                                            <div id="div_quote_totals">
+                                                {% include 'quotes_web/sub_layout/quote_totals.html' %}
+                                            </div>
+                                            <span id="quote_product_summary">
+                                                <strong>{{ item_count }}</strong> Lines and
+                                                <strong>{{ unit_count }}</strong> products</span>
+                                            {% if not is_editable %}
+                                            <p class="text-muted mb-0"><small>
+                                                Lines can only be changed while the quote is draft
+                                                or under review.</small></p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div role="tabpanel" id="tab-history" class="tab-pane fade">
+                                <div class="panel-body">
+                                    {% include 'quotes_web/sub_layout/quote_history.html' %}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    const quote_id = {{ quote.quote_id }};
+
+    /* ---- customer link ---------------------------------------------------- */
+
+    function copyPortalUrl(button) {
+        var field = document.getElementById('portal-url');
+        if (!field) return;
+        field.select();
+        field.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(field.value);
+        $(button).html('<i class="fa-solid fa-check"></i> Copied');
+    }
+
+    $(document).on('click', '#copy-portal-url-field', function () { copyPortalUrl(this); });
+    $(document).on('click', '#copy-portal-url', function () { copyPortalUrl(this); });
+
+    /* ---- quote details dialog (same mechanism as the order pages) ---------- */
+
+    let loadQuoteDetailsEditForm = function () {
+        var btn = $(this);
+        let dlg_size = btn.attr('data-dlgsize');
+        $.ajax({
+            url: btn.attr('data-url'),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                $('#modal-base #modal-outer').removeClass('modal-sm modal-lg modal-xl modal-fullscreen');
+                $('#modal-base #modal-outer').addClass(dlg_size);
+                $('#modal-base').modal('show');
+            },
+            success: function (data) {
+                $('#modal-base .modal-content').html(data.html_form);
+            }
+        });
+    };
+
+    let saveQuoteDetailsEditForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr('action'),
+            data: form.serialize(),
+            type: form.attr('method'),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    updateQuoteDetails();
+                    $('#modal-base').modal('hide');
+                } else {
+                    $('#modal-base .modal-content').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
+
+    let updateQuoteDetails = function () {
+        // a line edit changes the lines, the totals and the details card, so all three refresh
+        $.ajax({
+            url: '/quotes-web/' + quote_id + '/details/',
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+                $('#div_quote_details').html(data.html_quote_details);
+                $('#div_quote_totals').html(data.html_quote_totals);
+                $('#quote_products_table').html(data.html_quote_products);
+            }
+        });
+        return false;
+    };
+
+    $(document).on('click', '.js-quote-details-edit', loadQuoteDetailsEditForm);
+    $(document).on('submit', '#js-quote-details-edit-submit', saveQuoteDetailsEditForm);
+
+    // the line dialog and Add Product use the same load/save mechanism. js-quote-add is the
+    // class the shared order dialog puts on its form when price_for is not "I".
+    $(document).on('click', '.js-quote-item-edit', loadQuoteDetailsEditForm);
+    $(document).on('submit', '#js-quote-item-edit-submit', saveQuoteDetailsEditForm);
+    $(document).on('click', '.js-quote-add-product', loadQuoteDetailsEditForm);
+    $(document).on('submit', '.js-quote-add', saveQuoteDetailsEditForm);
+
+    /* Line editing lives in the dialog now (quotes_web/dialog/quote_item_edit.html), which
+       carries its own bulk-band preview. */
+</script>
+{% endblock javascript %}

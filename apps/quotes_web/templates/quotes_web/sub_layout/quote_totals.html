@@ -1,0 +1,25 @@
+{% load static %}
+<table id="quote_totals" class="table table-striped align-middle table-sm">
+    <tbody>
+    <tr>
+        <td class="text-end">Subtotal</td>
+        <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.subtotal }}</td>
+    </tr>
+    <tr>
+        <td class="text-end">Shipping</td>
+        <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.shipping_cost }}</td>
+    </tr>
+    <tr>
+        <td class="text-end">Discount</td>
+        <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.discount_amount }}</td>
+    </tr>
+    <tr>
+        <td class="text-end">Tax</td>
+        <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.tax_total }}</td>
+    </tr>
+    <tr class="fw-bold">
+        <td class="text-end">Total</td>
+        <td class="text-end">{{ quote.currency.symbol_left }}{{ quote.total }}</td>
+    </tr>
+    </tbody>
+</table>

@@ -1,0 +1,68 @@
+{% load static %}
+{# Lines. While the quote is draft or under review each row is an editable form; once sent it
+   is read-only, because the customer may be looking at it. #}
+<table id="quote_product_list" class="table table-hover table-striped align-middle table-sm"
+       style="width:100%">
+    <thead>
+    <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th class="text-end">Qty</th>
+        <th class="text-end">{{ quote.currency.symbol_left }}/Unit</th>
+        <th class="text-end">Line {{ quote.currency.symbol_left }}</th>
+        <th class="text-end">Tax</th>
+        {% if is_editable %}<th class="text-end">&nbsp;</th>{% endif %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+        <tr {% if is_editable %}data-bulk-group="{{ item.bulk_discount_id|default:'' }}"
+            data-single-price="{{ item.single_unit_price }}"{% endif %}>
+            <td>{{ item.variant_code|default:'-' }}</td>
+            <td>
+                {{ item.product_name }}
+                {% if item.is_bespoke %}<span class="badge bg-info">bespoke</span>{% endif %}
+                {% if item.size_name or item.material_name %}
+                <br><small>{{ item.size_name|default:'' }}{% if item.orientation_name %}
+                    ({{ item.orientation_name }}){% endif %}
+                    {% if item.material_name %}&middot; {{ item.material_name }}{% endif %}</small>
+                {% endif %}
+                {% for option in item.options.all %}
+                <br><small class="text-muted">{{ option.class_name }}: {{ option.value_name }}</small>
+                {% endfor %}
+                <br><small class="text-muted">
+                    before bulk {{ quote.currency.symbol_left }}{{ item.single_unit_price|floatformat:2 }}
+                    {% if item.bulk_discount_id %}&middot; bulk group {{ item.bulk_discount_id }}{% endif %}
+                </small>
+            </td>
+            <td class="text-end">{{ item.quantity }}</td>
+            <td class="text-end">
+                {{ quote.currency.symbol_left }}{{ item.unit_price|floatformat:2 }}
+                {% if item.bulk_used and item.single_unit_price != item.unit_price %}
+                <br><small class="text-muted">bulk from
+                    {{ quote.currency.symbol_left }}{{ item.single_unit_price|floatformat:2 }}</small>
+                {% endif %}
+            </td>
+            <td class="text-end">{{ quote.currency.symbol_left }}{{ item.line_total|floatformat:2 }}</td>
+            <td class="text-end">{{ quote.currency.symbol_left }}{{ item.tax_amount|floatformat:2 }}</td>
+            {% if is_editable %}
+            <td class="text-end" style="width:110px">
+                <button type="button" class="btn {{ BUTTON_EDIT }} btn-sm js-quote-item-edit"
+                        data-url="{% url 'quotes_web_item_edit' quote.quote_id item.quote_item_id %}"
+                        data-dlgsize="modal-xl" title="Edit line">
+                    <i class="{{ ICON_EDIT }}"></i></button>
+                <form method="post" class="d-inline"
+                      action="{% url 'quotes_web_item_delete' quote.quote_id item.quote_item_id %}"
+                      onsubmit="return confirm('Remove {{ item.product_name|escapejs }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm" title="Remove line">
+                        <i class="fa-solid fa-trash"></i></button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+    {% empty %}
+        <tr><td colspan="7" class="text-center">No lines on this quote.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -1,0 +1,65 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <div class="row mb-3">
+    <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+      <a class="btn btn-sm {% if not current %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?">All</a>
+      {% for key, label, n in statuses %}
+        <a class="btn btn-sm {% if current == key %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?status={{ key }}">{{ label }} <span class="badge bg-secondary">{{ n }}</span></a>
+      {% endfor %}
+      <a class="btn btn-sm btn-outline-success ms-auto" href="{% url 'recreate-approved' %}"><i class="fa-solid fa-wand-magic-sparkles"></i> Shop preview</a>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'recreate-missing' %}"><i class="fa-solid fa-shapes"></i> Missing symbols</a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12">
+      <div class="ibox"><div class="ibox-content">
+        <p class="text-muted small mb-2">
+          Approved designs go to the test site with <code>python manage.py export_approved</code> (then rebuild it).<br>
+          The next 100 products are recreated with <code>python manage.py recreate_stock_signs</code>; each run carries on where the last one stopped.
+        </p>
+        <table id="recreate_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
+          <thead>
+            <tr>
+              <th style="width:90px">Image</th>
+              <th>Product</th>
+              <th>Sign reads</th>
+              <th>Status</th>
+              <th class="text-end">Confidence</th>
+              <th>Missing symbols</th>
+              <th>Notes</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+        </table>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+$(function () {
+  const esc = s => $('<div>').text(s ?? '').html();
+  const badge = {review: 'primary', approved: 'success', needs_symbol: 'warning', unsuitable: 'secondary', failed: 'danger', pending: 'light'};
+  $('#recreate_table').DataTable({
+    ajax: { url: "{% url 'recreate-list-api' %}{% if current %}?status={{ current }}{% endif %}", dataSrc: 'data' },
+    pageLength: 25,
+    order: [[1, 'asc']],
+    autoWidth: false,
+    columns: [
+      { data: 'image', orderable: false, render: (v, t, r) => v ? `<a href="${r.url}"><img src="${esc(v)}" alt="" style="max-width:80px;max-height:80px"></a>` : '' },
+      { data: 'name', render: (v, t, r) => t === 'display' ? `<a href="${r.url}">${esc(v || 'Product')}</a><div class="small text-muted">#${r.product_id}</div>` : `${v} ${r.product_id}` },
+      { data: 'sign_reads', render: v => `<span class="small">${esc(v)}</span>` },
+      { data: 'status_label', render: (v, t, r) => t === 'display' ? `<span class="badge bg-${badge[r.status] || 'light'}">${esc(v)}</span>` : v },
+      { data: 'confidence', className: 'text-end', render: v => v === null ? '' : `${Math.round(v * 100)}%` },
+      { data: 'missing', render: v => `<span class="small">${esc(v)}</span>` },
+      { data: 'notes', orderable: false, render: v => `<span class="small text-muted">${esc(v)}</span>` },
+      { data: 'updated' },
+    ],
+  });
+});
+</script>
+{% endblock javascript %}

@@ -1,0 +1,28 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customise · {{ name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'recreate/designer/sign-designer.css' %}">
+  <style>
+    .preview-bar {
+      display: flex; align-items: center; gap: 12px; padding: 8px 16px;
+      background: #1c1f23; color: #fff; font: 14px Barlow, system-ui, sans-serif;
+    }
+    .preview-bar a { color: #f7c600; }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <a href="{{ back_url }}">← Approved signs</a>
+    <span>Shop preview: what a customer sees after pressing “Customise me”.</span>
+  </div>
+  {{ config|json_script:"sign-designer-config" }}
+  <div id="app"></div>
+  <script type="module" src="{% static 'recreate/designer/sign-designer.js' %}"></script>
+</body>
+</html>

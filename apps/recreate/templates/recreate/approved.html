@@ -1,0 +1,68 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <p class="text-muted">
+    A quick look at the approved designs without leaving Medusa: hover or tap a sign to customise it.
+    The customer-facing version of this page is on the test site (<code>approved.html</code>), built from
+    <code>manage.py export_approved</code>.
+  </p>
+
+  <div class="shop-grid">
+    {% for item in items %}
+      <article class="shop-card">
+        <a class="shop-image" href="{{ item.url }}" aria-label="Customise {{ item.name }}">
+          {% if item.image %}<img src="{{ item.image }}" alt="{{ item.name }}">{% endif %}
+          <span class="customise-badge" title="This sign can be customised">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </span>
+          <span class="customise-call">
+            <span class="customise-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Customise me</span>
+            <span class="customise-hint">Change the wording, symbol or size</span>
+          </span>
+        </a>
+        <div class="shop-body">
+          <a class="shop-name" href="{{ item.url }}">{{ item.name }}</a>
+          <div class="text-muted small">
+            #{{ item.product_id }}{% if item.size %} · {{ item.size.width }} × {{ item.size.height }} mm{% endif %}
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="text-muted">Nothing approved yet. Approve a design on the review page and it will appear here.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_css %}
+<style>
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+  .shop-card { background: #fff; border: 1px solid #e6e6e6; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .shop-image {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    height: 210px; padding: 16px; background: #fff; text-decoration: none;
+  }
+  .shop-image img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform .15s ease; }
+  .shop-card:hover .shop-image img, .shop-image:focus-visible img { transform: scale(1.03); }
+  .customise-badge {
+    position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 999px;
+    background: #f7c600; color: #1c1f23; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgb(0 0 0 / .25); font-size: 15px;
+  }
+  .customise-call {
+    position: absolute; inset: auto 0 0 0; padding: 12px 10px 10px; text-align: center;
+    background: linear-gradient(to top, rgb(255 255 255 / .97) 60%, rgb(255 255 255 / 0));
+    opacity: 0; transform: translateY(6px); transition: opacity .15s ease, transform .15s ease;
+  }
+  .shop-card:hover .customise-call, .shop-image:focus-visible .customise-call { opacity: 1; transform: none; }
+  .customise-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px;
+    background: #1b7f3e; color: #fff; font-weight: 700; font-size: 15px;
+  }
+  .customise-hint { display: block; margin-top: 6px; font-size: 12px; color: #5b616b; }
+  .shop-body { padding: 12px 14px 14px; border-top: 1px solid #f0f0f0; }
+  .shop-name { font-weight: 600; color: #1c1f23; text-decoration: none; }
+  .shop-name:hover { text-decoration: underline; }
+  @media (hover: none) { .customise-call { opacity: 1; transform: none; } }
+</style>
+{% endblock extra_css %}

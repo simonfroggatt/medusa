@@ -1,0 +1,297 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+{# One quote line. The variants table lists every size/material for this product at this
+   store, from the same endpoint the order dialogs use - picking one moves the line to that
+   variant and takes its price. #}
+
+<div class="modal-header">
+    <h4 class="modal-title">Edit line &mdash; {{ quote.quote_number }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'quotes_web_item_edit' quote.quote_id item.quote_item_id %}"
+              id="js-quote-item-edit-submit">
+            {% csrf_token %}
+
+            {# filled in by the variants table #}
+            <input type="hidden" name="product_variant_id" id="id_product_variant_id"
+                   value="{{ item.product_variant_id|default:'' }}">
+            <input type="hidden" name="variant_code" id="id_variant_code" value="{{ item.variant_code|default:'' }}">
+            <input type="hidden" name="width" id="id_width" value="{{ item.width|default:'' }}">
+            <input type="hidden" name="height" id="id_height" value="{{ item.height|default:'' }}">
+            <input type="hidden" name="orientation_name" id="id_orientation_name" value="{{ item.orientation_name|default:'' }}">
+            <input type="hidden" name="supplier_id" id="id_supplier_id" value="{{ item.supplier_id|default:'' }}">
+            <input type="hidden" name="supplier_code" id="id_supplier_code" value="{{ item.supplier_code|default:'' }}">
+
+            <div class="row">
+                <div class="col-md-8">{{ form.product_name|as_crispy_field }}</div>
+                <div class="col-md-4">
+                    <label class="form-label" for="id_base_unit_price">Variant price</label>
+                    <input type="number" step="0.0001" min="0" class="form-control"
+                           name="base_unit_price" id="id_base_unit_price"
+                           value="{{ item.base_unit_price|floatformat:4 }}">
+                    <div class="form-text">Before options and bulk discount.</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label" for="id_size_name">Size</label>
+                    <input type="text" class="form-control" name="size_name" id="id_size_name"
+                           value="{{ item.size_name|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="id_material_name">Material</label>
+                    <input type="text" class="form-control" name="material_name" id="id_material_name"
+                           value="{{ item.material_name|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-md-3">{{ form.quantity|as_crispy_field }}</div>
+                <div class="col-md-3">
+                    <label class="form-label" for="id_unit_price">Unit price</label>
+                    <input type="number" step="0.0001" min="0" class="form-control"
+                           name="unit_price" id="id_unit_price" value="{{ item.unit_price|floatformat:4 }}">
+                </div>
+                <div class="col-md-3 align-self-center">
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" name="bulk_used" value="1"
+                               id="id_bulk_used" {% if item.bulk_used %}checked{% endif %}>
+                        <label class="form-check-label" for="id_bulk_used">Use bulk price</label>
+                    </div>
+                </div>
+                <div class="col-md-3 align-self-center">
+                    <p class="mb-0"><small class="text-muted">Options add
+                        {{ quote.currency.symbol_left }}<span id="option-total">0.00</span> per unit</small></p>
+                </div>
+            </div>
+
+            {# what the line carries today #}
+            <div class="row mt-2">
+                <div class="col-12">
+                    <p class="mb-1"><strong>Options on this line</strong></p>
+                    {% if options %}
+                    <ul class="list-inline mb-1">
+                        {% for option in options %}
+                        <li class="list-inline-item">
+                            <span class="badge bg-secondary">{{ option.class_name }}:
+                                {{ option.value_name }}
+                                {% if option.price_modifier %}
+                                (+{{ quote.currency.symbol_left }}{{ option.price_modifier|floatformat:2 }}){% endif %}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-1"><small>None.</small></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# pickers, loaded from the same endpoints the order dialogs use. What is chosen
+               here replaces the list above when the line is saved; prices for each option come
+               from oc_tsg_option_values on the server, never from the browser. #}
+            {% if item.product_variant_id or item.product_id %}
+            <input type="hidden" name="selected_option_values_frm" id="quote_selected_options">
+
+            <ul class="nav nav-tabs mt-3" role="tablist">
+                {% if item.product_variant_id %}
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-quote-variant-options"
+                       role="tab"><i class="fa-regular fa-sliders"></i> Variant options</a>
+                </li>
+                {% endif %}
+                {% if item.product_id %}
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if not item.product_variant_id %}active{% endif %}"
+                       data-bs-toggle="tab" href="#tab-quote-product-options" role="tab">
+                        <i class="fa-solid fa-gears"></i> Product options</a>
+                </li>
+                {% endif %}
+            </ul>
+            <div class="tab-content border-start border-end border-bottom p-2">
+                {% if item.product_variant_id %}
+                <div role="tabpanel" id="tab-quote-variant-options" class="tab-pane fade show active">
+                    <div id="quote_variant_options_holder">
+                        <p class="text-muted mb-0"><small>Loading…</small></p>
+                    </div>
+                </div>
+                {% endif %}
+                {% if item.product_id %}
+                <div role="tabpanel" id="tab-quote-product-options"
+                     class="tab-pane fade {% if not item.product_variant_id %}show active{% endif %}">
+                    <div id="quote_product_options_holder">
+                        <p class="text-muted mb-0"><small>Loading…</small></p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <p class="text-muted mt-1"><small>Leave a picker on its blank entry to drop that
+                option. The unit price is worked out again on save: variant price, plus the
+                options, then the bulk band.</small></p>
+            {% endif %}
+
+            {% if item.product_id %}
+            <hr>
+            <p class="mb-1"><strong>Change size or material</strong>
+                <small class="text-muted">&mdash; pick a variant and the price follows</small></p>
+            <table id="quote_variants_table" class="table table-hover table-striped align-middle table-sm"
+                   style="width:100%">
+                <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Size</th>
+                    <th>Material</th>
+                    <th class="text-end">Price</th>
+                </tr>
+                </thead>
+            </table>
+            {% else %}
+            <p class="text-muted mt-3">This line has no stock product behind it (bespoke or
+                manual), so there are no variants to choose from - edit the wording and price
+                above.</p>
+            {% endif %}
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                <button type="button" data-bs-dismiss="modal" class="btn {{ BUTTON_CANCEL }}">Cancel</button>
+                <button type="submit" class="btn {{ BUTTON_UPDATE }}">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var bulkBands = {{ bulk_bands|safe }};
+        var bulkGroupId = '{{ item.bulk_discount_id|default:"" }}';
+        var optionTotal = {{ option_total|default:0 }};
+
+        function bandDiscount(qty) {
+            var group = bulkBands.find(function (g) { return String(g.id) === String(bulkGroupId); });
+            if (!group || !group.breaks) return 0;
+            var discount = 0;
+            group.breaks.forEach(function (b) {
+                if (qty >= parseInt(b.qty_range_min, 10)) discount = parseFloat(b.discount_percent);
+            });
+            return discount;
+        }
+
+        // same maths as services/quotes.py: (variant price + options), then the band
+        function refreshPrice() {
+            if (!$('#id_bulk_used').is(':checked')) return;
+            var qty = parseInt($('#id_quantity').val(), 10);
+            var base = parseFloat($('#id_base_unit_price').val());
+            if (!qty || isNaN(base)) return;
+            var single = base + optionTotal;
+            $('#id_unit_price').val((single * (100 - bandDiscount(qty)) / 100).toFixed(4));
+        }
+
+        $('#option-total').text(optionTotal.toFixed(2));
+        $(document).on('input change', '#id_quantity, #id_base_unit_price, #id_bulk_used', refreshPrice);
+
+        /* ---- option pickers ------------------------------------------------ */
+
+        function loadOptions(url, holder) {
+            $.ajax({
+                url: url, type: 'get', dataType: 'json',
+                success: function (data) {
+                    $(holder).html(data.html_content || data.html_form ||
+                        '<p class="text-muted mb-0"><small>No options for this item.</small></p>');
+                },
+                error: function () {
+                    $(holder).html('<p class="text-danger mb-0"><small>Could not load options.</small></p>');
+                }
+            });
+        }
+
+        {% if item.product_variant_id %}
+        loadOptions('/orders/{{ quote.store_id }}/product_variant/{{ item.product_variant_id }}/ajax_load_options/',
+                    '#quote_variant_options_holder');
+        {% endif %}
+        {% if item.product_id %}
+        loadOptions('/orders/product/{{ item.product_id }}/ajax_load_options/',
+                    '#quote_product_options_holder');
+        {% endif %}
+
+        // The pickers arrive inside their own <form> elements, so their fields would not post
+        // with ours. Collect them into our form just before submitting - the same JSON shape
+        // the order dialogs use (services/quotes.py set_item_options reads it).
+        $('#js-quote-item-edit-submit').on('submit', function () {
+            var chosen = [];
+            $('#quote_variant_options_holder .tsg_option_class').each(function () {
+                var select = $(this);
+                var valueId = parseInt(select.val(), 10);
+                if (!valueId) return;                       // blank entry = option dropped
+                var option = select.find('option:selected');
+                chosen.push({
+                    class_id: select.data('selectclass'),
+                    class_label: select.closest('.row').find('label').text().trim(),
+                    value_id: valueId,
+                    value_label: option.text().trim(),
+                    is_dynamic: select.hasClass('dynamic_select'),
+                    addontype: option.data('addontype') || null
+                });
+            });
+            $('#quote_selected_options').val(JSON.stringify(chosen));
+
+            $(this).find('.js-copied-product-option').remove();
+            $('#quote_product_options_holder').find('select, input[type=text]').each(function () {
+                var field = $(this);
+                if (!field.attr('name') || !field.val()) return;
+                $('<input type="hidden" class="js-copied-product-option">')
+                    .attr('name', field.attr('name')).val(field.val()).appendTo(this.form ? $('#js-quote-item-edit-submit') : $('#js-quote-item-edit-submit'));
+            });
+        });
+
+        {% if item.product_id %}
+        $('#quote_variants_table').DataTable({
+            "processing": true, "paging": false, "info": false, "searching": false,
+            "autoWidth": false, "responsive": true, "select": true, "scrollY": "200px",
+            "scrollCollapse": true, "rowId": 'prod_variant_id',
+            "ajax": {
+                "url": "/products/api/storevariants/{{ item.product_id }}/{{ quote.store_id }}?format=datatables"
+            },
+            columns: [
+                {data: "variant_code"},
+                {data: "prod_var_core.size_material.product_size.size_name"},
+                {data: "prod_var_core.size_material.product_material.material_name"},
+                {
+                    data: null,
+                    className: "text-end",
+                    render: function (data) {
+                        return data['variant_overide_price'] > 0
+                            ? data['variant_overide_price']
+                            : data['prod_var_core']['size_material']['price'];
+                    }
+                }
+            ]
+        }).on('select', function (e, dt, type, indexes) {
+            var row = dt.row(indexes).data();
+            var core = row['prod_var_core'];
+            var size = core['size_material']['product_size'];
+
+            $('#id_product_variant_id').val(row['prod_variant_id']);
+            $('#id_variant_code').val(row['variant_code']);
+            $('#id_size_name').val(size['size_name']);
+            $('#id_width').val(size['size_width']);
+            $('#id_height').val(size['size_height']);
+            $('#id_orientation_name').val(size['orientation'] ? size['orientation']['orientation_name'] : '');
+            $('#id_material_name').val(core['size_material']['product_material']['material_name']);
+            $('#id_supplier_code').val(core['supplier_code'] || '');
+            $('#id_supplier_id').val(core['supplier'] ? core['supplier']['id'] : '');
+            $('#id_base_unit_price').val(
+                (row['variant_overide_price'] > 0
+                    ? row['variant_overide_price']
+                    : core['size_material']['price']));
+            refreshPrice();
+        });
+        {% endif %}
+    })();
+</script>

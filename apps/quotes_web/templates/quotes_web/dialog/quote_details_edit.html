@@ -1,0 +1,42 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<div class="modal-header">
+    <h4 class="modal-title">Update Quote Details</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="container">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <div class="row pb-2">
+            <div class="col-12">
+                <form method="post" action="{% url 'quotes_web_edit_header' quote.quote_id %}"
+                      id="js-quote-details-edit-submit">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">{{ form.shipping_cost|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.discount_amount|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.expiry_date|as_crispy_field }}</div>
+                        <div class="col-md-6 align-self-center">
+                            <p class="text-muted mb-0">Left blank, sending the quote sets
+                                30 days from that moment.</p>
+                        </div>
+                        <div class="col-md-12">{{ form.notes|as_crispy_field }}</div>
+                        <div class="col-md-12">
+                            <p class="text-muted">Notes are for staff only - the customer never
+                                sees them. Totals are worked out from the lines.</p>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" data-bs-dismiss="modal"
+                                        class="btn {{ BUTTON_CANCEL }}">Cancel</button>
+                                <button type="submit" id="update"
+                                        class="btn {{ BUTTON_UPDATE }} pull-right">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,60 @@
+{% load static %}
+{# Actions for one quote. The buttons come from the transition table, so this never needs
+   editing when the workflow changes - see services/transitions.allowed_transitions. #}
+<nav class="navbar navbar-expand-md navbar-light pe-0" id="navbar-quote">
+    <div class="container-fluid justify-content-end pe-0">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#quoteNavbarContent" aria-controls="quoteNavbarContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="quoteNavbarContent">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+
+                {% for transition in transitions %}
+                <form method="post" action="{% url 'quotes_web_change_status' quote.quote_id %}"
+                      class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="to_status" value="{{ transition.to_status.status_code }}">
+                    <button type="submit"
+                            class="btn {% if transition.to_status.status_code == 'cancelled' %}btn-danger{% else %}btn-success{% endif %}">
+                        {% if transition.to_status.status_code == 'sent' %}
+                        <i class="fa-solid fa-paper-plane"></i>
+                        {% elif transition.to_status.status_code == 'cancelled' %}
+                        <i class="fa-solid fa-ban"></i>
+                        {% else %}
+                        <i class="fa-solid fa-arrow-right"></i>
+                        {% endif %}
+                        {{ transition.transition_name }}</button>
+                </form>
+                {% endfor %}
+
+                {% if is_editable %}
+                <a class="btn {{ BUTTON_EDIT }} js-quote-add-product" role="button"
+                   data-url="{% url 'quotes_web_add_product' quote.quote_id %}"
+                   data-dlgsize="modal-xl"><i class="fa-solid fa-box-open"></i> Add Product</a>
+                {% endif %}
+
+                <div class="dropdown dropstart">
+                    <button class="btn {{ BUTTON_EXTRA }}" type="button" id="dropdownQuoteOptions"
+                            data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
+                        <i class="fa-solid fa-cog"></i>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownQuoteOptions">
+                        {% if portal_url %}
+                        <li><a class="dropdown-item" role="button" id="copy-portal-url">Copy customer link</a></li>
+                        <li><a class="dropdown-item" href="{{ portal_url }}" target="_blank" rel="noopener">
+                            Open as the customer sees it</a></li>
+                        <hr>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{% url 'quotes_web_list' %}">All web quotes</a></li>
+                        {% if quote.medusa_customer_id %}
+                        <li><a class="dropdown-item"
+                               href="{% url 'customerdetails' quote.medusa_customer_id %}">Customer record</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
