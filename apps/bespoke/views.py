@@ -1,6 +1,8 @@
 from django.shortcuts import render
+import os
 import os.path
 import re
+import tempfile
 from django.http import FileResponse, HttpResponse, JsonResponse, HttpResponseServerError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -206,10 +208,22 @@ def order_product_pdf(request, pk):
         return HttpResponseServerError('This line has no artwork.')
 
     name = _pdf_filename(request.GET.get('name'), f'{row.order_product.order_id}-{row.pk}')
-    pdf = BytesIO()
-    svg2pdf(bytestring=clean_svg_bytes(export), write_to=pdf)
-    pdf.seek(0)
-    return FileResponse(pdf, as_attachment=True, filename=name, content_type='application/pdf')
+
+    # To a path, not a stream: cairosvg only needs a cffi callback when it
+    # writes to a file-like object, and a venv whose cffi and libffi disagree
+    # fails there while every other conversion carries on working.
+    handle, tmp_path = tempfile.mkstemp(suffix='.pdf', dir=settings.REPORT_PATH_CACHE)
+    os.close(handle)
+    try:
+        svg2pdf(bytestring=clean_svg_bytes(export), write_to=tmp_path)
+        with open(tmp_path, 'rb') as made:
+            pdf = made.read()
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+    return FileResponse(BytesIO(pdf), as_attachment=True, filename=name,
+                        content_type='application/pdf')
 
 
 def _googledrive_upload(filename):
