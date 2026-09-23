@@ -255,8 +255,9 @@ RULES = """You rebuild UK safety sign products in a sign designer. You are shown
 
 The designer builds signs from:
 - sections: a row of symbols (from the catalogue) plus text panels beside or below them. A section may have no symbols (text only; give it a colour).
+- background: "colour" when the whole sign is one colour with the symbol on it and the wording in the contrasting colour (e.g. a yellow plant/equipment label with a black triangle); "white" for the usual white sign with coloured panels.
 - layout "single": one section (one or several symbols over one set of text). "stacked": sections one under another (each symbol with its own text, e.g. a warning section and a mandatory section). "grid": complete little signs in rows x cols.
-- symbol_position: "above" (symbol above text, portrait signs) or "left" (symbol left of text, landscape signs), as in the image.
+- symbol_position: "above", "below", "left" or "right" of the wording, as in the image (fire equipment signs often have the symbol on the right).
 - panels: coloured blocks of text. A panel's colour follows its section's symbol unless you set colour to a category key (only when the image shows a different colour).
 - lines: text lines in a panel. style "title" (main message), "body" (supporting text), "footer" (small print). caps true when the image shows the line in capitals. bold false only for clearly regular-weight text.
 
@@ -296,7 +297,8 @@ RECIPE_SCHEMA = {
                 'layout': {'type': 'string', 'enum': ['single', 'stacked', 'grid']},
                 'rows': {'type': ['integer', 'null']},
                 'cols': {'type': ['integer', 'null']},
-                'symbol_position': {'type': ['string', 'null'], 'enum': ['above', 'left', None]},
+                'background': {'type': 'string', 'enum': ['white', 'colour']},
+                'symbol_position': {'type': ['string', 'null'], 'enum': ['above', 'below', 'left', 'right', None]},
                 'sections': {
                     'type': 'array',
                     'items': {
@@ -486,3 +488,69 @@ def pending_products(random_order=False):
         import random
         random.shuffle(ids)
     return ids
+
+
+def design_symbol_codes(design):
+    """The ISO codes a design uses, in the order they appear, without repeats."""
+    codes = []
+    if not isinstance(design, dict):
+        return codes
+    for section in (design.get('root') or {}).get('sections') or []:
+        frame = section.get('symbol_frame') or {}
+        for symbol in frame.get('symbols') or []:
+            code = (symbol.get('symbol_code') or '').strip().upper()
+            if code and code not in codes:
+                codes.append(code)
+    return codes
+
+
+def link_symbols(product_id, codes):
+    """
+    Record the symbols a sign uses against the product, for the advanced search
+    and the category navigation. Adds what is missing and never removes: a link
+    may have been put there by hand, and approving a design is no reason to
+    take it away.
+
+    Returns {'added': [codes], 'already': [codes], 'unknown': [codes]}.
+    """
+    result = {'added': [], 'already': [], 'unknown': []}
+    if not codes:
+        return result
+
+    placeholders = ', '.join(['%s'] * len(codes))
+    known = {
+        r['code'].upper(): r['id']
+        for r in _rows(
+            f"SELECT id, code FROM oc_tsg_symbol_standard"
+            f" WHERE status = 1 AND UPPER(code) IN ({placeholders})",
+            [c.upper() for c in codes],
+        )
+        if r['code']
+    }
+    linked = {
+        r['symbol_standard_id']
+        for r in _rows(
+            "SELECT symbol_standard_id FROM oc_tsg_product_symbols WHERE product_id = %s",
+            [product_id],
+        )
+    }
+
+    add = []
+    for code in codes:
+        symbol_id = known.get(code.upper())
+        if symbol_id is None:
+            result['unknown'].append(code)
+        elif symbol_id in linked:
+            result['already'].append(code)
+        else:
+            add.append((product_id, symbol_id))
+            linked.add(symbol_id)
+            result['added'].append(code)
+
+    if add:
+        with connection.cursor() as cursor:
+            cursor.executemany(
+                "INSERT IGNORE INTO oc_tsg_product_symbols (product_id, symbol_standard_id) VALUES (%s, %s)",
+                add,
+            )
+    return result

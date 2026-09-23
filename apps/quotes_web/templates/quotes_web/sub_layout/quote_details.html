@@ -59,6 +59,16 @@
             <dd class="col-8">{{ quote.currency.symbol_left }}{{ quote.discount_amount }}</dd>
             {% endif %}
 
+            {% if quote.order_id %}
+            <dt class="col-4">Order:</dt>
+            <dd class="col-8">
+                <a href="{% url 'order_details' quote.order_id %}">
+                    {{ quote.order.store.prefix }}-{{ quote.order_id }}</a>
+                <br><small class="text-muted">{{ quote.order.payment_status.name }} &middot;
+                    {{ quote.order.payment_method.method_name }}</small>
+            </dd>
+            {% endif %}
+
             <dt class="col-4">Notes:</dt>
             <dd class="col-8 text-wrap">{{ quote.notes|default:'&nbsp;'|linebreaksbr }}</dd>
         </dl>

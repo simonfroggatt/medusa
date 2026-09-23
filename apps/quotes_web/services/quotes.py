@@ -421,7 +421,7 @@ def _save_item_options(item, options):
 @transaction.atomic
 def create_quote(*, store_id, customer_name, customer_phone, lines,
                  customer_email=None, medusa_customer_id=None, notes=None,
-                 created_from=constants.CREATED_FROM_WEBSITE):
+                 created_from=constants.CREATED_FROM_WEBSITE, auto_send=True):
     """Create a quote and its lines from a storefront request. Returns the Quote."""
     if not lines:
         raise EmptyCart('No cart lines were sent with the quote request')
@@ -463,4 +463,44 @@ def create_quote(*, store_id, customer_name, customer_phone, lines,
                data={'lines': len(lines), 'created_from': created_from})
     logger.info('quotes_web: created %s (store %s, %s lines, total %s)',
                 quote.quote_number, store.store_id, len(lines), quote.total)
+
+    if auto_send:
+        auto_send_quote(quote)
+
     return quote
+
+
+def auto_send_quote(quote):
+    """Send a new quote to the customer without waiting for staff.
+
+    Quotes hold products already sold on the site, so there is nothing to price up first. The
+    quote is marked sent first and emailed second: a quote that is 'sent' but whose email
+    failed can be re-sent by staff, whereas an email pointing at a quote still 'requested'
+    would give the customer a link that refuses to open.
+
+    Anything that would stop the email - no address, no template, sending switched off -
+    leaves the quote at 'requested' for staff to deal with by hand.
+    """
+    from . import notify as notify_service          # imported here: notify imports this module
+    from . import transitions as transition_service
+
+    ok, reason = notify_service.can_send(quote)
+    if not ok:
+        logger.info('quotes_web: %s not auto-sent (%s) - left for staff',
+                    quote.quote_number, reason)
+        return False
+
+    try:
+        transition_service.change_status(quote, constants.STATUS_SENT, constants.ROLE_SYSTEM)
+    except QuotesWebError as exc:
+        # e.g. the requested -> sent transition has not been added to the table yet
+        logger.warning('quotes_web: %s could not be marked sent (%s) - left for staff',
+                       quote.quote_number, exc)
+        return False
+
+    quote.refresh_from_db()
+    route, sent, send_reason = notify_service.send_quote(quote)
+    if not sent:
+        logger.error('quotes_web: %s is marked sent but the email failed (%s)',
+                     quote.quote_number, send_reason)
+    return sent

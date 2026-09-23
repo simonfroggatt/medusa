@@ -29,7 +29,12 @@ from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
 from apps.shipping.models import OcTsgShippingMethod
 from apps.emails.views import send_invoice_email, send_shipped_email
 from django.core import serializers
-from django.urls import reverse_lazy
+from django.db import connection
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.templatetags.static import static
+from django.views.decorators.http import require_POST
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.db.models import Sum, Q
@@ -338,6 +343,9 @@ def order_details(request, order_id):
     order_obj = get_object_or_404(OcOrder, pk=order_id)
     context = {"order_obj": order_obj}
     context['heading'] = 'order details'
+    # The artwork sheet is only worth offering when there is artwork.
+    context['has_bespoke'] = OcTsgOrderBespokeImage.objects.filter(
+        order_product__order__order_id=order_id).exists()
 
 
     if order_obj.customer:
@@ -2400,6 +2408,22 @@ def bespoke_order_product(request, order_id, bespoke_order_product_id):
     bespoke_order_product_obj = get_object_or_404(OcTsgOrderBespokeImage, order_product_id=bespoke_order_product_id)
     context['bespoke_product'] = bespoke_order_product_obj
 
+    # Lines drawn by the sign designer keep their design, so a spelling mistake
+    # or a late change can be put right here rather than redrawn from scratch.
+    # Older lines only ever had the finished SVG, so they keep the read-only page.
+    if (bespoke_order_product_obj.version or 0) >= DESIGNER_VERSION:
+        context['heading'] = 'Bespoke Product Details'
+        context['breadcrumbs'] = [
+            {'name': 'Orders', 'url': reverse_lazy('allorders')},
+            {'name': 'Order details', 'url': reverse_lazy('order_details', kwargs={'order_id': order_id})},
+        ]
+        context['frame_url'] = reverse_lazy('orderproductbespoke-designer', kwargs={'bespoke_id': bespoke_order_product_obj.pk})
+        context['save_url'] = reverse_lazy('orderproductbespoke-save', kwargs={'bespoke_id': bespoke_order_product_obj.pk})
+        context['text_line'] = _bespoke_texts(bespoke_order_product_obj)
+        context['symbol_codes'] = _bespoke_symbol_codes(bespoke_order_product_obj)
+        context['pdf_url'] = reverse('convert_order_product', kwargs={'pk': bespoke_order_product_obj.pk})
+        return render(request, 'orders/order_bespoke_designer.html', context)
+
     #context['svg_export'] = json.loads(bespoke_order_product_obj.svg_export)
 
     context['svg_export'] = bespoke_order_product_obj.svg_export.decode('utf-8')
@@ -2457,3 +2481,144 @@ def company_api_account_address(request, order_id, company_id):
         data['form_is_valid'] = False
 
     return JsonResponse(data)
+
+# ── Bespoke artwork drawn by the sign designer ─────────────────────────────
+# Version 2 lines came from the old drawer and only ever had the finished SVG.
+# Version 3 lines keep the design itself, so they can be reopened and changed.
+DESIGNER_VERSION = OcTsgOrderBespokeImage.DESIGNER_VERSION
+
+
+def _bespoke_design(row):
+    """The SignDocument on an order line. The column holds it twice encoded,
+    because the cart json_encodes what it is handed and it is handed JSON."""
+    raw = row.svg_json
+    if not raw:
+        return None
+    try:
+        value = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            return None
+    return value if isinstance(value, dict) else None
+
+
+def _bespoke_texts(row):
+    """The wording, however it was stored: a JSON list, or a JSON string of one."""
+    value = row.svg_texts
+    for _ in range(2):
+        if not isinstance(value, str):
+            break
+        try:
+            value = json.loads(value)
+        except ValueError:
+            return [value]
+    if isinstance(value, list):
+        return [str(v) for v in value]
+    return [str(value)] if value else []
+
+
+def _bespoke_symbol_codes(row):
+    """The designer records ISO codes; the old drawer recorded symbol ids."""
+    value = row.svg_images
+    for _ in range(2):
+        if not isinstance(value, str):
+            break
+        try:
+            value = json.loads(value)
+        except ValueError:
+            value = [v for v in value.split(',') if v]
+            break
+    if isinstance(value, list):
+        return [str(v) for v in value if str(v).strip()]
+    return []
+
+
+# The page shows this in an iframe, and X-Frame-Options denies that by default.
+def _line_unprinted(row):
+    """The colour this line's material supplies, so the designer draws it as the
+    material and the print file leaves it bare.
+
+    The design records what the sign looks like, not what it is made of, so it
+    has to come from the order's variant."""
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT m.face_hex, m.unprinted_hex
+              FROM oc_order_product op
+              JOIN oc_tsg_product_variants v ON v.prod_variant_id = op.product_variant_id
+              JOIN oc_tsg_product_variant_core vc ON vc.prod_variant_core_id = v.prod_var_core_id
+              JOIN oc_tsg_size_material_comb smc ON smc.id = vc.size_material_id
+              JOIN oc_tsg_product_material m ON m.material_id = smc.product_material_id
+             WHERE op.order_product_id = %s
+        """, [row.order_product_id])
+        found = cursor.fetchone()
+    if not found:
+        return None
+    face, unprinted = found
+    # Unset means the material stands in for its own colour: yellow reflective.
+    return (unprinted or face or '').strip() or None
+
+
+@xframe_options_sameorigin
+@login_required
+def bespoke_order_designer(request, bespoke_id):
+    """The designer itself, in an iframe, opened on this order line's design."""
+    row = get_object_or_404(OcTsgOrderBespokeImage, pk=bespoke_id)
+    config = {
+        'dataUrl': request.build_absolute_uri(
+            reverse('recreate-feed', args=['NAME'])).replace('NAME', '{name}'),
+        'suggestUrl': None,
+        'translateUrl': None,
+        'assetBase': static('recreate/designer/'),
+        # The order is priced on the size it was bought at, and nothing here
+        # reprices it, so the designer does not offer its own sizes.
+        'pageOwnsSize': True,
+        'unprinted': _line_unprinted(row),
+        'open': {
+            'productName': f'Order line {row.pk}',
+            'size': None,
+            'design': _bespoke_design(row),
+        },
+    }
+    return render(request, 'recreate/frame.html', {'config': config})
+
+
+@require_POST
+@login_required
+def bespoke_order_save(request, bespoke_id):
+    """Put a corrected design back on the order line.
+
+    The artwork changes, so anything made from the old one is stale: the PDF
+    sent to print is dropped, and has to be made again."""
+    row = get_object_or_404(OcTsgOrderBespokeImage, pk=bespoke_id)
+    try:
+        body = json.loads(request.body)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    design = body.get('svg_json')
+    if isinstance(design, str):
+        try:
+            design = json.loads(design)
+        except ValueError:
+            design = None
+    if not isinstance(design, dict) or (design.get('root') or {}).get('role') != 'sign':
+        return JsonResponse({'error': 'Not a sign design'}, status=400)
+
+    export = body.get('svg_export') or ''
+    if '<svg' not in export:
+        return JsonResponse({'error': 'No print artwork in that save'}, status=400)
+
+    # Stored the way the shop stores it, so both write the same shape.
+    row.svg_json = json.dumps(json.dumps(design, ensure_ascii=False), ensure_ascii=False)
+    row.svg_export = export.encode('utf-8')
+    row.svg_texts = json.dumps(body.get('svg_texts') or [], ensure_ascii=False)
+    row.svg_images = json.dumps(body.get('svg_images') or [], ensure_ascii=False)
+    row.google_id = None
+    row.png_url = None
+    row.version = DESIGNER_VERSION
+    row.save()
+    return JsonResponse({'ok': True, 'texts': _bespoke_texts(row), 'symbols': _bespoke_symbol_codes(row)})

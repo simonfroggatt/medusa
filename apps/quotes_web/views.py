@@ -35,6 +35,7 @@ from apps.products.models import OcTsgBulkdiscountGroups
 
 from .forms import CreateQuoteForm, QuoteHeaderForm, QuoteItemAddForm, QuoteItemForm
 from .models import Quote, QuoteItem, QuoteStatus
+from .services import conversion as conversion_service
 from .services import notify as notify_service
 from .services import quotes as quote_service
 from .services import transitions as transition_service
@@ -114,12 +115,14 @@ def api_create(request):
         logger.exception('quotes_web: create failed')
         return _fail('server_error', 'Could not create the quote', 500)
 
-    # the public token is not returned: staff send the customer their link
+    # the public token is not returned: the customer gets their link by email
     return JsonResponse({'ok': True, 'data': {
         'quote_id': quote.quote_id,
         'quote_number': quote.quote_number,
         'total': str(quote.total),
         'currency': quote.currency.code if quote.currency_id else None,
+        # False means staff will send it by hand, so the storefront can word its message
+        'emailed': quote.status.status_code == constants.STATUS_SENT,
     }})
 
 
@@ -417,6 +420,19 @@ def quote_change_status(request, quote_id):
     """Staff status button. The role is the logged-in user's, never the posted data."""
     quote = get_object_or_404(Quote, pk=quote_id)
     to_code = request.POST.get('to_status', '')
+
+    # "Create order" is not just a status change - it builds the proforma, and moves the
+    # status itself once that has worked
+    if to_code == constants.STATUS_ORDER_CREATED:
+        try:
+            order = conversion_service.convert_to_order(quote, user=request.user)
+        except QuotesWebError as exc:
+            logger.warning('quotes_web: conversion refused for %s: %s', quote.quote_number, exc)
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, f'{quote.quote_number} is now order '
+                                      f'{order.store.prefix}-{order.order_id}.')
+        return redirect('quotes_web_detail', quote_id=quote_id)
 
     try:
         quote = transition_service.change_status(

@@ -28,7 +28,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from apps.orders.models import OcTsgOrderShipment
+from apps.orders.models import OcTsgOrderShipment, OcTsgOrderBespokeImage
 
 registerFont(TTFont('Arial','ARIAL.ttf'))
 
@@ -277,6 +277,91 @@ def gen_pick_list(order_id, bl_excl_shipped=False):
     doc.build(elements, canvasmaker=utils.NumberedCanvas, onFirstPage=partial(utils.draw_footer, order_obj=order_obj), onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
 
 
+    return buffer
+
+
+def gen_artwork_sheet(order_id, bl_excl_shipped=False):
+    """The bespoke signs on an order, big enough to check before they are made.
+
+    The picklist image is 20 x 10mm — enough to pick the right sign off the
+    rack, not enough to read a phone number or spot a misspelling. This is the
+    same artwork at a size a person can actually check.
+
+    Tiled to suit the order: four to a page for a handful, more when there are
+    many, so a trade order does not turn into a ream of paper."""
+    order_obj = get_object_or_404(OcOrder, pk=order_id)
+    order_ref_number = f'{order_obj.store.prefix}-{order_obj.order_id}'
+
+    lines = list(
+        OcTsgOrderBespokeImage.objects
+        .filter(order_product__order__order_id=order_id)
+        .select_related('order_product')
+        .order_by('order_product__order_product_id')
+    )
+    if not lines:
+        return None
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=8 * mm, leftMargin=8 * mm,
+                            topMargin=8 * mm, bottomMargin=10 * mm,
+                            title=f'Artwork_{order_ref_number}',
+                            author="Total Safety Group Ltd",
+                            )
+    elements = []
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='header_right', alignment=TA_RIGHT, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='art_caption', alignment=TA_CENTER, fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name='art_title', alignment=TA_LEFT, fontSize=12, leading=14))
+
+    elements.append(Table(
+        [[utils.create_company_logo(order_obj.store),
+          Paragraph(utils.create_address(order_obj.store), styles['header_right'])]]
+    ))
+    elements.append(Spacer(1, 4 * mm))
+    elements.append(Paragraph(
+        f'<b>Bespoke artwork</b> &nbsp; {order_ref_number} &nbsp; ({len(lines)} '
+        f'{"sign" if len(lines) == 1 else "signs"})', styles['art_title']))
+    elements.append(Spacer(1, 3 * mm))
+
+    # Four to a page reads best; past that, fit more rather than print more pages.
+    across = 2 if len(lines) <= 4 else (3 if len(lines) <= 12 else 4)
+    cell_w = doc.width / across
+    image_w = cell_w - 8 * mm
+    image_h = image_w * (1.0 if across > 2 else 0.85)
+
+    cells = []
+    for line in lines:
+        png = utils._create_bespoke_image_png(line)
+        if png:
+            art = Image(png)
+            art._restrictSize(image_w, image_h)
+        else:
+            art = Paragraph('No artwork', styles['art_caption'])
+        product = line.order_product
+        caption = f'<b>{product.model or ""}</b><br/>{product.name or ""}'
+        if product.size_name:
+            caption += f'<br/>{product.size_name}'
+        if product.material_name:
+            caption += f'<br/>{product.material_name}'
+        caption += f'<br/>Qty {product.quantity}'
+        cells.append(Table([[art], [Paragraph(caption, styles['art_caption'])]],
+                           colWidths=[cell_w], rowHeights=[image_h + 4 * mm, None]))
+
+    rows = [cells[i:i + across] for i in range(0, len(cells), across)]
+    rows[-1] += [''] * (across - len(rows[-1]))          # square off the last row
+    grid = Table(rows, colWidths=[cell_w] * across)
+    grid.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.lightgrey),
+    ]))
+    elements.append(grid)
+
+    doc.build(elements, canvasmaker=utils.NumberedCanvas,
+              onFirstPage=partial(utils.draw_footer, order_obj=order_obj),
+              onLaterPages=partial(utils.draw_footer, order_obj=order_obj))
     return buffer
 
 
@@ -1512,16 +1597,27 @@ def gen_merged_paperwork(request, order_id):
     if 'print_backorder' in request.POST:
         bl_exclude_backorder = False
 
+    # The artwork belongs with the picklist — it is what the signs are checked
+    # against while they are being made — so it follows it straight away.
+    # Asked for on its own, it goes at the end.
+    artwork = gen_artwork_sheet(order_id, bl_exclude_shipped) if 'print_artwork' in request.POST else None
+
     if 'print_picklist' in request.POST:
         #pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
         #we need to see if there are tsg varoant options. If so, we create a different picklist and dispatch note
         if utils.order_has_product_options(order_id):
             if _test_has_unshipped_items(order_id):
                 pdflist.append(gen_options_pick_list(order_id, bl_exclude_shipped))
+                if artwork:
+                    pdflist.append(artwork)
+                    artwork = None
                 pdflist.append(gen_dispatch_note(order_id, bl_exclude_shipped))
         else:
             if _test_has_unshipped_items(order_id):
                 pdflist.append(gen_pick_list(order_id, bl_exclude_shipped))
+                if artwork:
+                    pdflist.append(artwork)
+                    artwork = None
             if _test_has_backorder_items(order_id) and not bl_exclude_backorder:
                 pdflist.append(gen_backorder_note(order_id, bl_exclude_shipped))
 
@@ -1534,6 +1630,8 @@ def gen_merged_paperwork(request, order_id):
         if _test_has_unshipped_items(order_id):
             pdflist.append(gen_collection_note(order_id, bl_exclude_shipped))
             set_printed(request, order_id)
+    if artwork:                      # wanted, but there was no picklist to follow
+        pdflist.append(artwork)
 
     result_pdf = PdfFileWriter()
 

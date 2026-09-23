@@ -26,7 +26,9 @@ class OcTsgBespokeTemplates(models.Model):
         db_table = 'oc_tsg_bespoke_templates'
 
     def __str__(self):
-        return self.title
+        # Both columns are nullable, and a row with no title must not take out
+        # every form with a template dropdown on it.
+        return self.title or self.path or f'Template {self.pk}'
 
 
 class OcProduct(models.Model):

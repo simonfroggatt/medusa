@@ -1,0 +1,60 @@
+{# The Artwork tab on a product page: design the sign, or start one. #}
+{% if row %}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <span class="badge bg-dark" id="artwork-status">{{ row.status_label }}</span>
+    {% if row.confidence is not None %}
+      <span class="badge bg-light text-dark">AI confidence {% widthratio row.confidence 1 100 %}%</span>
+    {% endif %}
+    <span id="artwork-symbols" class="small text-success"></span>
+    <div class="ms-auto d-flex gap-2">
+      <button type="button" class="btn btn-sm btn-outline-primary js-artwork-rerun">Generate with AI</button>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ review_url }}">Open full review</a>
+    </div>
+  </div>
+  {% if row.ai_notes %}<p class="small text-muted mb-2">{{ row.ai_notes }}</p>{% endif %}
+  <iframe id="artwork-designer" src="{{ frame_url }}" title="Sign designer"
+          style="width:100%;height:min(1100px, calc(100vh - 220px));min-height:720px;border:0;border-radius:6px"></iframe>
+  <p class="small text-muted mt-2 mb-0">
+    Approving the design records the symbols it uses against this product, for the advanced search
+    and the category navigation. Links already there are left alone.
+  </p>
+{% else %}
+  <div class="text-center py-5">
+    <h5>No artwork for this product yet</h5>
+    <p class="text-muted mb-4">Draw the sign yourself, or let the AI read the product image and have a go first.</p>
+    <div class="d-flex justify-content-center gap-2">
+      <button type="button" class="btn btn-primary js-artwork-start">Design it yourself</button>
+      <button type="button" class="btn btn-outline-primary js-artwork-rerun">Generate with AI</button>
+    </div>
+    <p class="small text-muted mt-3 mb-0">Nothing is sent to the AI unless you ask for it.</p>
+  </div>
+{% endif %}
+
+<script>
+(function () {
+    var csrf = '{{ csrf_token }}';
+    var panel = document.getElementById('tab-artwork_contents');
+    var reload = function () { if (window.loadArtworkTab) window.loadArtworkTab(); };
+
+    $(panel).find('.js-artwork-start').off('click').on('click', function () {
+        var button = $(this).prop('disabled', true).text('Opening…');
+        $.post("{% url 'recreate-start' product_id %}", { csrfmiddlewaretoken: csrf })
+            .done(reload)
+            .fail(function (x) {
+                alert((x.responseJSON && x.responseJSON.error) || 'Could not start a design for this product');
+                button.prop('disabled', false).text('Design it yourself');
+            });
+    });
+
+    $(panel).find('.js-artwork-rerun').off('click').on('click', function () {
+        if (!confirm('Ask the AI to read the product image and draw the sign?{% if row.design %} This replaces the current design.{% endif %}')) return;
+        var button = $(this).prop('disabled', true).text('Working…');
+        $.post("{% url 'recreate-rerun' product_id %}", { csrfmiddlewaretoken: csrf })
+            .done(reload)
+            .fail(function (x) {
+                alert((x.responseJSON && x.responseJSON.error) || 'The AI could not draw this one');
+                button.prop('disabled', false).text('Generate with AI');
+            });
+    });
+})();
+</script>

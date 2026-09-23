@@ -1,6 +1,7 @@
 from django.shortcuts import render
 import os.path
-from django.http import HttpResponse, JsonResponse, HttpResponseServerError
+import re
+from django.http import FileResponse, HttpResponse, JsonResponse, HttpResponseServerError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -9,8 +10,12 @@ from googleapiclient.http import MediaFileUpload
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from lxml import etree
 from io import BytesIO
+from urllib.parse import quote
 import json
 import logging
 logger = logging.getLogger('apps')
@@ -91,6 +96,20 @@ def convert_order(request, pk):
         filename = f"{pk}-{product_bespoke.id}.pdf"
         file_uploaded = {'name': filename}
         file_uploaded['status'] = 'error'
+
+        # Signs drawn with the sign designer arrive with their text already as
+        # outlines, so svg_export needs no font and goes straight through.
+        # Any line whose artwork still has live text is left for a person: a
+        # PDF with a substituted font is worse than none.
+        if (product_bespoke.version or 0) >= OcTsgOrderBespokeImage.DESIGNER_VERSION:
+            export = product_bespoke.svg_export
+            export = export.tobytes() if isinstance(export, memoryview) else export
+            if not export or b'<text' in bytes(export):
+                file_uploaded['status'] = 'skipped'
+                file_uploaded['reason'] = 'Artwork has live text; made before outlining.'
+                data.append(file_uploaded)
+                continue
+
         bl_converted = _convert_svg_to_pdf(product_bespoke.svg_export, filename)
         if bl_converted:
         #now upload the file to google drive
@@ -107,8 +126,90 @@ def convert_order(request, pk):
 
     return JsonResponse(data, safe=False)
 
+def _pdf_filename(asked, fallback):
+    """A name for the PDF, from the person making it.
+
+    It becomes a filename on this server and on the Drive, so it keeps to
+    letters, digits, spaces and the plainest punctuation — nothing that could
+    walk out of the folder it belongs in."""
+    name = (asked or '').strip()
+    if name.lower().endswith('.pdf'):
+        name = name[:-4]
+    name = re.sub(r'[^A-Za-z0-9 ._-]', '', name).strip(' .')
+    return f'{name[:80] or fallback}.pdf'
+
+
+@require_POST
+@login_required
 def convert_order_product(request, pk):
-    return render(request, 'convert_order_product.html')
+    """Make the print PDF for one order line, and put it on the Drive.
+
+    Used from the order's artwork page: after a sign is corrected its old PDF
+    is no longer what will be printed, so a new one has to be made."""
+    row = get_object_or_404(OcTsgOrderBespokeImage, pk=pk)
+    export = row.svg_export
+    export = export.tobytes() if isinstance(export, memoryview) else export
+    if isinstance(export, str):
+        export = export.encode('utf-8')
+    if not export or b'<svg' not in export:
+        return JsonResponse({'error': 'This line has no artwork to convert.'}, status=400)
+    if b'<text' in export:
+        return JsonResponse({
+            'error': 'The artwork still has live text, so the PDF would use whatever '
+                     'font this server has. Open it in the designer and save it again.',
+        }, status=400)
+
+    filename = _pdf_filename(request.POST.get('name'), f'{row.order_product.order_id}-{row.pk}')
+    if not _convert_svg_to_pdf(export, filename):
+        return JsonResponse({'error': 'The PDF could not be made from this artwork.'}, status=500)
+
+    # The PDF exists either way. The Drive is where it is kept, and a machine
+    # without the service account key — a developer's, typically — cannot reach
+    # it; that is no reason to lose the file or to answer with a 500.
+    try:
+        file_id = _googledrive_upload(filename)
+    except Exception as e:
+        logger.warning('bespoke %s: Drive upload failed: %s', row.pk, e)
+        file_id = ''
+
+    local = reverse('orderproductbespoke-pdf', args=[row.pk]) + f'?name={quote(filename)}'
+    if not file_id:
+        return JsonResponse({
+            'name': filename,
+            'url': local,
+            'uploaded': False,
+            'warning': 'Made, but not saved to the Drive — this server cannot reach it.',
+        })
+
+    row.google_id = file_id
+    row.save()
+    return JsonResponse({
+        'google_id': file_id,
+        'name': filename,
+        'url': reverse('download_file', args=[file_id]),
+        'uploaded': True,
+    })
+
+
+@login_required
+def order_product_pdf(request, pk):
+    """The print PDF for one line, made now and sent straight back.
+
+    Always current, because it is made from the line's artwork as it stands,
+    and it needs nothing but this server — no Drive, and no font."""
+    row = get_object_or_404(OcTsgOrderBespokeImage, pk=pk)
+    export = row.svg_export
+    export = export.tobytes() if isinstance(export, memoryview) else export
+    if isinstance(export, str):
+        export = export.encode('utf-8')
+    if not export or b'<svg' not in export:
+        return HttpResponseServerError('This line has no artwork.')
+
+    name = _pdf_filename(request.GET.get('name'), f'{row.order_product.order_id}-{row.pk}')
+    pdf = BytesIO()
+    svg2pdf(bytestring=clean_svg_bytes(export), write_to=pdf)
+    pdf.seek(0)
+    return FileResponse(pdf, as_attachment=True, filename=name, content_type='application/pdf')
 
 
 def _googledrive_upload(filename):

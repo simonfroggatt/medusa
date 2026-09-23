@@ -219,7 +219,47 @@ def save(request, product_id):
     row.reviewed_by_id = request.user.id
     row.reviewed_at = timezone.now()
     row.save()
-    return JsonResponse({'status': row.status, 'label': row.status_label})
+
+    # An approved design is the sign, so the symbols on it are the product's
+    # symbols: the advanced search and the category navigation read them.
+    symbols = {}
+    if status == Recreation.STATUS_APPROVED:
+        symbols = services.link_symbols(product_id, services.design_symbol_codes(design))
+    return JsonResponse({'status': row.status, 'label': row.status_label, 'symbols': symbols})
+
+
+@require_POST
+@staff_view
+def start(request, product_id):
+    """Design a sign for a product the recreation run has never touched.
+
+    No AI: it makes an empty row and hands over to the designer, which opens a
+    plain sign for the product's own symbol."""
+    if Recreation.objects.filter(product_id=product_id).exists():
+        return JsonResponse({'ok': True, 'created': False})
+    product = services.product(product_id)          # 404s if it is not a live sign
+    Recreation.objects.create(
+        product_id=product_id,
+        store_id=services.store_id(),
+        status=Recreation.STATUS_REVIEW,
+        source_image=product.get('image') or None,
+    )
+    return JsonResponse({'ok': True, 'created': True})
+
+
+@staff_view
+def artwork_tab(request, product_id):
+    """The Artwork tab on a product page: the designer, or the ways to start one."""
+    row = Recreation.objects.filter(product_id=product_id).first()
+    return render(request, 'recreate/product_artwork.html', {
+        'product_id': product_id,
+        'row': row,
+        'frame_url': reverse('recreate-frame', args=[product_id]) if row else '',
+        'start_url': reverse('recreate-start', args=[product_id]),
+        'rerun_url': reverse('recreate-rerun', args=[product_id]),
+        'review_url': reverse('recreate-review', args=[product_id]) if row else '',
+        'csrf_token': get_token(request),
+    })
 
 
 @require_POST

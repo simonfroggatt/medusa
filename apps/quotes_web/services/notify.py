@@ -13,6 +13,7 @@ An 'email_sent' action is written only when the email actually went - the audit 
 never claim a send that did not happen.
 """
 import logging
+import re
 from decimal import Decimal
 
 from django.conf import settings
@@ -70,14 +71,52 @@ def build_quote_email(quote):
         '{{store_website}}': store.website or '',
         '{{company_name}}': store.company_name or '',
         '{{sales_email}}': store.email_address or '',
+        '{{accounts_email}}': store.accounts_email_address or '',
+        '{{store_address}}': store.address or '',
     }
     replacements['{{store_email_footer}}'] = email_views.apply_template_replacements(
         store.email_footer_text or '', replacements)
 
-    return {
+    email = {
         'subject': email_views.apply_template_replacements(template.subject or '', replacements),
         'body': email_views.apply_template_replacements(template.main or '', replacements),
     }
+    _warn_unfilled(quote, email)
+    return email
+
+
+def _warn_unfilled(quote, email):
+    """Placeholders nobody filled would be mailed to the customer as {{like_this}}.
+
+    Templates are edited in Medusa, so a new placeholder can appear without any code change -
+    this says so in the log rather than letting it reach an inbox unnoticed.
+    """
+    left = set(re.findall(r'{{[a-z_]+}}', f"{email['subject']} {email['body']}"))
+    if left:
+        logger.warning('quotes_web: %s email has placeholders nothing fills: %s',
+                       quote.quote_number, ', '.join(sorted(left)))
+    return left
+
+
+def can_send(quote):
+    """Whether this quote could be emailed right now. Returns (ok, reason).
+
+    Checked before a quote is marked sent, so one that cannot be emailed stays 'requested'
+    for staff rather than looking sent to nobody.
+    """
+    if not quote.customer_email:
+        return False, 'there is no email address on the quote'
+    if not quote.store_id:
+        return False, 'the quote has no store'
+    if not quote_service.portal_url(quote):
+        return False, 'the store has no website address'
+    if build_quote_email(quote) is None:
+        return False, f'{quote.store.name} has no web quote email template'
+    if not sender_for(quote):
+        return False, f'{quote.store.name} has no email address to send from'
+    if not getattr(settings, 'QUOTES_WEB_SEND_EMAILS', False):
+        return False, 'sending is switched off on this machine'
+    return True, ''
 
 
 def send_quote(quote, user=None):
@@ -87,25 +126,18 @@ def send_quote(quote, user=None):
     """
     route = route_for(quote)
 
-    if not quote.customer_email:
-        return route, False, 'there is no email address on the quote'
-    if not quote.store_id:
-        return route, False, 'the quote has no store'
-    if not quote_service.portal_url(quote):
-        return route, False, 'the store has no website address'
+    ok, reason = can_send(quote)
+    if not ok:
+        if reason.startswith('sending is switched off'):
+            # everything else checked out, so show what would have gone
+            email = build_quote_email(quote)
+            logger.info('quotes_web: [sending off] would email %s to %s from %s - "%s"',
+                        quote.quote_number, quote.customer_email, sender_for(quote),
+                        email['subject'] if email else '')
+        return route, False, reason
 
     email = build_quote_email(quote)
-    if email is None:
-        return route, False, f'{quote.store.name} has no web quote email template'
-
     sender = sender_for(quote)
-    if not sender:
-        return route, False, f'{quote.store.name} has no email address to send from'
-
-    if not getattr(settings, 'QUOTES_WEB_SEND_EMAILS', False):
-        logger.info('quotes_web: [sending off] would email %s to %s from %s - "%s"',
-                    quote.quote_number, quote.customer_email, sender, email['subject'])
-        return route, False, 'sending is switched off on this machine'
 
     try:
         status = email_views.send_email([quote.customer_email], sender,

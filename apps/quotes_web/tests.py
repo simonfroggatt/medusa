@@ -20,6 +20,7 @@ def _quote_for_email(**overrides):
         store_id=1, name='Safety Signs and Notices', ssl=None, url='http://ssan.example/',
         email_address='sales@ssan.example', accounts_email_address='accounts@ssan.example',
         company_name='Total Safety Group', website='ssan.example',
+        address='Heanor Gate Road, Heanor',
         email_footer_text='Regards from {{store_name}}')
     values = dict(
         quote_number='QW-SSAN-9', public_token='TOKEN123', customer_name='Jane Smith',
@@ -50,6 +51,23 @@ class QuoteEmailTests(SimpleTestCase):
         self.assertIn('total £12.50', email['body'])
         self.assertIn('for 30 days', email['body'])
         self.assertIn('Regards from Safety Signs and Notices', email['body'])
+
+    def test_store_details_reach_the_footer(self):
+        """The footer is a template of its own, and had an unfilled {{store_address}}."""
+        store = _quote_for_email().store
+        store.address = '5 Example Way, Nottingham'
+        store.email_footer_text = '{{store_name}} | {{store_address}} | {{accounts_email}}'
+        quote = _quote_for_email(store=store)
+        with _template(main='{{store_email_footer}}'):
+            email = notify.build_quote_email(quote)
+        self.assertIn('5 Example Way, Nottingham', email['body'])
+        self.assertIn('accounts@ssan.example', email['body'])
+
+    def test_unfilled_placeholders_are_reported(self):
+        with _template(main='Hi {{firstname}}, see {{something_new}} and {{another_one}}'):
+            email = notify.build_quote_email(_quote_for_email())
+        self.assertEqual(notify._warn_unfilled(_quote_for_email(), email),
+                         {'{{something_new}}', '{{another_one}}'})
 
     def test_store_without_a_template_gives_nothing(self):
         with mock.patch.object(notify.OcTsgTemplates.objects, 'filter',

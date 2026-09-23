@@ -574,6 +574,39 @@ def _create_image_url(image_src):
 
     return image_url
 
+def _svg_bytes(svg_data):
+    """SVG ready for cairosvg, however the column happens to hold it.
+
+    svg_raw is a text column and comes back as a string; svg_export is binary
+    and comes back as bytes, except on the older lines where it was stored as
+    a JSON string. Returns None when there is nothing usable, so a picklist
+    prints without the image rather than failing."""
+    if isinstance(svg_data, memoryview):
+        svg_data = svg_data.tobytes()
+    if isinstance(svg_data, (bytes, bytearray)):
+        return bytes(svg_data)
+    if not isinstance(svg_data, str):
+        return None
+
+    text = svg_data.strip()
+    if not text:
+        return None
+    if text.startswith('<'):
+        return text.encode('utf-8')
+
+    # An older line: the SVG inside a JSON string, sometimes twice over.
+    for _ in range(2):
+        try:
+            text = json.loads(text)
+        except (json.JSONDecodeError, TypeError):
+            break
+        if not isinstance(text, str):
+            break
+        if text.lstrip().startswith('<'):
+            return text.strip().encode('utf-8')
+    return None
+
+
 def _create_bespoke_image_png(bespoke_print_obj):
     #create a tmp file
     bespoke_id = bespoke_print_obj.id
@@ -583,18 +616,13 @@ def _create_bespoke_image_png(bespoke_print_obj):
     #svg_string = bespoke_print_obj.svg_export
     #svg2png(bytestring=svg_string, write_to=tmp_filename)
 
-    svg_data = bespoke_print_obj.svg_export
-    if isinstance(svg_data, bytes):
-        # It's already ready to be used
-        svg_string = svg_data
-    else:
-        # Assume it's JSON and parse
-        try:
-            svg_string = json.loads(svg_data)
-            if isinstance(svg_string, str):
-                svg_string = svg_string.encode('utf-8')  # convert to bytes for svg2png
-        except json.JSONDecodeError:
-            raise ValueError("Expected JSON, but got an invalid string")
+    # The sign as it looks, when the line has it: svg_export is the print file
+    # and leaves the material's own colour out, so a yellow reflective sign
+    # would come out of it with no yellow.
+    svg_data = bespoke_print_obj.svg_raw or bespoke_print_obj.svg_export
+    svg_string = _svg_bytes(svg_data)
+    if svg_string is None:
+        return None
 
     svg2png(bytestring=svg_string, write_to=tmp_filename)
 

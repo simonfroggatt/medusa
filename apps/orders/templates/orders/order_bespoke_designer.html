@@ -1,0 +1,172 @@
+{# A bespoke line drawn by the sign designer: the design itself, so a spelling
+   mistake or a late change can be put right without redrawing the sign. #}
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+  <div class="row top_bar align-middle">
+    <h2>{{ order_id }}-{{ bespoke_product.pk }}</h2>
+  </div>
+  <div class="row g-3">
+    <div class="col-xl-3 col-lg-4">
+      <div class="ibox">
+        <div class="ibox-content">
+          <h5 class="mb-1">Order line artwork</h5>
+          <div class="small text-muted mb-3">Drawn with the sign designer (version {{ bespoke_product.version }})</div>
+
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-primary" id="save-artwork">Save changes to this order</button>
+            <a class="btn btn-outline-secondary" href="{% url 'download_svg_file' bespoke_product.pk %}" target="_blank">Download SVG</a>
+          </div>
+          <div id="save-note" class="small mt-2"></div>
+          <p class="small text-muted mt-2">
+            Saving replaces the artwork on this order line and clears the print PDF,
+            so it has to be made again. It does not change the price or the quantity.
+          </p>
+
+          <h6 class="mt-4">Print PDF</h6>
+          <p class="small mb-2" id="pdf-state">
+            {% if bespoke_product.google_id %}
+              On the Drive, made from the artwork as it stands.
+            {% else %}
+              Not on the Drive for this artwork.
+            {% endif %}
+          </p>
+
+          <label class="form-label small mb-1" for="pdf-name">File name</label>
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="pdf-name"
+                   value="{{ order_id }}-{{ bespoke_product.pk }}" aria-label="PDF file name">
+            <span class="input-group-text">.pdf</span>
+          </div>
+
+          <div class="d-grid gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-primary" id="download-pdf">Download PDF</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="make-pdf">Send to Google Drive</button>
+            {% if bespoke_product.google_id %}
+              <a class="btn btn-sm btn-outline-secondary" id="drive-link"
+                 href="{% url 'download_file' bespoke_product.google_id %}" target="_blank">Open the Drive copy</a>
+            {% endif %}
+          </div>
+          <div id="pdf-note" class="small mt-2"></div>
+          <p class="small text-muted mt-2 mb-0">
+            Made from this line's artwork, exactly to size, with the wording as outlines,
+            so no font is needed to print it. Downloading always works; the Drive needs
+            this server to have the account key.
+          </p>
+
+          <h6 class="mt-4">Text used</h6>
+          <div id="text-used">
+            {% for line in text_line %}<p class="small mb-1">{{ line }}</p>{% empty %}<p class="small text-muted">None recorded</p>{% endfor %}
+          </div>
+
+          <h6 class="mt-3">Symbols used</h6>
+          <div id="symbols-used" class="small">
+            {% for code in symbol_codes %}<span class="badge bg-light text-dark me-1">{{ code }}</span>{% empty %}<span class="text-muted">None recorded</span>{% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-9 col-lg-8">
+      <div class="ibox">
+        <iframe id="order-designer" src="{{ frame_url }}" title="Sign designer"
+                style="width:100%;height:calc(100vh - 200px);min-height:720px;border:0;border-radius:6px"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+$(function () {
+    var note = $('#save-note');
+
+    $('#save-artwork').on('click', function () {
+        var frame = document.getElementById('order-designer');
+        // Same origin, so the page can ask the designer for its artwork directly.
+        var designer = frame.contentWindow && frame.contentWindow.signDesigner;
+        if (!designer) {
+            note.attr('class', 'small mt-2 text-danger').text('The designer has not finished loading.');
+            return;
+        }
+        if (!designer.ready()) {
+            note.attr('class', 'small mt-2 text-danger').text('The sign is not finished: check it before saving.');
+            return;
+        }
+        if (!confirm('Replace the artwork on this order line? The print PDF will have to be made again.')) return;
+
+        var button = $(this).prop('disabled', true).text('Saving…');
+        note.attr('class', 'small mt-2 text-muted').text('Saving…');
+
+        // The artwork is drawn with its text as outlines, from the font files.
+        designer.forCart().then(function (cart) { $.ajax({
+            url: "{{ save_url }}",
+            type: 'post',
+            contentType: 'application/json',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            data: JSON.stringify({
+                svg_json: cart.svg_json,
+                svg_export: cart.svg_export,
+                svg_texts: JSON.parse(cart.svg_bespoke_texts || '[]'),
+                svg_images: JSON.parse(cart.svg_bespoke_images || '[]')
+            })
+        }).done(function (r) {
+            note.attr('class', 'small mt-2 text-success').text('Saved. The print PDF needs making again.');
+            $('#text-used').html((r.texts || []).map(function (t) {
+                return $('<p class="small mb-1">').text(t)[0].outerHTML;
+            }).join('') || '<p class="small text-muted">None recorded</p>');
+            $('#symbols-used').html((r.symbols || []).map(function (c) {
+                return $('<span class="badge bg-light text-dark me-1">').text(c)[0].outerHTML;
+            }).join('') || '<span class="text-muted">None recorded</span>');
+            // The old PDF was made from the old artwork, so it is no longer it.
+            $('#pdf-state').text('Not on the Drive for this artwork.');
+            $('#drive-link').remove();
+        }).fail(function (x) {
+            note.attr('class', 'small mt-2 text-danger')
+                .text((x.responseJSON && x.responseJSON.error) || 'That could not be saved.');
+        }).always(function () {
+            button.prop('disabled', false).text('Save changes to this order');
+        }); }, function () {
+            note.attr('class', 'small mt-2 text-danger').text('The artwork could not be prepared.');
+            button.prop('disabled', false).text('Save changes to this order');
+        });
+    });
+
+    $('#download-pdf').on('click', function () {
+        var name = encodeURIComponent($('#pdf-name').val() || '');
+        window.open("{% url 'orderproductbespoke-pdf' bespoke_product.pk %}?name=" + name, '_blank');
+    });
+
+    $('#make-pdf').on('click', function () {
+        var button = $(this).prop('disabled', true).text('Sending…');
+        var pdfNote = $('#pdf-note').attr('class', 'small mt-2 text-muted').text('Converting and sending…');
+        $.ajax({
+            url: "{{ pdf_url }}",
+            type: 'post',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            data: { name: $('#pdf-name').val() }
+        }).done(function (r) {
+            pdfNote.attr('class', 'small mt-2 ' + (r.uploaded ? 'text-success' : 'text-warning'))
+                   .text(r.uploaded ? ('Saved to the Drive as ' + r.name) : r.warning);
+            $('#pdf-name').val(r.name.replace(/\.pdf$/, ''));
+            $('#pdf-state').text(r.uploaded
+                ? 'On the Drive, made from the artwork as it stands.'
+                : 'Not on the Drive for this artwork.');
+            if (r.uploaded) {
+                if (!$('#drive-link').length) {
+                    $('#make-pdf').after('<a class="btn btn-sm btn-outline-secondary" id="drive-link" target="_blank">Open the Drive copy</a>');
+                }
+                $('#drive-link').attr('href', r.url);
+            }
+        }).fail(function (x) {
+            pdfNote.attr('class', 'small mt-2 text-danger')
+                .text((x.responseJSON && x.responseJSON.error) || 'The PDF could not be made.');
+        }).always(function () {
+            button.prop('disabled', false).text('Send to Google Drive');
+        });
+    });
+});
+</script>
+{% endblock javascript %}

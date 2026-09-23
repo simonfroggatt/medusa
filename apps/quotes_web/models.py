@@ -12,10 +12,11 @@ from django.utils import timezone
 
 from apps.customer.models import OcCustomer
 from apps.options.models import OcTsgOptionClass, OcTsgOptionTypes, OcTsgOptionValues
+from apps.orders.models import OcOrder
 from apps.products.models import OcProduct, OcTsgBulkdiscountGroups, OcTsgProductVariants
 from apps.sites.models import OcCurrency, OcStore
 from apps.suppliers.models import OcSupplier
-from medusa.models import AuthUser
+from medusa.models import AuthUser, OcTsgCountryIso
 
 from . import constants
 
@@ -96,6 +97,48 @@ class Quote(models.Model):
 
     pdf_url = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+
+    # Addresses, as given by the customer when they accept (or typed by staff). Named as on
+    # oc_order so converting to an order is a straight copy.
+    payment_fullname = models.CharField(max_length=255, blank=True, null=True)
+    payment_firstname = models.CharField(max_length=32, blank=True, null=True)
+    payment_lastname = models.CharField(max_length=32, blank=True, null=True)
+    payment_email = models.CharField(max_length=512, blank=True, null=True)
+    payment_telephone = models.CharField(max_length=50, blank=True, null=True)
+    payment_company = models.CharField(max_length=255, blank=True, null=True)
+    payment_address_1 = models.CharField(max_length=512, blank=True, null=True)
+    payment_address_2 = models.CharField(max_length=128, blank=True, null=True)
+    payment_city = models.CharField(max_length=128, blank=True, null=True)
+    payment_area = models.CharField(max_length=255, blank=True, null=True)
+    payment_postcode = models.CharField(max_length=10, blank=True, null=True)
+    payment_country = models.CharField(max_length=128, blank=True, null=True)
+    payment_country_iso = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING,
+                                            db_column='payment_country_id', blank=True, null=True,
+                                            related_name='web_quote_billing')
+
+    shipping_fullname = models.CharField(max_length=255, blank=True, null=True)
+    shipping_firstname = models.CharField(max_length=32, blank=True, null=True)
+    shipping_lastname = models.CharField(max_length=32, blank=True, null=True)
+    shipping_email = models.CharField(max_length=512, blank=True, null=True)
+    shipping_telephone = models.CharField(max_length=50, blank=True, null=True)
+    shipping_company = models.CharField(max_length=255, blank=True, null=True)
+    shipping_address_1 = models.CharField(max_length=512, blank=True, null=True)
+    shipping_address_2 = models.CharField(max_length=128, blank=True, null=True)
+    shipping_city = models.CharField(max_length=128, blank=True, null=True)
+    shipping_area = models.CharField(max_length=255, blank=True, null=True)
+    shipping_postcode = models.CharField(max_length=10, blank=True, null=True)
+    shipping_country = models.CharField(max_length=128, blank=True, null=True)
+    shipping_country_iso = models.ForeignKey(OcTsgCountryIso, models.DO_NOTHING,
+                                             db_column='shipping_country_id', blank=True, null=True,
+                                             related_name='web_quote_delivery')
+    shipping_same_as_billing = models.BooleanField(default=True)
+
+    # the order this quote became
+    order = models.ForeignKey(OcOrder, models.DO_NOTHING, db_column='order_id',
+                              blank=True, null=True, related_name='web_quotes')
+
+    def has_billing_address(self):
+        return bool(self.payment_address_1 and self.payment_postcode)
 
     class Meta:
         managed = False

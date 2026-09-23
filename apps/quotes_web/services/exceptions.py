@@ -31,3 +31,8 @@ class QuoteExpired(QuotesWebError):
 class QuoteNotEditable(QuotesWebError):
     """Lines and totals may only change while the quote is draft or under review."""
     code = 'quote_not_editable'
+
+
+class OrderConversionError(QuotesWebError):
+    """The quote could not become an order - nothing was written."""
+    code = 'conversion_failed'

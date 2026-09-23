@@ -59,6 +59,15 @@
                                 Back ordered
                             </label>
                         </div>
+                        {% if has_bespoke %}
+                            {# Only on orders that have bespoke signs to show. #}
+                            <div class="form-check">
+                            <input class="form-check-input" type="checkbox"  id="print_artwork" name="print_artwork" value=1 >
+                            <label class="form-check-label" for="print_artwork">
+                                Artwork
+                            </label>
+                        </div>
+                        {% endif %}
                             </form>
                     </div>
 

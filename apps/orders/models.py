@@ -633,9 +633,16 @@ class OcTsgOrderOption(models.Model):
 
 
 class OcTsgOrderBespokeImage(models.Model):
+    # Which tool drew the line. 2 and below is the old drawer, which only ever
+    # left the finished SVG; 3 is the sign designer, which leaves the design.
+    DESIGNER_VERSION = 3
+
     order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_bespoke_image')
     bespoke_category_id = models.IntegerField(blank=True, null=True)
     svg_json = models.TextField(blank=True, null=True)
+    # The sign as it looks; svg_export is the print file, which leaves the
+    # material's own colour out. Null on lines drawn before 2026-09-22.
+    svg_raw = models.TextField(blank=True, null=True)
     svg_export = models.BinaryField(blank=True, null=True)
     png_url = models.CharField(max_length=255, blank=True, null=True)
     svg_texts = models.TextField(blank=True, null=True)

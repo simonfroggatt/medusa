@@ -15,6 +15,7 @@ STATUS_ACCEPTED = 'accepted'
 STATUS_CHANGE_REQUESTED = 'change_requested'
 STATUS_EXPIRED = 'expired'
 STATUS_CANCELLED = 'cancelled'
+STATUS_ORDER_CREATED = 'order_created'
 
 # lines and quote details may only be edited in these
 EDITABLE_STATUS_CODES = {STATUS_DRAFT, STATUS_UNDER_REVIEW}
@@ -28,6 +29,8 @@ CUSTOMER_VISIBLE_STATUS_CODES = {
 # oc_tsg_quote_status_transition.role_required
 ROLE_STAFF = 'staff'
 ROLE_CUSTOMER = 'customer'
+# used when a quote sends itself; keeps the history honest about who acted
+ROLE_SYSTEM = 'system'
 
 # oc_tsg_quote_action.action_type
 ACTION_CREATED = 'created'

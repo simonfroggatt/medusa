@@ -116,6 +116,13 @@
                                     {% include 'products/sub_layout/product-base-symbols.html' %}
                                 </div>
                             </div>
+                            {# The sign's own artwork: loaded when the tab is first opened,
+                               because it carries the designer with it. #}
+                            <div role="tabpanel" id="tab-artwork" class="tab-pane fade">
+                                <div class="panel-body" id="tab-artwork_contents">
+                                    <p class="text-muted">Loading the designer…</p>
+                                </div>
+                            </div>
                             <div role="tabpanel" id="tab-documents" class="tab-pane fade">
                                 <div class="panel-body" id="div-product_documents">
                                     {% include 'products/sub_layout/product_documents.html' %}
@@ -161,6 +168,42 @@
 
     </script>
     <script type="text/javascript" src="{% static 'js/products.js' %}"></script>
+
+    <script>
+        // The Artwork tab carries the sign designer, so it is fetched when the
+        // tab is first opened rather than on every product page.
+        (function () {
+            var url = "{% url 'recreate-artwork' product_obj.product_id %}";
+            var panel = $('#tab-artwork_contents');
+            var loaded = false;
+
+            window.loadArtworkTab = function () {
+                loaded = true;
+                panel.load(url, function (response, status) {
+                    if (status === 'error') {
+                        panel.html('<p class="text-danger">The designer could not be loaded.</p>');
+                    }
+                });
+            };
+
+            $('#artwork-tab').on('shown.bs.tab', function () {
+                if (!loaded) window.loadArtworkTab();
+            });
+
+            // The designer saves inside its iframe and tells us what happened.
+            window.addEventListener('message', function (e) {
+                if (e.origin !== location.origin || !e.data || e.data.type !== 'recreate-saved') return;
+                $('#artwork-status').text(e.data.status === 'approved' ? 'Approved' : 'To review');
+                var s = e.data.symbols;
+                if (!s) return;
+                var said = [];
+                if (s.added && s.added.length) said.push('linked ' + s.added.join(', '));
+                if (s.already && s.already.length) said.push(s.already.join(', ') + ' already linked');
+                if (s.unknown && s.unknown.length) said.push('not in the symbol table: ' + s.unknown.join(', '));
+                $('#artwork-symbols').text(said.join(' · '));
+            });
+        })();
+    </script>
 
 {% endblock javascript %}
 

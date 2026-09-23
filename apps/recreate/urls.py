@@ -13,6 +13,8 @@ urlpatterns = [
     path('<int:product_id>/', views.review, name='recreate-review'),
     path('<int:product_id>/designer/', views.designer_frame, name='recreate-frame'),
     path('<int:product_id>/save/', views.save, name='recreate-save'),
+    path('<int:product_id>/artwork/', views.artwork_tab, name='recreate-artwork'),
+    path('<int:product_id>/start/', views.start, name='recreate-start'),
     path('<int:product_id>/status/', views.set_status, name='recreate-status'),
     path('<int:product_id>/rerun/', views.rerun, name='recreate-rerun'),
 ]
