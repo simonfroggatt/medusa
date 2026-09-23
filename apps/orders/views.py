@@ -2562,6 +2562,30 @@ def _line_unprinted(row):
     return (unprinted or face or '').strip() or None
 
 
+def _line_designer_kind(row):
+    """Which designer drew this line, from the product's own template row.
+
+    A board and a two-language sign can be recognised from the design itself,
+    but a road sign cannot — it is an ordinary sign on fixed sizes — so the
+    product has to say. Same mapping as catalog/controller/product/product.php.
+    """
+    kinds = {
+        'bespoke/designer_board': 'board',
+        'bespoke/designer_roadsign': 'roadsign',
+        'bespoke/designer_bilingual': 'bilingual',
+    }
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT t.path
+              FROM oc_order_product op
+              JOIN oc_product p ON p.product_id = op.product_id
+              JOIN oc_tsg_bespoke_templates t ON t.id = p.bespoke_template_id
+             WHERE op.order_product_id = %s
+        """, [row.order_product_id])
+        found = cursor.fetchone()
+    return kinds.get((found[0] or '').strip(), 'standard') if found else 'standard'
+
+
 @xframe_options_sameorigin
 @login_required
 def bespoke_order_designer(request, bespoke_id):
@@ -2577,6 +2601,7 @@ def bespoke_order_designer(request, bespoke_id):
         # reprices it, so the designer does not offer its own sizes.
         'pageOwnsSize': True,
         'unprinted': _line_unprinted(row),
+        'product': {'kind': _line_designer_kind(row), 'heading': f'Order line {row.pk}'},
         'open': {
             'productName': f'Order line {row.pk}',
             'size': None,

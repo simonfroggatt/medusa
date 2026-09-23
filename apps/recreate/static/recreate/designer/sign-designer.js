@@ -8727,11 +8727,13 @@ function yg() {
 				return;
 			}
 			if (t) {
+				let r = await de(t);
 				g.value = {
 					...g.value,
 					heading: t.productName,
-					bilingual: !1
-				}, _.value = await de(t), n ? C.value = "advanced" : Id(_.value) || (C.value = "advanced"), e.status = "ready", ie();
+					board: hu(r) === "board",
+					bilingual: Of(r) !== null
+				}, _.value = r, n ? C.value = "advanced" : Id(_.value) || (C.value = "advanced"), e.status = "ready", ie();
 				return;
 			}
 			if (g.value.roadsign) {
@@ -9728,8 +9730,8 @@ var Sg = {
 	emits: ["close"],
 	setup(e, { emit: t }) {
 		let n = xg(), r = t, i = {
-			w: 826,
-			h: 2040
+			w: 762,
+			h: 1981
 		}, a = /* @__PURE__ */ I(""), o = /* @__PURE__ */ I(!1);
 		sr(async () => {
 			try {
@@ -9812,7 +9814,7 @@ var Sg = {
 				innerHTML: a.value
 			}, null, 12, u_)], 4)) : q("", !0),
 			a.value ? (V(), H("p", d_, [
-				K(M(s.value.w) + " × " + M(s.value.h) + " mm, shown against a standard door (826 × 2040 mm) ", 1),
+				K(M(s.value.w) + " × " + M(s.value.h) + " mm, shown against a standard door (" + M(i.w) + " × " + M(i.h) + " mm) ", 1),
 				c.value ? (V(), H(B, { key: 0 }, [K(" at the usual height")], 64)) : q("", !0),
 				t[3] ||= K(". ", -1)
 			])) : q("", !0)
