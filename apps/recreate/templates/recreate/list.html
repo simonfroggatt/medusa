@@ -4,7 +4,8 @@
 <div class="wrapper wrapper-content">
   <div class="row mb-3">
     <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
-      <a class="btn btn-sm {% if not current %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?">All</a>
+      <a class="btn btn-sm {% if not current %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?"
+         title="Everything except the ones marked Not suitable">All</a>
       {% for key, label, n in statuses %}
         <a class="btn btn-sm {% if current == key %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?status={{ key }}">{{ label }} <span class="badge bg-secondary">{{ n }}</span></a>
       {% endfor %}
@@ -17,7 +18,9 @@
       <div class="ibox"><div class="ibox-content">
         <p class="text-muted small mb-2">
           Approved designs go to the test site with <code>python manage.py export_approved</code> (then rebuild it).<br>
-          The next 100 products are recreated with <code>python manage.py recreate_stock_signs</code>; each run carries on where the last one stopped.
+          The next 100 products are recreated with <code>python manage.py recreate_stock_signs</code>; each run carries on where the last one stopped.<br>
+          <em>Not bespoke</em> says a product will not have a bespoke version: it leaves this list for good and later
+          AI runs skip it. That is the <em>exclude bespoke</em> tick box on the product page, which is where you undo it.
         </p>
         <table id="recreate_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
           <thead>
@@ -30,6 +33,7 @@
               <th>Missing symbols</th>
               <th>Notes</th>
               <th>Updated</th>
+              <th style="width:110px"></th>
             </tr>
           </thead>
         </table>
@@ -58,7 +62,26 @@ $(function () {
       { data: 'missing', render: v => `<span class="small">${esc(v)}</span>` },
       { data: 'notes', orderable: false, render: v => `<span class="small text-muted">${esc(v)}</span>` },
       { data: 'updated' },
+      // Saying a sign will never be bespoke is the commonest thing to do here,
+      // so it does not need the review page opening first.
+      { data: null, orderable: false, searchable: false, className: 'text-end', render: () =>
+          `<button class="btn btn-sm btn-outline-danger js-not-bespoke" title="This product will not have a bespoke version">Not bespoke</button>` },
     ],
+  });
+
+  const table = $('#recreate_table').DataTable();
+  $('#recreate_table tbody').on('click', '.js-not-bespoke', function () {
+    const button = $(this), row = table.row(button.closest('tr')), data = row.data();
+    button.prop('disabled', true);
+    $.post(data.exclude_url, {csrfmiddlewaretoken: '{{ csrf_token }}'})
+      // Taking the row out is quicker than fetching the table again, and the
+      // flag is on the product, so it stays gone next time too.
+      .done(() => {
+        const count = $(`a[href="?status=${data.status}"] .badge`);
+        if (count.length) count.text(Math.max(0, parseInt(count.text(), 10) - 1));
+        row.remove().draw(false);
+      })
+      .fail(x => { button.prop('disabled', false); alert(x.responseJSON?.error || 'Could not flag the product'); });
   });
 });
 </script>

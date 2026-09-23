@@ -16,5 +16,6 @@ urlpatterns = [
     path('<int:product_id>/artwork/', views.artwork_tab, name='recreate-artwork'),
     path('<int:product_id>/start/', views.start, name='recreate-start'),
     path('<int:product_id>/status/', views.set_status, name='recreate-status'),
+    path('<int:product_id>/not-bespoke/', views.not_bespoke, name='recreate-not-bespoke'),
     path('<int:product_id>/rerun/', views.rerun, name='recreate-rerun'),
 ]

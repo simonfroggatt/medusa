@@ -202,7 +202,7 @@ class ProductSiteVariantOption(viewsets.ModelViewSet):
 
 
 #@login_required
-@group_required('superuser')
+@group_required('superuser', 'webmaster')
 def product_list(request):
     template_name = 'products/products_list.html'
     context = {'heading': 'All products'}

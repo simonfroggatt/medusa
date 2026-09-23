@@ -96,7 +96,8 @@
                             </li>
                             {% endif %}
                             
-                            {% if request.user|has_group:"superuser" %}
+                            {# Webmasters get products and sign recreations; the rest stays superuser-only. #}
+                            {% if request.user|has_group:"superuser" or request.user|has_group:"webmaster" %}
 
                             <li class="menu-title mt-3">Content Tools</li>
 
@@ -107,11 +108,14 @@
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
                                     <li><a href="{%  url 'allproducts' %}" >Products</a></li>
+                                    {% if request.user|has_group:"superuser" %}
                                     <li><a href="{% url 'allcategories' %}" >Categories</a></li>
+                                    {% endif %}
 
 
                                 </ul>
                             </li>
+                            {% if request.user|has_group:"superuser" %}
                             <li>
                                 <a href="javascript: void(0);" class="has-arrow waves-effect">
                                     <i class="fa-solid fa-ban"></i>
@@ -243,7 +247,10 @@
                                 </ul>
                             </li>
                                 
+                                {% endif %}
+
                                 <li class="menu-title mt-3">TODO Tools</li>
+                                {% if request.user|has_group:"superuser" %}
                                 <li>
                                 <a href="{% url 'nosymbols' %}" class="waves-effect">
                                     <i class="fa-solid fa-ban-smoking"></i>
@@ -256,6 +263,7 @@
                                     <span key="t-legacy-orders">Legacy Orders</span>
                                 </a>
                                 </li>
+                                {% endif %}
                                 <li>
                                 <a href="{% url 'recreate-list' %}" class="waves-effect">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i>

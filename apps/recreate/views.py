@@ -17,7 +17,7 @@ from apps.recreate import services
 from apps.recreate.models import OcTsgBespokeRecreations as Recreation
 from medusa.decorators import group_required
 
-STAFF = ('superuser', 'sales')
+STAFF = ('superuser', 'sales', 'webmaster')
 MAX_DESIGN_BYTES = 5_000_000
 
 
@@ -40,7 +40,8 @@ def _names(ids):
 
 @staff_view
 def recreation_list(request):
-    counts = dict(Recreation.objects.values_list('status').annotate(n=Count('id')))
+    counts = dict(Recreation.objects.exclude(product_id__in=services.excluded_products())
+                  .values_list('status').annotate(n=Count('id')))
     context = {
         'heading': 'Stock sign recreations',
         'statuses': [(key, label, counts.get(key, 0)) for key, label in Recreation.STATUSES.items()],
@@ -55,6 +56,12 @@ def recreation_list_api(request):
     status = request.GET.get('status')
     if status:
         rows = rows.filter(status=status)
+    else:
+        # Signs we have decided will never be bespoke are not worth looking at
+        # again; they are still there on their own tab.
+        rows = rows.exclude(status=Recreation.STATUS_UNSUITABLE)
+    # A product flagged "not bespoke" is off the list whichever tab you are on.
+    rows = rows.exclude(product_id__in=services.excluded_products())
     rows = list(rows)
     products = _names(r.product_id for r in rows)
     data = []
@@ -72,6 +79,8 @@ def recreation_list_api(request):
             'notes': r.error or r.ai_notes or '',
             'updated': r.updated_at.strftime('%d/%m/%Y %H:%M') if r.updated_at else '',
             'url': reverse('recreate-review', args=[r.product_id]),
+            'status_url': reverse('recreate-status', args=[r.product_id]),
+            'exclude_url': reverse('recreate-not-bespoke', args=[r.product_id]),
         })
     return JsonResponse({'data': data})
 
@@ -274,6 +283,21 @@ def set_status(request, product_id):
     row.reviewed_at = timezone.now()
     row.save()
     return JsonResponse({'status': row.status, 'label': row.status_label})
+
+
+@require_POST
+@staff_view
+def not_bespoke(request, product_id):
+    """This sign will not have a bespoke version, at least not yet.
+
+    The flag lives on the product (oc_product.exclude_bespoke), the same tick box
+    the product page has, so it also keeps the sign out of later AI runs. Clearing
+    it is done there.
+    """
+    changed = services.set_excluded(product_id, True)
+    if not changed:
+        return JsonResponse({'error': f'Product {product_id} not found'}, status=404)
+    return JsonResponse({'excluded': True})
 
 
 @require_POST

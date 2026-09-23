@@ -36,7 +36,10 @@ class Command(BaseCommand):
         if opts['product']:
             ids = opts['product']
         elif opts['status']:
+            # …but not the ones flagged "not bespoke"; --product still re-runs
+            # any single product you name.
             ids = list(Recreation.objects.filter(status=opts['status'])
+                       .exclude(product_id__in=services.excluded_products())
                        .order_by('product_id').values_list('product_id', flat=True)[:opts['limit']])
         else:
             todo = services.pending_products(random_order=opts['random'])

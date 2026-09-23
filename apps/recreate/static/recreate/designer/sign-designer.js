@@ -3962,8 +3962,11 @@ function X(e) {
 var $s = (e) => e.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;"), Z = (e, t) => ` ${e}="${typeof t == "number" ? X(t) : $s(t)}"`, ec = class extends Error {
 	name = "OutlineUnavailable";
 }, tc = /__SYM__/g, nc = (e, t) => !!e && !!t && e.hex.trim().toLowerCase() === t.hex.trim().toLowerCase(), rc = (e, t) => t && nc(e, t.from) ? t.to : e, ic = (e, t) => {
-	let n = t.from.hex.trim().toLowerCase(), r = n.length === 7 && n[1] === n[2] && n[3] === n[4] && n[5] === n[6] ? `#${n[1]}${n[3]}${n[5]}` : n, i = RegExp(`(${n}|${r})`, "gi"), a = t.to?.hex;
-	return e.replace(/fill\s*:\s*(#[0-9a-f]{3,6})/gi, (e, t) => i.test(t) ? `fill: ${a ?? "none"}` : e).replace(/fill="(#[0-9a-f]{3,6})"/gi, (e, t) => i.test(t) ? `fill="${a ?? "none"}"` : e);
+	let n = t.from.hex.trim().toLowerCase(), r = n.length === 7 && n[1] === n[2] && n[3] === n[4] && n[5] === n[6] ? `#${n[1]}${n[3]}${n[5]}` : n, i = (e) => {
+		let t = e.trim().toLowerCase();
+		return t === n || t === r;
+	}, a = t.to?.hex;
+	return e.replace(/fill\s*:\s*(#[0-9a-f]{3,6})/gi, (e, t) => i(t) ? `fill: ${a ?? "none"}` : e).replace(/fill="(#[0-9a-f]{3,6})"/gi, (e, t) => i(t) ? `fill="${a ?? "none"}"` : e);
 }, ac = (e) => {
 	if (!e) return Z("fill", "none");
 	let t = Z("fill", e.hex);

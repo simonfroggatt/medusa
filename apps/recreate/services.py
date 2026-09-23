@@ -139,6 +139,20 @@ PRODUCT_SQL = """
 """
 
 
+def excluded_products():
+    """Product ids flagged "not bespoke" — the tick box on the product page."""
+    return {r['product_id'] for r in _rows(
+        'SELECT product_id FROM oc_product WHERE exclude_bespoke = 1', [])}
+
+
+def set_excluded(product_id, excluded=True):
+    """Flag (or unflag) a product as one that will not have a bespoke version."""
+    with connection.cursor() as cursor:
+        cursor.execute('UPDATE oc_product SET exclude_bespoke = %s WHERE product_id = %s',
+                       [1 if excluded else 0, int(product_id)])
+        return cursor.rowcount > 0
+
+
 def live_products(product_ids=None):
     sql = PRODUCT_SQL
     params = [store_id()]
@@ -481,8 +495,12 @@ def recreate(product_id):
 
 
 def pending_products(random_order=False):
-    """Live product ids with no recreation yet, in product order (so runs carry on)."""
-    done = set(Recreation.objects.values_list('product_id', flat=True))
+    """Live product ids with no recreation yet, in product order (so runs carry on).
+
+    Products flagged "not bespoke" are left out, so the AI is never spent on a
+    sign someone has already said will not have a bespoke version.
+    """
+    done = set(Recreation.objects.values_list('product_id', flat=True)) | excluded_products()
     ids = [p['product_id'] for p in live_products() if p['product_id'] not in done]
     if random_order:
         import random
