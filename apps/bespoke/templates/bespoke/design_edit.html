@@ -1,0 +1,130 @@
+{# A sign in the drawer: draw it, name it, take the SVG or the print PDF away. #}
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+  <div class="row g-3">
+    <div class="col-xl-3 col-lg-4">
+      <div class="ibox">
+        <div class="ibox-content">
+          <h5 class="mb-1">Sign drawer</h5>
+          <div class="small text-muted mb-3">{{ design.kind_label }}</div>
+
+          <label class="form-label small mb-1" for="design-name">Name</label>
+          <input type="text" class="form-control form-control-sm" id="design-name"
+                 maxlength="160" value="{{ design.name }}" placeholder="Untitled sign">
+
+          <div class="d-grid gap-2 mt-3">
+            <button type="button" class="btn btn-primary" id="save-design">Save this sign</button>
+          </div>
+          <div id="save-note" class="small mt-2"></div>
+          <p class="small text-muted mt-2 mb-0">
+            Belongs to nobody: saving changes nothing on any product or order.
+          </p>
+
+          <h6 class="mt-4">Take it away</h6>
+          <label class="form-label small mb-1" for="file-name">File name</label>
+          <input type="text" class="form-control form-control-sm" id="file-name"
+                 value="{{ design.name|default:'design' }}">
+          <div class="d-grid gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="download-svg"
+                    {% if not design.svg_export %}disabled{% endif %}>Download SVG</button>
+            <button type="button" class="btn btn-sm btn-primary" id="download-pdf"
+                    {% if not design.svg_export %}disabled{% endif %}>Download PDF</button>
+          </div>
+          <p class="small text-muted mt-2 mb-0" id="download-hint">
+            {% if design.svg_export %}
+              The PDF is made now, from the sign as last saved. Text is outlined, so it needs no font.
+            {% else %}
+              Save the sign first.
+            {% endif %}
+          </p>
+
+          <p class="small text-muted mt-4 mb-2">
+            Last saved {{ design.updated_at|date:"d/m/Y H:i" }}
+          </p>
+          <form method="post" action="{% url 'design-delete' design.pk %}" class="js-design-delete"
+                data-name="{{ design.name|default:'this sign'|escapejs }}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" type="submit">
+              <i class="fa-regular fa-trash-can me-1"></i> Delete this sign
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-9 col-lg-8">
+      <div class="card">
+        <iframe id="designer" src="{{ frame_url }}" title="Sign designer"
+                style="width:100%;height:calc(100vh - 170px);min-height:720px;border:0;border-radius:6px"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+$(function () {
+    var note = $('#save-note');
+
+    $(document).on('submit', '.js-design-delete', function () {
+        return confirm('Delete “' + $(this).data('name') + '”? This cannot be undone.');
+    });
+
+    var designerApi = function () {
+        var frame = document.getElementById('designer');
+        return frame && frame.contentWindow && frame.contentWindow.signDesigner;
+    };
+
+    $('#save-design').on('click', function () {
+        var designer = designerApi();
+        if (!designer) {
+            note.attr('class', 'small mt-2 text-danger').text('The designer is still loading.');
+            return;
+        }
+        if (!designer.ready()) {
+            note.attr('class', 'small mt-2 text-danger').text('The sign is not finished: check it before saving.');
+            return;
+        }
+        var button = $(this).prop('disabled', true).text('Saving…');
+        note.attr('class', 'small mt-2 text-muted').text('Saving…');
+
+        // forCart() outlines the text from the font files, so what is saved is
+        // what would print.
+        designer.forCart().then(function (cart) { $.ajax({
+            url: "{{ save_url }}",
+            type: 'post',
+            contentType: 'application/json',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            data: JSON.stringify({
+                name: $('#design-name').val(),
+                svg_json: cart.svg_json,
+                svg_export: cart.svg_export,
+                svg_raw: cart.svg_raw
+            })
+        }).done(function (r) {
+            note.attr('class', 'small mt-2 text-success')
+                .text('Saved' + (r.size ? ' at ' + r.size : '') + '.');
+            $('#download-svg, #download-pdf').prop('disabled', false);
+            $('#download-hint').text('The PDF is made now, from the sign as last saved. Text is outlined, so it needs no font.');
+            if (!$('#file-name').val()) $('#file-name').val(r.name || 'design');
+        }).fail(function (x) {
+            note.attr('class', 'small mt-2 text-danger')
+                .text((x.responseJSON && x.responseJSON.error) || 'That could not be saved.');
+        }).always(function () {
+            button.prop('disabled', false).text('Save this sign');
+        }); }, function () {
+            note.attr('class', 'small mt-2 text-danger').text('The artwork could not be prepared.');
+            button.prop('disabled', false).text('Save this sign');
+        });
+    });
+
+    var take = function (url) {
+        window.open(url + '?name=' + encodeURIComponent($('#file-name').val() || ''), '_blank');
+    };
+    $('#download-svg').on('click', function () { take("{{ svg_url }}"); });
+    $('#download-pdf').on('click', function () { take("{{ pdf_url }}"); });
+});
+</script>
+{% endblock javascript %}

@@ -1,0 +1,113 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <form method="post" action="{% url 'design-create' %}" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-5">
+              <label class="form-label mb-1" for="new-name">Draw a new sign</label>
+              <input class="form-control" type="text" id="new-name" name="name" maxlength="160"
+                     placeholder="What is it for? e.g. Jones Ltd reception">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label mb-1" for="new-kind">Which designer</label>
+              <select class="form-select" id="new-kind" name="kind">
+                {% for key, label in kinds.items %}
+                  <option value="{{ key }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary w-100" type="submit">
+                <i class="fa-regular fa-pen-ruler me-1"></i> Start drawing
+              </button>
+            </div>
+          </form>
+          <p class="small text-muted mt-2 mb-0">
+            Signs drawn here belong to nobody: no product, no order. Work one up for a customer who
+            rang, or try a layout, then take the SVG or the print PDF away.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="ibox"><div class="ibox-content">
+        <table id="design_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
+          <thead>
+            <tr>
+              <th style="width:110px">Sign</th>
+              <th>Name</th>
+              <th>Designer</th>
+              <th>Size</th>
+              <th>Drawn by</th>
+              <th>Last saved</th>
+              <th style="width:150px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in designs %}
+              <tr>
+                <td>
+                  <a href="{% url 'design-edit' row.pk %}" class="d-block" style="max-width:100px">
+                    {% if row.svg_raw %}{{ row.svg_raw|safe }}{% else %}<span class="text-muted small">—</span>{% endif %}
+                  </a>
+                </td>
+                <td><a href="{% url 'design-edit' row.pk %}">{{ row.name|default:"Untitled sign" }}</a></td>
+                <td><span class="badge bg-light text-dark">{{ row.kind_label }}</span></td>
+                <td class="small">{{ row.size_label }}</td>
+                <td class="small text-muted">{{ row.drawn_by }}</td>
+                <td class="small text-muted">{{ row.updated_at|date:"d/m/Y H:i" }}</td>
+                <td class="text-end text-nowrap">
+                  {% if row.svg_export %}
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'design-svg' row.pk %}">SVG</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'design-pdf' row.pk %}">PDF</a>
+                  {% endif %}
+                  <form method="post" action="{% url 'design-delete' row.pk %}" class="d-inline js-design-delete"
+                        data-name="{{ row.name|default:'this sign'|escapejs }}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete this sign">
+                      <i class="fa-regular fa-trash-can"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">Nothing drawn yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_css %}
+<style>
+  /* The thumbnails are whole signs: keep them small and let them keep their shape. */
+  #design_table td svg { display: block; width: 100%; height: auto; max-height: 70px; }
+</style>
+{% endblock extra_css %}
+
+{% block javascript %}
+<script>
+$(function () {
+  // Gone for good, and nothing else points at these rows.
+  $(document).on('submit', '.js-design-delete', function () {
+    return confirm('Delete “' + $(this).data('name') + '”? This cannot be undone.');
+  });
+
+  $('#design_table').DataTable({
+    pageLength: 25,
+    order: [],                      /* the view already orders by last saved */
+    columnDefs: [{ orderable: false, targets: [0, 6] }],
+  });
+});
+</script>
+{% endblock javascript %}

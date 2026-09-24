@@ -249,6 +249,13 @@
                                 
                                 {% endif %}
 
+                                <li>
+                                <a href="{% url 'design-list' %}" class="waves-effect">
+                                    <i class="fa-regular fa-pen-ruler"></i>
+                                    <span key="t-sign-drawer">Sign Drawer</span>
+                                </a>
+                                </li>
+
                                 <li class="menu-title mt-3">TODO Tools</li>
                                 {% if request.user|has_group:"superuser" %}
                                 <li>
