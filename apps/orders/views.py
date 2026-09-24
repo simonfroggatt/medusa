@@ -23,7 +23,8 @@ from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, Product
     OrderDetailsEditForm, OrderShippingChoiceEditForm, OrderShipItForm, OrderTaxChangeForm, \
     OrderDiscountForm, OrderDocumentForm
 
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse, Http404
+from apps.recreate.models import OcTsgBespokeRecreations as Recreation
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
 from apps.shipping.models import OcTsgShippingMethod
@@ -2395,6 +2396,27 @@ def order_xero_marksent(request, pk):
 
 
 
+def _start_line_artwork(order_obj, order_product_id):
+    """The empty artwork record for a bespoke line nobody has drawn yet.
+
+    Seeded from the product's own blank -- the approved recreation each Custom …
+    Sign carries as the design its category starts from -- so a Mandatory line
+    opens as the blue blank rather than a default prohibition sign. Without one
+    the designer falls back to its own blank, which is still usable.
+    """
+    line = get_object_or_404(OcOrderProduct, pk=order_product_id, order_id=order_obj.order_id)
+    if not line.is_bespoke:
+        raise Http404('That order line is not a bespoke product')
+    blank = Recreation.objects.filter(
+        product_id=line.product_id, status=Recreation.STATUS_APPROVED
+    ).exclude(design=None).values_list('design', flat=True).first()
+    return OcTsgOrderBespokeImage.objects.create(
+        order_product=line,
+        svg_json=blank or None,
+        version=OcTsgOrderBespokeImage.DESIGNER_VERSION,
+    )
+
+
 def bespoke_order_product(request, order_id, bespoke_order_product_id):
 #def bespoke_order_product(request, order_id, order_product_id):
     data = dict()
@@ -2405,7 +2427,13 @@ def bespoke_order_product(request, order_id, bespoke_order_product_id):
     context['order_obj'] = order_obj
 
 
-    bespoke_order_product_obj = get_object_or_404(OcTsgOrderBespokeImage, order_product_id=bespoke_order_product_id)
+    bespoke_order_product_obj = OcTsgOrderBespokeImage.objects.filter(
+        order_product_id=bespoke_order_product_id).first()
+    if bespoke_order_product_obj is None:
+        # A bespoke line added here rather than bought from the website has
+        # nothing drawn yet. Start it, so it can be designed on this page like
+        # any other; the size and material stay the ones the line is priced on.
+        bespoke_order_product_obj = _start_line_artwork(order_obj, bespoke_order_product_id)
     context['bespoke_product'] = bespoke_order_product_obj
 
     # Lines drawn by the sign designer keep their design, so a spelling mistake

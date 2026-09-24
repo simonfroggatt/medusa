@@ -108,10 +108,16 @@ $(function () {
                     let edit_icon = '<a class="btn '+button_context['BUTTON_EDIT']+' btn-tsg-row js-order-product-edit" role="button" data-url="' + current_order_id + '/product/edit/' + data + '" data-dlgsize="modal-xl"><i class="'+ icons_context['ICON_EDIT'] +' fa-sm"></i></a>';
                     let delete_icon = '<a class="btn '+button_context['BUTTON_DELETE']+' btn-tsg-row js-order-product-edit" role="button" data-url="' + current_order_id + '/product/delete/' + data + '" data-dlgsize="modal-sm"><i class="'+ icons_context['ICON_DELETE'] +' fa-sm"></i></a>'
 
-                     let is_bespoke = row['has_svg']
+                    // Drawn already, or a bespoke line still waiting to be drawn:
+                    // both open the same page, which starts the artwork if there
+                    // is none yet.
+                    let has_art = row['has_svg']
+                    let is_bespoke = has_art || row['can_design']
                     let bespoke_icon = ''
                         if(is_bespoke) {
-                            bespoke_icon = '<a class="btn '+button_context['BUTTON_EXTRA']+' btn-tsg-row" role="button"  href="'+current_order_id + '/bespokeproduct/' + data + '"><i class="fa-regular fa-folder-gear fm-sm"></i></a>' + " "
+                            let icon = has_art ? 'fa-regular fa-folder-gear' : 'fa-regular fa-pen-ruler'
+                            let title = has_art ? 'Artwork for this line' : 'Design this sign'
+                            bespoke_icon = '<a class="btn '+button_context['BUTTON_EXTRA']+' btn-tsg-row" role="button" title="' + title + '" href="'+current_order_id + '/bespokeproduct/' + data + '"><i class="' + icon + ' fm-sm"></i></a>' + " "
                         }
 
 

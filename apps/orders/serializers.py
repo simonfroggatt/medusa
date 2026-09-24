@@ -5,6 +5,7 @@ from django.conf import settings
 from medusa.models import OcTsgOrderProductStatus
 from apps.orders import services as serv
 from apps.sites.models import OcStore
+from apps.products.models import OcProduct
 from apps.products.models import OcTsgProductVariants, OcTsgProductVariantCore
 
 class ShortStoreSerializer(serializers.ModelSerializer):
@@ -92,16 +93,30 @@ class OrderListSerializer(serializers.ModelSerializer):
 
 class OrderProductListSerializer(serializers.ModelSerializer):
     has_svg = serializers.SerializerMethodField(read_only=True)
+    can_design = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OcOrderProduct
         fields = [field.name for field in model._meta.fields]
-        fields.extend(['product_image_url', 'order_product_option', 'order_product_variant_options', 'has_svg'])
+        fields.extend(['product_image_url', 'order_product_option', 'order_product_variant_options',
+                       'has_svg', 'can_design'])
         fields.remove('order')
         depth = 3
 
     def get_has_svg(self, obj):
         return obj.order_product_bespoke_image.exists()
+
+    def get_can_design(self, obj):
+        """A bespoke line nobody has drawn yet, that we know how to draw.
+
+        The line's own is_bespoke is no help: every customised sign ever sold has
+        it, including years of orders from the old drawing tool whose products are
+        ordinary stock signs. What can be drawn here is a line bought as one of the
+        Custom … Sign products, which is what is_bespoke on the PRODUCT means.
+        """
+        if obj.order_product_bespoke_image.exists():
+            return False
+        return OcProduct.objects.filter(product_id=obj.product_id, is_bespoke=True).exists()
 
 class PreviousVariant(serializers.ModelSerializer):
 
