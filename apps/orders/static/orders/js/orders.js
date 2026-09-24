@@ -137,6 +137,14 @@ $(function () {
                 "visible": false,
                 "searchable": false
 
+            },
+            {
+                // Declared, hidden, because format=datatables only serialises the
+                // fields the table asks for: undeclared ones never reach render().
+                data: "can_design",
+                "visible": false,
+                "searchable": false
+
             }
 
 
