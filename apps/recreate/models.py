@@ -23,6 +23,9 @@ class OcTsgBespokeRecreations(models.Model):
     product_id = models.IntegerField(unique=True)
     store_id = models.IntegerField(default=0)
     status = models.CharField(max_length=20, default=STATUS_PENDING)
+    # The reviewer's judgement that this sign is simple enough to offer in
+    # another language. Says nothing about which: the customer picks that.
+    translatable = models.BooleanField(default=False)
     source_image = models.CharField(max_length=255, blank=True, null=True)
     sign_reads = models.TextField(blank=True, null=True)
     size_id = models.IntegerField(blank=True, null=True)

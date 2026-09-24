@@ -23,6 +23,16 @@
               {% for m in row.missing_list %}<li><strong>{{ m.iso_ref|default:"not ISO" }}</strong> {{ m.description }}</li>{% endfor %}
             </ul>
           {% endif %}
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="translatable" {% if row.translatable %}checked{% endif %}>
+            <label class="form-check-label" for="translatable">
+              Simple enough to translate
+              <span class="d-block small text-muted">
+                Puts &ldquo;Want this in another language?&rdquo; on the shop page. One symbol and
+                a short message translates well; names, part numbers and local rules do not.
+              </span>
+            </label>
+          </div>
           <div class="d-grid gap-2 mt-3">
             <button class="btn btn-outline-secondary js-status" data-status="unsuitable">Not suitable</button>
             <button class="btn btn-outline-warning js-status" data-status="needs_symbol">Needs a symbol</button>
@@ -53,6 +63,18 @@ $(function () {
     $.post("{% url 'recreate-status' row.product_id %}", {status: $(this).data('status'), csrfmiddlewaretoken: csrf})
       .done(r => setBadge(r.label))
       .fail(x => alert(x.responseJSON?.error || 'Could not change the status'));
+  });
+
+  // Saved as it is ticked: it is one tick beside a page of judgements, and a
+  // Save button for a single checkbox would be one more thing to forget.
+  $('#translatable').on('change', function () {
+    const box = $(this);
+    box.prop('disabled', true);
+    $.post("{% url 'recreate-translatable' row.product_id %}",
+           {translatable: box.is(':checked') ? '1' : '0', csrfmiddlewaretoken: csrf})
+      .done(r => box.prop('checked', r.translatable))
+      .fail(x => { box.prop('checked', !box.is(':checked')); alert(x.responseJSON?.error || 'Could not save that'); })
+      .always(() => box.prop('disabled', false));
   });
 
   $('.js-rerun').on('click', function () {

@@ -6,6 +6,14 @@
       <span class="badge bg-light text-dark">AI confidence {% widthratio row.confidence 1 100 %}%</span>
     {% endif %}
     <span id="artwork-symbols" class="small text-success"></span>
+    <div class="form-check form-check-inline ms-2 mb-0">
+      <input class="form-check-input js-artwork-translatable" type="checkbox" id="artwork-translatable"
+             {% if row.translatable %}checked{% endif %}>
+      <label class="form-check-label small" for="artwork-translatable"
+             title="Puts “Want this in another language?” on the shop page. One symbol and a short message translates well; names, part numbers and local rules do not.">
+        Simple enough to translate
+      </label>
+    </div>
     <div class="ms-auto d-flex gap-2">
       <button type="button" class="btn btn-sm btn-outline-primary js-artwork-rerun">Generate with AI</button>
       <a class="btn btn-sm btn-outline-secondary" href="{{ review_url }}">Open full review</a>
@@ -44,6 +52,18 @@
                 alert((x.responseJSON && x.responseJSON.error) || 'Could not start a design for this product');
                 button.prop('disabled', false).text('Design it yourself');
             });
+    });
+
+    $(panel).find('.js-artwork-translatable').off('change').on('change', function () {
+        var box = $(this).prop('disabled', true);
+        $.post("{% url 'recreate-translatable' product_id %}",
+               { translatable: box.is(':checked') ? '1' : '0', csrfmiddlewaretoken: csrf })
+            .done(function (r) { box.prop('checked', r.translatable); })
+            .fail(function (x) {
+                box.prop('checked', !box.is(':checked'));
+                alert((x.responseJSON && x.responseJSON.error) || 'Could not save that');
+            })
+            .always(function () { box.prop('disabled', false); });
     });
 
     $(panel).find('.js-artwork-rerun').off('click').on('click', function () {

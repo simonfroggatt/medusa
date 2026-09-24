@@ -287,6 +287,21 @@ def set_status(request, product_id):
 
 @require_POST
 @staff_view
+def set_translatable(request, product_id):
+    """Tick: this design is simple enough to offer in another language.
+
+    Kept apart from the status buttons because it is not a verdict on the design;
+    an approved sign can be translatable or not, and the reviewer is the one who
+    can tell. The shop offers "Want this in another language?" on the ones ticked.
+    """
+    row = _row(product_id)
+    row.translatable = request.POST.get('translatable') == '1'
+    row.save(update_fields=['translatable'])
+    return JsonResponse({'translatable': row.translatable})
+
+
+@require_POST
+@staff_view
 def not_bespoke(request, product_id):
     """This sign will not have a bespoke version, at least not yet.
 
