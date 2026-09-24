@@ -25,6 +25,7 @@ from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, Product
 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse, Http404
 from apps.recreate.models import OcTsgBespokeRecreations as Recreation
+from apps.products.models import OcProduct
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
 from apps.shipping.models import OcTsgShippingMethod
@@ -2405,8 +2406,13 @@ def _start_line_artwork(order_obj, order_product_id):
     the designer falls back to its own blank, which is still usable.
     """
     line = get_object_or_404(OcOrderProduct, pk=order_product_id, order_id=order_obj.order_id)
-    if not line.is_bespoke:
-        raise Http404('That order line is not a bespoke product')
+    # The same rule the button uses: one of the bespoke products, and a line that
+    # has not been made yet. Reaching this by hand on a shipped line would start
+    # artwork on an order that went out long ago.
+    designable = OcProduct.objects.filter(
+        product_id=line.product_id, bespoke_template__path__startswith='bespoke/designer').exists()
+    if not designable or line.status_id not in OrderProductListSerializer.DESIGNABLE_STATUS_IDS:
+        raise Http404('That order line cannot be designed here')
     blank = Recreation.objects.filter(
         product_id=line.product_id, status=Recreation.STATUS_APPROVED
     ).exclude(design=None).values_list('design', flat=True).first()

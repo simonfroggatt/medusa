@@ -106,17 +106,27 @@ class OrderProductListSerializer(serializers.ModelSerializer):
     def get_has_svg(self, obj):
         return obj.order_product_bespoke_image.exists()
 
+    # Drawing a line only makes sense before it is made. Everything else --
+    # shipped, ready, with the supplier -- is history, and 1,905 shipped lines
+    # would otherwise offer to redraw a sign that went out years ago.
+    DESIGNABLE_STATUS_IDS = (1, 2, 6)        # open, artwork needed, back order
+
     def get_can_design(self, obj):
         """A bespoke line nobody has drawn yet, that we know how to draw.
 
         The line's own is_bespoke is no help: every customised sign ever sold has
-        it, including years of orders from the old drawing tool whose products are
-        ordinary stock signs. What can be drawn here is a line bought as one of the
-        Custom … Sign products, which is what is_bespoke on the PRODUCT means.
+        it, including years of orders from the old drawing tool. What we can draw
+        is a line bought as one of the bespoke products -- which is the product
+        pointing at a designer template, rather than the is_bespoke tick box that
+        has to be remembered by hand -- and only while the line is still to be made.
         """
+        if obj.status_id not in self.DESIGNABLE_STATUS_IDS:
+            return False
         if obj.order_product_bespoke_image.exists():
             return False
-        return OcProduct.objects.filter(product_id=obj.product_id, is_bespoke=True).exists()
+        return OcProduct.objects.filter(
+            product_id=obj.product_id, bespoke_template__path__startswith='bespoke/designer'
+        ).exists()
 
 class PreviousVariant(serializers.ModelSerializer):
 
