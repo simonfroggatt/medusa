@@ -25,11 +25,20 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = OcProduct
 
-        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class', 'bulk_group', 'image', 'template', 'bespoke_template', 'exclude_bespoke', 'default_order_status']
+        fields = ['product_id', 'supplier', 'status', 'mib_logo', 'tax_class', 'bulk_group', 'image', 'template', 'bespoke_template', 'is_bespoke', 'exclude_bespoke', 'default_order_status']
 
         labels = {
             'mib_logo': 'Made in Britain',
             'status': 'Product is visable',
+            'is_bespoke': 'This IS a bespoke product',
+            'exclude_bespoke': 'Never offer a bespoke version',
+        }
+
+        help_texts = {
+            # Without this a new blank looks like an ordinary sign to the shop:
+            # it is badged "I'm customisable" and does not open the designer.
+            'is_bespoke': 'One of the Custom … Sign products the designer runs on, not a sign we print from stock.',
+            'exclude_bespoke': 'Hides the customise wand on a stock sign, and keeps it out of the AI recreation runs.',
         }
 
         field_classes = {
