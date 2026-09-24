@@ -17,6 +17,8 @@
 
           <div class="d-grid gap-2">
             <button type="button" class="btn btn-primary" id="save-artwork">Save changes to this order</button>
+            <button type="button" class="btn btn-outline-primary" id="use-saved"
+                    data-bs-toggle="modal" data-bs-target="#saved-designs">Use a saved design</button>
             <a class="btn btn-outline-secondary" href="{% url 'download_svg_file' bespoke_product.pk %}" target="_blank">Download SVG</a>
           </div>
           <div id="save-note" class="small mt-2"></div>
@@ -68,6 +70,29 @@
       <div class="ibox">
         <iframe id="order-designer" src="{{ frame_url }}" title="Sign designer"
                 style="width:100%;height:calc(100vh - 200px);min-height:720px;border:0;border-radius:6px"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="saved-designs" tabindex="-1" aria-labelledby="saved-designs-title" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="saved-designs-title">Put a saved sign on this line</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="search" class="form-control mb-3" id="saved-search" placeholder="Search by name">
+        <div id="saved-list" class="row g-3">
+          <p class="text-muted">Loading…</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span class="small text-muted me-auto">
+          The line takes its own copy, so the drawer keeps the original to show someone else.
+        </span>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
@@ -162,6 +187,77 @@ $(function () {
         }).always(function () {
             button.prop('disabled', false).text('Send to Google Drive');
         });
+    });
+});
+</script>
+
+<script>
+// "Use a saved design": the drawer's signs, copied onto this line. A copy, so
+// the drawer can keep showing the original to somebody else.
+$(function () {
+    var loaded = false;
+    var designs = [];
+    var line = null;
+
+    var card = function (d) {
+        // A design drawn at a different size is not wrong, but it is worth
+        // saying: the line is priced and made at the size that was bought.
+        var mismatch = line && d.width && d.height && line.width && line.height
+            && (Math.abs(d.width - line.width) > 0.5 || Math.abs(d.height - line.height) > 0.5);
+        var note = mismatch
+            ? '<div class="small text-danger mt-1">This design is ' + d.size
+              + '. The line is ' + (line.size || (line.width + ' × ' + line.height + ' mm')) + '.</div>'
+            : '<div class="small text-muted mt-1">' + (d.size || '') + '</div>';
+        return '<div class="col-6 col-md-4 col-xl-3 js-saved-card" data-name="' + $('<i>').text(d.name.toLowerCase()).html() + '">'
+            + '<div class="card h-100">'
+            + '<div class="card-body text-center p-2">' + (d.svg || '<span class="text-muted small">No preview</span>') + '</div>'
+            + '<div class="card-footer p-2">'
+            + '<div class="fw-semibold small">' + $('<i>').text(d.name).html() + '</div>'
+            + '<div class="small text-muted">' + $('<i>').text(d.kind).html() + ' · saved ' + d.saved + '</div>'
+            + note
+            + '<button class="btn btn-sm btn-primary w-100 mt-2 js-use-design" data-id="' + d.design_id + '">Use this one</button>'
+            + '</div></div></div>';
+    };
+
+    var draw = function () {
+        var list = $('#saved-list');
+        if (!designs.length) {
+            list.html('<p class="text-muted">Nothing in the drawer yet. Draw a sign there first.</p>');
+            return;
+        }
+        list.html(designs.map(card).join(''));
+        list.find('svg').css({ width: '100%', height: 'auto', maxHeight: '140px' });
+    };
+
+    $('#saved-designs').on('show.bs.modal', function () {
+        if (loaded) return;
+        $.getJSON("{% url 'orderproductbespoke-saved' bespoke_product.pk %}", function (data) {
+            designs = data.designs || [];
+            line = data.line || null;
+            loaded = true;
+            draw();
+        }).fail(function () {
+            $('#saved-list').html('<p class="text-danger">The saved designs could not be loaded.</p>');
+        });
+    });
+
+    $('#saved-search').on('input', function () {
+        var q = $(this).val().toLowerCase();
+        $('.js-saved-card').each(function () {
+            $(this).toggle(!q || $(this).data('name').indexOf(q) !== -1);
+        });
+    });
+
+    $(document).on('click', '.js-use-design', function () {
+        if (!confirm('Put this design on the order line? It replaces the artwork that is there.')) return;
+        var button = $(this).prop('disabled', true).text('Copying…');
+        $.post("{% url 'orderproductbespoke-use' bespoke_product.pk %}",
+               { design_id: $(this).data('id'), csrfmiddlewaretoken: '{{ csrf_token }}' })
+            .done(function () { location.reload(); })
+            .fail(function (x) {
+                alert((x.responseJSON && x.responseJSON.error) || 'That could not be copied across.');
+                button.prop('disabled', false).text('Use this one');
+            });
     });
 });
 </script>

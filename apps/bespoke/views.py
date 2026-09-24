@@ -445,6 +445,24 @@ def design_view(view):
     return login_required(group_required(*DESIGN_STAFF)(view))
 
 
+def saved_designs_payload():
+    """The drawer's signs, for a picker on some other page.
+
+    Kept here rather than on each page that offers them, so "what counts as a
+    usable saved design" is answered once.
+    """
+    return [{
+        'design_id': d.design_id,
+        'name': d.name or f'Design {d.design_id}',
+        'kind': d.kind_label,
+        'size': d.size_label,
+        'width': float(d.width) if d.width else None,
+        'height': float(d.height) if d.height else None,
+        'svg': d.svg_raw or '',
+        'saved': d.updated_at.strftime('%d/%m/%Y %H:%M') if d.updated_at else '',
+    } for d in Design.objects.exclude(design=None)]
+
+
 @design_view
 def design_list(request):
     rows = list(Design.objects.all())

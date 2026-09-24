@@ -26,6 +26,8 @@ from .forms import ProductEditForm, OrderBillingForm, OrderShippingForm, Product
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse, Http404
 from apps.recreate.models import OcTsgBespokeRecreations as Recreation
 from apps.products.models import OcProduct
+from apps.bespoke.models import OcTsgBespokeDesigns as BespokeDesign
+from apps.bespoke.views import saved_designs_payload
 from apps.products import services as prod_services
 from apps.customer.models import OcCustomer, OcAddress, OcTsgCompany
 from apps.shipping.models import OcTsgShippingMethod
@@ -2395,6 +2397,55 @@ def order_xero_marksent(request, pk):
     return_url = reverse_lazy('xero_order_link', kwargs={'order_id': pk, 'encrypted': encrypted_order_num})
     return HttpResponseRedirect(return_url)
 
+
+
+def design_line_view(view):
+    """Whoever may design an order line may also put a saved sign on it."""
+    return login_required(group_required('superuser', 'sales', 'webmaster')(view))
+
+
+@design_line_view
+def line_saved_designs(request, bespoke_id):
+    """The drawer's signs, for putting one on this order line."""
+    row = get_object_or_404(OcTsgOrderBespokeImage, pk=bespoke_id)
+    line = row.order_product
+    return JsonResponse({
+        'designs': saved_designs_payload(),
+        # So the picker can say when a design is not the size being sold.
+        'line': {'width': float(line.width or 0), 'height': float(line.height or 0),
+                 'size': line.size_name or ''},
+    })
+
+
+@require_POST
+@design_line_view
+def line_use_design(request, bespoke_id):
+    """Put one of the drawer's signs on this order line.
+
+    A copy, not a link: editing that design later to show somebody else must not
+    change a sign this customer has already agreed to. From here the two have
+    separate lives, and the drawer keeps its own as the master.
+    """
+    row = get_object_or_404(OcTsgOrderBespokeImage, pk=bespoke_id)
+    design = get_object_or_404(BespokeDesign, pk=request.POST.get('design_id') or 0)
+    if not design.design:
+        return JsonResponse({'error': 'That design has nothing drawn on it'}, status=400)
+
+    export = design.svg_export
+    export = export.tobytes() if isinstance(export, memoryview) else export
+    if isinstance(export, str):
+        export = export.encode('utf-8')
+
+    # The shop double-encodes svg_json (system/library/cart/cart.php), and this
+    # column is read by the same code, so it has to be stored the same way.
+    row.svg_json = json.dumps(design.design, ensure_ascii=False)
+    row.svg_raw = design.svg_raw
+    row.svg_export = export
+    row.google_id = None
+    row.png_url = None
+    row.version = DESIGNER_VERSION
+    row.save()
+    return JsonResponse({'ok': True, 'name': design.name or f'Design {design.design_id}'})
 
 
 def _start_line_artwork(order_obj, order_product_id):

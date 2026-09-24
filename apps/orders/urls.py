@@ -64,6 +64,8 @@ urlpatterns = [
 
     path('<int:order_id>/bespokeproduct/<int:bespoke_order_product_id>', views.bespoke_order_product, name='orderproductbespoke'),
     path('bespoke/<int:bespoke_id>/designer/', views.bespoke_order_designer, name='orderproductbespoke-designer'),
+    path('bespoke/<int:bespoke_id>/saved-designs/', views.line_saved_designs, name='orderproductbespoke-saved'),
+    path('bespoke/<int:bespoke_id>/use-design/', views.line_use_design, name='orderproductbespoke-use'),
     path('bespoke/<int:bespoke_id>/save/', views.bespoke_order_save, name='orderproductbespoke-save'),
 
     path('<int:order_id>/product-status-change/', views.order_product_status_bulk, name='orderproductstatusbulk'),
