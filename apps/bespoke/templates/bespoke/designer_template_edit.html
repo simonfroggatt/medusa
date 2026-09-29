@@ -1,0 +1,122 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <form method="post">
+    {% csrf_token %}
+    <div class="row">
+
+      <div class="col-lg-4">
+        <div class="ibox"><div class="ibox-content">
+          <h5 class="mb-2">How it looks</h5>
+          <iframe id="sign-preview" title="This sign, drawn by the sign engine"
+                  style="width:100%; height:440px; border:1px solid #e5e7eb; border-radius:8px; background:#f4f5f7"
+                  src="{% static 'bespoke/preview/rowpreview.html' %}?data={{ preview_data|urlencode }}"></iframe>
+          <p class="small text-muted mb-0 mt-2">
+            The whole sign, drawn by the engine. Change the bands or their order and it redraws.
+          </p>
+        </div></div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="ibox"><div class="ibox-content">
+          <h5 class="mb-3">The sign</h5>
+          {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+          {% for field in form %}{% include 'bespoke/_field.html' %}{% endfor %}
+        </div></div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="ibox"><div class="ibox-content">
+          <h5 class="mb-3">Its bands, top to bottom</h5>
+          {{ rows.management_form }}
+          <table class="table table-sm align-middle">
+            <thead><tr>
+              <th>Band</th>
+              {% if kind != 'fireaction' %}<th>Beside it</th>{% endif %}
+              <th style="width:90px">Height</th><th style="width:70px">Order</th><th style="width:60px">Remove</th>
+            </tr></thead>
+            <tbody>
+              {% for f in rows %}
+                <tr>
+                  {{ f.id }}
+                  <td>{{ f.row_left }}{% for e in f.row_left.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</td>
+                  {% if kind != 'fireaction' %}<td>{{ f.row_right }}</td>{% endif %}
+                  <td>{{ f.weight }}</td>
+                  <td>{{ f.sort_order }}</td>
+                  <td class="text-center">{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="small text-muted mb-0">
+            Order runs down the sign. {% if kind == 'fireaction' %}A notice is a single column, so
+            there is nothing to put beside a band; the numbering follows the order, so moving a band
+            renumbers the rest.{% else %}Name a second row to split a band into two cells.{% endif %}
+          </p>
+        </div></div>
+      </div>
+
+    </div>
+    <div class="mb-4">
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-link" href="{% url 'designer-templates' %}?kind={{ kind }}">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{{ row_recipes|json_script:"row-recipes" }}
+<script>
+// Draw the whole sign as its bands are chosen and reordered. Each row's wording
+// and symbol came down with the page, so picking a different band redraws
+// without asking the server again.
+(function () {
+  var frame = document.getElementById('sign-preview');
+  var store = document.getElementById('row-recipes');
+  if (!frame || !store) return;
+  var recipes = JSON.parse(store.textContent);
+  var ready = false;
+
+  function bands() {
+    var out = [];
+    document.querySelectorAll('select[name^="rows-"][name$="-row_left"]').forEach(function (select) {
+      var prefix = select.name.replace(/-row_left$/, '');
+      var gone = document.querySelector('[name="' + prefix + '-DELETE"]');
+      if (gone && gone.checked) return;
+      var recipe = recipes[select.value];
+      if (!recipe) return;
+      var order = document.querySelector('[name="' + prefix + '-sort_order"]');
+      var weight = document.querySelector('[name="' + prefix + '-weight"]');
+      var band = Object.assign({}, recipe, { order: order ? parseFloat(order.value) || 0 : 0 });
+      // A band may override the row's own height on this sign.
+      if (weight && weight.value) band.weight = parseFloat(weight.value) || band.weight;
+      out.push(band);
+    });
+    out.sort(function (a, b) { return a.order - b.order; });
+    return out;
+  }
+
+  function send() {
+    if (!ready || !frame.contentWindow) return;
+    var numbered = document.querySelector('[name="numbered"]');
+    frame.contentWindow.postMessage({
+      type: 'row-preview',
+      recipe: {
+        kind: '{{ kind }}',
+        bands: bands(),
+        width: parseFloat(document.querySelector('[name="width"]') ? document.querySelector('[name="width"]').value : '') || {{ preview_width }},
+        height: parseFloat(document.querySelector('[name="height"]') ? document.querySelector('[name="height"]').value : '') || {{ preview_height }},
+        numbered: numbered ? numbered.checked : true
+      }
+    }, '*');
+  }
+
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'row-preview-ready') { ready = true; send(); }
+  });
+  var timer = null;
+  document.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(send, 250); });
+  document.addEventListener('change', send);
+})();
+</script>
+{% endblock %}

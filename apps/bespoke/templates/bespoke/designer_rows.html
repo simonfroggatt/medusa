@@ -1,0 +1,66 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  {% include 'bespoke/_designer_tabs.html' %}
+
+  <div class="d-flex align-items-start justify-content-between flex-wrap">
+    {% include 'bespoke/_designer_nav.html' %}
+    <a class="btn btn-primary btn-sm mb-3" href="{% url 'designer-row-new' %}?kind={{ kind }}">
+      <i class="fa-solid fa-plus me-1"></i> New row
+    </a>
+  </div>
+
+  <div class="ibox"><div class="ibox-content">
+    <p class="small text-muted">
+      The bands the {{ kind_label|lower }} picker offers. A row a customer's saved design refers to
+      is retired with its status rather than deleted, so an old design still means what it meant.
+    </p>
+    <table id="rows_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
+      <thead>
+        <tr>
+          <th>Group</th>
+          <th>Row</th>
+          <th>Wording</th>
+          <th style="width:90px">Symbol</th>
+          <th style="width:80px">Colour</th>
+          {% if kind == 'fireaction' %}<th style="width:120px">Step / box</th>{% endif %}
+          <th style="width:70px">Height</th>
+          <th style="width:80px">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr{% if not row.status %} class="text-muted"{% endif %}>
+            <td class="small">{{ row.group.title }}</td>
+            <td><a href="{% url 'designer-row-edit' row.pk %}">{{ row.label }}</a>
+                <div class="small text-muted">{{ row.code }}</div></td>
+            <td class="small">
+              {% for line in row.lines.all %}{{ line.text }}{% if not forloop.last %} · {% endif %}{% empty %}
+                <span class="text-muted fst-italic">none — the symbol stands alone</span>
+              {% endfor %}
+            </td>
+            <td class="small">
+              {% for s in row.symbols.all %}{{ s.code }}{% if not forloop.last %}, {% endif %}{% empty %}
+                <span class="text-muted">—</span>
+              {% endfor %}
+            </td>
+            <td class="small">{{ row.colour|default:"—" }}</td>
+            {% if kind == 'fireaction' %}
+              <td class="small">
+                {% if row.is_step %}<span class="badge bg-dark">Step</span>{% endif %}
+                {% if row.has_write_on %}<span class="badge bg-light text-dark">Box</span>{% endif %}
+                {% if not row.is_step and not row.has_write_on %}<span class="text-muted">—</span>{% endif %}
+              </td>
+            {% endif %}
+            <td class="small">{{ row.weight }}</td>
+            <td>
+              {% if row.status %}<span class="badge bg-success">In use</span>
+              {% else %}<span class="badge bg-secondary">Retired</span>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+</div>
+{% endblock %}

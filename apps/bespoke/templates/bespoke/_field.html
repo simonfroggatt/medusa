@@ -1,0 +1,14 @@
+{# One form field, Bootstrap-styled, with its help text and any error. #}
+<div class="mb-3">
+  {% if field.field.widget.input_type == 'checkbox' %}
+    <div class="form-check">
+      {{ field }}
+      <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    </div>
+  {% else %}
+    <label class="form-label mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+  {% endif %}
+  {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+  {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+</div>

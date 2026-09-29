@@ -1,0 +1,9 @@
+{# Which designer's rows we are looking at. A board and a notice keep separate
+   sets: they group their rows differently and read different columns. #}
+<ul class="nav nav-pills mb-3">
+  {% for key, label in kinds %}
+    <li class="nav-item">
+      <a class="nav-link {% if key == kind %}active{% endif %}" href="?kind={{ key }}">{{ label }}</a>
+    </li>
+  {% endfor %}
+</ul>

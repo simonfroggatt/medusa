@@ -1,0 +1,43 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  {% include 'bespoke/_designer_tabs.html' %}
+  {% include 'bespoke/_designer_nav.html' %}
+
+  <div class="row">
+    <div class="col-lg-7">
+      <div class="ibox"><div class="ibox-content">
+        <p class="small text-muted">
+          The headings the {{ kind_label|lower }} picker groups its rows under, in the order it shows them.
+        </p>
+        <table class="table table-sm align-middle">
+          <thead><tr><th>Heading</th><th style="width:100px">Rows</th>
+                     <th style="width:80px">Order</th><th style="width:90px">Status</th></tr></thead>
+          <tbody>
+            {% for g in groups %}
+              <tr{% if not g.status %} class="text-muted"{% endif %}>
+                <td>{{ g.title }}</td>
+                <td class="small">{{ g.rows.count }}</td>
+                <td class="small">{{ g.sort_order }}</td>
+                <td>{% if g.status %}<span class="badge bg-success">In use</span>
+                    {% else %}<span class="badge bg-secondary">Hidden</span>{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="ibox"><div class="ibox-content">
+        <h5 class="mb-3">Add a heading</h5>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}{% include 'bespoke/_field.html' %}{% endfor %}
+          <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

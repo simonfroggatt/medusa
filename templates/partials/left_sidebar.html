@@ -115,6 +115,20 @@
 
                                 </ul>
                             </li>
+                            {# The standard rows the board and notice designers are built from. #}
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class="fa-solid fa-pen-ruler"></i>
+                                    <span>Sign Designer</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="{% url 'designer-rows' %}?kind=board">Board rows</a></li>
+                                    <li><a href="{% url 'designer-rows' %}?kind=fireaction">Fire action rows</a></li>
+                                    <li><a href="{% url 'designer-templates' %}?kind=board">Ready-made boards</a></li>
+                                    <li><a href="{% url 'designer-templates' %}?kind=fireaction">Ready-made notices</a></li>
+                                </ul>
+                            </li>
+
                             {% if request.user|has_group:"superuser" %}
                             <li>
                                 <a href="javascript: void(0);" class="has-arrow waves-effect">

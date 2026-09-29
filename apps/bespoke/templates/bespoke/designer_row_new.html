@@ -1,0 +1,20 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <div class="row"><div class="col-lg-7">
+    <div class="ibox"><div class="ibox-content">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="kind" value="{{ kind }}">
+        {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+        {% for field in form %}{% include 'bespoke/_field.html' %}{% endfor %}
+        <button class="btn btn-primary" type="submit">Add the row</button>
+        <a class="btn btn-link" href="{% url 'designer-rows' %}?kind={{ kind }}">Cancel</a>
+      </form>
+      <p class="small text-muted mt-3 mb-0">
+        The wording and the symbol come next, once the row exists.
+      </p>
+    </div></div>
+  </div></div>
+</div>
+{% endblock %}

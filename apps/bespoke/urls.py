@@ -17,4 +17,13 @@ urlpatterns = [
     path('designs/<int:design_id>/delete/', views.design_delete, name='design-delete'),
     path('designs/<int:design_id>/svg/', views.design_svg, name='design-svg'),
     path('designs/<int:design_id>/pdf/', views.design_pdf, name='design-pdf'),
+
+    # Sign Designer: the standard rows the board and notice pickers are built
+    # from. ?kind=board or ?kind=fireaction picks the designer.
+    path('designer/rows/', views.designer_rows, name='designer-rows'),
+    path('designer/rows/new/', views.designer_row_new, name='designer-row-new'),
+    path('designer/rows/<int:row_id>/', views.designer_row_edit, name='designer-row-edit'),
+    path('designer/groups/', views.designer_groups, name='designer-groups'),
+    path('designer/templates/', views.designer_templates, name='designer-templates'),
+    path('designer/templates/<int:board_id>/', views.designer_template_edit, name='designer-template-edit'),
     ]

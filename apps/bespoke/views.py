@@ -629,3 +629,195 @@ def _pdf_response(svg_bytes, filename):
             os.remove(tmp_path)
     return FileResponse(BytesIO(pdf), as_attachment=True, filename=filename,
                         content_type='application/pdf')
+
+
+# ---------------------------------------------------------------------------
+# Sign Designer: the standard rows the board and notice pickers are built from
+#
+# The designers used to carry these in code. They are here so wording can be
+# fixed, a row retired or a new one added without a deploy. A row is retired
+# with `status` rather than deleted, because saved designs refer to it by code.
+# ---------------------------------------------------------------------------
+
+from django.contrib import messages
+from apps.bespoke.models import (
+    OcTsgBespokeBoard, OcTsgBespokeRow, OcTsgBespokeRowGroup, KINDS,
+)
+from apps.bespoke import forms as designer_forms
+
+
+def _kind(request, default='board'):
+    """Which designer's rows we are looking at."""
+    kind = request.GET.get('kind') or request.POST.get('kind') or default
+    return kind if kind in dict(KINDS) else default
+
+
+def _designer_context(kind, heading):
+    return {
+        'heading': heading,
+        'kind': kind,
+        'kinds': KINDS,
+        'kind_label': dict(KINDS)[kind],
+    }
+
+
+@design_view
+def designer_rows(request):
+    """Every standard row for one designer, with what it carries."""
+    kind = _kind(request)
+    rows = (OcTsgBespokeRow.objects
+            .filter(group__kind=kind)
+            .select_related('group')
+            .prefetch_related('lines', 'symbols__symbol')
+            .order_by('group__sort_order', 'sort_order'))
+    context = _designer_context(kind, 'Standard rows')
+    context['rows'] = rows
+    return render(request, 'bespoke/designer_rows.html', context)
+
+
+@design_view
+def designer_row_new(request):
+    kind = _kind(request)
+    form = designer_forms.NewRowForm(request.POST or None, kind=kind)
+    if request.method == 'POST' and form.is_valid():
+        row = form.save()
+        messages.success(request, f'Added “{row.label}”. Now give it its wording.')
+        return redirect('designer-row-edit', row_id=row.pk)
+    context = _designer_context(kind, 'New standard row')
+    context.update({
+        'form': form,
+        'breadcrumbs': [{'name': 'Standard rows',
+                         'url': f"{reverse('designer-rows')}?kind={kind}"}],
+    })
+    return render(request, 'bespoke/designer_row_new.html', context)
+
+
+@design_view
+def designer_row_edit(request, row_id):
+    """A row, its wording and its symbol, on one page."""
+    row = get_object_or_404(OcTsgBespokeRow.objects.select_related('group'), pk=row_id)
+    kind = row.group.kind
+    post = request.POST or None
+    form = designer_forms.RowForm(post, instance=row, kind=kind)
+    lines = designer_forms.RowLineFormSet(post, instance=row, prefix='lines')
+    symbols = designer_forms.RowSymbolFormSet(post, instance=row, prefix='symbols')
+
+    if request.method == 'POST':
+        if form.is_valid() and lines.is_valid() and symbols.is_valid():
+            form.save()
+            lines.save()
+            symbols.save()
+            messages.success(request, f'Saved “{row.label}”.')
+            return redirect(f"{reverse('designer-rows')}?kind={kind}")
+        messages.error(request, 'Nothing was saved — see the notes against the fields.')
+
+    context = _designer_context(kind, row.label)
+    context.update({
+        'row': row,
+        'form': form,
+        'lines': lines,
+        'symbols': symbols,
+        # The engine draws the band beside the form, from the same feed the
+        # designer itself reads, so the preview cannot drift from the product.
+        'preview_data': request.build_absolute_uri(
+            reverse('recreate-feed', args=['NAME'])).replace('NAME', '{name}'),
+        'breadcrumbs': [{'name': 'Standard rows',
+                         'url': f"{reverse('designer-rows')}?kind={kind}"}],
+    })
+    return render(request, 'bespoke/designer_row_edit.html', context)
+
+
+@design_view
+def designer_groups(request):
+    """The headings the picker groups rows under."""
+    kind = _kind(request)
+    groups = (OcTsgBespokeRowGroup.objects.filter(kind=kind)
+              .prefetch_related('rows').order_by('sort_order'))
+    context = _designer_context(kind, 'Row groups')
+    context['groups'] = groups
+    context['form'] = designer_forms.RowGroupForm(initial={'kind': kind})
+    if request.method == 'POST':
+        form = designer_forms.RowGroupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Group added.')
+            return redirect(f"{reverse('designer-groups')}?kind={kind}")
+        context['form'] = form
+    return render(request, 'bespoke/designer_groups.html', context)
+
+
+@design_view
+def designer_templates(request):
+    """The ready-made signs: boards, and the printed notices."""
+    kind = _kind(request)
+    boards = (OcTsgBespokeBoard.objects.filter(kind=kind)
+              .prefetch_related('board_rows__row_left', 'board_rows__row_right')
+              .order_by('sort_order'))
+    context = _designer_context(kind, 'Ready-made signs')
+    context['boards'] = boards
+    return render(request, 'bespoke/designer_templates.html', context)
+
+
+def _row_recipes(kind):
+    """Every row of one kind as the preview wants it, keyed by id.
+
+    The template editor only knows which ROWS a sign is made of; the preview
+    needs what each one says. Sent once with the page so changing the order
+    redraws without another round trip.
+    """
+    rows = (OcTsgBespokeRow.objects.filter(group__kind=kind, status=True)
+            .prefetch_related('lines', 'symbols__symbol__octsgsymbolstandard_set'))
+    out = {}
+    for row in rows:
+        out[str(row.pk)] = {
+            'kind': kind,
+            'colour': row.colour or None,
+            'weight': float(row.weight),
+            'step': bool(row.is_step),
+            'writeOn': bool(row.has_write_on),
+            'symbols': [s.code for s in row.symbols.all() if s.code],
+            'lines': [{
+                'text': line.text,
+                'style': line.style,
+                'caps': bool(line.caps),
+                'bold': bool(line.bold),
+                'align': line.align,
+                **({'min': float(line.min_height)} if line.min_height is not None else {}),
+            } for line in row.lines.all()],
+        }
+    return out
+
+
+@design_view
+def designer_template_edit(request, board_id):
+    board = get_object_or_404(OcTsgBespokeBoard, pk=board_id)
+    kind = board.kind
+    FormSet = designer_forms.board_row_formset(kind)
+    post = request.POST or None
+    form = designer_forms.BoardForm(post, instance=board)
+    rows = FormSet(post, instance=board, prefix='rows')
+
+    if request.method == 'POST':
+        if form.is_valid() and rows.is_valid():
+            form.save()
+            rows.save()
+            messages.success(request, f'Saved “{board.title}”.')
+            return redirect(f"{reverse('designer-templates')}?kind={kind}")
+        messages.error(request, 'Nothing was saved — see the notes against the fields.')
+
+    context = _designer_context(kind, board.title)
+    context.update({
+        'board': board,
+        'form': form,
+        'rows': rows,
+        'preview_data': request.build_absolute_uri(
+            reverse('recreate-feed', args=['NAME'])).replace('NAME', '{name}'),
+        'row_recipes': json.dumps(_row_recipes(kind)),
+        # A board is drawn at whatever size the customer picks; a notice at the
+        # size it is printed at.
+        'preview_width': float(board.width) if board.width else 600,
+        'preview_height': float(board.height) if board.height else 800,
+        'breadcrumbs': [{'name': 'Ready-made signs',
+                         'url': f"{reverse('designer-templates')}?kind={kind}"}],
+    })
+    return render(request, 'bespoke/designer_template_edit.html', context)

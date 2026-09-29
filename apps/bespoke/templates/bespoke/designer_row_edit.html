@@ -1,0 +1,214 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  <form method="post">
+    {% csrf_token %}
+    <div class="row">
+
+      <div class="col-12">
+        <div class="ibox"><div class="ibox-content">
+          <h5 class="mb-2">How it looks</h5>
+          <iframe id="row-preview" title="This row, drawn by the sign engine"
+                  style="width:100%; height:150px; border:1px solid #e5e7eb; border-radius:8px; background:#f4f5f7"
+                  src="{% static 'bespoke/preview/rowpreview.html' %}?data={{ preview_data|urlencode }}"></iframe>
+          <p class="small text-muted mb-0 mt-2">
+            Drawn by the sign engine itself, so this is the band a customer gets. It redraws as you type.
+          </p>
+        </div></div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="ibox"><div class="ibox-content">
+          <h5 class="mb-3">The row</h5>
+          <p class="small text-muted">
+            Code <code>{{ row.code }}</code> — saved designs refer to it, so it cannot be changed.
+          </p>
+          {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+          {% for field in form %}{% include 'bespoke/_field.html' %}{% endfor %}
+          {% if kind == 'fireaction' %}
+            <div class="alert alert-light small mb-0">
+              Height is ignored on a notice band that has a symbol beside wording. The plate behind
+              the symbol is a square cut from the band's height, so an odd height gives an odd plate
+              and the symbols stop lining up down the left of the sign. It is read for a band with
+              no symbol, or no wording.
+            </div>
+          {% endif %}
+        </div></div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="ibox"><div class="ibox-content">
+          <h5 class="mb-3">Wording</h5>
+          {{ lines.management_form }}
+          <table class="table table-sm align-middle">
+            <thead><tr>
+              <th>Wording</th><th style="width:120px">Size</th>
+              <th style="width:80px">CAPITALS</th><th style="width:60px">Bold</th>
+              <th style="width:110px">May shrink to</th><th style="width:70px">Order</th>
+              <th style="width:60px">Remove</th>
+            </tr></thead>
+            <tbody>
+              {% for f in lines %}
+                <tr>
+                  {{ f.id }}
+                  <td>{{ f.text }}{% for e in f.text.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</td>
+                  <td>{{ f.style }}</td>
+                  <td class="text-center">{{ f.caps }}</td>
+                  <td class="text-center">{{ f.bold }}</td>
+                  <td>{{ f.min_height }}</td>
+                  <td>{{ f.sort_order }}</td>
+                  <td class="text-center">{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="small text-muted">
+            A row may have no wording at all — the mandatory circle above the title of a five point
+            notice is a symbol standing on its own.
+          </p>
+        </div></div>
+
+        <div class="ibox"><div class="ibox-content">
+          <h5 class="mb-3">Symbol</h5>
+          {{ symbols.management_form }}
+          <table class="table table-sm align-middle">
+            <thead><tr><th style="width:74px"></th><th>Symbol</th>
+                       <th style="width:70px">Order</th><th style="width:60px">Remove</th></tr></thead>
+            <tbody>
+              {% for f in symbols %}
+                <tr>
+                  {{ f.id }}
+                  <td>
+                    <span class="symbol-thumb" data-for="{{ f.symbol.id_for_label }}">
+                      <span class="text-muted small">none</span>
+                    </span>
+                  </td>
+                  <td>{{ f.symbol }}{% for e in f.symbol.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</td>
+                  <td>{{ f.sort_order }}</td>
+                  <td class="text-center">{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="small text-muted">
+            {% if kind == 'fireaction' %}One symbol, or none — a notice band carries a single plate.
+            {% else %}A row may name no symbol, and then it is wording only.{% endif %}
+          </p>
+        </div></div>
+      </div>
+
+    </div>
+    <div class="mb-4">
+      <button class="btn btn-primary" type="submit">Save the row</button>
+      <a class="btn btn-link" href="{% url 'designer-rows' %}?kind={{ kind }}">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<style>
+  .symbol-thumb { display: inline-flex; align-items: center; justify-content: center;
+                  width: 64px; height: 64px; border: 1px solid #e5e7eb; border-radius: 8px;
+                  background: #fff; overflow: hidden; }
+  .symbol-thumb img { max-width: 56px; max-height: 56px; }
+</style>
+
+<script>
+// Show the symbol, not just its code. Nobody remembers that M004 is eye
+// protection, so each dropdown's choice is drawn beside it.
+(function () {
+  function paint(select) {
+    var box = document.querySelector('.symbol-thumb[data-for="' + select.id + '"]');
+    if (!box) return;
+    var opt = select.options[select.selectedIndex];
+    var src = opt ? opt.getAttribute('data-img') : null;
+    box.innerHTML = src
+      ? '<img alt="" src="' + src + '">'
+      : '<span class="text-muted small">none</span>';
+  }
+  var selects = document.querySelectorAll('select[name^="symbols-"][name$="-symbol"]');
+  selects.forEach(function (s) {
+    paint(s);
+    s.addEventListener('change', function () { paint(s); });
+  });
+})();
+</script>
+
+<script>
+// Send the form to the preview whenever it changes, so the band on screen is
+// always the row as it stands -- not as it was last saved.
+(function () {
+  var frame = document.getElementById('row-preview');
+  if (!frame) return;
+  var ready = false;
+  var kind = '{{ kind }}';
+
+  function val(name) {
+    var el = document.querySelector('[name="' + name + '"]');
+    return el ? el.value : '';
+  }
+  function checked(name) {
+    var el = document.querySelector('[name="' + name + '"]');
+    return !!(el && el.checked);
+  }
+  function recipe() {
+    var lines = [];
+    document.querySelectorAll('[name^="lines-"][name$="-text"]').forEach(function (input) {
+      var row = input.name.replace(/-text$/, '');
+      var gone = document.querySelector('[name="' + row + '-DELETE"]');
+      if (gone && gone.checked) return;
+      if (!input.value.trim()) return;
+      var pick = function (f) {
+        var el = document.querySelector('[name="' + row + '-' + f + '"]');
+        return el ? el.value : '';
+      };
+      var tick = function (f) {
+        var el = document.querySelector('[name="' + row + '-' + f + '"]');
+        return !!(el && el.checked);
+      };
+      lines.push({
+        text: input.value,
+        style: pick('style') || 'body',
+        caps: tick('caps'),
+        bold: tick('bold'),
+        min: parseFloat(pick('min_height')) || undefined,
+        order: parseFloat(pick('sort_order')) || 0
+      });
+    });
+    lines.sort(function (a, b) { return a.order - b.order; });
+
+    var symbols = [];
+    document.querySelectorAll('[name^="symbols-"][name$="-symbol"]').forEach(function (select) {
+      var row = select.name.replace(/-symbol$/, '');
+      var gone = document.querySelector('[name="' + row + '-DELETE"]');
+      if (gone && gone.checked) return;
+      var text = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+      var code = (text.match(/^([A-Z]\d{3})/) || [])[1];
+      if (code) symbols.push(code);
+    });
+
+    return {
+      kind: kind,
+      colour: val('colour') || null,
+      lines: lines,
+      symbols: symbols,
+      step: checked('is_step'),
+      writeOn: checked('has_write_on')
+    };
+  }
+
+  function send() {
+    if (!ready || !frame.contentWindow) return;
+    frame.contentWindow.postMessage({ type: 'row-preview', recipe: recipe() }, '*');
+  }
+
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'row-preview-ready') { ready = true; send(); }
+  });
+
+  var timer = null;
+  document.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(send, 250); });
+  document.addEventListener('change', send);
+})();
+</script>
+{% endblock %}

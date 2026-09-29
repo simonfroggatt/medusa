@@ -1,0 +1,43 @@
+{% extends 'partials/base.html' %}
+{% block content %}
+<div class="wrapper wrapper-content">
+  {% include 'bespoke/_designer_tabs.html' %}
+  {% include 'bespoke/_designer_nav.html' %}
+
+  <div class="ibox"><div class="ibox-content">
+    <p class="small text-muted">
+      {% if kind == 'fireaction' %}
+        The printed notices a customer starts from. Each is drawn at the size it is printed at, and
+        says whether its steps are numbered — the five point with the symbol on top does not number
+        its five.
+      {% else %}
+        The ready-made boards a customer starts from, then changes.
+      {% endif %}
+    </p>
+    <table class="table table-hover align-middle table-sm" style="width:100%">
+      <thead><tr>
+        <th>Sign</th><th>What it is</th>
+        {% if kind == 'fireaction' %}<th style="width:110px">Size</th><th style="width:100px">Numbered</th>{% endif %}
+        <th style="width:80px">Bands</th><th style="width:80px">Status</th>
+      </tr></thead>
+      <tbody>
+        {% for b in boards %}
+          <tr{% if not b.status %} class="text-muted"{% endif %}>
+            <td><a href="{% url 'designer-template-edit' b.pk %}">{{ b.title }}</a>
+                <div class="small text-muted">{{ b.code }}</div></td>
+            <td class="small">{{ b.hint|default:"" }}</td>
+            {% if kind == 'fireaction' %}
+              <td class="small">{{ b.size_label }}</td>
+              <td>{% if b.numbered %}<span class="badge bg-dark">1, 2, 3…</span>
+                  {% else %}<span class="badge bg-light text-dark">No numbers</span>{% endif %}</td>
+            {% endif %}
+            <td class="small">{{ b.board_rows.count }}</td>
+            <td>{% if b.status %}<span class="badge bg-success">In use</span>
+                {% else %}<span class="badge bg-secondary">Retired</span>{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+</div>
+{% endblock %}
