@@ -7,11 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'recreate/designer/sign-designer.css' %}">
+  {# Versioned, or a browser keeps the bundle it cached and the page quietly
+     runs last week's designer while the server serves this week's. #}
+  <link rel="stylesheet" href="{% static 'recreate/designer/sign-designer.css?v='|add:js_version %}">
 </head>
 <body>
   {{ config|json_script:"sign-designer-config" }}
   <div id="app"></div>
-  <script type="module" src="{% static 'recreate/designer/sign-designer.js' %}"></script>
+  <script type="module" src="{% static 'recreate/designer/sign-designer.js?v='|add:js_version %}"></script>
 </body>
 </html>

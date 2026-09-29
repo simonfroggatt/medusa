@@ -11,7 +11,7 @@
           <h5 class="mb-2">How it looks</h5>
           <iframe id="row-preview" title="This row, drawn by the sign engine"
                   style="width:100%; height:150px; border:1px solid #e5e7eb; border-radius:8px; background:#f4f5f7"
-                  src="{% static 'bespoke/preview/rowpreview.html' %}?data={{ preview_data|urlencode }}"></iframe>
+                  src="{% static 'bespoke/preview/rowpreview.html' %}?v={{ js_version }}&data={{ preview_data|urlencode }}"></iframe>
           <p class="small text-muted mb-0 mt-2">
             Drawn by the sign engine itself, so this is the band a customer gets. It redraws as you type.
           </p>
