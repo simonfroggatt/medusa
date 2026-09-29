@@ -148,6 +148,12 @@ def _open_config(row, product, request):
         'suggestUrl': None,
         'translateUrl': None,
         'assetBase': static('recreate/designer/'),
+        # Which designer to open. A multi-band sign needs its own: the standard
+        # one has no step numbers, no plates behind its symbols and no box to
+        # write in, so a fire action notice opened there is not the sign.
+        **({'product': {'kind': row.kind,
+                        'heading': product.get('name') or 'Sign'}}
+           if row.kind and row.kind != 'standard' else {}),
         'open': {
             'productName': product.get('name') or f'Product {row.product_id}',
             'size': size,
@@ -313,6 +319,27 @@ def not_bespoke(request, product_id):
     if not changed:
         return JsonResponse({'error': f'Product {product_id} not found'}, status=404)
     return JsonResponse({'excluded': True})
+
+
+@require_POST
+@staff_view
+def set_kind(request, product_id):
+    """Which designer this sign belongs in.
+
+    The reviewer's call, not the AI's: the model refuses a multi-band sign
+    outright ("more than 2 symbols") rather than saying what it is, and a
+    person can tell a fire action notice from a stack of rows at a glance.
+
+    Changing it does not touch the recipe or the design -- the page reloads the
+    designer in the right product and the reviewer rebuilds it there.
+    """
+    kind = (request.POST.get('kind') or '').strip()
+    if kind not in Recreation.KINDS:
+        return JsonResponse({'error': f'Unknown kind {kind!r}'}, status=400)
+    row = _row(product_id)
+    row.kind = kind
+    row.save(update_fields=['kind'])
+    return JsonResponse({'kind': row.kind, 'label': row.kind_label})
 
 
 @require_POST

@@ -23,6 +23,18 @@
               {% for m in row.missing_list %}<li><strong>{{ m.iso_ref|default:"not ISO" }}</strong> {{ m.description }}</li>{% endfor %}
             </ul>
           {% endif %}
+          <h6 class="mt-3">Which designer</h6>
+          <select class="form-select" id="sign-kind">
+            {% for key, label in row.KINDS.items %}
+              <option value="{{ key }}" {% if key == row.kind %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <p class="small text-muted mt-1 mb-0">
+            A fire action notice or a site safety board is built out of bands, and the standard
+            designer has no step numbers, no plates behind its symbols and no box to write in.
+            Changing this reopens the designer; the wording is rebuilt there.
+          </p>
+
           <div class="form-check mt-3">
             <input class="form-check-input" type="checkbox" id="translatable" {% if row.translatable %}checked{% endif %}>
             <label class="form-check-label" for="translatable">
@@ -67,6 +79,18 @@ $(function () {
 
   // Saved as it is ticked: it is one tick beside a page of judgements, and a
   // Save button for a single checkbox would be one more thing to forget.
+  // Which designer this sign belongs in. The frame is reloaded rather than
+  // patched, because a different product is a different editor.
+  $('#sign-kind').on('change', function () {
+    const select = $(this);
+    select.prop('disabled', true);
+    $.post("{% url 'recreate-kind' row.product_id %}",
+           {kind: select.val(), csrfmiddlewaretoken: csrf})
+      .done(() => { const f = $('#designer'); if (f.length) f.attr('src', f.attr('src')); else location.reload(); })
+      .fail(x => alert((x.responseJSON && x.responseJSON.error) || 'Could not change the designer'))
+      .always(() => select.prop('disabled', false));
+  });
+
   $('#translatable').on('change', function () {
     const box = $(this);
     box.prop('disabled', true);

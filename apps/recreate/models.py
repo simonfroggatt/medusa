@@ -20,9 +20,21 @@ class OcTsgBespokeRecreations(models.Model):
         STATUS_FAILED: 'Failed',
     }
 
+    # Which designer this sign belongs in. Not the AI's call: it refuses a
+    # multi-band sign outright rather than classifying it, and a reviewer can
+    # tell a fire action notice from a stack of rows at a glance.
+    KINDS = {
+        'standard': 'Standard sign',
+        'bilingual': 'Two languages',
+        'board': 'Site safety board',
+        'fireaction': 'Fire action notice',
+        'roadsign': 'Temporary site sign',
+    }
+
     product_id = models.IntegerField(unique=True)
     store_id = models.IntegerField(default=0)
     status = models.CharField(max_length=20, default=STATUS_PENDING)
+    kind = models.CharField(max_length=20, default='standard')
     # The reviewer's judgement that this sign is simple enough to offer in
     # another language. Says nothing about which: the customer picks that.
     translatable = models.BooleanField(default=False)
@@ -61,3 +73,7 @@ class OcTsgBespokeRecreations(models.Model):
 
     def __str__(self):
         return f'Recreation of product {self.product_id} ({self.status})'
+
+    @property
+    def kind_label(self):
+        return self.KINDS.get(self.kind, self.kind)
