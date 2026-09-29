@@ -8904,7 +8904,7 @@ function mg(e, t, n) {
 	}
 }
 function hg(e, t) {
-	let n = e.body.replace(/fill\s*:\s*#[0-9a-fA-F]{3,8}/g, `fill: ${t}`).replace(/fill="#[0-9a-fA-F]{3,8}"/g, `fill="${t}"`);
+	let n = e.body.replace(/fill\s*:\s*#[0-9a-fA-F]{3,8}/g, `fill: ${t}`).replace(/fill="#[0-9a-fA-F]{3,8}"/g, `fill="${t}"`).replace(/stroke\s*:\s*#[0-9a-fA-F]{3,8}/g, `stroke: ${t}`).replace(/stroke="#[0-9a-fA-F]{3,8}"/g, `stroke="${t}"`);
 	return n === e.body ? e : {
 		...e,
 		body: n,
@@ -10221,7 +10221,11 @@ function F_() {
 		};
 		let a = qe(r);
 		if ($e.value = i?.unprinted_hex ?? void 0, A((e) => {
-			v.value?.roadsign ? _g(e, a, g) : T.value === "basic" ? Vp(e, a) : Du(e, a);
+			if (v.value?.roadsign) {
+				_g(e, a, g);
+				return;
+			}
+			T.value === "basic" ? Vp(e, a) : Du(e, a);
 			let t = i?.face_hex ?? null;
 			t ? (e.root.substrate = { hex: t }, delete e.root.background) : delete e.root.substrate;
 		}), n) for (let e of et) e(Qe.value.size_id, Qe.value.material_id);
@@ -12738,26 +12742,23 @@ var R_ = {
 	role: "group",
 	"aria-label": "Sign colour"
 }, lC = ["aria-pressed", "onClick"], uC = {
-	class: "small muted",
-	style: { margin: "0" }
-}, dC = {
 	key: 1,
 	class: "card",
 	"aria-labelledby": "road-size-heading"
-}, fC = {
+}, dC = {
 	class: "chips",
 	style: { "grid-template-columns": "repeat(2, minmax(0, 1fr))" },
 	role: "group",
 	"aria-label": "Sign size"
-}, pC = ["aria-pressed", "onClick"], mC = {
+}, fC = ["aria-pressed", "onClick"], pC = {
 	key: 2,
 	class: "card",
 	"aria-labelledby": "arrow-place-heading"
-}, hC = { class: "row-controls" }, gC = {
+}, mC = { class: "row-controls" }, hC = {
 	class: "segmented",
 	role: "group",
 	"aria-labelledby": "arrow-place-label"
-}, _C = ["aria-pressed", "onClick"], vC = /* @__PURE__ */ z({
+}, gC = ["aria-pressed", "onClick"], _C = /* @__PURE__ */ z({
 	__name: "RoadSignPanel",
 	props: { sizes: {
 		type: Boolean,
@@ -12783,70 +12784,66 @@ var R_ = {
 			}
 		];
 		return (e, a) => (H(), U(V, null, [
-			G("section", sC, [
-				a[0] ||= G("div", { class: "step-head" }, [G("span", { class: "step-no" }, "1"), G("h2", { id: "scheme-heading" }, "Colour")], -1),
-				G("div", cC, [(H(!0), U(V, null, B(R(i).schemes, (e) => (H(), U("button", {
-					key: e.key,
-					class: "swatch",
-					"aria-pressed": R(i).scheme.value.key === e.key,
-					onClick: (t) => R(i).setScheme(e.key)
-				}, [G("span", {
-					class: "dot",
-					style: j({
-						background: e.face.hex,
-						borderColor: e.ink.hex
-					})
-				}, null, 4), q(" " + P(e.label), 1)], 8, lC))), 128))]),
-				G("p", uC, " Printed onto " + P(R(i).scheme.value.label.toLowerCase()) + " reflective material, so the " + P(R(i).scheme.value.label.toLowerCase()) + " itself is not printed — only the border, wording and arrow. ", 1)
-			]),
-			n.value ? (H(), W(dy, { key: 0 })) : t.sizes ? (H(), U("section", dC, [
+			G("section", sC, [a[0] ||= G("div", { class: "step-head" }, [G("span", { class: "step-no" }, "1"), G("h2", { id: "scheme-heading" }, "Colour")], -1), G("div", cC, [(H(!0), U(V, null, B(R(i).schemes, (e) => (H(), U("button", {
+				key: e.key,
+				class: "swatch",
+				"aria-pressed": R(i).scheme.value.key === e.key,
+				onClick: (t) => R(i).setScheme(e.key)
+			}, [G("span", {
+				class: "dot",
+				style: j({
+					background: e.face.hex,
+					borderColor: e.ink.hex
+				})
+			}, null, 4), q(" " + P(e.label), 1)], 8, lC))), 128))])]),
+			n.value ? (H(), W(dy, { key: 0 })) : t.sizes ? (H(), U("section", uC, [
 				a[1] ||= G("div", { class: "step-head" }, [G("span", { class: "step-no" }, "2"), G("h2", { id: "road-size-heading" }, "Size")], -1),
-				G("div", fC, [(H(!0), U(V, null, B(R(i).sizes.value, (e) => (H(), U("button", {
+				G("div", dC, [(H(!0), U(V, null, B(R(i).sizes.value, (e) => (H(), U("button", {
 					key: e.name,
 					class: "chip",
 					"aria-pressed": R(i).size.value?.name === e.name,
 					onClick: (t) => R(i).setSize(e)
-				}, P(e.width) + "×" + P(e.height), 9, pC))), 128))]),
+				}, P(e.width) + "×" + P(e.height), 9, fC))), 128))]),
 				a[2] ||= G("p", {
 					class: "small muted",
 					style: { margin: "0" }
 				}, "These fit our standard frames, so there is no custom size.", -1)
 			])) : J("", !0),
-			o.value ? (H(), U("section", mC, [a[4] ||= G("div", { class: "step-head" }, [G("span", { class: "step-no" }, "3"), G("h2", { id: "arrow-place-heading" }, "Arrow")], -1), G("div", hC, [a[3] ||= G("span", {
+			o.value ? (H(), U("section", pC, [a[4] ||= G("div", { class: "step-head" }, [G("span", { class: "step-no" }, "3"), G("h2", { id: "arrow-place-heading" }, "Arrow")], -1), G("div", mC, [a[3] ||= G("span", {
 				class: "label",
 				id: "arrow-place-label"
-			}, "Goes", -1), G("div", gC, [(H(), U(V, null, B(c, (e) => G("button", {
+			}, "Goes", -1), G("div", hC, [(H(), U(V, null, B(c, (e) => G("button", {
 				key: e.key,
 				"aria-pressed": s.value === e.key,
 				onClick: (t) => R(r).commit((t) => bu(t, e.key))
-			}, P(e.label), 9, _C)), 64))])])])) : J("", !0),
+			}, P(e.label), 9, gC)), 64))])])])) : J("", !0),
 			K(Cx)
 		], 64));
 	}
-}), yC = {
+}), vC = {
 	class: "card outlined",
 	"aria-labelledby": "rows-heading"
-}, bC = { class: "step-head" }, xC = {
+}, yC = { class: "step-head" }, bC = {
 	id: "rows-heading",
 	class: "grow"
-}, SC = {
+}, xC = {
 	key: 0,
 	class: "tabs",
 	role: "tablist",
 	"aria-label": "Kinds of row"
-}, CC = ["aria-selected", "onClick"], wC = {
+}, SC = ["aria-selected", "onClick"], CC = {
 	key: 1,
 	class: "notice",
 	role: "alert"
-}, TC = {
+}, wC = {
 	key: 2,
 	class: "small muted",
 	style: { margin: "0" }
-}, EC = { class: "sub-head" }, DC = [
+}, TC = { class: "sub-head" }, EC = [
 	"disabled",
 	"title",
 	"onClick"
-], OC = ["innerHTML"], kC = { class: "preset-label" }, AC = { class: "small muted preset-words" }, jC = /* @__PURE__ */ z({
+], DC = ["innerHTML"], OC = { class: "preset-label" }, kC = { class: "small muted preset-words" }, AC = /* @__PURE__ */ z({
 	__name: "RowPicker",
 	setup(e) {
 		let t = L_(), n = /* @__PURE__ */ L(""), r = /* @__PURE__ */ L("all"), i = /* @__PURE__ */ L(null), a = /* @__PURE__ */ L("");
@@ -12871,8 +12868,8 @@ var R_ = {
 				a.value = "";
 			}
 		}
-		return (e, s) => (H(), U("section", yC, [
-			G("div", bC, [G("h2", xC, P(o.value ? "Choose a message for this row" : "Add a row"), 1), G("button", {
+		return (e, s) => (H(), U("section", vC, [
+			G("div", yC, [G("h2", bC, P(o.value ? "Choose a message for this row" : "Add a row"), 1), G("button", {
 				class: "btn go",
 				style: {
 					height: "40px",
@@ -12893,18 +12890,18 @@ var R_ = {
 				type: "search",
 				placeholder: "e.g. helmet, children, smoking"
 			}, null, 512), [[co, n.value]]),
-			n.value.trim() ? J("", !0) : (H(), U("div", SC, [(H(!0), U(V, null, B(l.value, (e) => (H(), U("button", {
+			n.value.trim() ? J("", !0) : (H(), U("div", xC, [(H(!0), U(V, null, B(l.value, (e) => (H(), U("button", {
 				key: e,
 				role: "tab",
 				"aria-selected": r.value === e,
 				onClick: (t) => r.value = e
-			}, P(e === "all" ? "All" : e), 9, CC))), 128))])),
-			R(t).state.symbolError ? (H(), U("p", wC, P(R(t).state.symbolError), 1)) : J("", !0),
-			c.value.length ? J("", !0) : (H(), U("p", TC, " No standard row matches that. Close this and use “Blank row” to write your own wording. ")),
+			}, P(e === "all" ? "All" : e), 9, SC))), 128))])),
+			R(t).state.symbolError ? (H(), U("p", CC, P(R(t).state.symbolError), 1)) : J("", !0),
+			c.value.length ? J("", !0) : (H(), U("p", wC, " No standard row matches that. Close this and use “Blank row” to write your own wording. ")),
 			(H(!0), U(V, null, B(c.value, (e) => (H(), U("div", {
 				key: e.group,
 				class: "preset-group"
-			}, [G("div", EC, P(e.group), 1), (H(!0), U(V, null, B(e.presets, (e) => (H(), U("button", {
+			}, [G("div", TC, P(e.group), 1), (H(!0), U(V, null, B(e.presets, (e) => (H(), U("button", {
 				key: e.id,
 				class: pe(["preset", [`cat-${e.section.colour ?? "plain"}`, {
 					busy: a.value === e.id,
@@ -12917,56 +12914,56 @@ var R_ = {
 				key: 0,
 				class: "preset-art",
 				innerHTML: R(t).board.thumb(e)
-			}, null, 8, OC)) : (H(), U(V, { key: 1 }, [G("span", kC, P(e.label), 1), G("span", AC, P(u(e)), 1)], 64))], 10, DC))), 128))]))), 128))
+			}, null, 8, DC)) : (H(), U(V, { key: 1 }, [G("span", OC, P(e.label), 1), G("span", kC, P(u(e)), 1)], 64))], 10, EC))), 128))]))), 128))
 		]));
 	}
-}), MC = {
+}), jC = {
 	key: 0,
 	class: "topbar"
-}, NC = {
+}, MC = {
 	key: 0,
 	class: "loading"
-}, PC = {
+}, NC = {
 	key: 1,
 	class: "notice",
 	role: "alert"
-}, FC = {
+}, PC = {
 	key: 0,
 	class: "crumbs",
 	"aria-label": "Breadcrumb"
-}, IC = { class: "layout" }, LC = { class: "preview-col" }, RC = { class: "preview-head" }, zC = {
+}, FC = { class: "layout" }, IC = { class: "preview-col" }, LC = { class: "preview-head" }, RC = {
 	key: 0,
 	class: "heading display"
-}, BC = {
+}, zC = {
 	class: "history",
 	role: "group",
 	"aria-label": "History"
-}, VC = ["disabled"], HC = ["disabled"], UC = {
+}, BC = ["disabled"], VC = ["disabled"], HC = {
 	key: 2,
 	class: "row-controls"
-}, WC = {
+}, UC = {
 	key: 3,
 	class: "small muted hint"
-}, GC = {
+}, WC = {
 	key: 4,
 	class: "promises"
-}, KC = { class: "panel" }, qC = {
+}, GC = { class: "panel" }, KC = {
 	key: 0,
 	class: "mode",
 	role: "group",
 	"aria-label": "Editor mode"
-}, JC = ["aria-pressed"], YC = ["aria-pressed"], XC = {
+}, qC = ["aria-pressed"], JC = ["aria-pressed"], YC = {
 	key: 1,
 	class: "card outlined",
 	role: "alertdialog",
 	"aria-labelledby": "basic-q"
-}, ZC = { class: "row-controls" }, QC = {
+}, XC = { class: "row-controls" }, ZC = {
 	class: "card",
 	"aria-labelledby": "text-heading"
-}, $C = {
+}, QC = {
 	key: 1,
 	class: "footer"
-}, ew = /* @__PURE__ */ z({
+}, $C = /* @__PURE__ */ z({
 	__name: "App",
 	setup(e) {
 		let t = F_();
@@ -13088,17 +13085,17 @@ var R_ = {
 			});
 		};
 		return (e, a) => (H(), U(V, null, [
-			m ? J("", !0) : (H(), U("header", MC, [...a[18] ||= [G("span", { class: "brand display" }, "Safety Signs & Notices", -1), G("span", { class: "tag" }, "Bespoke signs · test site", -1)]])),
-			G("main", { class: pe(["page", { embedded: m }]) }, [R(n).status === "loading" ? (H(), U("div", NC, "Loading the sign designer…")) : R(n).status === "error" ? (H(), U("div", PC, " The designer couldn’t start: " + P(R(n).error), 1)) : (H(), U(V, { key: 2 }, [
-				m ? J("", !0) : (H(), U("nav", FC, [
+			m ? J("", !0) : (H(), U("header", jC, [...a[18] ||= [G("span", { class: "brand display" }, "Safety Signs & Notices", -1), G("span", { class: "tag" }, "Bespoke signs · test site", -1)]])),
+			G("main", { class: pe(["page", { embedded: m }]) }, [R(n).status === "loading" ? (H(), U("div", MC, "Loading the sign designer…")) : R(n).status === "error" ? (H(), U("div", NC, " The designer couldn’t start: " + P(R(n).error), 1)) : (H(), U(V, { key: 2 }, [
+				m ? J("", !0) : (H(), U("nav", PC, [
 					a[19] ||= G("span", null, "Safety Signs", -1),
 					a[20] ||= G("span", { "aria-hidden": "true" }, "/", -1),
 					a[21] ||= G("span", null, "Bespoke", -1),
 					a[22] ||= G("span", { "aria-hidden": "true" }, "/", -1),
 					G("strong", null, P(R(r)?.heading), 1)
 				])),
-				G("div", IC, [G("div", LC, [
-					G("div", RC, [g ? J("", !0) : (H(), U("h1", zC, P(R(r)?.heading), 1)), G("div", BC, [
+				G("div", FC, [G("div", IC, [
+					G("div", LC, [g ? J("", !0) : (H(), U("h1", RC, P(R(r)?.heading), 1)), G("div", zC, [
 						R(t).options.value.length && !R(t).state.choosing ? (H(), U("button", {
 							key: 0,
 							class: "btn small-btn accent",
@@ -13110,13 +13107,13 @@ var R_ = {
 							disabled: !R(d).canUndo,
 							title: "Undo (Ctrl/⌘+Z)",
 							onClick: a[1] ||= (e) => R(t).undo()
-						}, "↶ Undo", 8, VC),
+						}, "↶ Undo", 8, BC),
 						G("button", {
 							class: "btn small-btn",
 							disabled: !R(d).canRedo,
 							title: "Redo (Ctrl/⌘+Shift+Z)",
 							onClick: a[2] ||= (e) => R(t).redo()
-						}, "↷ Redo", 8, HC)
+						}, "↷ Redo", 8, VC)
 					])]),
 					R(t).state.choosing ? (H(), W(wv, { key: 0 })) : (H(), W(Dv, {
 						key: 1,
@@ -13134,30 +13131,30 @@ var R_ = {
 						"interactive",
 						"highlights"
 					])),
-					R(t).state.choosing ? J("", !0) : (H(), U("div", UC, [G("button", {
+					R(t).state.choosing ? J("", !0) : (H(), U("div", HC, [G("button", {
 						class: "btn",
 						onClick: a[3] ||= (e) => h.value = !0
 					}, "Preview this sign"), a[23] ||= G("span", { class: "small muted" }, "See it at actual size, against a door.", -1)])),
-					R(c) === "advanced" ? (H(), U("p", WC, P(se.value), 1)) : J("", !0),
+					R(c) === "advanced" ? (H(), U("p", UC, P(se.value), 1)) : J("", !0),
 					(H(!0), U(V, null, B(te.value, (e) => (H(), U("div", {
 						key: e,
 						class: "notice",
 						role: "status"
 					}, P(e), 1))), 128)),
-					R(t).review ? J("", !0) : (H(), U("div", GC, [...a[24] ||= [
+					R(t).review ? J("", !0) : (H(), U("div", WC, [...a[24] ||= [
 						G("span", null, "Printed exactly to size", -1),
 						G("span", { "aria-hidden": "true" }, "·", -1),
 						G("span", null, "Official ISO 7010 symbols", -1)
 					]]))
-				]), G("div", KC, [
-					!E.value && !D.value ? (H(), U("div", qC, [G("button", {
+				]), G("div", GC, [
+					!E.value && !D.value ? (H(), U("div", KC, [G("button", {
 						"aria-pressed": R(c) === "basic",
 						onClick: a[4] ||= (e) => b("basic")
-					}, "Basic", 8, JC), G("button", {
+					}, "Basic", 8, qC), G("button", {
 						"aria-pressed": R(c) === "advanced",
 						onClick: a[5] ||= (e) => b("advanced")
-					}, "Advanced", 8, YC)])) : J("", !0),
-					p.value ? (H(), U("section", XC, [
+					}, "Advanced", 8, JC)])) : J("", !0),
+					p.value ? (H(), U("section", YC, [
 						a[25] ||= G("h2", {
 							id: "basic-q",
 							style: {
@@ -13166,7 +13163,7 @@ var R_ = {
 							}
 						}, "Switch to Basic?", -1),
 						a[26] ||= G("p", { style: { margin: "0" } }, "Basic shows one symbol with a title and one more line. Switching keeps the first symbol and the first two lines of text; the rest is removed (you can undo).", -1),
-						G("div", ZC, [G("button", {
+						G("div", XC, [G("button", {
 							class: "btn strong",
 							onClick: a[6] ||= (e) => {
 								p.value = !1, R(t).resetToBasic();
@@ -13196,10 +13193,10 @@ var R_ = {
 						"error",
 						"noun",
 						"onPick"
-					])) : D.value ? (H(), W(vC, {
+					])) : D.value ? (H(), W(_C, {
 						key: 3,
 						sizes: !g
-					}, null, 8, ["sizes"])) : R(t).board.picker.value ? (H(), W(jC, { key: 4 })) : E.value ? (H(), W(oC, { key: 5 })) : R(c) === "basic" ? (H(), U(V, { key: 6 }, [
+					}, null, 8, ["sizes"])) : R(t).board.picker.value ? (H(), W(AC, { key: 4 })) : E.value ? (H(), W(oC, { key: 5 })) : R(c) === "basic" ? (H(), U(V, { key: 6 }, [
 						R(t).canSuggest ? (H(), W(pv, { key: 0 })) : J("", !0),
 						v.value ? (H(), W(dy, { key: 1 })) : g ? J("", !0) : (H(), W(ry, {
 							key: 2,
@@ -13215,7 +13212,7 @@ var R_ = {
 							current: R(t).currentSymbol.value,
 							onChange: ce
 						}, null, 8, ["current"]),
-						G("section", QC, [
+						G("section", ZC, [
 							a[27] ||= G("div", { class: "step-head" }, [G("span", { class: "step-no" }, "3"), G("h2", { id: "text-heading" }, "Text")], -1),
 							K(Jy, {
 								id: "title",
@@ -13280,7 +13277,7 @@ var R_ = {
 						"blocked"
 					])) : J("", !0)
 				])]),
-				m ? J("", !0) : (H(), U("p", $C, "Data: " + P(R(t).dataSource.value) + " · Symbols: " + P(R(t).symbols.value.length), 1))
+				m ? J("", !0) : (H(), U("p", QC, "Data: " + P(R(t).dataSource.value) + " · Symbols: " + P(R(t).symbols.value.length), 1))
 			], 64))], 2),
 			h.value ? (H(), W(Vv, {
 				key: 1,
@@ -13292,6 +13289,6 @@ var R_ = {
 //#endregion
 //#region editor/src/main.ts
 Ll || document.documentElement.classList.add("sign-designer-site");
-var tw = document.querySelector(Ll?.mount ?? "#app");
-tw?.classList.add("sign-designer-root"), vo(ew).mount(tw ?? Ll?.mount ?? "#app");
+var ew = document.querySelector(Ll?.mount ?? "#app");
+ew?.classList.add("sign-designer-root"), vo($C).mount(ew ?? Ll?.mount ?? "#app");
 //#endregion
