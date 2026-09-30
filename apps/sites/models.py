@@ -55,6 +55,7 @@ class OcStore(models.Model):
     meta_description = models.CharField(max_length=256, blank=True, null=True)
     meta_keywords = models.CharField(max_length=256, blank=True, null=True)
     branding_dir = models.CharField(max_length=255, blank=True, null=True)
+    merchant_center_id = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
         managed = False

@@ -48,6 +48,7 @@ __pycache__/
 client_secret.json
 token.json
 gdrive.json
+merchant.json
 apps/xero_api/xero_refresh_token*.json
 
 # Logs / temp
