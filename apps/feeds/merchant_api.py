@@ -9,7 +9,9 @@ hand-uploaded file feed is never touched.
 """
 import logging
 import os
+import time
 
+import requests
 from django.conf import settings
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
@@ -24,8 +26,14 @@ FEED_LABEL = 'GB'
 TARGET_COUNTRY = 'GB'
 CURRENCY = 'GBP'
 SHIPPING_SERVICE = 'Standard'
-# Where a variant that isn't meant for ads is kept out of; free listings stay on.
-ADS_DESTINATIONS = ['SHOPPING_ADS', 'DISPLAY_ADS']
+# Where a variant that isn't meant for ads is kept out of. Free listings and
+# dynamic remarketing (Display ads) keep every variant, so remarketing can show
+# the exact size and material someone looked at.
+ADS_DESTINATIONS = ['SHOPPING_ADS']
+
+# Google's temporary faults and rate limits are retried with growing pauses.
+RETRY_STATUSES = {429, 500, 502, 503, 504}
+RETRY_DELAYS = [2, 4, 8, 16]  # seconds
 
 
 class MerchantApiError(Exception):
@@ -111,10 +119,22 @@ class MerchantClient:
         self._data_source = None
 
     def _call(self, method, path, **kwargs):
-        response = self.session.request(method, f"{API_ROOT}/{path}", timeout=60, **kwargs)
-        if response.status_code >= 400:
-            raise MerchantApiError(response.status_code, response.text)
-        return response.json() if response.content else {}
+        # Every call we make is safe to repeat: an insert overwrites, a delete of
+        # something already gone comes back 404.
+        for delay in RETRY_DELAYS + [None]:
+            try:
+                response = self.session.request(method, f"{API_ROOT}/{path}", timeout=60, **kwargs)
+            except requests.RequestException:
+                if delay is None:
+                    raise
+                time.sleep(delay)
+                continue
+            if response.status_code in RETRY_STATUSES and delay is not None:
+                time.sleep(delay)
+                continue
+            if response.status_code >= 400:
+                raise MerchantApiError(response.status_code, response.text)
+            return response.json() if response.content else {}
 
     @property
     def account(self):

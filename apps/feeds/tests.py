@@ -121,7 +121,7 @@ class ToProductInputTests(SimpleTestCase):
 
     def test_not_for_ads_is_excluded_from_ads_only(self):
         attrs = to_product_input(offer(show_in_ads=False))['productAttributes']
-        self.assertEqual(attrs['excludedDestinations'], ['SHOPPING_ADS', 'DISPLAY_ADS'])
+        self.assertEqual(attrs['excludedDestinations'], ['SHOPPING_ADS'])
 
     def test_no_mpn_means_no_identifier(self):
         attrs = to_product_input(offer(mpn='', availability='out_of_stock'))['productAttributes']
@@ -139,6 +139,44 @@ class IsEnabledTests(SimpleTestCase):
     def test_on_with_setting_and_key(self):
         with mock.patch('os.path.exists', return_value=True):
             self.assertTrue(merchant_api.is_enabled())
+
+
+class FakeResponse:
+    def __init__(self, status, body=b'{}'):
+        self.status_code, self.content, self.text = status, body, body.decode()
+
+    def json(self):
+        return {}
+
+
+class FakeSession:
+    def __init__(self, statuses):
+        self.statuses = list(statuses)
+        self.calls = 0
+
+    def request(self, *args, **kwargs):
+        self.calls += 1
+        return FakeResponse(self.statuses.pop(0))
+
+
+@mock.patch('apps.feeds.merchant_api.time.sleep')
+class RetryTests(SimpleTestCase):
+    def test_temporary_errors_are_retried(self, sleep):
+        session = FakeSession([500, 429, 200])
+        merchant_api.MerchantClient('1', session=session)._call('POST', 'x')
+        self.assertEqual(session.calls, 3)
+
+    def test_gives_up_after_the_last_retry(self, sleep):
+        session = FakeSession([503] * 5)
+        with self.assertRaises(merchant_api.MerchantApiError):
+            merchant_api.MerchantClient('1', session=session)._call('POST', 'x')
+        self.assertEqual(session.calls, 5)
+
+    def test_real_errors_are_not_retried(self, sleep):
+        session = FakeSession([400])
+        with self.assertRaises(merchant_api.MerchantApiError):
+            merchant_api.MerchantClient('1', session=session)._call('POST', 'x')
+        self.assertEqual(session.calls, 1)
 
 
 class FakeClient:
