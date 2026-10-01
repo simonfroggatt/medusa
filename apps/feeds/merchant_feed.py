@@ -43,6 +43,9 @@ MAX_HANDLING_DAYS = 2  # 48 hours max despatch
 AD_VARIANT_REQUIRES_SALES = False
 AD_SALES_MONTHS = 12
 
+DISPATCH_HIGHLIGHT = 'Dispatched within 2 working days'
+HIGHLIGHT_MAX = 150
+
 TITLE_MAX = 150
 DESCRIPTION_MAX = 5000
 MAX_ADDITIONAL_IMAGES = 10
@@ -89,6 +92,25 @@ def truncate(text, limit):
     if len(text) <= limit:
         return text
     return text[:limit - 1].rstrip() + '…'
+
+
+def product_highlights(standard, size_name, material):
+    """
+    Google wants at least two highlights. Built only from structured fields:
+    the material descriptions are patchy, so they are left out.
+    """
+    lines = []
+    if standard:
+        lines.append(f"Conforms to {standard}")
+    lines.append(f"{size_name} {material.material_name}")
+    thickness = clean_description(material.thickness_desc)
+    if thickness:
+        lines.append(f"{thickness} thick")
+    fixing = clean_description(material.fixing_desc)
+    if fixing:
+        lines.append(f"Fixing: {fixing}")
+    lines.append(DISPATCH_HIGHLIGHT)
+    return [truncate(line, HIGHLIGHT_MAX) for line in lines]
 
 
 def rank_variants(variants, sold_ids=None):
@@ -278,7 +300,7 @@ def build_offers(store, product_ids=None):
                 'product_type': _category_path(category, parents),
                 'size': size_name,
                 'material': material_name,
-                'product_highlights': [f"Product conforms to {standard}"] if standard else [],
+                'product_highlights': product_highlights(standard, size_name, core.size_material.product_material),
                 'shipping_price': money(shipping_ex_vat * VAT_MULTIPLIER),
                 'min_handling_days': MIN_HANDLING_DAYS,
                 'max_handling_days': MAX_HANDLING_DAYS,

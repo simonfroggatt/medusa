@@ -6,7 +6,9 @@ from django.test import SimpleTestCase, override_settings
 
 from apps.feeds import merchant_api, merchant_sync
 from apps.feeds.merchant_api import to_product_input
-from apps.feeds.merchant_feed import price_band, product_link, rank_variants, store_base_url, truncate
+from apps.feeds.merchant_feed import (
+    price_band, product_highlights, product_link, rank_variants, store_base_url, truncate,
+)
 
 
 def variant(id, price, material, blocked=False):
@@ -73,6 +75,22 @@ class FeedHelperTests(SimpleTestCase):
         self.assertEqual(product_link(base, 'no-smoking', 1, 5), f'{base}no-smoking?variantid=5')
         self.assertEqual(product_link(base, '', 1, 5),
                          f'{base}index.php?route=product/product&product_id=1&variantid=5')
+
+    def test_highlights_full(self):
+        vinyl = SimpleNamespace(material_name='Self Adhesive Vinyl Sticker',
+                                thickness_desc='95 micron', fixing_desc='Self Adhesive')
+        self.assertEqual(product_highlights('ISO 7010', '90mm x 90mm', vinyl), [
+            'Conforms to ISO 7010',
+            '90mm x 90mm Self Adhesive Vinyl Sticker',
+            '95 micron thick',
+            'Fixing: Self Adhesive',
+            'Dispatched within 2 working days',
+        ])
+
+    def test_highlights_never_fewer_than_two(self):
+        bare = SimpleNamespace(material_name='DiBond Aluminium', thickness_desc=None, fixing_desc='')
+        self.assertEqual(product_highlights(None, '300mm x 200mm', bare),
+                         ['300mm x 200mm DiBond Aluminium', 'Dispatched within 2 working days'])
 
     def test_truncate(self):
         self.assertEqual(truncate('short', 150), 'short')
