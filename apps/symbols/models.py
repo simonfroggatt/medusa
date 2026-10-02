@@ -46,6 +46,13 @@ class OcTsgSymbols(models.Model):
     image_width = models.IntegerField(blank=True, null=True)
     image_height = models.IntegerField(blank=True, null=True)
     shape = models.ForeignKey(OcTsgSymbolShape, models.DO_NOTHING, blank=True, null=True)
+    # Stamped on every save, and put in the symbol's URL by the shop's designer
+    # feed, so replacing artwork changes the URL and the caches let go without
+    # anyone having to remember a step. The column also carries ON UPDATE
+    # CURRENT_TIMESTAMP as a backstop for writes that do not come through here
+    # -- but that only fires when some other column changes, which re-uploading
+    # under the same filename may not do, so auto_now settles it.
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
