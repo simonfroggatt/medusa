@@ -122,7 +122,7 @@ class WayfindingLineTests(SimpleTestCase):
             context = views._wayfinding_context(order, self.line(), {})
 
         self.assertTrue(context['shop_url'].startswith(
-            'https://www.safetysignsandnotices.co.uk/index.php?route=product/product&product_id=41900&mode=combined'))
+            'https://www.safetysignsandnotices.co.uk/index.php?route=product/product&product_id=41900&makebespoke=1&mode=combined'))
         self.assertEqual(context['text_line'], ['Floor 3', 'Flats 1–4', 'Flats 5–7'])
         self.assertEqual(context['record']['group']['label'], 'Building: floors 0 to 5')
 

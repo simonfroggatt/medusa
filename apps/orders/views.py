@@ -2621,7 +2621,7 @@ def _wayfinding_context(order_obj, row, context):
         if not store_url.endswith('/'):
             store_url += '/'
         context['shop_url'] = (f'{store_url}index.php?route=product/product'
-                               f'&product_id={row.order_product.product_id}&{wayfinding.query_string(spec)}')
+                               f'&product_id={row.order_product.product_id}&makebespoke=1&{wayfinding.query_string(spec)}')
     return context
 
 
