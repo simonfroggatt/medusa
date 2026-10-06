@@ -6,6 +6,7 @@ from django.test import SimpleTestCase
 from apps.paperwork import utils
 
 
+@mock.patch.object(utils.wayfinding, 'line_option_lines', mock.Mock(return_value=[]))
 @mock.patch.object(utils, 'OcTsgOrderProductOptions')
 @mock.patch.object(utils, 'OcTsgOrderOption')
 class OrderProductLineOptionsTests(SimpleTestCase):
@@ -42,3 +43,20 @@ class OrderProductLineOptionsTests(SimpleTestCase):
         self.assertEqual(utils.create_product_desc(line),
                          'DOT 629A Vehicle width restriction sign<BR/>450mm Diameter - RA2 Reflective (Circle)'
                          '<BR/>Metric Measurement : 4m<BR/>Imperial Measurement : 13\'1"')
+
+    def test_wayfinding_sign_wording_follows_the_options_escaped(self, order_option, product_options):
+        self.configure(order_option, product_options, addons=[('Fixing', 'Screws')])
+        with mock.patch.object(utils.wayfinding, 'line_option_lines',
+                               return_value=[('Sign', 'Floor + flats sign'), ('Flats row 1', 'Flats 1–4, arrow left'),
+                                             ('Note', 'A & B')]):
+            self.assertEqual(utils.get_order_product_line_options(195402),
+                             'Fixing : Screws<BR/>Sign : Floor + flats sign<BR/>Flats row 1 : Flats 1–4, arrow left'
+                             '<BR/>Note : A &amp; B')
+
+    def test_quotes_never_look_for_a_wayfinding_sign(self, order_option, product_options):
+        self.configure(order_option, product_options)
+        line = SimpleNamespace(order_product_id=195109, product_id=41966, name='Floor sign',
+                               size_name='450mm x 150mm', material_name='Vinyl', orientation_name='Landscape')
+        with mock.patch.object(utils.wayfinding, 'line_option_lines') as lookup:
+            utils.create_product_desc(line, bl_quote=True)
+        lookup.assert_not_called()

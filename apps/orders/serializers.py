@@ -4,6 +4,7 @@ from .models import OcOrder, OcOrderProduct, OcOrderTotal, OcOrderFlags, OcTsgFl
 from django.conf import settings
 from medusa.models import OcTsgOrderProductStatus
 from apps.orders import services as serv
+from apps.orders import wayfinding
 from apps.sites.models import OcStore
 from apps.products.models import OcProduct
 from apps.products.models import OcTsgProductVariants, OcTsgProductVariantCore
@@ -102,6 +103,17 @@ class OrderProductListSerializer(serializers.ModelSerializer):
                        'has_svg', 'can_design'])
         fields.remove('order')
         depth = 3
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        # A wayfinding sign's floor and flat numbers, listed with the line's
+        # options the same way (apps/orders/wayfinding.py; the order page
+        # shows class_name : value_name for each).
+        row = obj.order_product_bespoke_image.filter(version=wayfinding.WAYFINDING_VERSION).first()
+        extra = [{'class_name': name, 'value_name': value} for name, value in wayfinding.option_lines(row)] if row else []
+        if extra:
+            data['order_product_variant_options'] = list(data.get('order_product_variant_options') or []) + extra
+        return data
 
     def get_has_svg(self, obj):
         return obj.order_product_bespoke_image.exists()

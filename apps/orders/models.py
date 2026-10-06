@@ -634,8 +634,11 @@ class OcTsgOrderOption(models.Model):
 
 class OcTsgOrderBespokeImage(models.Model):
     # Which tool drew the line. 2 and below is the old drawer, which only ever
-    # left the finished SVG; 3 is the sign designer, which leaves the design.
+    # left the finished SVG; 3 is the sign designer, which leaves the design;
+    # 4 is the wayfinding configurator, which leaves the settings that redraw
+    # the sign on the shop rather than a design Medusa can edit.
     DESIGNER_VERSION = 3
+    WAYFINDING_VERSION = 4
 
     order_product = models.ForeignKey(OcOrderProduct, models.DO_NOTHING, related_name='order_product_bespoke_image')
     bespoke_category_id = models.IntegerField(blank=True, null=True)

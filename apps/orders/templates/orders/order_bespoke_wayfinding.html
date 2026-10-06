@@ -1,0 +1,125 @@
+{# A wayfinding sign: drawn by the configurator on the shop from a few settings,
+   not by the sign designer, so there is no design to edit here. The artwork is
+   what the customer bought; changes are made by reopening it on the shop. #}
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+  <div class="row top_bar align-middle">
+    <h2>{{ order_id }}-{{ bespoke_product.pk }}</h2>
+  </div>
+  <div class="row g-3">
+    <div class="col-xl-3 col-lg-4">
+      <div class="ibox">
+        <div class="ibox-content">
+          <h5 class="mb-1">Order line artwork</h5>
+          <div class="small text-muted mb-3">
+            Drawn with the wayfinding configurator{% if record.engine %} ({{ record.engine }}){% endif %}
+          </div>
+
+          <dl class="small mb-3">
+            {% if record.width and record.height %}
+              <dt>Size</dt><dd>{{ record.width|floatformat:"-1" }} × {{ record.height|floatformat:"-1" }}mm</dd>
+            {% endif %}
+            {% if record.kind %}<dt>Sign</dt><dd class="text-capitalize">{{ record.kind }}</dd>{% endif %}
+            {% if record.group.label %}<dt>Ordered with</dt><dd>{{ record.group.label }}</dd>{% endif %}
+          </dl>
+
+          <div class="d-grid gap-2">
+            <a class="btn btn-outline-secondary" href="{% url 'download_svg_file' bespoke_product.pk %}" target="_blank">Download SVG</a>
+            {% if shop_url %}
+              <a class="btn btn-outline-primary" href="{{ shop_url }}" target="_blank" rel="noopener">Open in the configurator</a>
+            {% endif %}
+          </div>
+          <p class="small text-muted mt-2">
+            The configurator opens on the shop with this sign's settings. A change
+            made there is a new sign; it does not alter this order line.
+          </p>
+
+          <h6 class="mt-4">Print PDF</h6>
+          <p class="small mb-2" id="pdf-state">
+            {% if bespoke_product.google_id %}
+              On the Drive, made from the artwork as it stands.
+            {% else %}
+              Not on the Drive for this artwork.
+            {% endif %}
+          </p>
+
+          <label class="form-label small mb-1" for="pdf-name">File name</label>
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="pdf-name"
+                   value="{{ order_id }}-{{ bespoke_product.pk }}" aria-label="PDF file name">
+            <span class="input-group-text">.pdf</span>
+          </div>
+
+          <div class="d-grid gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-primary" id="download-pdf">Download PDF</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="make-pdf">Send to Google Drive</button>
+            {% if bespoke_product.google_id %}
+              <a class="btn btn-sm btn-outline-secondary" id="drive-link"
+                 href="{% url 'download_file' bespoke_product.google_id %}" target="_blank">Open the Drive copy</a>
+            {% endif %}
+          </div>
+          <div id="pdf-note" class="small mt-2"></div>
+
+          <h6 class="mt-4">Text used</h6>
+          <div id="text-used">
+            {% for line in text_line %}<p class="small mb-1">{{ line }}</p>{% empty %}<p class="small text-muted">None recorded</p>{% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-9 col-lg-8">
+      <div class="ibox">
+        <div class="ibox-content text-center wayfinding-artwork">
+          {% if svg %}{{ svg|safe }}{% else %}<p class="text-muted">No artwork on this line.</p>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<style>
+  .wayfinding-artwork svg { width: 100%; height: auto; max-height: calc(100vh - 260px); }
+</style>
+<script>
+$(function () {
+    $('#download-pdf').on('click', function () {
+        var name = encodeURIComponent($('#pdf-name').val() || '');
+        window.open("{% url 'orderproductbespoke-pdf' bespoke_product.pk %}?name=" + name, '_blank');
+    });
+
+    $('#make-pdf').on('click', function () {
+        var button = $(this).prop('disabled', true).text('Sending…');
+        var pdfNote = $('#pdf-note').attr('class', 'small mt-2 text-muted').text('Converting and sending…');
+        $.ajax({
+            url: "{{ pdf_url }}",
+            type: 'post',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            data: { name: $('#pdf-name').val() }
+        }).done(function (r) {
+            pdfNote.attr('class', 'small mt-2 ' + (r.uploaded ? 'text-success' : 'text-warning'))
+                   .text(r.uploaded ? ('Saved to the Drive as ' + r.name) : r.warning);
+            $('#pdf-name').val(r.name.replace(/\.pdf$/, ''));
+            $('#pdf-state').text(r.uploaded
+                ? 'On the Drive, made from the artwork as it stands.'
+                : 'Not on the Drive for this artwork.');
+            if (r.uploaded) {
+                if (!$('#drive-link').length) {
+                    $('#make-pdf').after('<a class="btn btn-sm btn-outline-secondary" id="drive-link" target="_blank">Open the Drive copy</a>');
+                }
+                $('#drive-link').attr('href', r.url);
+            }
+        }).fail(function (x) {
+            pdfNote.attr('class', 'small mt-2 text-danger')
+                .text((x.responseJSON && x.responseJSON.error) || 'The PDF could not be made.');
+        }).always(function () {
+            button.prop('disabled', false).text('Send to Google Drive');
+        });
+    });
+});
+</script>
+{% endblock javascript %}

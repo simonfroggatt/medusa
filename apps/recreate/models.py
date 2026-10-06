@@ -29,6 +29,9 @@ class OcTsgBespokeRecreations(models.Model):
         'board': 'Site safety board',
         'fireaction': 'Fire action notice',
         'roadsign': 'Temporary site sign',
+        # Not the sign designer at all: the wayfinding configurator's settings
+        # (apps/recreate/wayfinding.py).
+        'wayfinding': 'Wayfinding sign',
     }
 
     product_id = models.IntegerField(unique=True)

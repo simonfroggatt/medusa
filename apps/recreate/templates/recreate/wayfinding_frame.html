@@ -1,0 +1,242 @@
+{% comment %}
+  In place of the sign designer for a wayfinding sign (views._wayfinding_frame):
+  the wayfinding configurator's settings for this stock sign, first read from
+  its wording, which the reviewer checks against the original and corrects.
+  Approved, the sign's "make it bespoke" link on the shop opens the
+  configurator with exactly these settings.
+{% endcomment %}<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wayfinding sign</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <style>
+    body { background: #fff; }
+    .rows .row-line + .row-line { margin-top: .5rem; }
+    .wf-preview { background: #f3f4f1; border: 1px solid #dee2e6; border-radius: .5rem; padding: 24px;
+                  min-height: 160px; display: grid; place-items: center; }
+    .wf-preview svg { width: 100%; max-width: 560px; height: auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,.15)); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body class="p-3">
+  {{ spec|json_script:"wf-spec" }}
+  <div style="max-width: 720px">
+    <h5 class="mb-1">Wayfinding sign</h5>
+    <p class="text-muted small">
+      Drawn by the wayfinding configurator on the shop, not the sign designer. These settings
+      were read from the sign's wording: check them against the original. Approving puts a
+      &ldquo;make it bespoke&rdquo; link on the stock sign that opens the configurator here.
+    </p>
+
+    <form id="wf-form" autocomplete="off">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">What sign is it?</label>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" name="kind" id="k-floor" value="floor">
+          <label class="btn btn-outline-success" for="k-floor">Floor sign</label>
+          <input type="radio" class="btn-check" name="kind" id="k-stair" value="stair">
+          <label class="btn btn-outline-success" for="k-stair">Stair sign</label>
+          <input type="radio" class="btn-check" name="kind" id="k-flats" value="flats">
+          <label class="btn btn-outline-success" for="k-flats">Flat sign</label>
+          <input type="radio" class="btn-check" name="kind" id="k-combined" value="combined">
+          <label class="btn btn-outline-success" for="k-combined">Floor + flats</label>
+        </div>
+      </div>
+
+      <div data-show="floor combined">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4">
+            <label class="form-label" for="level">Floor</label>
+            <input type="number" class="form-control" id="level" min="-20" max="200">
+            <div class="form-text">0 is ground; −1 the floor below.</div>
+          </div>
+          <div class="col-sm-8">
+            <label class="form-label">Shown as</label>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="ground-words">
+              <label class="form-check-label" for="ground-words">Floor 0 reads &ldquo;Ground Floor&rdquo;</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="below-basement">
+              <label class="form-check-label" for="below-basement">Floors below ground read &ldquo;Basement 1&rdquo;, &ldquo;Basement 2&rdquo;&hellip;</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="lower-ground">
+              <label class="form-check-label" for="lower-ground">Floor −1 is a lower ground floor</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3" data-show="stair">
+        <label class="form-label" for="stair">Stair reference</label>
+        <input type="text" class="form-control" id="stair" maxlength="2" style="max-width: 8rem">
+        <div class="form-text">A number or letter, e.g. 1 or A.</div>
+      </div>
+
+      <div class="mb-3" data-show="flats combined">
+        <label class="form-label">Flats</label>
+        <div class="rows" id="rows"></div>
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="add-row">+ Add a row</button>
+      </div>
+    </form>
+
+    {# Drawn by the configurator on the shop (views.wayfinding_link), as a customer would see it. #}
+    <div class="mt-2">
+      <div class="wf-preview" id="preview"><span class="text-muted small">Drawing the sign…</span></div>
+      <div class="small mt-1" id="preview-caption"></div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 align-items-center mt-4">
+      <button type="button" class="btn btn-outline-primary js-save" data-status="review">Save for review</button>
+      <button type="button" class="btn btn-success js-save" data-status="approved">Approve</button>
+      <a class="btn btn-link" id="shop-link" target="_blank" rel="noopener"
+         href="{{ shop_url }}"{% if not shop_url %} hidden{% endif %}>See it in the shop's configurator ↗</a>
+    </div>
+    <div id="note" class="small mt-2"></div>
+  </div>
+
+  <template id="row-template">
+    <div class="row-line d-flex flex-wrap gap-2 align-items-center">
+      <span>Flats</span>
+      <input type="number" class="form-control form-control-sm js-from" min="1" max="9999" style="width: 6rem" aria-label="First flat">
+      <span>to</span>
+      <input type="number" class="form-control form-control-sm js-to" min="1" max="9999" style="width: 6rem" aria-label="Last flat">
+      <select class="form-select form-select-sm js-dir" style="width: auto" aria-label="Arrow">
+        {% for arrow in arrows %}<option value="{{ arrow }}">{% if arrow == 'none' %}No arrow{% else %}Arrow {{ arrow }}{% endif %}</option>{% endfor %}
+      </select>
+      <button type="button" class="btn btn-sm btn-link text-danger js-remove">Remove</button>
+    </div>
+  </template>
+
+<script>
+(function () {
+  var spec = JSON.parse(document.getElementById('wf-spec').textContent || '{}');
+  var maxRows = {{ max_rows }};
+  var csrf = '{{ csrf_token }}';
+  var form = document.getElementById('wf-form');
+  var rows = document.getElementById('rows');
+  var note = document.getElementById('note');
+  var shopLink = document.getElementById('shop-link');
+  var $ = function (id) { return document.getElementById(id); };
+
+  function kindOf(s) {
+    if (s.mode === 'single') return s.type === 'stair' ? 'stair' : 'floor';
+    return s.mode === 'flats' || s.mode === 'combined' ? s.mode : 'floor';
+  }
+
+  function addRow(row) {
+    if (rows.children.length >= maxRows) return;
+    var line = document.getElementById('row-template').content.firstElementChild.cloneNode(true);
+    line.querySelector('.js-from').value = row ? row.from : '';
+    line.querySelector('.js-to').value = row ? row.to : '';
+    line.querySelector('.js-dir').value = row && row.dir ? row.dir : 'none';
+    line.querySelector('.js-remove').addEventListener('click', function () { line.remove(); changed(); });
+    rows.appendChild(line);
+  }
+
+  function show() {
+    var kind = (form.querySelector('[name=kind]:checked') || {}).value || 'floor';
+    form.querySelectorAll('[data-show]').forEach(function (el) {
+      el.hidden = el.dataset.show.split(' ').indexOf(kind) === -1;
+    });
+    if ((kind === 'flats' || kind === 'combined') && !rows.children.length) addRow();
+    return kind;
+  }
+
+  function read() {
+    var kind = show();
+    var naming = {
+      ground: $('ground-words').checked ? 'words' : 'number',
+      below: $('below-basement').checked ? 'basement' : 'number',
+      lower_ground: $('lower-ground').checked ? '1' : '0'
+    };
+    var flats = Array.prototype.map.call(rows.children, function (line) {
+      return { from: line.querySelector('.js-from').value, to: line.querySelector('.js-to').value,
+               dir: line.querySelector('.js-dir').value };
+    });
+    if (kind === 'stair') return { mode: 'single', type: 'stair', stair: $('stair').value };
+    if (kind === 'flats') return { mode: 'flats', arrow_side: 'auto', flats: flats };
+    if (kind === 'combined') return Object.assign({ mode: 'combined', level: $('level').value }, naming, { arrow_side: 'auto', flats: flats });
+    return Object.assign({ mode: 'single', type: 'floor', level: $('level').value }, naming);
+  }
+
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().then(function (data) { if (!r.ok) throw new Error(data.error || 'That did not work'); return data; });
+    });
+  }
+
+  var previewBox = document.getElementById('preview');
+  var caption = document.getElementById('preview-caption');
+  function showPreview(p) {
+    if (p.svg) {
+      previewBox.innerHTML = p.svg;     // drawn by our own configurator, not typed by anyone
+      caption.className = 'small mt-1 ' + (p.compliant ? 'text-success' : 'text-danger');
+      caption.textContent = p.width + ' × ' + p.height + 'mm · '
+        + (p.compliant ? 'Meets Approved Document B' : 'Does not meet Approved Document B: check it in the shop');
+    } else {
+      previewBox.innerHTML = '';
+      var span = document.createElement('span');
+      span.className = 'text-muted small';
+      span.textContent = p.error || 'No preview';
+      previewBox.appendChild(span);
+      caption.textContent = '';
+    }
+  }
+
+  // The link and the preview follow the settings, so they always show what would be approved.
+  var timer = null;
+  function changed() {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      post('{{ shop_link_url }}', { spec: read() }).then(function (r) {
+        shopLink.hidden = !r.url;
+        if (r.url) shopLink.href = r.url;
+        note.className = 'small mt-2'; note.textContent = '';
+        showPreview(r.preview || {});
+      }, function (e) {
+        shopLink.hidden = true;
+        note.className = 'small mt-2 text-danger'; note.textContent = e.message;
+        showPreview({ error: e.message });
+      });
+    }, 300);
+  }
+
+  // Fill the form from the saved settings, or the guess from the wording.
+  var kind = kindOf(spec);
+  $('k-' + kind).checked = true;
+  $('level').value = spec.level !== undefined ? spec.level : 1;
+  $('ground-words').checked = spec.ground === 'words';
+  $('below-basement').checked = spec.below === 'basement';
+  $('lower-ground').checked = String(spec.lower_ground) === '1';
+  $('stair').value = spec.stair || '';
+  (spec.flats || []).forEach(addRow);
+  show();
+  changed();
+
+  form.addEventListener('input', changed);
+  form.addEventListener('change', function () { show(); changed(); });
+  $('add-row').addEventListener('click', function () { addRow(); changed(); });
+
+  document.querySelectorAll('.js-save').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var status = button.dataset.status;
+      button.disabled = true;
+      note.className = 'small mt-2 text-muted'; note.textContent = 'Saving…';
+      post('{{ save_url }}', { status: status, design: { spec: read() } }).then(function (r) {
+        note.className = 'small mt-2 text-success';
+        note.textContent = status === 'approved' ? 'Approved. The stock sign now links to the configurator.' : 'Saved for review.';
+        if (r.url) { shopLink.href = r.url; shopLink.hidden = false; }
+        // The review page and the product's Artwork tab update their status badge from this.
+        window.parent.postMessage({ type: 'recreate-saved', status: r.status, symbols: {} }, location.origin);
+      }, function (e) {
+        note.className = 'small mt-2 text-danger'; note.textContent = e.message;
+      }).then(function () { button.disabled = false; });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -46,6 +46,7 @@ from medusa import services
 from medusa.decorators import group_required
 import operator
 import hashlib
+from apps.orders import wayfinding
 import uuid
 from apps.purchases import views as purchase_view
 from apps.orders.services import apply_order_store_details
@@ -2493,6 +2494,13 @@ def bespoke_order_product(request, order_id, bespoke_order_product_id):
         bespoke_order_product_obj = _start_line_artwork(order_obj, bespoke_order_product_id)
     context['bespoke_product'] = bespoke_order_product_obj
 
+    # Wayfinding signs are drawn by the configurator on the shop, not the sign
+    # designer: show the artwork and what drew it, and leave changes to the shop.
+    # Checked first, because the designer test below is "version 3 or later".
+    if bespoke_order_product_obj.version == WAYFINDING_VERSION:
+        return render(request, 'orders/order_bespoke_wayfinding.html',
+                      _wayfinding_context(order_obj, bespoke_order_product_obj, context))
+
     # Lines drawn by the sign designer keep their design, so a spelling mistake
     # or a late change can be put right here rather than redrawn from scratch.
     # Older lines only ever had the finished SVG, so they keep the read-only page.
@@ -2571,6 +2579,7 @@ def company_api_account_address(request, order_id, company_id):
 # Version 2 lines came from the old drawer and only ever had the finished SVG.
 # Version 3 lines keep the design itself, so they can be reopened and changed.
 DESIGNER_VERSION = OcTsgOrderBespokeImage.DESIGNER_VERSION
+WAYFINDING_VERSION = OcTsgOrderBespokeImage.WAYFINDING_VERSION
 
 
 def _bespoke_design(row):
@@ -2589,6 +2598,31 @@ def _bespoke_design(row):
         except ValueError:
             return None
     return value if isinstance(value, dict) else None
+
+
+def _wayfinding_context(order_obj, row, context):
+    record = wayfinding.record(row) or {}
+    svg = row.svg_raw or (bytes(row.svg_export).decode('utf-8') if row.svg_export else '')
+    context.update({
+        'heading': 'Bespoke Product Details',
+        'breadcrumbs': [
+            {'name': 'Orders', 'url': reverse_lazy('allorders')},
+            {'name': 'Order details', 'url': reverse_lazy('order_details', kwargs={'order_id': order_obj.order_id})},
+        ],
+        'svg': svg,
+        'record': record,
+        'text_line': _bespoke_texts(row),
+        'pdf_url': reverse('convert_order_product', kwargs={'pk': row.pk}),
+        'shop_url': '',
+    })
+    spec = record.get('spec')
+    store_url = (order_obj.store_url or '').strip()
+    if spec and store_url:
+        if not store_url.endswith('/'):
+            store_url += '/'
+        context['shop_url'] = (f'{store_url}index.php?route=product/product'
+                               f'&product_id={row.order_product.product_id}&{wayfinding.query_string(spec)}')
+    return context
 
 
 def _bespoke_texts(row):

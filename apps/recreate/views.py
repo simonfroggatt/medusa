@@ -6,14 +6,14 @@ from django.db.models import Count
 import requests
 from django.http import Http404, HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
-from apps.recreate import services
+from apps.recreate import services, wayfinding
 from apps.recreate.models import OcTsgBespokeRecreations as Recreation
 from medusa.decorators import group_required
 
@@ -168,6 +168,8 @@ def _open_config(row, product, request):
 def designer_frame(request, product_id):
     """The designer with Medusa's review buttons."""
     row = _row(product_id)
+    if row.kind == 'wayfinding':
+        return _wayfinding_frame(request, row)
     config = _open_config(row, _names([product_id]).get(product_id, {}), request)
     config['review'] = {
         'productId': product_id,
@@ -176,6 +178,42 @@ def designer_frame(request, product_id):
         'csrfToken': get_token(request),
     }
     return render(request, 'recreate/frame.html', {'config': config})
+
+
+def _wayfinding_spec(row):
+    """The settings saved for this sign, or a first guess from its wording."""
+    saved = json.loads(row.design) if row.design else None
+    if wayfinding.is_design(saved):
+        return saved['spec']
+    product = _names([row.product_id]).get(row.product_id, {})
+    return wayfinding.spec_from_wording(row.sign_reads or product.get('name') or '')
+
+
+def _wayfinding_frame(request, row):
+    """In place of the designer for a wayfinding sign: the configurator's
+    settings, read from the wording and corrected by the reviewer, with a link
+    to see them drawn on the shop."""
+    spec = _wayfinding_spec(row)
+    return render(request, 'recreate/wayfinding_frame.html', {
+        'row': row,
+        'spec': spec,
+        'shop_url': wayfinding.shop_url(spec),
+        'save_url': reverse('recreate-save', args=[row.product_id]),
+        'shop_link_url': reverse('recreate-wayfinding-link'),
+        'arrows': wayfinding.ARROWS,
+        'max_rows': wayfinding.MAX_ROWS,
+    })
+
+
+@require_POST
+@staff_view
+def wayfinding_link(request):
+    """The shop link and a preview for settings as they stand on the review page."""
+    try:
+        spec = wayfinding.clean_spec(json.loads(request.body).get('spec'))
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'url': wayfinding.shop_url(spec), 'preview': wayfinding.preview(spec)})
 
 
 @staff_view
@@ -205,6 +243,12 @@ def customise(request, product_id):
     row = _row(product_id)
     if row.status != Recreation.STATUS_APPROVED:
         raise Http404('That design is not approved yet')
+    if row.kind == 'wayfinding':
+        # The customer's version is the configurator on the shop.
+        url = wayfinding.shop_url(_wayfinding_spec(row))
+        if url:
+            return redirect(url)
+        raise Http404('The shop has no wayfinding product for this kind of sign yet')
     product = _names([product_id]).get(product_id, {})
     return render(request, 'recreate/customise.html', {
         'config': _open_config(row, product, request),
@@ -227,6 +271,8 @@ def save(request, product_id):
     design = body.get('design')
     if status not in (Recreation.STATUS_REVIEW, Recreation.STATUS_APPROVED):
         return JsonResponse({'error': 'Unknown status'}, status=400)
+    if row.kind == 'wayfinding':
+        return _save_wayfinding(request, row, status, design)
     if not isinstance(design, dict) or design.get('root', {}).get('role') != 'sign':
         return JsonResponse({'error': 'Not a sign design'}, status=400)
     row.design = json.dumps(design, ensure_ascii=False)
@@ -241,6 +287,21 @@ def save(request, product_id):
     if status == Recreation.STATUS_APPROVED:
         symbols = services.link_symbols(product_id, services.design_symbol_codes(design))
     return JsonResponse({'status': row.status, 'label': row.status_label, 'symbols': symbols})
+
+
+def _save_wayfinding(request, row, status, design):
+    """A wayfinding sign's settings. No symbols to link: it has none."""
+    try:
+        spec = wayfinding.clean_spec((design or {}).get('spec'))
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    row.design = json.dumps(wayfinding.design(spec), ensure_ascii=False)
+    row.status = status
+    row.reviewed_by_id = request.user.id
+    row.reviewed_at = timezone.now()
+    row.save()
+    return JsonResponse({'status': row.status, 'label': row.status_label, 'symbols': {},
+                         'url': wayfinding.shop_url(spec)})
 
 
 @require_POST

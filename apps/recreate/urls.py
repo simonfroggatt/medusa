@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/symbol/<int:symbol_id>/', views.symbol, name='recreate-symbol'),
     path('missing-symbols/', views.missing_symbols, name='recreate-missing'),
     path('approved/', views.approved, name='recreate-approved'),
+    path('api/wayfinding-link/', views.wayfinding_link, name='recreate-wayfinding-link'),
     path('<int:product_id>/customise/', views.customise, name='recreate-customise'),
     path('<int:product_id>/', views.review, name='recreate-review'),
     path('<int:product_id>/designer/', views.designer_frame, name='recreate-frame'),

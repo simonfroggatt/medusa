@@ -17,6 +17,8 @@ from cairosvg import svg2png
 from django.shortcuts import render, get_object_or_404
 from reportlab_qrcode import QRCodeImage
 from apps.orders.services import create_due_date
+from apps.orders import wayfinding
+from xml.sax.saxutils import escape
 import json
 from django.conf import settings
 
@@ -312,7 +314,7 @@ def create_product_desc(order_line, bl_orientation=True, bl_quote = False):
         product_orientaion = ''
     product_desc += f'{order_line.material_name} {product_orientaion}'
     if bl_quote:
-        options_text = get_order_product_line_options(order_line.product_id)
+        options_text = get_order_product_line_options(order_line.product_id, with_wayfinding=False)
     else:
         options_text = get_order_product_line_options(order_line.order_product_id)
     product_desc = f'{product_desc}<BR/>{options_text}'
@@ -463,17 +465,23 @@ def order_has_options(order_id):
     order_addons_obj = OcTsgOrderProductOptions.objects.filter(order_product__order_id=order_id)
     if order_addons_obj:
         return True
-    else:
-        return False
+
+    # A wayfinding sign's floor and flat numbers print as its options.
+    return wayfinding.order_has_wayfinding(order_id)
 
 
-def get_order_product_line_options(order_product_id):
-    """Options then add-ons for an order line, 'Name : value' one per line (<BR/> between them) for ReportLab."""
+def get_order_product_line_options(order_product_id, with_wayfinding=True):
+    """Options then add-ons for an order line, 'Name : value' one per line (<BR/> between them) for ReportLab.
+
+    with_wayfinding=False for quotes, which pass a product id here, not an order line's."""
     options_obj = OcTsgOrderOption.objects.filter(order_product_id=order_product_id)
     addon_obj = OcTsgOrderProductOptions.objects.filter(order_product_id=order_product_id)
 
     option_lines = [f'{option.option_name} : {option.value_name}' for option in options_obj]
     option_lines += [f'{addon.class_name} : {addon.value_name}' for addon in addon_obj]
+    # What a wayfinding sign reads, from its artwork row (apps/orders/wayfinding.py).
+    if with_wayfinding:
+        option_lines += [f'{escape(name)} : {escape(value)}' for name, value in wayfinding.line_option_lines(order_product_id)]
 
     return '<BR/>'.join(option_lines)
 
