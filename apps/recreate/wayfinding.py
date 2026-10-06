@@ -156,10 +156,11 @@ def _shop_base():
 def shop_url(spec):
     """The configurator on the shop, opened at these settings; '' if the shop
     has no product for this kind of sign yet."""
-    # Same product as the shop picks (tsg_store model/bespoke/wayfinding.php
-    # getProductIdForKind); makebespoke=1 opens its bespoke template.
+    # The Custom product the shop sends these signs to (tsg_store
+    # model/bespoke/wayfinding.php getProductIdForKind): the bespoke product
+    # on the template, like Custom Prohibition Sign. None, no link.
     product = (OcProduct.objects
-               .filter(bespoke_template__path=KIND_TEMPLATES[kind_of(spec)], status=1)
+               .filter(bespoke_template__path=KIND_TEMPLATES[kind_of(spec)], status=1, is_bespoke=True)
                .order_by('product_id').values_list('product_id', flat=True).first())
     base = _shop_base()
     if not product or not base:
