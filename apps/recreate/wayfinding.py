@@ -50,13 +50,16 @@ def kind_of(spec):
 def _naming(level_text):
     """Level and the floor-naming choices behind wording like "Ground Floor"."""
     text = level_text.strip().lower().replace('−', '-')
+    # Below ground is always numbered (Floor -1, -2...): the configurator offers
+    # no Basement n or Lower Ground Floor, so wording that says so is read as
+    # the floor number it stands for.
     if 'lower ground' in text:
-        return {'level': '-1', 'ground': 'number', 'below': 'number', 'lower_ground': '1'}
+        return {'level': '-1', 'ground': 'number', 'below': 'number', 'lower_ground': '0'}
     if 'ground' in text:
         return {'level': '0', 'ground': 'words', 'below': 'number', 'lower_ground': '0'}
     basement = re.search(r'basement\s*(\d+)?', text)
     if basement:
-        return {'level': str(-int(basement.group(1) or 1)), 'ground': 'number', 'below': 'basement', 'lower_ground': '0'}
+        return {'level': str(-int(basement.group(1) or 1)), 'ground': 'number', 'below': 'number', 'lower_ground': '0'}
     number = re.search(r'(?:floor|level)\s*(-?\d+)', text)
     if number:
         return {'level': number.group(1), 'ground': 'number', 'below': 'number', 'lower_ground': '0'}
@@ -96,8 +99,8 @@ def clean_spec(raw):
     mode = raw.get('mode')
     naming = {
         'ground': 'words' if raw.get('ground') == 'words' else 'number',
-        'below': 'basement' if raw.get('below') == 'basement' else 'number',
-        'lower_ground': '1' if str(raw.get('lower_ground')) == '1' else '0',
+        'below': 'number',          # Basement n is not offered
+        'lower_ground': '0',        # nor Lower Ground Floor
     }
 
     def level():

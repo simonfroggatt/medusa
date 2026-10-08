@@ -25,9 +25,10 @@ class WayfindingWordingTests(SimpleTestCase):
         ground = wayfinding.spec_from_wording('Ground Floor')
         self.assertEqual((ground['level'], ground['ground']), ('0', 'words'))
         lower = wayfinding.spec_from_wording('Lower Ground Floor')
-        self.assertEqual((lower['level'], lower['lower_ground']), ('-1', '1'))
+        # No Basement n or Lower Ground Floor on these signs: read as the floor number.
+        self.assertEqual((lower['level'], lower['lower_ground']), ('-1', '0'))
         basement = wayfinding.spec_from_wording('Basement 2')
-        self.assertEqual((basement['level'], basement['below']), ('-2', 'basement'))
+        self.assertEqual((basement['level'], basement['below']), ('-2', 'number'))
 
     def test_floor_with_flats_is_a_combined_sign(self):
         spec = wayfinding.spec_from_wording('Floor 3 Flats 1-4 Left Flats 5 - 8 →')
@@ -43,7 +44,7 @@ class WayfindingCleanSpecTests(SimpleTestCase):
     def test_keeps_only_what_the_configurator_reads(self):
         spec = wayfinding.clean_spec({'mode': 'combined', 'level': '−2', 'below': 'basement', 'extra': 'x',
                                       'flats': [{'from': '1', 'to': '', 'dir': 'sideways'}, {'from': ''}]})
-        self.assertEqual(spec, {'mode': 'combined', 'level': '-2', 'ground': 'number', 'below': 'basement',
+        self.assertEqual(spec, {'mode': 'combined', 'level': '-2', 'ground': 'number', 'below': 'number',
                                 'lower_ground': '0', 'arrow_side': 'auto',
                                 'flats': [{'from': '1', 'to': '1', 'dir': 'none'}]})
 

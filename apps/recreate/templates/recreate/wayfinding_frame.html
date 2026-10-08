@@ -57,10 +57,6 @@
             <label class="form-label">Shown as</label>
             <div class="form-check"><input class="form-check-input" type="checkbox" id="ground-words">
               <label class="form-check-label" for="ground-words">Floor 0 reads &ldquo;Ground Floor&rdquo;</label></div>
-            <div class="form-check"><input class="form-check-input" type="checkbox" id="below-basement">
-              <label class="form-check-label" for="below-basement">Floors below ground read &ldquo;Basement 1&rdquo;, &ldquo;Basement 2&rdquo;&hellip;</label></div>
-            <div class="form-check"><input class="form-check-input" type="checkbox" id="lower-ground">
-              <label class="form-check-label" for="lower-ground">Floor −1 is a lower ground floor</label></div>
           </div>
         </div>
       </div>
@@ -145,8 +141,8 @@
     var kind = show();
     var naming = {
       ground: $('ground-words').checked ? 'words' : 'number',
-      below: $('below-basement').checked ? 'basement' : 'number',
-      lower_ground: $('lower-ground').checked ? '1' : '0'
+      below: 'number',
+      lower_ground: '0'
     };
     var flats = Array.prototype.map.call(rows.children, function (line) {
       return { from: line.querySelector('.js-from').value, to: line.querySelector('.js-to').value,
@@ -209,8 +205,6 @@
   $('k-' + kind).checked = true;
   $('level').value = spec.level !== undefined ? spec.level : 1;
   $('ground-words').checked = spec.ground === 'words';
-  $('below-basement').checked = spec.below === 'basement';
-  $('lower-ground').checked = String(spec.lower_ground) === '1';
   $('stair').value = spec.stair || '';
   (spec.flats || []).forEach(addRow);
   show();
