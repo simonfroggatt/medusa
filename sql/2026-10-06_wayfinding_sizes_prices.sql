@@ -100,6 +100,19 @@ SELECT p.product_id, p.status, t.path
   FROM oc_product p JOIN oc_tsg_bespoke_templates t ON t.id = p.bespoke_template_id
  WHERE t.path LIKE 'bespoke/wayfinding%' AND p.is_bespoke = 1;
 
+-- Live's Custom products (8 Oct 2026): 42388 Floor, 42389 Flats, 42390 Floor
+-- + flats. Each needs is_bespoke = 1, status = 1, store 1 and its own
+-- wayfinding template, or neither this script nor the shop's wand, prices and
+-- basket will find it. Expect ready = 'yes' on all three.
+SELECT p.product_id, p.is_bespoke, p.status, t.path AS bespoke_template,
+       EXISTS (SELECT 1 FROM oc_product_to_store ps WHERE ps.product_id = p.product_id AND ps.store_id = 1) AS in_store_1,
+       IF(p.is_bespoke = 1 AND p.status = 1
+          AND t.path = ELT(p.product_id - 42387, 'bespoke/wayfinding_floor', 'bespoke/wayfinding_flats', 'bespoke/wayfinding_combined')
+          AND EXISTS (SELECT 1 FROM oc_product_to_store ps WHERE ps.product_id = p.product_id AND ps.store_id = 1),
+          'yes', 'NO') AS ready
+  FROM oc_product p LEFT JOIN oc_tsg_bespoke_templates t ON t.id = p.bespoke_template_id
+ WHERE p.product_id IN (42388, 42389, 42390);
+
 
 -- EXECUTE ----------------------------------------------------------------
 
