@@ -5451,6 +5451,7 @@ function $l(e, t) {
 			code: e.code,
 			name: Ql(e.referent, e.code),
 			referent: (e.referent ?? "").trim(),
+			terms: (e.terms ?? "").trim(),
 			category: e.category,
 			url: n
 		}] : [];
@@ -8652,7 +8653,7 @@ function ng(e) {
 }
 function rg(e, t) {
 	let n = t.trim().toLowerCase();
-	return !n || e.name.toLowerCase().includes(n) || e.code.toLowerCase().includes(n) || e.referent.toLowerCase().includes(n);
+	return !n || e.name.toLowerCase().includes(n) || e.code.toLowerCase().includes(n) || e.referent.toLowerCase().includes(n) || e.terms.toLowerCase().includes(n);
 }
 //#endregion
 //#region editor/src/model/board.ts
