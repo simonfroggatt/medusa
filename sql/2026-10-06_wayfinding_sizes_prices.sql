@@ -36,10 +36,12 @@
 --   1. sizes the configurator needs that do not exist yet
 --   2. a price for all five materials at every one of them (existing prices
 --      are left alone: sizes and their prices are shared by every product)
---   3. variants for all five at every size on the Custom wayfinding products:
---      the is_bespoke product on each wayfinding template (Floor X, and the
---      Flats and Floor + flats ones). A Custom product that does not exist yet
---      gets nothing; run this again after creating it.
+--   3. variants for all five at every size on the hub: the one Custom
+--      wayfinding product (is_bespoke, on the bespoke/wayfinding_floor
+--      template; 42388 on live), which sells every kind of sign (8 Oct 2026).
+--      The Flats and Floor + flats products (42389, 42390) are only ways in to
+--      it and need no sizes. Re-running this after that change gives the hub
+--      the flats and floor + flats sizes too.
 --   4. any other material switched off on those products (bl_live = 0)
 --
 -- @max_width: 450 is every sign the configurator draws (9 sizes). Raise it in
@@ -100,15 +102,17 @@ SELECT p.product_id, p.status, t.path
   FROM oc_product p JOIN oc_tsg_bespoke_templates t ON t.id = p.bespoke_template_id
  WHERE t.path LIKE 'bespoke/wayfinding%' AND p.is_bespoke = 1;
 
--- Live's Custom products (8 Oct 2026): 42388 Floor, 42389 Flats, 42390 Floor
--- + flats. Each needs is_bespoke = 1, status = 1, store 1 and its own
--- wayfinding template, or neither this script nor the shop's wand, prices and
--- basket will find it. Expect ready = 'yes' on all three.
+-- Live's Custom products (8 Oct 2026): 42388 the hub, which sells every
+-- wayfinding sign; 42389 Flats and 42390 Floor + flats, which only forward to
+-- it. Each needs is_bespoke = 1, status = 1, store 1 and its own wayfinding
+-- template, enabled for store 1: the hub so this script and the shop's wand,
+-- prices and basket find it, the other two so their pages load and forward.
+-- Expect ready = 'yes' on all three.
 SELECT p.product_id, p.is_bespoke, p.status, t.path AS bespoke_template,
-       EXISTS (SELECT 1 FROM oc_product_to_store ps WHERE ps.product_id = p.product_id AND ps.store_id = 1) AS in_store_1,
+       EXISTS (SELECT 1 FROM oc_product_to_store ps WHERE ps.product_id = p.product_id AND ps.store_id = 1 AND ps.status = 1) AS in_store_1,
        IF(p.is_bespoke = 1 AND p.status = 1
           AND t.path = ELT(p.product_id - 42387, 'bespoke/wayfinding_floor', 'bespoke/wayfinding_flats', 'bespoke/wayfinding_combined')
-          AND EXISTS (SELECT 1 FROM oc_product_to_store ps WHERE ps.product_id = p.product_id AND ps.store_id = 1),
+          AND EXISTS (SELECT 1 FROM oc_product_to_store ps WHERE ps.product_id = p.product_id AND ps.store_id = 1 AND ps.status = 1),
           'yes', 'NO') AS ready
   FROM oc_product p LEFT JOIN oc_tsg_bespoke_templates t ON t.id = p.bespoke_template_id
  WHERE p.product_id IN (42388, 42389, 42390);
@@ -166,7 +170,7 @@ SELECT priced.size_id, priced.material_id, priced.price, 1, 0
    AND NOT EXISTS (SELECT 1 FROM oc_tsg_size_material_comb c
                     WHERE c.product_size_id = priced.size_id AND c.product_material_id = priced.material_id);
 
--- 3a. Variants on the Custom wayfinding products, one per size and material.
+-- 3a. Variants on the hub, one per size and material, for every kind of sign.
 INSERT INTO oc_tsg_product_variant_core
        (product_id, size_material_id, supplier_id, supplier_code, supplier_price, bl_live, pack_count, order_by)
 SELECT p.product_id, c.id, 1, CONCAT('WAYF-', c.product_size_id, CASE c.product_material_id WHEN 124 THEN '-PLSA' WHEN 5 THEN '-PL' WHEN 1 THEN '-SAV' WHEN 2 THEN '-RP' WHEN 40 THEN '-DI' END), 0, 1, 1, 99
@@ -182,7 +186,7 @@ SELECT p.product_id, c.id, 1, CONCAT('WAYF-', c.product_size_id, CASE c.product_
               UNION ALL SELECT 'bespoke/wayfinding_combined' AS template, 420 AS h
               UNION ALL SELECT 'bespoke/wayfinding_combined' AS template, 510 AS h) ht
           WHERE wd.w <= @max_width) t
-  JOIN oc_tsg_bespoke_templates bt ON bt.path = t.template
+  JOIN oc_tsg_bespoke_templates bt ON bt.path = 'bespoke/wayfinding_floor'
   JOIN oc_product p ON p.bespoke_template_id = bt.id AND p.is_bespoke = 1
   JOIN oc_tsg_size_material_comb c ON c.product_size_id = (SELECT MIN(s.size_id) FROM oc_tsg_product_sizes s WHERE s.size_width = t.w AND s.size_height = t.h AND s.size_units = 'mm' AND s.archived = 0) AND c.product_material_id IN (124, 5, 1, 2, 40)
  WHERE NOT EXISTS (SELECT 1 FROM oc_tsg_product_variant_core vc
@@ -231,8 +235,10 @@ SELECT t.template, CONCAT(t.w, 'mm x ', t.h, 'mm') AS missing_price_for, m.mater
  WHERE NOT EXISTS (SELECT 1 FROM oc_tsg_size_material_comb c
                     WHERE c.product_size_id = (SELECT MIN(s.size_id) FROM oc_tsg_product_sizes s WHERE s.size_width = t.w AND s.size_height = t.h AND s.size_units = 'mm' AND s.archived = 0) AND c.product_material_id = m.material_id AND c.price > 0);
 
--- What each Custom product now sells, live in store 1: expect 5 per size
--- (5 for Floor X, 20 for Flats and 20 for Floor + flats at @max_width = 450).
+-- What each Custom product now sells, live in store 1: expect 45 on the hub
+-- (9 sizes x 5 materials at @max_width = 450). Flats and Floor + flats keep
+-- whatever they had (20 each on live) but are not used: their pages send
+-- customers to the hub.
 SELECT p.product_id, bt.path, COUNT(*) AS live_variants, MIN(c.price) AS cheapest, MAX(c.price) AS dearest
   FROM oc_product p
   JOIN oc_tsg_bespoke_templates bt ON bt.id = p.bespoke_template_id AND bt.path LIKE 'bespoke/wayfinding%'

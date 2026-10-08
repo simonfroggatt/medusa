@@ -25,8 +25,10 @@ class WayfindingWordingTests(SimpleTestCase):
         ground = wayfinding.spec_from_wording('Ground Floor')
         self.assertEqual((ground['level'], ground['ground']), ('0', 'words'))
         lower = wayfinding.spec_from_wording('Lower Ground Floor')
-        # No Basement n or Lower Ground Floor on these signs: read as the floor number.
+        # Floor -1 may read "Basement"; no Basement 2... or Lower Ground Floor.
         self.assertEqual((lower['level'], lower['lower_ground']), ('-1', '0'))
+        self.assertEqual(wayfinding.spec_from_wording('Basement Wayfinding Sign')['below'], 'basement')
+        self.assertEqual(wayfinding.spec_from_wording('Basement')['level'], '-1')
         basement = wayfinding.spec_from_wording('Basement 2')
         self.assertEqual((basement['level'], basement['below']), ('-2', 'number'))
 
@@ -44,7 +46,7 @@ class WayfindingCleanSpecTests(SimpleTestCase):
     def test_keeps_only_what_the_configurator_reads(self):
         spec = wayfinding.clean_spec({'mode': 'combined', 'level': '−2', 'below': 'basement', 'extra': 'x',
                                       'flats': [{'from': '1', 'to': '', 'dir': 'sideways'}, {'from': ''}]})
-        self.assertEqual(spec, {'mode': 'combined', 'level': '-2', 'ground': 'number', 'below': 'number',
+        self.assertEqual(spec, {'mode': 'combined', 'level': '-2', 'ground': 'number', 'below': 'basement',
                                 'lower_ground': '0', 'arrow_side': 'auto',
                                 'flats': [{'from': '1', 'to': '1', 'dir': 'none'}]})
 
@@ -63,6 +65,8 @@ class WayfindingCleanSpecTests(SimpleTestCase):
     def test_kind_decides_the_shop_product(self):
         self.assertEqual(wayfinding.kind_of({'mode': 'single', 'type': 'stair'}), 'stair')
         self.assertEqual(wayfinding.design({'mode': 'flats', 'flats': []})['kind'], 'flats')
+        # Every kind is sold on the hub.
+        self.assertEqual(set(wayfinding.KIND_TEMPLATES.values()), {'bespoke/wayfinding_floor'})
 
 
 class WayfindingReviewViewTests(SimpleTestCase):

@@ -21,13 +21,12 @@ from apps.products.models import OcProduct
 from apps.recreate import services
 from apps.sites.models import OcStore
 
-# Which shop product sells each kind of sign: the product pointing at that template.
-KIND_TEMPLATES = {
-    'floor': 'bespoke/wayfinding_floor',
-    'stair': 'bespoke/wayfinding_floor',
-    'flats': 'bespoke/wayfinding_flats',
-    'combined': 'bespoke/wayfinding_combined',
-}
+# Which shop product sells each kind of sign: all of them on the one Custom
+# wayfinding product, the hub (42388 on live), as tsg_store
+# model/bespoke/wayfinding.php KIND_TEMPLATES. The Flats and Floor + flats
+# products are only ways in to it.
+HUB_TEMPLATE = 'bespoke/wayfinding_floor'
+KIND_TEMPLATES = {'floor': HUB_TEMPLATE, 'stair': HUB_TEMPLATE, 'flats': HUB_TEMPLATE, 'combined': HUB_TEMPLATE}
 ARROWS = ('none', 'left', 'right', 'up')
 PREVIEW_TIMEOUT = 8
 _SVG = re.compile(r'<svg\b.*?</svg>', re.S)
@@ -50,16 +49,18 @@ def kind_of(spec):
 def _naming(level_text):
     """Level and the floor-naming choices behind wording like "Ground Floor"."""
     text = level_text.strip().lower().replace('−', '-')
-    # Below ground is always numbered (Floor -1, -2...): the configurator offers
-    # no Basement n or Lower Ground Floor, so wording that says so is read as
-    # the floor number it stands for.
+    # Below ground is "Floor -1, -2...", except that floor -1 may read
+    # "Basement" (no number); the configurator offers no Basement 2... or Lower
+    # Ground Floor, so wording that says so is read as the floor it stands for.
     if 'lower ground' in text:
         return {'level': '-1', 'ground': 'number', 'below': 'number', 'lower_ground': '0'}
     if 'ground' in text:
         return {'level': '0', 'ground': 'words', 'below': 'number', 'lower_ground': '0'}
     basement = re.search(r'basement\s*(\d+)?', text)
     if basement:
-        return {'level': str(-int(basement.group(1) or 1)), 'ground': 'number', 'below': 'number', 'lower_ground': '0'}
+        level = int(basement.group(1) or 1)
+        return {'level': str(-level), 'ground': 'number', 'below': 'basement' if level == 1 else 'number',
+                'lower_ground': '0'}
     number = re.search(r'(?:floor|level)\s*(-?\d+)', text)
     if number:
         return {'level': number.group(1), 'ground': 'number', 'below': 'number', 'lower_ground': '0'}
@@ -99,8 +100,8 @@ def clean_spec(raw):
     mode = raw.get('mode')
     naming = {
         'ground': 'words' if raw.get('ground') == 'words' else 'number',
-        'below': 'number',          # Basement n is not offered
-        'lower_ground': '0',        # nor Lower Ground Floor
+        'below': 'basement' if raw.get('below') == 'basement' else 'number',   # floor -1 only
+        'lower_ground': '0',        # Lower Ground Floor is not offered
     }
 
     def level():

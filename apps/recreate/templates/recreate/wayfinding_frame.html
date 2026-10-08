@@ -57,6 +57,8 @@
             <label class="form-label">Shown as</label>
             <div class="form-check"><input class="form-check-input" type="checkbox" id="ground-words">
               <label class="form-check-label" for="ground-words">Floor 0 reads &ldquo;Ground Floor&rdquo;</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="basement">
+              <label class="form-check-label" for="basement">Floor −1 reads &ldquo;Basement&rdquo;</label></div>
           </div>
         </div>
       </div>
@@ -141,7 +143,7 @@
     var kind = show();
     var naming = {
       ground: $('ground-words').checked ? 'words' : 'number',
-      below: 'number',
+      below: $('basement').checked ? 'basement' : 'number',
       lower_ground: '0'
     };
     var flats = Array.prototype.map.call(rows.children, function (line) {
@@ -205,6 +207,7 @@
   $('k-' + kind).checked = true;
   $('level').value = spec.level !== undefined ? spec.level : 1;
   $('ground-words').checked = spec.ground === 'words';
+  $('basement').checked = spec.below === 'basement';
   $('stair').value = spec.stair || '';
   (spec.flats || []).forEach(addRow);
   show();
