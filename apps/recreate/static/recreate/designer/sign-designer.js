@@ -5440,13 +5440,17 @@ var Yl = Hl?.assetBase ?? "./", Xl = {
 	bold: `${Yl}arimo/Arimo-Bold.ttf`,
 	italic: `${Yl}arimo/Arimo-Italic.ttf`,
 	"bold-italic": `${Yl}arimo/Arimo-BoldItalic.ttf`
-}, Ql = (e, t) => (e ?? "").split(";")[0].replace(/\s+-\s*test$/i, "").trim() || t;
+}, Ql = (e, t) => {
+	let n = (e ?? "").split(";").map((e) => e.trim()).filter(Boolean);
+	return ((n.length > 1 && !n[0].includes(" ") ? n.slice(1) : n)[0] ?? "").replace(/\s+-\s*test$/i, "").trim() || t;
+};
 function $l(e, t) {
 	return e.filter((e) => e.usable && e.category).flatMap((e) => {
 		let n = t(e);
 		return n ? [{
 			code: e.code,
 			name: Ql(e.referent, e.code),
+			referent: (e.referent ?? "").trim(),
 			category: e.category,
 			url: n
 		}] : [];
@@ -8648,7 +8652,7 @@ function ng(e) {
 }
 function rg(e, t) {
 	let n = t.trim().toLowerCase();
-	return !n || e.name.toLowerCase().includes(n) || e.code.toLowerCase().includes(n);
+	return !n || e.name.toLowerCase().includes(n) || e.code.toLowerCase().includes(n) || e.referent.toLowerCase().includes(n);
 }
 //#endregion
 //#region editor/src/model/board.ts
