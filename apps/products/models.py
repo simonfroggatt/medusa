@@ -34,6 +34,15 @@ class OcTsgBespokeTemplates(models.Model):
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
+    # New images made from the print-ready PDF (apps/products/artwork_service.py). Plain paths,
+    # relative to the media root like `image`. `image` stays as the fallback.
+    image_feed = models.CharField(max_length=255, blank=True, null=True)
+    image_page = models.CharField(max_length=255, blank=True, null=True)
+    image_tile = models.CharField(max_length=255, blank=True, null=True)
+    artwork_drive_id = models.CharField(max_length=100, blank=True, null=True)
+    artwork_filename = models.CharField(max_length=255, blank=True, null=True)
+    artwork_checks = models.CharField(max_length=500, blank=True, null=True)
+    artwork_date = models.DateTimeField(blank=True, null=True)
     tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING)
     sort_order = models.IntegerField()
     status = models.BooleanField()
@@ -59,6 +68,11 @@ class OcProduct(models.Model):
             return f"{settings.MEDIA_URL}{self.image}"
         else:
             return f"{settings.MEDIA_URL}no-image.png"
+
+    def image_url_for(self, kind):
+        """The product's picture for 'feed', 'page' or 'tile': the new one if it has it, else the old image."""
+        new = getattr(self, f'image_{kind}', None)
+        return f"{settings.MEDIA_URL}{new}" if new else self.image_url
 
     class Meta:
         managed = False
@@ -158,6 +172,15 @@ class OcTsgProductVariantCore(models.Model):
     supplier_price = models.DecimalField(max_digits=5, decimal_places=2)
     exclude_fpnp = models.BooleanField()
     variant_image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
+    # New images made from the variant's own print PDF (photoluminescent, portrait ...). Same as OcProduct.
+    image_feed = models.CharField(max_length=255, blank=True, null=True)
+    image_page = models.CharField(max_length=255, blank=True, null=True)
+    image_tile = models.CharField(max_length=255, blank=True, null=True)
+    artwork_drive_id = models.CharField(max_length=100, blank=True, null=True)
+    artwork_filename = models.CharField(max_length=255, blank=True, null=True)
+    artwork_checks = models.CharField(max_length=500, blank=True, null=True)
+    artwork_date = models.DateTimeField(blank=True, null=True)
+    artwork_keep_colours = models.BooleanField(default=False)
     gtin = models.CharField(max_length=255, blank=True, null=True)
     shipping_cost = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
@@ -179,6 +202,17 @@ class OcTsgProductVariantCore(models.Model):
             return f"{settings.MEDIA_URL}{self.variant_image}"
         else:
             return self.product.image_url
+
+    def image_url_for(self, kind):
+        """'feed', 'page' or 'tile' picture for this variant. In order: the variant's new image, the
+        variant's old image (an orientation or photoluminescent picture keeps showing until someone
+        uploads a PDF for it), the product's new image, the product's old image."""
+        new = getattr(self, f'image_{kind}', None)
+        if new:
+            return f"{settings.MEDIA_URL}{new}"
+        if self.variant_image:
+            return f"{settings.MEDIA_URL}{self.variant_image}"
+        return self.product.image_url_for(kind)
 
 
 

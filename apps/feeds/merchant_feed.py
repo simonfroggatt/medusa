@@ -290,7 +290,7 @@ def build_offers(store, product_ids=None):
                 'title': truncate(f"{title} - {size_name} - {material_name}", TITLE_MAX),
                 'description': description,
                 'link': product_link(base_url, base_desc.clean_url, product.pk, sv.pk),
-                'image_link': core.variant_image_url,
+                'image_link': core.image_url_for('feed'),
                 'additional_image_links': images.get(product.pk, [])[:MAX_ADDITIONAL_IMAGES],
                 'availability': 'in_stock' if core.bl_live else 'out_of_stock',
                 'price': row['price'],

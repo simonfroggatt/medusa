@@ -2032,6 +2032,9 @@ def _product_duplicate(product_id):
         # Duplicate OcProduct
         new_product = OcProduct.objects.create(
             image=original.image,
+            image_feed=original.image_feed,
+            image_page=original.image_page,
+            image_tile=original.image_tile,
             tax_class=original.tax_class,
             sort_order=original.sort_order,
             status=False,  # Start as inactive

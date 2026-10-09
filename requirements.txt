@@ -152,3 +152,4 @@ xhtml2pdf==0.2.8
 yarg==0.1.9
 zipp==3.21.0
 zopfli==0.2.3
+PyMuPDF>=1.24.11,<1.29
