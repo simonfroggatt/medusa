@@ -243,16 +243,14 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{% url 'searchterms' %}" class="waves-effect">
-                                    <i class="fa-regular fa-magnifying-glass-chart"></i>
-                                    <span key="t-search-terms">Search Terms</span>
+                                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                                    <i class="fa-regular fa-magnifying-glass"></i>
+                                    <span>Search</span>
                                 </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'searchrules' %}" class="waves-effect">
-                                    <i class="fa-regular fa-ranking-star"></i>
-                                    <span key="t-search-rules">Search Rules</span>
-                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    <li><a href="{% url 'searchterms' %}" >Search Terms</a></li>
+                                    <li><a href="{% url 'searchrules' %}" >Search Rules</a></li>
+                                </ul>
                             </li>
                             <li>
                                 <a href="{% url 'allbulks' %}" class="waves-effect">
