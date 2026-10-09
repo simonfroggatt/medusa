@@ -11,6 +11,7 @@
 {% endblock extra_css %}
 
 {% block content %}
+    {{ symbol_data|json_script:"symbol-data" }}
     <form method="post" enctype="multipart/form-data">
         {{ form.media }}
         {% csrf_token %}
@@ -33,6 +34,17 @@
                             <div class="col-12">{{ form.meta_keywords|as_crispy_field }}</div>
                             <div class="col-12">{{ form.google_cat|as_crispy_field }}</div>
                             <div class="col-12">{{ form.priority|as_crispy_field }}</div>
+                            <div class="col-12 mb-3">
+                                <hr>
+                                <h6>Make your own</h6>
+                                <label class="form-label" for="symbol-search">{{ form.bespoke_symbol_id.label }}</label>
+                                <input type="search" id="symbol-search" class="form-control form-control-sm mb-1" placeholder="Type to find a symbol: fork, fire, W014&hellip;" autocomplete="off">
+                                {{ form.bespoke_symbol_id }}
+                                {% for error in form.bespoke_symbol_id.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                <div class="form-text">{{ form.bespoke_symbol_id.help_text }}</div>
+                                <div id="symbol-preview" class="border rounded p-2 text-center bg-white mt-2" style="min-height:110px;"></div>
+                            </div>
+                            <div class="col-12">{{ form.bespoke_template_id|as_crispy_field }}</div>
                             <div class="col-12">{{ form.store|as_crispy_field }}</div>
                             <div class="col-12">{{ form.status|as_crispy_field }}</div>
                         </div>
@@ -63,6 +75,29 @@
      <script src="{% static 'libs/tinymce/tinymce.min.js' %}"></script>
 
     <script>
+        $(function () {                                 // "make your own" symbol picker: search + preview
+            var data = JSON.parse(document.getElementById('symbol-data').textContent);
+            var select = $('#id_bespoke_symbol_id'), search = $('#symbol-search'), preview = $('#symbol-preview');
+            var media = '{% get_media_prefix %}';
+            var all = select.find('option').map(function () { return {value: this.value, text: this.text}; }).get();
+            function showPreview() {
+                var info = data[select.val()];
+                preview.html(info && info.svg ? '<img src="' + media + info.svg + '" alt="" style="max-height:90px;max-width:100%;"><div class="small text-muted mt-1">' + info.code + '</div>'
+                                               : '<span class="text-muted small">No symbol chosen</span>');
+            }
+            search.on('input', function () {
+                var q = search.val().toLowerCase(), keep = select.val();
+                select.empty();
+                all.forEach(function (o) {
+                    if (!o.value || o.value === keep || o.text.toLowerCase().indexOf(q) !== -1) {
+                        select.append($('<option>').val(o.value).text(o.text));
+                    }
+                });
+                select.val(keep);
+            });
+            select.on('change', showPreview);
+            showPreview();
+        });
 
         tinymce.init({
             selector: '#id_description',

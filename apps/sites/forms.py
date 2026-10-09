@@ -1,7 +1,7 @@
 import re
 
 from django import forms
-from apps.sites.models import OcStore, OcTsgSearchRule, OcTsgBanner, OcTsgCategoryBespoke
+from apps.sites.models import OcStore, OcTsgSearchRule, OcTsgBanner
 from tinymce.widgets import TinyMCE
 
 
@@ -152,55 +152,3 @@ class BannerForm(forms.ModelForm):
             'date_end': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'subtitle': forms.Textarea(attrs={'rows': 2}),
         }
-
-
-class CategoryBespokeForm(forms.ModelForm):
-    """One category's "make your own" offer. category_id is fixed once the rule exists."""
-    NO_OFFER = ''
-    bespoke_product_id = forms.TypedChoiceField(
-        label='Opens this designer', required=False, coerce=int, empty_value=None,
-        help_text='"No offer here" hides the offer on this category and stops its sub-categories inheriting one.')
-
-    symbol_id = forms.TypedChoiceField(
-        label='Opens with this symbol', required=False, coerce=int, empty_value=None,
-        widget=forms.Select(attrs={'class': 'form-select form-select-sm', 'size': 7}),
-        help_text='Optional. For this exact category only: its sub-categories use the designer\'s default symbol, '
-                  'so a forklift symbol on "Warning Signs" would not spread to everything under it.')
-
-    def __init__(self, *args, categories=(), products=(), symbols=(), **kwargs):
-        # 'categories' already leaves out any category that has a row, so a duplicate can't be picked;
-        # the unique key in the table is the backstop (validate_unique is skipped: it would query the database).
-        super().__init__(*args, **kwargs)
-        self.fields['bespoke_product_id'].choices = [(self.NO_OFFER, 'No offer here (also stops inheriting)')] + [
-            (pid, '%s (%s)' % (title, pid)) for pid, title in products]
-        self.fields['symbol_id'].choices = [('', 'No symbol (the designer starts from its default)')] + [
-            (sid, '%s \u2014 %s' % (code, name)) for sid, code, name, _ in symbols]
-        self.fields['category_id'] = forms.TypedChoiceField(
-            label='Category', coerce=int, choices=[(cid, name) for cid, name in categories])
-        if self.instance and self.instance.pk:
-            self.fields['category_id'].disabled = True
-
-    def validate_unique(self):
-        pass
-
-    def clean(self):
-        cleaned = super().clean()
-        if cleaned.get('bespoke_product_id') is None and cleaned.get('symbol_id') is not None:
-            self.add_error('symbol_id', 'A symbol needs a designer to open: pick one above, or clear the symbol.')
-        if cleaned.get('bespoke_product_id') is None and (cleaned.get('headline') or cleaned.get('text') or cleaned.get('prefill')):
-            self.add_error('bespoke_product_id', 'Pick a designer, or clear the wording: "no offer" has nothing to show.')
-        return cleaned
-
-    class Meta:
-        model = OcTsgCategoryBespoke
-        fields = ['category_id', 'bespoke_product_id', 'symbol_id', 'type_label', 'headline', 'text', 'prefill', 'status', 'note']
-        labels = {'type_label': 'Type (used in the wording)', 'headline': 'Heading (optional)', 'text': 'Text (optional)',
-                  'prefill': 'Pre-fill the designer with (optional)', 'status': 'Active', 'note': 'Note (for us)'}
-        help_texts = {
-            'type_label': 'e.g. "prohibition": shows as "Custom prohibition signs at stock sign prices".',
-            'headline': 'Leave blank for the standard wording.',
-            'text': 'Leave blank for the standard wording.',
-            'prefill': 'Words handed to the designer\'s "describe it" box so the AI suggests ideas straight away, e.g. "No smoking sign".',
-            'status': 'Off keeps the row but hides the offer.',
-        }
-        widgets = {'status': forms.CheckboxInput, 'text': forms.Textarea(attrs={'rows': 2})}

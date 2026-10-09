@@ -236,33 +236,3 @@ class OcTsgBanner(models.Model):
             self.date_added = Now()
         self.date_modified = Now()
         super().save(*args, **kwargs)
-
-
-class OcTsgCategoryBespoke(models.Model):
-    """Which bespoke designer a shop category's "make your own" offer opens (sql/2026-10-09_category_bespoke_offer.sql).
-    A row with no bespoke_product means "no offer here" and stops sub-categories inheriting. Read by tsg_store."""
-    id = models.AutoField(primary_key=True)
-    category_id = models.IntegerField(unique=True)
-    bespoke_product_id = models.IntegerField(blank=True, null=True)
-    symbol_id = models.IntegerField(blank=True, null=True)
-    type_label = models.CharField(max_length=40, blank=True, null=True)
-    headline = models.CharField(max_length=150, blank=True, null=True)
-    text = models.CharField(max_length=300, blank=True, null=True)
-    prefill = models.CharField(max_length=150, blank=True, null=True)
-    status = models.BooleanField(default=True)
-    note = models.CharField(max_length=255, blank=True, null=True)
-    date_added = models.DateTimeField(blank=True, null=True)
-    date_modified = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'oc_tsg_category_bespoke'
-
-    def __str__(self):
-        return 'Category %s' % self.category_id
-
-    def save(self, *args, **kwargs):
-        if self._state.adding and not self.date_added:
-            self.date_added = Now()
-        self.date_modified = Now()
-        super().save(*args, **kwargs)

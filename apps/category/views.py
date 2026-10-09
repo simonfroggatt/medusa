@@ -1,3 +1,4 @@
+from apps.category import bespoke_offer
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from apps.category.models import (OcCategory, OcCategoryDescriptionBase, OcCategoryDescription, OcCategoryToStore,
@@ -94,6 +95,9 @@ class CategoryEdit(UpdateView):
         breadcrumbs.append({'name': 'Categories', 'url': reverse_lazy('allcategories')})
         breadcrumbs.append({'name': category_obj.name, 'url': reverse_lazy('categorydetails', kwargs={'pk': category_obj.id})})
         context['breadcrumbs'] = breadcrumbs
+        # for the picture shown next to the "make your own" symbol picker
+        context['symbol_data'] = {sid: {'code': code, 'name': name, 'svg': svg}
+                                  for sid, code, name, svg in bespoke_offer.symbol_options()}
 
         return context
 

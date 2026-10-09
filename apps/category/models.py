@@ -183,6 +183,11 @@ class OcTsgCategory(models.Model):
     status = models.BooleanField(blank=True)
     priority = models.IntegerField(blank=True, null=True)
     google_cat = models.ForeignKey(OcTsgGoogleShoppingCategory, models.DO_NOTHING, blank=True, null=True)
+    # "Make your own" card on this category's page (sql/2026-10-09_category_bespoke_columns.sql). Neither set = no
+    # card. A symbol opens the designer on that symbol (its type decides which designer); a template opens that
+    # kind of designer (Fire Action Notice, Site Board, ...). tsg_store reads both.
+    bespoke_symbol_id = models.IntegerField(blank=True, null=True)
+    bespoke_template_id = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
