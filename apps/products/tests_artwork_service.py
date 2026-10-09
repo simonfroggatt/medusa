@@ -205,3 +205,16 @@ class ArtworkViewTests(SimpleTestCase):
             resp = artwork_views.artwork_save(self.post({'label': 'Landscape'}, {'pdf': upload}), 1)
         self.assertEqual(resp.status_code, 400)
         save.assert_not_called()
+
+
+class SerializerFieldTests(SimpleTestCase):
+    """The variant tables break (HTTP 500) if a serializer declares a field its Meta.fields leaves out."""
+
+    def test_variant_serializers_build_and_give_the_new_picture(self):
+        from apps.products.serializers import (CoreVariantSerializer, ProductVariantSerializer,
+                                               StoreCoreProductVariantSerialize)
+        for serializer in (CoreVariantSerializer, ProductVariantSerializer, StoreCoreProductVariantSerialize):
+            self.assertTrue(serializer().fields, serializer.__name__)
+        core = OcTsgProductVariantCore(product=OcProduct(image='stores/products/old.gif'))
+        core.product.__dict__['main_artwork'] = None
+        self.assertTrue(CoreVariantSerializer().get_variant_image_url(core).endswith('stores/products/old.gif'))

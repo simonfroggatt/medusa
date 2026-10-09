@@ -131,12 +131,6 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
     store_size_material_price = serializers.SerializerMethodField(read_only=True)
 
-    # What the shop will show for this variant (its artwork, else its old image, else the product's)
-    variant_image_url = serializers.SerializerMethodField()
-
-    def get_variant_image_url(self, core):
-        return core.image_url_for('tile')
-
     class Meta:
         model = OcTsgProductVariants
         fields = ['prod_variant_id', 'variant_code', 'variant_overide_price', 'prod_var_core', 'alt_image', 'store',
@@ -162,6 +156,12 @@ class StoreCoreProductVariantSerialize(serializers.ModelSerializer):
     size_material = SizeMaterialCombSerializer(read_only=True)
     storeproductvariants = StoreProductVariantSerialize(read_only=True)
 
+
+    # What the shop will show for this variant (its artwork, else its old image, else the product's)
+    variant_image_url = serializers.SerializerMethodField()
+
+    def get_variant_image_url(self, core):
+        return core.image_url_for('tile')
 
     class Meta:
         model = OcTsgProductVariantCore
