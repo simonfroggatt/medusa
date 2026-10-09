@@ -42,8 +42,12 @@
                     <div class="col-6 col-md-3">{{ form.button_text|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.button_style|as_crispy_field }}</div>
                     <div class="col-12 col-md-4">{{ form.text_align|as_crispy_field }}</div>
-                    <div class="col-6 col-md-4">{{ form.bg_from|as_crispy_field }}</div>
-                    <div class="col-6 col-md-4">{{ form.bg_to|as_crispy_field }}</div>
+                    <div class="col-12 col-md-4">{{ form.bg_from|as_crispy_field }}</div>
+                    <div class="col-12 col-md-4">{{ form.bg_to|as_crispy_field }}</div>
+                    <div class="col-12 mb-3">
+                        <div class="form-text mb-1">Background preview (shown behind the image, or instead of it if there is none)</div>
+                        <div id="gradient-preview" style="height:40px;border-radius:4px;border:1px solid #ddd;"></div>
+                    </div>
                     <div class="col-12">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a class="btn {{ BUTTON_CANCEL }}" href="{% url 'banners' %}">Cancel</a>
@@ -56,3 +60,24 @@
     </div>
 </div>
 {% endblock content %}
+
+{% block javascript %}
+<script>
+    $(function () {
+        var hex = /^#[0-9a-fA-F]{6}$/;
+        function preview() {
+            var from = $('#id_bg_from').val(), to = $('#id_bg_to').val();
+            if (hex.test(from) && hex.test(to)) {
+                $('#gradient-preview').css('background', 'linear-gradient(135deg, ' + from + ' 0%, ' + to + ' 100%)');
+            }
+        }
+        // the swatch fills the hex box; typing a valid hex moves the swatch
+        $('.colour-input').each(function () {
+            var picker = $(this).find('[data-colour-picker]'), text = $(this).find('input[type=text]');
+            picker.on('input', function () { text.val(picker.val().toUpperCase()); preview(); });
+            text.on('input', function () { if (hex.test(text.val())) { picker.val(text.val()); } preview(); });
+        });
+        preview();
+    });
+</script>
+{% endblock javascript %}

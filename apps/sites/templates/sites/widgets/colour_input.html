@@ -1,0 +1,6 @@
+<div class="d-flex align-items-center gap-2 colour-input">
+    <input type="color" class="form-control form-control-color flex-shrink-0" value="{{ widget.value|default:'#000000' }}"
+           data-colour-picker title="Click to pick a colour" aria-label="Pick a colour">
+    <input type="text" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}
+           maxlength="7" placeholder="#0B2545" style="max-width:8rem"{% include "django/forms/widgets/attrs.html" %}>
+</div>

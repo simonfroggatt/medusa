@@ -349,6 +349,25 @@ class BannerFormTests(SimpleTestCase):
     def test_unknown_store_is_rejected(self):
         self.assertFalse(self.form(store_id='99').is_valid())
 
+    def test_colours_must_be_six_digit_hex_and_are_normalised(self):
+        ok = self.form(bg_from='#14532d', bg_to='#1c1f23')
+        self.assertTrue(ok.is_valid(), ok.errors)
+        self.assertEqual(ok.cleaned_data['bg_from'], '#14532D')
+        for bad in ('red', '#12', '14532d', '#GGGGGG', ''):
+            form = self.form(bg_from=bad)
+            self.assertFalse(form.is_valid(), bad)
+            self.assertIn('bg_from', form.errors)
+
+    def test_colour_field_renders_a_swatch_and_a_hex_box(self):
+        with mock.patch('apps.sites.forms.OcStore.objects') as stores:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = [(4, 'Imo signs')]
+            form = BannerForm(instance=make_banner(bg_from='#0B2545'))
+        html = str(form['bg_from'])
+        self.assertIn('type="color"', html)
+        self.assertIn('name="bg_from"', html)
+        self.assertIn('value="#0B2545"', html)
+        self.assertEqual(html.count('name="bg_from"'), 1)
+
 
 class BannerPageTests(SimpleTestCase):
     def test_list_shows_banners(self):

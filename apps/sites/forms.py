@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from apps.sites.models import OcStore, OcTsgSearchRule, OcTsgBanner
 from tinymce.widgets import TinyMCE
@@ -82,6 +84,11 @@ class MediaImageInput(forms.ClearableFileInput):
     template_name = 'sites/widgets/media_image_input.html'
 
 
+class ColourInput(forms.TextInput):
+    """A colour swatch you can click, plus the hex code beside it (they stay in step: see banner_form.html)."""
+    template_name = 'sites/widgets/colour_input.html'
+
+
 class BannerForm(forms.ModelForm):
     store_id = forms.TypedChoiceField(coerce=int, label='Store')
 
@@ -89,6 +96,18 @@ class BannerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['store_id'].choices = list(
             OcStore.objects.filter(store_id__gt=0).order_by('name').values_list('store_id', 'name'))
+
+    def _clean_colour(self, name):
+        value = (self.cleaned_data.get(name) or '').strip()
+        if not re.fullmatch(r'#[0-9a-fA-F]{6}', value):
+            raise forms.ValidationError('Use a colour like #0B2545 (a # and six letters or numbers).')
+        return value.upper()
+
+    def clean_bg_from(self):
+        return self._clean_colour('bg_from')
+
+    def clean_bg_to(self):
+        return self._clean_colour('bg_to')
 
     def clean(self):
         cleaned = super().clean()
@@ -126,8 +145,8 @@ class BannerForm(forms.ModelForm):
             'status': forms.CheckboxInput,
             'image': MediaImageInput,
             'image_mobile': MediaImageInput,
-            'bg_from': forms.TextInput(attrs={'type': 'color'}),
-            'bg_to': forms.TextInput(attrs={'type': 'color'}),
+            'bg_from': ColourInput,
+            'bg_to': ColourInput,
             'date_start': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'date_end': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'subtitle': forms.Textarea(attrs={'rows': 2}),
