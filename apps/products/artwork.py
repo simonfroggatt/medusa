@@ -15,7 +15,6 @@ and blues. Anything not in the map is left alone and reported by check_master.
 """
 import io
 
-import numpy as np
 from PIL import Image, ImageChops, ImageDraw
 
 MASTER_LONG_EDGE = 2000
@@ -46,6 +45,8 @@ def remap_palette(image):
     pixel is projected onto the white->colour and black->colour lines; when it
     sits on one it is rebuilt with the same blend of the palette colour.
     """
+    import numpy as np  # here, not at the top, so Medusa starts even where numpy is missing
+
     pixels = np.asarray(image.convert('RGB'), dtype=np.float32)
     out = pixels.copy()
     best = np.full(pixels.shape[:2], 1e9, dtype=np.float32)
@@ -132,6 +133,8 @@ def make_versions(master):
 
 def check_master(master):
     """Reasons this artwork should be looked at by a person. Empty list = fine to publish."""
+    import numpy as np
+
     problems = []
     if max(master.size) < MASTER_LONG_EDGE * 0.95:
         problems.append(f'Master is only {max(master.size)} px on its long edge.')
