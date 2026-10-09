@@ -40,6 +40,7 @@ logger = logging.getLogger('apps')
 
 MAX_PDF_BYTES = 30 * 1024 * 1024
 FOLDER = 'stores/products/v2/'
+PDF_FOLDER = 'medusa/product/artwork/'   # with the product documents, not in the public images folder
 EXTENSIONS = {'feed': 'jpg', 'page': 'webp', 'tile': 'webp'}
 
 Prepared = namedtuple('Prepared', 'pdf_bytes versions problems keep_colours ratio')
@@ -87,7 +88,7 @@ def upload_to_drive(name, pdf_bytes):
 
 
 def save_prepared(art, prepared, label, code=''):
-    """Write the images and the PDF, then record them on the OcTsgProductArtwork row.
+    """Write the images and a copy of the PDF, then record them on the OcTsgProductArtwork row.
 
     label: words for the file names, e.g. the product title and the artwork's label.
     code:  the product code, used in the file names and the Drive name.
@@ -98,6 +99,9 @@ def save_prepared(art, prepared, label, code=''):
     for kind, data in prepared.versions.items():
         paths[kind] = default_storage.save(f'{FOLDER}{base}-{kind}.{EXTENSIONS[kind]}', ContentFile(data))
 
+    # keep the print PDF, so it can be downloaded again to make changes (a new file each time, never replaced)
+    art.pdf_path = default_storage.save(f'{PDF_FOLDER}{base}-print.pdf', ContentFile(prepared.pdf_bytes))
+
     stamp = datetime.date.today().strftime('%Y%m%d')
     drive_name = f'{(code or "").strip()} {label} website upload {stamp}.pdf'.strip()
     drive_id = upload_to_drive(drive_name, prepared.pdf_bytes)
@@ -106,7 +110,8 @@ def save_prepared(art, prepared, label, code=''):
     art.shape_ratio = prepared.ratio
     art.keep_colours = prepared.keep_colours
     art.checks = ('; '.join(prepared.problems))[:500] or None
-    fields = ['image_feed', 'image_page', 'image_tile', 'shape_ratio', 'keep_colours', 'checks', 'date_modified']
+    fields = ['image_feed', 'image_page', 'image_tile', 'pdf_path', 'shape_ratio', 'keep_colours', 'checks',
+              'date_modified']
     if drive_id:
         art.drive_id = drive_id
         art.drive_filename = drive_name[:255]

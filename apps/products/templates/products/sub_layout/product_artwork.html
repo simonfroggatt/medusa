@@ -45,6 +45,9 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm js-artwork-assign" data-url="{% url 'product_artwork-assign' art.pk %}"
                                         title="Variants of the same shape that have no artwork yet">Use for {{ art.matching }} matching variant{{ art.matching|pluralize }}</button>
                             {% endif %}
+                            {% if art.pdf_path %}
+                                <a class="btn btn-outline-secondary btn-sm" href="{% url 'product_artwork-pdf' art.pk %}" title="Download the print PDF to make changes"><i class="fa-regular fa-arrow-down-to-line"></i> Download PDF</a>
+                            {% endif %}
                             <button type="button" class="btn btn-outline-secondary btn-sm js-artwork-replace" data-id="{{ art.pk }}" data-label="{{ art.label }}"
                                     data-main="{{ art.is_main|yesno:'1,0' }}" data-keep="{{ art.keep_colours|yesno:'1,0' }}">Replace PDF / rename</button>
                             <button type="button" class="btn btn-outline-danger btn-sm js-artwork-delete" data-url="{% url 'product_artwork-delete' art.pk %}"

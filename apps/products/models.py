@@ -182,6 +182,8 @@ class OcTsgProductArtwork(models.Model):
     image_feed = models.CharField(max_length=255, blank=True, null=True)
     image_page = models.CharField(max_length=255, blank=True, null=True)
     image_tile = models.CharField(max_length=255, blank=True, null=True)
+    # The print PDF, kept in the media storage so it can be downloaded again to make changes
+    pdf_path = models.CharField(max_length=255, blank=True, null=True)
     drive_id = models.CharField(max_length=100, blank=True, null=True)
     drive_filename = models.CharField(max_length=255, blank=True, null=True)
     checks = models.CharField(max_length=500, blank=True, null=True)
