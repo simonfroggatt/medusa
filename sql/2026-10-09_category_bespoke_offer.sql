@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS `oc_tsg_category_bespoke` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `category_id` int(10) unsigned NOT NULL,
   `bespoke_product_id` int(10) unsigned DEFAULT NULL,
+  `symbol_id` int(10) unsigned DEFAULT NULL,
   `type_label` varchar(40) DEFAULT NULL,
   `headline` varchar(150) DEFAULT NULL,
   `text` varchar(300) DEFAULT NULL,

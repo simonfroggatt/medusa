@@ -589,6 +589,37 @@ class BespokeOfferFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('bespoke_product_id', form.errors)
 
+    SYMBOLS = [(46, 'W014', 'Warning; Forklift trucks and other industrial vehicles', 'stores/symbols/svg/w014.svg'),
+               (6, 'P006', 'No access for forklift trucks', 'stores/symbols/svg/p006.svg')]
+
+    def form_with_symbols(self, **data):
+        values = {'category_id': '250', 'bespoke_product_id': '41079', 'symbol_id': '46', 'status': 'on'}
+        values.update(data)
+        return CategoryBespokeForm(values, categories=self.CATEGORIES, products=self.PRODUCTS, symbols=self.SYMBOLS)
+
+    def test_a_symbol_can_be_chosen_with_a_designer(self):
+        form = self.form_with_symbols()
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['symbol_id'], 46)
+
+    def test_the_symbol_is_optional(self):
+        form = self.form_with_symbols(symbol_id='')
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data['symbol_id'])
+
+    def test_a_symbol_needs_a_designer(self):
+        form = self.form_with_symbols(bespoke_product_id='')
+        self.assertFalse(form.is_valid())
+        self.assertIn('symbol_id', form.errors)
+
+    def test_an_unknown_symbol_is_rejected(self):
+        self.assertFalse(self.form_with_symbols(symbol_id='999').is_valid())
+
+    def test_symbol_choices_show_code_and_name(self):
+        form = self.form_with_symbols()
+        labels = [label for value, label in form.fields['symbol_id'].choices]
+        self.assertIn('W014 \u2014 Warning; Forklift trucks and other industrial vehicles', labels)
+
     def test_unknown_designer_or_category_is_rejected(self):
         self.assertFalse(self.form(bespoke_product_id='99999').is_valid())
         self.assertFalse(self.form(category_id='1').is_valid())
@@ -617,6 +648,43 @@ class BespokeOfferPageTests(SimpleTestCase):
         self.assertIn('NO OFFER: Tie tags', html)
         self.assertIn('/sites/bespoke-offers/new?category=250', html)       # an inheriting category can be overridden
         self.assertIn('/sites/bespoke-offers/249/edit', html)
+
+    def test_the_form_page_has_the_symbol_search_and_preview(self):
+        symbols = [(46, 'W014', 'Warning; Forklift trucks', 'stores/symbols/svg/w014.svg')]
+        form = CategoryBespokeForm(categories=[(266, 'Warning Signs \u203a Fork-Lift Signs')],
+                                   products=[(41079, 'Custom Warning Sign')], symbols=symbols)
+        html = render_page('sites/bespoke_offer_form.html', fake_request('/sites/bespoke-offers/new'), form=form,
+                           symbol_data={46: {'code': 'W014', 'name': 'Warning; Forklift trucks', 'svg': 'stores/symbols/svg/w014.svg'}})
+        self.assertIn('id="symbol-search"', html)
+        self.assertIn('id="symbol-preview"', html)
+        self.assertIn('W014', html)
+        self.assertIn('stores/symbols/svg/w014.svg', html)         # the data the preview uses
+        self.assertIn('Warning Signs \u203a Fork-Lift Signs', html)
+
+    def test_the_symbol_is_shown_under_the_offer(self):
+        rows = self.rows()
+        rows[0]['symbol_label'] = 'W014 Warning; Forklift trucks'
+        html = render_page('sites/bespoke_offers.html', fake_request('/sites/bespoke-offers/'), rows=rows,
+                           counts={'offer': 2}, stores=[(1, 'SSAN')], site_id=1, table_missing=False)
+        self.assertIn('Symbol: W014 Warning; Forklift trucks', html)
+
+    def test_a_missing_symbol_column_asks_for_the_update(self):
+        html = render_page('sites/bespoke_offers.html', fake_request('/sites/bespoke-offers/'), rows=[], counts={},
+                           stores=[], site_id=1, table_missing=False, needs_update=True)
+        self.assertIn('2026-10-09_category_bespoke_symbol.sql', html)
+
+    def test_the_view_flags_a_missing_symbol_column(self):
+        from django.db.utils import OperationalError
+        unknown = OperationalError(1054, "Unknown column 'symbol_id' in 'field list'")
+        with mock.patch.object(views.OcTsgCategoryBespoke, 'objects') as objects, \
+                mock.patch.object(views.OcStore, 'objects') as stores, \
+                mock.patch.object(views, 'render', return_value=mock.sentinel.response) as render:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = []
+            objects.all.side_effect = unknown
+            views.bespoke_offers_list(fake_request('/sites/bespoke-offers/'))
+        context = render.call_args[0][2]
+        self.assertTrue(context['needs_update'])
+        self.assertFalse(context['table_missing'])
 
     def test_the_page_names_the_sql_file_when_the_table_is_missing(self):
         html = render_page('sites/bespoke_offers.html', fake_request('/sites/bespoke-offers/'), rows=[], counts={},

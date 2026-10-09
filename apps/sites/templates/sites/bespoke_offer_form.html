@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="wrapper wrapper-content layout-details">
+    {{ symbol_data|json_script:"symbol-data" }}
     <div class="ibox">
         <div class="ibox-content">
             <form method="post" action="">
@@ -12,7 +13,19 @@
                 <div class="row">
                     <div class="col-12 col-md-6">{{ form.category_id|as_crispy_field }}</div>
                     <div class="col-12 col-md-6">{{ form.bespoke_product_id|as_crispy_field }}</div>
-                    <div class="col-12 col-md-4">{{ form.type_label|as_crispy_field }}</div>
+                    <div class="col-12">
+                        <label class="form-label" for="symbol-search">Opens with this symbol (optional)</label>
+                        <div class="row g-2 align-items-start">
+                            <div class="col-12 col-md-5">
+                                <input type="search" id="symbol-search" class="form-control form-control-sm mb-1" placeholder="Type to find a symbol: fork, fire, W014&hellip;" autocomplete="off">
+                                {{ form.symbol_id }}
+                                {% for error in form.symbol_id.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                <div class="form-text">{{ form.symbol_id.help_text }}</div>
+                            </div>
+                            <div class="col-12 col-md-3"><div id="symbol-preview" class="border rounded p-2 text-center bg-white" style="min-height:110px;"></div></div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 mt-3">{{ form.type_label|as_crispy_field }}</div>
                     <div class="col-12 col-md-8">{{ form.prefill|as_crispy_field }}</div>
                     <div class="col-12 col-md-6">{{ form.headline|as_crispy_field }}</div>
                     <div class="col-12 col-md-6">{{ form.text|as_crispy_field }}</div>
@@ -30,3 +43,31 @@
     </div>
 </div>
 {% endblock content %}
+
+{% block javascript %}
+<script>
+    $(function () {
+        var data = JSON.parse(document.getElementById('symbol-data').textContent);
+        var select = $('#id_symbol_id'), search = $('#symbol-search'), preview = $('#symbol-preview');
+        var media = '{% get_media_prefix %}';
+        var all = select.find('option').map(function () { return {value: this.value, text: this.text}; }).get();
+        function showPreview() {
+            var info = data[select.val()];
+            preview.html(info && info.svg ? '<img src="' + media + info.svg + '" alt="" style="max-height:90px;max-width:100%;"><div class="small text-muted mt-1">' + info.code + '</div>'
+                                           : '<span class="text-muted small">No symbol chosen</span>');
+        }
+        search.on('input', function () {                // narrow the list as you type; keep the chosen one
+            var q = search.val().toLowerCase(), keep = select.val();
+            select.empty();
+            all.forEach(function (o) {
+                if (!o.value || o.value === keep || o.text.toLowerCase().indexOf(q) !== -1) {
+                    select.append($('<option>').val(o.value).text(o.text));
+                }
+            });
+            select.val(keep);
+        });
+        select.on('change', showPreview);
+        showPreview();
+    });
+</script>
+{% endblock javascript %}

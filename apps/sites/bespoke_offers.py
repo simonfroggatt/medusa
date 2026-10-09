@@ -101,3 +101,16 @@ def designer_products():
                   AND t.path <> 'bespoke/single_panel'
                 ORDER BY pdb.title""")
         return [(pid, title) for pid, title in cursor.fetchall()]
+
+
+def symbol_options():
+    """Every symbol the designer can open with: [(symbol_id, standard code, name, svg path)], by code."""
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """SELECT s.id, MIN(ss.code), s.referent, s.svg_path
+                 FROM oc_tsg_symbols s
+                 JOIN oc_tsg_symbol_standard ss ON ss.symbol_id = s.id AND ss.status = 1
+                GROUP BY s.id, s.referent, s.svg_path
+                ORDER BY MIN(ss.code)""")
+        return [(sid, code, (name or '').strip(), svg or '') for sid, code, name, svg in cursor.fetchall()]
