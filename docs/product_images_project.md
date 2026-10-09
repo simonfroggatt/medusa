@@ -50,18 +50,6 @@ filename, read the product code at the start, compare with live variant/supplier
 So: **`Digital/` PDFs first** (all orientations/sizes), AI originals only where they add something (cleaner vector, no
 bleed/crop marks, or products Digital lacks). Digital also carries the orientation variants the AI files lack.
 
-## Supplier-provided images (Simon, 2026-10-09: "some might be supplier provided")
-Treat these as their own lane, not something to redraw from our artwork.
-- The database only marks a few: of 4,123 live store-1 products, `supplier_id` is 1 (SSAN, in-house) for 4,095, **2 (Symbol) for 27**
-  (e.g. the `TT 760 T` tie tags, images `tt760.gif`) and 3 (Freight) for 2. `oc_supplier` has 3 rows. Codes like `RCS`, `GA`, `DP` are
-  in-house (supplier_id 1), so the DB cannot find the other supplier-provided images; **ask Simon which code ranges / folders** are
-  supplier images.
-- Handling: use the supplier image if it meets the spec (>= 1500 px for the feed ideally, never < 500) and is clean; otherwise ask the
-  supplier for a larger/vector file (contacts are in `oc_supplier`: Symbol, Freight). Still normalise to a white square canvas.
-- Check each one: usage permission, and Google forbids watermarks, logos, promo text and borders on the feed image, so a supplier's
-  watermark/logo means it can't be used for the feed as supplied.
-- Flag them in the matching spreadsheet (`supplier_id != 1` plus Simon's list) so they are not rendered from `Digital/` by mistake.
-
 ## Where the source artwork is
 Google Drive for Desktop is mounted at
 `/Users/simonfroggatt/Library/CloudStorage/GoogleDrive-safetysignsandnotices@googlemail.com/My Drive`
