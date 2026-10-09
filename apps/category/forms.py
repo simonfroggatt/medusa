@@ -1,4 +1,5 @@
 from django import forms
+from apps.category import bespoke_offer
 from apps.category.models import OcCategory, OcCategoryDescription, OcCategoryDescriptionBase, OcCategoryToStore, OcTsgCategoryStoreParent, OcTsgCategory, OcTsgCategoryParent
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
@@ -91,10 +92,23 @@ class CategoryStoreParentForm(forms.ModelForm):
         }
 
 class CategoryDescriptionForm(forms.ModelForm):
+    bespoke_symbol_id = forms.TypedChoiceField(
+        label='Make-your-own symbol', required=False, coerce=int, empty_value=None,
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm', 'size': 6}),
+        help_text='Shows a "make your own" card on this category\'s page that opens the designer with this symbol. '
+                  'Which designer follows from the symbol\'s type. Leave empty for no card.')
+    bespoke_template_id = forms.TypedChoiceField(
+        label='Make-your-own designer', required=False, coerce=int, empty_value=None,
+        help_text='For designers that are not about a symbol (fire action notice, site board, bilingual, text only). '
+                  'Leave empty to use the symbol\'s designer.')
+
     def __init__(self, *args, **kwargs):
         super(CategoryDescriptionForm, self).__init__(*args, **kwargs)
         self.fields['store'].empty_label = None
         self.fields['google_cat'].empty_label = None
+        self.fields['bespoke_symbol_id'].choices = [('', 'No symbol (no card unless a designer is chosen)')] + [
+            (sid, '%s \u2014 %s' % (code, name)) for sid, code, name, _ in bespoke_offer.symbol_options()]
+        self.fields['bespoke_template_id'].choices = [('', 'None')] + bespoke_offer.template_options()
 
     description = forms.CharField(widget=TinyMCE(attrs={'rows': 30}), required=False)
 

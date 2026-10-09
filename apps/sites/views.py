@@ -1,9 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from apps.sites.models import OcStore, OcTsgSearchRule, OcTsgBanner, OcTsgCategoryBespoke
+from apps.sites.models import OcStore, OcTsgSearchRule, OcTsgBanner
 from apps.sites.serializers import StoreSerializer
-from apps.sites.forms import StoreEditForm, SearchRuleForm, BannerForm, CategoryBespokeForm
-from apps.sites import bespoke_offers
+from apps.sites.forms import StoreEditForm, SearchRuleForm, BannerForm
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -254,83 +253,3 @@ def banner_delete(request, pk):
     get_object_or_404(OcTsgBanner, pk=pk).delete()
     messages.success(request, 'Banner deleted.')
     return redirect('banners')
-
-
-def _offer_store(params):
-    try:
-        return int(params.get('site', 1)) or 1
-    except (TypeError, ValueError):
-        return 1
-
-
-@group_required('superuser')
-def bespoke_offers_list(request):
-    """Every shop category with the "make your own" offer it would show, and why."""
-    site_id = _offer_store(request.GET)
-    stores = list(OcStore.objects.filter(store_id__gt=0).order_by('name').values_list('store_id', 'name'))
-    context = {'pageview': 'Bespoke Offers', 'heading': 'Bespoke Offers', 'stores': stores, 'site_id': site_id,
-               'breadcrumbs': [{'name': 'Sites', 'url': reverse_lazy('allsites')}], 'table_missing': False}
-    try:
-        rules = {rule.category_id: rule for rule in OcTsgCategoryBespoke.objects.all()}
-    except DatabaseError as error:
-        # 1146 = no table yet; 1054 = the symbol column added by a later SQL file isn't there yet
-        code = error.args[0] if error.args else None
-        if code not in (1146, 1054):
-            raise
-        context.update(table_missing=code == 1146, needs_update=code == 1054, rows=[], counts={})
-        return render(request, 'sites/bespoke_offers.html', context)
-    categories, parents = bespoke_offers.load_categories(site_id)
-    products = dict(bespoke_offers.designer_products())
-    rows = bespoke_offers.tree_rows(categories, rules, parents)
-    names = {cid: name for cid, name, _ in categories}
-    symbols = {sid: '%s %s' % (code, name) for sid, code, name, _ in bespoke_offers.symbol_options()}
-    counts = {}
-    for row in rows:
-        row['symbol_label'] = symbols.get(row['rule'].symbol_id) if row['rule'] and row['rule'].symbol_id else None
-        row['product_title'] = products.get(row['effective'].bespoke_product_id) if row['effective'] else None
-        row['inherited_name'] = names.get(row['inherited_from'])
-        counts[row['kind']] = counts.get(row['kind'], 0) + 1
-    context.update(rows=rows, counts=counts)
-    return render(request, 'sites/bespoke_offers.html', context)
-
-
-def _offer_form(request, rule=None):
-    site_id = _offer_store(request.GET)
-    categories, _ = bespoke_offers.load_categories(site_id)
-    taken = set() if rule else set(OcTsgCategoryBespoke.objects.values_list('category_id', flat=True))
-    choices = bespoke_offers.category_choices(categories, taken)
-    initial = {}
-    if rule is None:
-        try:
-            initial = {'category_id': int(request.GET.get('category'))}
-        except (TypeError, ValueError):
-            pass
-    symbols = bespoke_offers.symbol_options()
-    form = CategoryBespokeForm(request.POST or None, instance=rule, initial=initial, categories=choices,
-                               products=bespoke_offers.designer_products(), symbols=symbols)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Bespoke offer saved.')
-        return redirect('bespokeoffers')
-    symbol_data = {sid: {'code': code, 'name': name, 'svg': svg} for sid, code, name, svg in symbols}
-    context = {'pageview': 'Bespoke Offers', 'heading': 'Bespoke offer', 'form': form, 'rule': rule, 'symbol_data': symbol_data,
-               'breadcrumbs': [{'name': 'Bespoke Offers', 'url': reverse_lazy('bespokeoffers')}]}
-    return render(request, 'sites/bespoke_offer_form.html', context)
-
-
-@group_required('superuser')
-def bespoke_offer_create(request):
-    return _offer_form(request)
-
-
-@group_required('superuser')
-def bespoke_offer_edit(request, pk):
-    return _offer_form(request, get_object_or_404(OcTsgCategoryBespoke, pk=pk))
-
-
-@group_required('superuser')
-@require_POST
-def bespoke_offer_delete(request, pk):
-    get_object_or_404(OcTsgCategoryBespoke, pk=pk).delete()
-    messages.success(request, 'Bespoke offer removed. That category now follows its parent.')
-    return redirect('bespokeoffers')
