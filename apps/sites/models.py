@@ -115,3 +115,27 @@ class OcTsgNotifications(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class OcTsgCustomerIntent(models.Model):
+    """What a visitor asked for (site search, filters, AI questions...). Written by tsg_store;
+    Medusa only reads it. source_id 1 = Internal Search, intent_type_id 1 = Search."""
+    intent_id = models.BigAutoField(primary_key=True)
+    created_at = models.DateTimeField()
+    site_id = models.SmallIntegerField()
+    customer_id = models.IntegerField(blank=True, null=True)
+    session_id = models.CharField(max_length=64, blank=True, null=True)
+    source_id = models.SmallIntegerField()
+    intent_type_id = models.SmallIntegerField()
+    intent_text = models.CharField(max_length=255)
+    search_type = models.CharField(max_length=50, blank=True, null=True)
+    results_found = models.IntegerField(blank=True, null=True)
+    clicked_product_id = models.IntegerField(blank=True, null=True)
+    response_ms = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_customer_intent'
+
+    def __str__(self):
+        return self.intent_text

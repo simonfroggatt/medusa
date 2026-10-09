@@ -12,5 +12,6 @@ urlpatterns = [
     path('new', views.site_create, name='sitecreate'),
     path('<int:pk>/delete', views.SiteDelete.as_view(), name='sitedelete'),
     path('<int:blog_id>/deletedlg', views.site_delete_dlg, name='sitedeletedlg'),
+    path('search-terms/', views.search_terms_report, name='searchterms'),
     path('', views.all_sites, name='allsites')
     ]

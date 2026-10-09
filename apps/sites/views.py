@@ -7,6 +7,8 @@ from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.template.loader import render_to_string
+from medusa.decorators import group_required
+from apps.sites import search_terms
 
 
 class Sites(viewsets.ModelViewSet):
@@ -108,3 +110,20 @@ def all_sites(request):
     context = {'heading': "Sites"}
     return render(request, template_name, context)
 
+
+
+@group_required('superuser')
+def search_terms_report(request):
+    """What people search for on the storefronts, and which searches find nothing."""
+    site_id, days = search_terms.parse_filters(request.GET)
+    context = {
+        'pageview': 'Search Terms',
+        'breadcrumbs': [{'name': 'Admin', 'url': '#'}],
+        'heading': 'Search Terms',
+        'site_id': site_id,
+        'days': days,
+        'periods': search_terms.PERIODS,
+        'stores': search_terms.store_choices(),
+        'report': search_terms.build_report(site_id, days),
+    }
+    return render(request, 'sites/search_terms.html', context)

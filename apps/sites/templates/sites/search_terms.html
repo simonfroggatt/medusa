@@ -1,0 +1,135 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'libs/tsg_datatables/datatables.min.css' %} "/>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <form method="get" class="row g-2 align-items-end">
+                        <div class="col-auto">
+                            <label for="site" class="form-label mb-0">Store</label>
+                            <select name="site" id="site" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="0">All stores</option>
+                                {% for store_id, store_name in stores %}
+                                    <option value="{{ store_id }}"{% if store_id == site_id %} selected{% endif %}>{{ store_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <label for="days" class="form-label mb-0">Period</label>
+                            <select name="days" id="days" class="form-select form-select-sm" onchange="this.form.submit()">
+                                {% for value, label in periods %}
+                                    <option value="{{ value }}"{% if value == days %} selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6 col-lg-3">
+            <div class="ibox"><div class="ibox-content text-center">
+                <h2 class="mb-0">{{ report.total }}</h2><span class="text-muted">searches</span>
+            </div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="ibox"><div class="ibox-content text-center">
+                <h2 class="mb-0">{{ report.people }}</h2><span class="text-muted">visitors who searched</span>
+            </div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="ibox"><div class="ibox-content text-center">
+                <h2 class="mb-0">{{ report.no_results_pct }}%</h2><span class="text-muted">found nothing ({{ report.no_results_total }})</span>
+            </div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="ibox"><div class="ibox-content text-center">
+                <h2 class="mb-0">{% if report.avg_ms is not None %}{{ report.avg_ms }} ms{% else %}&ndash;{% endif %}</h2><span class="text-muted">average response</span>
+            </div></div>
+        </div>
+    </div>
+
+    {% if not report.total %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox"><div class="ibox-content">
+                <p class="mb-0 text-muted">No searches recorded for this store and period yet. Searches are logged once the storefront has the search logging update live.</p>
+            </div></div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title"><h5>Most searched</h5></div>
+                <div class="ibox-content">
+                    <table id="search_top_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
+                        <thead><tr>
+                            <th>Search</th><th class="text-end">Searches</th><th class="text-end">Visitors</th>
+                            <th class="text-end">Avg results</th><th>Last</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for row in report.top %}
+                            <tr>
+                                <td>{{ row.term }}</td>
+                                <td class="text-end">{{ row.searches }}</td>
+                                <td class="text-end">{{ row.people }}</td>
+                                <td class="text-end">{% if row.avg_results is not None %}{{ row.avg_results|floatformat:0 }}{% else %}&ndash;{% endif %}</td>
+                                <td data-order="{{ row.last_searched|date:'U' }}">{{ row.last_searched|date:'d M H:i' }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title"><h5>Searches that found nothing</h5></div>
+                <div class="ibox-content">
+                    <table id="search_none_table" class="table table-hover table-striped align-middle table-sm" style="width:100%">
+                        <thead><tr>
+                            <th>Search</th><th class="text-end">Searches</th><th class="text-end">Visitors</th><th>Last</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for row in report.no_results %}
+                            <tr>
+                                <td>{{ row.term }}</td>
+                                <td class="text-end">{{ row.searches }}</td>
+                                <td class="text-end">{{ row.people }}</td>
+                                <td data-order="{{ row.last_searched|date:'U' }}">{{ row.last_searched|date:'d M H:i' }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-muted">Every search in this period found something.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    $(document).ready(function () {
+        const dom = "<'row'<'col-sm-6'f><'col-sm-6'l>><'row'<'col-sm-12'tr>><'row'<'col-sm-6'i><'col-sm-6'p>>";
+        if ($('#search_top_table').length) {
+            $('#search_top_table').DataTable({dom: dom, pageLength: 25, order: [[1, 'desc']]});
+        }
+        if ($('#search_none_table tbody td[colspan]').length === 0 && $('#search_none_table').length) {
+            $('#search_none_table').DataTable({dom: dom, pageLength: 25, order: [[1, 'desc']]});
+        }
+    });
+</script>
+{% endblock javascript %}
