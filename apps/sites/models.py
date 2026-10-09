@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.functions import Now
 from django.conf import settings
 from medusa.models import OcTaxRate
 
@@ -169,6 +170,14 @@ class OcTsgSearchRule(models.Model):
 
     def __str__(self):
         return self.label
+
+    def save(self, *args, **kwargs):
+        # The columns have DB defaults, but Django writes every field, so an unset date_added
+        # would be sent as NULL and date_modified would never move. Let the DB clock decide.
+        if self._state.adding and not self.date_added:
+            self.date_added = Now()
+        self.date_modified = Now()
+        super().save(*args, **kwargs)
 
     @property
     def patterns_list(self):

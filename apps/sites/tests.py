@@ -166,6 +166,26 @@ class SearchRuleModelTests(SimpleTestCase):
         self.assertEqual(rule.words_list, [])
 
 
+    def test_save_stamps_dates_from_the_database_clock(self):
+        from django.db.models.functions import Now
+        rule = OcTsgSearchRule(store_id=0, rule_type='ignore_word', label='x', trigger_words='sign')
+        with mock.patch('django.db.models.Model.save') as save:
+            rule.save()
+        save.assert_called_once()
+        self.assertIsInstance(rule.date_added, Now)
+        self.assertIsInstance(rule.date_modified, Now)
+
+    def test_editing_keeps_date_added_but_moves_date_modified(self):
+        from django.db.models.functions import Now
+        rule = make_rule()
+        rule._state.adding = False
+        rule.date_added = datetime(2026, 1, 1, tzinfo=dt_timezone.utc)
+        with mock.patch('django.db.models.Model.save'):
+            rule.save()
+        self.assertEqual(rule.date_added.year, 2026)
+        self.assertIsInstance(rule.date_modified, Now)
+
+
 class SearchRuleFormTests(SimpleTestCase):
     def form(self, **overrides):
         data = {'store_id': '0', 'rule_type': 'demote_any', 'label': 'Prestige', 'category_patterns': 'Prestige%',
