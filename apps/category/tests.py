@@ -75,7 +75,9 @@ class BespokeOfferHelperTests(SimpleTestCase):
         with mock.patch.object(bespoke_offer, 'connection', connection):
             result = bespoke_offer.symbol_options()
         self.assertEqual(result, [(46, 'W014', 'Warning; Forklift', 'stores/symbols/svg/w014.svg'), (7, 'X1', '', '')])
-        self.assertIn('tsg_symbol_standard', cursor.execute.call_args[0][0])
+        sql = cursor.execute.call_args[0][0]
+        self.assertIn('tsg_symbol_standard', sql)
+        self.assertIn("ss.code <> ''", sql)            # a symbol with no code cannot open in the designer
 
     def test_template_options_only_offer_designers_with_a_live_product(self):
         connection, cursor = self.cursor_with([(8, 'Fire Action Notice', '5 Point Fire Action Notice')])
@@ -86,3 +88,15 @@ class BespokeOfferHelperTests(SimpleTestCase):
         self.assertIn('p.status = 1', sql)
         self.assertEqual(set(params), set(bespoke_offer.TEMPLATE_PATHS))
         self.assertNotIn('bespoke/designer\'', sql)           # the symbol-driven designer is not a template choice
+
+
+class CategoryEditScreenShowsEveryFieldTests(SimpleTestCase):
+    def test_every_field_in_the_form_is_on_the_edit_screen(self):
+        """The edit screen lists its fields by hand. A form field it does not show is posted back empty, so saving
+        the screen would blank that column (adwords_name was being wiped this way)."""
+        import re
+        from pathlib import Path
+        template = Path(__file__).parent / 'templates' / 'category' / 'category_edit.html'
+        shown = set(re.findall(r'form\.([a-z_]+)', template.read_text()))
+        missing = [name for name in make_form().fields if name not in shown]
+        self.assertEqual(missing, [], 'form fields missing from category_edit.html: %s' % missing)
