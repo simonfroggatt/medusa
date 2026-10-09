@@ -244,6 +244,7 @@ class OcTsgCategoryBespoke(models.Model):
     id = models.AutoField(primary_key=True)
     category_id = models.IntegerField(unique=True)
     bespoke_product_id = models.IntegerField(blank=True, null=True)
+    symbol_id = models.IntegerField(blank=True, null=True)
     type_label = models.CharField(max_length=40, blank=True, null=True)
     headline = models.CharField(max_length=150, blank=True, null=True)
     text = models.CharField(max_length=300, blank=True, null=True)

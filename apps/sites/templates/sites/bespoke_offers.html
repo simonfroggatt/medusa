@@ -37,7 +37,12 @@
         </div>
     </div>
 
-    {% if table_missing %}
+    {% if needs_update %}
+    <div class="row"><div class="col-lg-12"><div class="ibox"><div class="ibox-content">
+        <p class="mb-0"><strong>The bespoke offers table needs a small update.</strong>
+            Run <code>sql/2026-10-09_category_bespoke_symbol.sql</code> (adds the symbol column), then reload.</p>
+    </div></div></div></div>
+    {% elif table_missing %}
     <div class="row"><div class="col-lg-12"><div class="ibox"><div class="ibox-content">
         <p class="mb-0"><strong>The bespoke offers table doesn't exist on this database yet.</strong>
             Run <code>sql/2026-10-09_category_bespoke_offer.sql</code> (it also adds a draft mapping of your categories).</p>
@@ -58,6 +63,7 @@
                                     {% elif row.kind == 'draft' %}<span class="badge bg-warning text-dark">Drafted, off</span> {{ row.effective.type_label|default:"" }} &middot; {{ row.product_title|default:"(product not found)" }}
                                     {% elif row.kind == 'none' %}<span class="badge bg-secondary">No offer here</span>
                                     {% else %}<span class="text-muted">&ndash;</span>{% endif %}
+                                    {% if row.symbol_label %}<div class="small"><i class="fa-regular fa-shapes"></i> Symbol: {{ row.symbol_label }}</div>{% endif %}
                                     {% if row.rule and row.rule.note %}<div class="small text-muted">{{ row.rule.note }}</div>{% endif %}
                                 </td>
                                 <td class="small text-muted">
