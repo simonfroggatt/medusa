@@ -61,6 +61,11 @@ class OcProduct(models.Model):
         else:
             return f"{settings.MEDIA_URL}no-image.png"
 
+    @property
+    def admin_image_url(self):
+        """The picture Medusa shows for the product: its main artwork's page image, else the old image."""
+        return self.image_url_for('page')
+
     @cached_property
     def main_artwork(self):
         """The artwork flagged as this product's main picture, or None."""

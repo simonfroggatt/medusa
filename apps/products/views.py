@@ -304,7 +304,8 @@ class BaseVariantListView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         product_id = self.kwargs.get('product_id')
-        return OcTsgProductVariantCore.objects.filter(product_id=product_id).order_by('order_by', 'prod_variant_core_id')
+        return (OcTsgProductVariantCore.objects.filter(product_id=product_id)
+                .select_related('artwork', 'product').order_by('order_by', 'prod_variant_core_id'))
 
 
 
@@ -814,6 +815,7 @@ def product_core_variant_edit(request, pk):
             base_image = variant_core_obj.product.image
         data['form_is_valid'] = False
         context['current_image'] = base_image
+        context['current_image_url'] = variant_core_obj.image_url_for('page')
 
     context['form'] = form_obj
     template_name = 'products/dialogs/product_core_variant_edit.html'
