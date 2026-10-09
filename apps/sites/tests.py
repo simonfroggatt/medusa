@@ -306,6 +306,10 @@ class BannerModelTests(SimpleTestCase):
         self.assertIsInstance(banner.date_added, Now)
         self.assertIsInstance(banner.date_modified, Now)
 
+    def test_text_defaults_to_centre(self):
+        self.assertEqual(OcTsgBanner().text_align, 'center')
+        self.assertEqual([value for value, _ in OcTsgBanner.TEXT_ALIGNS], ['left', 'center', 'right'])
+
     def test_str_falls_back_when_there_is_no_heading(self):
         self.assertEqual(str(make_banner(title='')), 'Banner 1')
         self.assertEqual(str(make_banner(title='', alt_text='Spring sale')), 'Spring sale')
@@ -314,16 +318,20 @@ class BannerModelTests(SimpleTestCase):
 class BannerFormTests(SimpleTestCase):
     def form(self, **overrides):
         data = {'store_id': '4', 'status': 'on', 'sort_order': '1', 'title': 'Hello', 'button_style': 'outline',
-                'bg_from': '#0B2545', 'bg_to': '#1a3a5c'}
+                'text_align': 'center', 'bg_from': '#0B2545', 'bg_to': '#1a3a5c'}
         data.update(overrides)
         with mock.patch('apps.sites.forms.OcStore.objects') as stores:
             stores.filter.return_value.order_by.return_value.values_list.return_value = [(1, 'SSAN'), (4, 'Imo signs')]
             return BannerForm(data)
 
     def test_text_only_banner_is_valid(self):
-        form = self.form()
+        form = self.form(text_align='left')
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(form.cleaned_data['store_id'], 4)
+        self.assertEqual(form.cleaned_data['text_align'], 'left')
+
+    def test_text_position_must_be_left_centre_or_right(self):
+        self.assertFalse(self.form(text_align='diagonal').is_valid())
 
     def test_needs_an_image_or_a_heading(self):
         form = self.form(title='  ')
@@ -379,6 +387,33 @@ class BannerPageTests(SimpleTestCase):
                            banners=[make_banner(title='<img src=x onerror=alert(1)>')],
                            stores=[], site_id=0, table_missing=False)
         self.assertNotIn('<img src=x', html)
+
+    def test_list_asks_for_the_text_align_update_when_the_column_is_missing(self):
+        html = render_page('sites/banners.html', fake_request('/sites/banners/'), banners=[], stores=[],
+                           site_id=0, table_missing=False, needs_update=True)
+        self.assertIn('2026-10-09_banner_text_align.sql', html)
+
+    def test_view_flags_a_missing_column_not_a_missing_table(self):
+        from django.db.utils import OperationalError
+        unknown = OperationalError(1054, "Unknown column 'text_align' in 'field list'")
+        with mock.patch.object(views.OcTsgBanner, 'objects') as objects, \
+                mock.patch.object(views.OcStore, 'objects') as stores, \
+                mock.patch.object(views, 'render', return_value=mock.sentinel.response) as render:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = []
+            objects.all.side_effect = unknown
+            views.banners_list(fake_request('/sites/banners/'))
+        context = render.call_args[0][2]
+        self.assertTrue(context['needs_update'])
+        self.assertFalse(context['table_missing'])
+
+    def test_other_database_errors_still_raise_on_the_banner_list(self):
+        from django.db.utils import OperationalError
+        with mock.patch.object(views.OcTsgBanner, 'objects') as objects, \
+                mock.patch.object(views.OcStore, 'objects') as stores:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = []
+            objects.all.side_effect = OperationalError(2006, 'server has gone away')
+            with self.assertRaises(OperationalError):
+                views.banners_list(fake_request('/sites/banners/'))
 
     def test_list_names_the_sql_file_when_the_table_is_missing(self):
         html = render_page('sites/banners.html', fake_request('/sites/banners/'), banners=[], stores=[],

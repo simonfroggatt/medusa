@@ -193,6 +193,7 @@ class OcTsgSearchRule(models.Model):
 class OcTsgBanner(models.Model):
     """A homepage banner slide for one store (see sql/2026-10-09_banners.sql). Read by tsg_store."""
     BUTTON_STYLES = [('outline', 'Outline'), ('solid', 'Solid')]
+    TEXT_ALIGNS = [('left', 'Left'), ('center', 'Centre'), ('right', 'Right')]
 
     banner_id = models.AutoField(primary_key=True)
     store_id = models.SmallIntegerField()
@@ -207,6 +208,7 @@ class OcTsgBanner(models.Model):
     link = models.CharField(max_length=255, blank=True, null=True)
     button_text = models.CharField(max_length=60, blank=True, null=True)
     button_style = models.CharField(max_length=10, choices=BUTTON_STYLES, default='outline')
+    text_align = models.CharField(max_length=10, choices=TEXT_ALIGNS, default='center')
     bg_from = models.CharField(max_length=7, default='#0B2545')
     bg_to = models.CharField(max_length=7, default='#1a3a5c')
     date_start = models.DateField(blank=True, null=True)

@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `oc_tsg_banner` (
   `link` varchar(255) DEFAULT NULL,
   `button_text` varchar(60) DEFAULT NULL,
   `button_style` varchar(10) NOT NULL DEFAULT 'outline',
+  `text_align` varchar(10) NOT NULL DEFAULT 'center',
   `bg_from` varchar(7) NOT NULL DEFAULT '#0B2545',
   `bg_to` varchar(7) NOT NULL DEFAULT '#1a3a5c',
   `date_start` date DEFAULT NULL,

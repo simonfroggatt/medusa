@@ -29,7 +29,12 @@
         </div>
     </div>
 
-    {% if table_missing %}
+    {% if needs_update %}
+    <div class="row"><div class="col-lg-12"><div class="ibox"><div class="ibox-content">
+        <p class="mb-0"><strong>The banners table needs a small update.</strong>
+            Run <code>sql/2026-10-09_banner_text_align.sql</code> (adds the text position column), then reload.</p>
+    </div></div></div></div>
+    {% elif table_missing %}
     <div class="row"><div class="col-lg-12"><div class="ibox"><div class="ibox-content">
         <p class="mb-0"><strong>The banners table doesn't exist on this database yet.</strong>
             Run <code>sql/2026-10-09_banners.sql</code> to create it.</p>

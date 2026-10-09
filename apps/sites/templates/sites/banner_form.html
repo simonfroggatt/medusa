@@ -41,8 +41,9 @@
                     <div class="col-12 col-md-6">{{ form.link|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.button_text|as_crispy_field }}</div>
                     <div class="col-6 col-md-3">{{ form.button_style|as_crispy_field }}</div>
-                    <div class="col-6 col-md-3">{{ form.bg_from|as_crispy_field }}</div>
-                    <div class="col-6 col-md-3">{{ form.bg_to|as_crispy_field }}</div>
+                    <div class="col-12 col-md-4">{{ form.text_align|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.bg_from|as_crispy_field }}</div>
+                    <div class="col-6 col-md-4">{{ form.bg_to|as_crispy_field }}</div>
                     <div class="col-12">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a class="btn {{ BUTTON_CANCEL }}" href="{% url 'banners' %}">Cancel</a>

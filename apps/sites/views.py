@@ -11,7 +11,7 @@ from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.template.loader import render_to_string
-from django.db.utils import ProgrammingError
+from django.db.utils import ProgrammingError, DatabaseError
 from medusa.decorators import group_required
 from apps.sites import search_terms
 
@@ -207,14 +207,19 @@ def banners_list(request):
             banners = banners.filter(store_id=site_id)
         banners = list(banners)
         table_missing = False
-    except ProgrammingError as error:
-        if not error.args or error.args[0] != 1146:
+    except DatabaseError as error:
+        # 1146 = no table yet, 1054 = a column added by a later SQL file (text_align) isn't there yet
+        code = error.args[0] if error.args else None
+        if code not in (1146, 1054):
             raise
-        banners, table_missing = [], True
+        banners, table_missing, needs_update = [], code == 1146, code == 1054
+    else:
+        needs_update = False
     for banner in banners:
         banner.store_name = names.get(banner.store_id, 'Store %s' % banner.store_id)
     context = {'pageview': 'Banners', 'heading': 'Banners', 'breadcrumbs': [{'name': 'Sites', 'url': reverse_lazy('allsites')}],
-               'banners': banners, 'stores': stores, 'site_id': site_id, 'table_missing': table_missing}
+               'banners': banners, 'stores': stores, 'site_id': site_id, 'table_missing': table_missing,
+               'needs_update': needs_update}
     return render(request, 'sites/banners.html', context)
 
 
