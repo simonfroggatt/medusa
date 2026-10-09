@@ -47,6 +47,25 @@ def tree_rows(categories, rules, parents):
     return ordered
 
 
+def category_choices(categories, taken=()):
+    """[(id, "Parent > Child")] for a dropdown, sorted by that path, leaving out categories that already have a row.
+    Many sub-categories share a name ("General Signs" x8), so the parent has to be in the label."""
+    names = {cid: name for cid, name, _ in categories}
+    parents = {cid: parent for cid, _, parent in categories}
+    choices = []
+    for cid, name, _ in categories:
+        if cid in taken:
+            continue
+        path, current, hops, seen = [], cid, 0, set()
+        while current is not None and current in names and current not in seen and hops <= MAX_DEPTH:
+            seen.add(current)
+            path.append(names[current])
+            current = parents.get(current)
+            hops += 1
+        choices.append((cid, ' \u203a '.join(reversed(path))))
+    return sorted(choices, key=lambda choice: choice[1].lower())
+
+
 def load_categories(store_id):
     """Active shop categories of one store as [(id, name, parent_id)] in menu order, and {id: parent_id}."""
     from django.db import connection
@@ -67,13 +86,18 @@ def load_categories(store_id):
 
 
 def designer_products():
-    """The designer products an offer can open: [(product_id, title)]."""
+    """The designer products an offer can open: [(product_id, title)].
+    Picked by their designer template, not the is_bespoke flag (several designers don't carry it);
+    the stock-sign rebuilds (single_panel) and ordinary products are left out."""
     from django.db import connection
     with connection.cursor() as cursor:
         cursor.execute(
             """SELECT p.product_id, TRIM(pdb.title)
                  FROM oc_product p
+                 JOIN oc_tsg_bespoke_templates t ON t.id = p.bespoke_template_id
                  JOIN oc_product_description_base pdb ON pdb.product_id = p.product_id
-                WHERE p.is_bespoke = 1 AND p.status = 1
+                WHERE p.status = 1
+                  AND t.path LIKE 'bespoke/%%'
+                  AND t.path <> 'bespoke/single_panel'
                 ORDER BY pdb.title""")
         return [(pid, title) for pid, title in cursor.fetchall()]

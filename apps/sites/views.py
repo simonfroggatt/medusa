@@ -294,7 +294,7 @@ def _offer_form(request, rule=None):
     site_id = _offer_store(request.GET)
     categories, _ = bespoke_offers.load_categories(site_id)
     taken = set() if rule else set(OcTsgCategoryBespoke.objects.values_list('category_id', flat=True))
-    choices = [(cid, name) for cid, name, _ in categories if cid not in taken]
+    choices = bespoke_offers.category_choices(categories, taken)
     initial = {}
     if rule is None:
         try:

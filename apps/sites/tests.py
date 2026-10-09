@@ -537,6 +537,33 @@ class BespokeOfferResolveTests(SimpleTestCase):
                           ('Tie-Tags', 1, 'none', None), ('General', 0, 'unmapped', None)])
 
 
+class CategoryChoicesTests(SimpleTestCase):
+    def test_labels_include_the_parent_so_duplicate_names_can_be_told_apart(self):
+        categories = [(257, 'Warning Signs', None), (262, 'General Signs', 257), (270, 'Mandatory Signs', None),
+                      (277, 'General Signs', 270)]
+        labels = [label for _, label in bespoke_offers.category_choices(categories)]
+        self.assertEqual(labels, ['Mandatory Signs', 'Mandatory Signs \u203a General Signs', 'Warning Signs',
+                                  'Warning Signs \u203a General Signs'])
+
+    def test_categories_that_already_have_a_row_are_left_out(self):
+        categories = [(257, 'Warning Signs', None), (262, 'General Signs', 257)]
+        self.assertEqual([cid for cid, _ in bespoke_offers.category_choices(categories, taken={257})], [262])
+
+
+class DesignerProductsTests(SimpleTestCase):
+    def test_designers_are_picked_by_template_not_by_the_is_bespoke_flag(self):
+        connection = mock.MagicMock()
+        cursor = connection.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = [(41080, 'Custom Safe Conditions Sign ')]
+        with mock.patch('django.db.connection', connection):
+            result = bespoke_offers.designer_products()
+        sql = cursor.execute.call_args[0][0]
+        self.assertIn('bespoke_template_id', sql)
+        self.assertIn("<> 'bespoke/single_panel'", sql)
+        self.assertNotIn('is_bespoke', sql)
+        self.assertEqual(result, [(41080, 'Custom Safe Conditions Sign ')])
+
+
 class BespokeOfferFormTests(SimpleTestCase):
     CATEGORIES = [(250, 'No Smoking Signs'), (255, 'Tie-Tags')]
     PRODUCTS = [(41077, 'Custom Prohibition Sign'), (41079, 'Custom Warning Sign')]
