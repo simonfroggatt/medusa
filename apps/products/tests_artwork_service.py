@@ -344,3 +344,22 @@ class PdfCopyTests(SimpleTestCase):
         with mock.patch('apps.products.artwork_views.get_object_or_404', return_value=art):
             with self.assertRaises(Http404):
                 artwork_views.artwork_pdf_download(request, 1)
+
+
+class ContentTypeTests(SimpleTestCase):
+    """Python 3.8 on the live server cannot guess .webp, so the type is set explicitly on every file written."""
+
+    def test_every_file_written_carries_its_content_type(self):
+        prepared = artwork_service.prepare(sign_pdf(300, 100))
+        art = OcTsgProductArtwork(artwork_id=1)
+        written = {}
+        with mock.patch.object(artwork_service.default_storage, 'save',
+                               side_effect=lambda n, c: written.update({n: c.content_type}) or n), \
+                mock.patch.object(art, 'save'):
+            artwork_service.save_prepared(art, prepared, 'Fire exit Landscape', code='593')
+        types = {name.rsplit('.', 1)[1]: ctype for name, ctype in written.items()}
+        self.assertEqual(types, {'jpg': 'image/jpeg', 'webp': 'image/webp', 'pdf': 'application/pdf'})
+
+    def test_webp_is_registered_for_a_python_that_does_not_know_it(self):
+        import mimetypes
+        self.assertEqual(mimetypes.guess_type('x.webp')[0], 'image/webp')

@@ -25,6 +25,7 @@ overwrite), so the old image and any earlier artwork stay where they are.
 import datetime
 import io
 import logging
+import mimetypes
 import re
 from collections import namedtuple
 
@@ -38,12 +39,23 @@ from apps.products.artwork import ArtworkError
 
 logger = logging.getLogger('apps')
 
+# Python 3.8 (the live server) does not know .webp, so S3 would store the pictures as application/octet-stream
+mimetypes.add_type('image/webp', '.webp')
+
 MAX_PDF_BYTES = 30 * 1024 * 1024
 FOLDER = 'stores/products/v2/'
 PDF_FOLDER = 'medusa/product/artwork/'   # with the product documents, not in the public images folder
 EXTENSIONS = {'feed': 'jpg', 'page': 'webp', 'tile': 'webp'}
+CONTENT_TYPES = {'jpg': 'image/jpeg', 'webp': 'image/webp'}
 
 Prepared = namedtuple('Prepared', 'pdf_bytes versions problems keep_colours ratio')
+
+
+def _content(data, content_type):
+    """The bytes as a file that tells the S3 storage its content type, whatever the server's Python knows."""
+    content = ContentFile(data)
+    content.content_type = content_type
+    return content
 
 
 def slugify_name(text, fallback='product'):
@@ -97,10 +109,11 @@ def save_prepared(art, prepared, label, code=''):
     base = slugify_name(f'{label} {code}' if code else label)
     paths = {}
     for kind, data in prepared.versions.items():
-        paths[kind] = default_storage.save(f'{FOLDER}{base}-{kind}.{EXTENSIONS[kind]}', ContentFile(data))
+        paths[kind] = default_storage.save(f'{FOLDER}{base}-{kind}.{EXTENSIONS[kind]}',
+                                           _content(data, CONTENT_TYPES[EXTENSIONS[kind]]))
 
     # keep the print PDF, so it can be downloaded again to make changes (a new file each time, never replaced)
-    art.pdf_path = default_storage.save(f'{PDF_FOLDER}{base}-print.pdf', ContentFile(prepared.pdf_bytes))
+    art.pdf_path = default_storage.save(f'{PDF_FOLDER}{base}-print.pdf', _content(prepared.pdf_bytes, 'application/pdf'))
 
     stamp = datetime.date.today().strftime('%Y%m%d')
     drive_name = f'{(code or "").strip()} {label} website upload {stamp}.pdf'.strip()
