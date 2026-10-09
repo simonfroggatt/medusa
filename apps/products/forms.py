@@ -1,7 +1,7 @@
 from django import forms
 from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductToStore, \
     OcProductToCategory, OcTsgProductVariantCore, OcTsgProductVariants, OcStoreProductImages, OcProductImage, \
-    OcTsgProductDocuments, OcProductRelated, OcTsgProductToCategory, OcTsgProductStandard
+    OcTsgProductDocuments, OcProductRelated, OcTsgProductToCategory, OcTsgProductStandard, OcTsgProductArtwork
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions,  OcTsgProductOption, OcTsgProductOptionValues
 
@@ -12,79 +12,15 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column
 
 
-from apps.products import artwork_service
-from apps.products.artwork import ArtworkError
-
-# The new-image columns are written by the artwork upload, never by an ordinary form post.
-# A form built on '__all__' would blank them every time it was saved.
-ARTWORK_COLUMNS = ['image_feed', 'image_page', 'image_tile', 'artwork_drive_id',
-                   'artwork_filename', 'artwork_checks', 'artwork_date']
-
-
-class ArtworkUploadMixin:
-    """Adds a 'print-ready PDF' upload to a product or variant form.
-
-    The PDF is rendered and checked in clean(), so a PDF that cannot be used is turned down
-    on the form and nothing is saved. save() then writes the images (and the Drive copy).
-    """
-    artwork_label = ''
-    artwork_code = ''
-
-    def _add_artwork_field(self):
-        self.fields['artwork_pdf'] = forms.FileField(
-            required=False, label='Print-ready PDF',
-            help_text='Upload the print PDF and the website images are made from it: the Google '
-                      'feed picture, the product page picture and the grid tile.',
-            widget=forms.ClearableFileInput(attrs={'accept': 'application/pdf'}))
-
-    def clean_artwork_pdf(self):
-        upload = self.cleaned_data.get('artwork_pdf')
-        self._artwork = None
-        if not upload:
-            return upload
-        keep = bool(self.data.get('artwork_keep_colours')) if 'artwork_keep_colours' in self.fields else False
-        try:
-            self._artwork = artwork_service.prepare(upload.read(), filename=upload.name, keep_colours=keep)
-        except ArtworkError as exc:
-            raise forms.ValidationError(str(exc))
-        return upload
-
-    def save(self, commit=True):
-        instance = super().save(commit=commit)
-        prepared = getattr(self, '_artwork', None)
-        if commit and prepared:
-            artwork_service.save_prepared(instance, prepared, self.artwork_label_for(instance),
-                                          self.artwork_code_for(instance))
-            self.artwork_saved(instance)
-        return instance
-
-    def artwork_label_for(self, instance):
-        return self.artwork_label or 'product'
-
-    def artwork_code_for(self, instance):
-        return self.artwork_code
-
-    def artwork_saved(self, instance):
-        """Hook: called after new images were written to the instance."""
-
-
-class ProductForm(ArtworkUploadMixin, forms.ModelForm):
+class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        self._add_artwork_field()
         self.fields['tax_class'].empty_label = None
         self.fields['supplier'].empty_label = None
         self.fields['bulk_group'].empty_label = None
         self.fields['template'].empty_label = None
         self.fields['bespoke_template'].empty_label = None
         self.fields['default_order_status'].empty_label = None
-
-    def artwork_label_for(self, instance):
-        base = getattr(instance, 'productdescbase', None)
-        return (base.title if base and base.title else 'product')
-
-    def artwork_code_for(self, instance):
-        return str(instance.pk)
 
     class Meta:
         model = OcProduct
@@ -211,34 +147,30 @@ class VariantCoreOptionsOrderForm(forms.ModelForm):
         }
 
 
-class VariantCoreForm(ArtworkUploadMixin, forms.ModelForm):
+class ArtworkChoiceMixin:
+    """A variant picks which of its product's artworks it shows (see the product's Artwork tab)."""
+
+    def _limit_artwork_choices(self):
+        field = self.fields.get('artwork')
+        if not field:
+            return
+        product = self.instance.product_id or getattr(self.initial.get('product'), 'pk', self.initial.get('product')) \
+            or self.data.get('product')
+        field.queryset = OcTsgProductArtwork.objects.filter(product_id=product or 0)
+        field.empty_label = "The product's main artwork (default)"
+        field.required = False
+        field.help_text = 'Which picture this variant shows. Leave as the default unless it has its own shape or colours.'
+
+
+class VariantCoreForm(ArtworkChoiceMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(VariantCoreForm, self).__init__(*args, **kwargs)
-        self._add_artwork_field()
+        self._limit_artwork_choices()
         self.fields['supplier'].empty_label = None
-
-    apply_same_shape = forms.BooleanField(
-        required=False, initial=True, label='Also use for this product\'s other variants of the same shape',
-        help_text='For example 150x200 and 450x600 are the same shape. Variants that already have new '
-                  'images, and photoluminescent ones, are left alone.')
-
-    def artwork_saved(self, instance):
-        self.shared_with = 0
-        if self.cleaned_data.get('apply_same_shape') and instance.product_id:
-            self.shared_with = artwork_service.share_with_same_shape(instance)
-
-    def artwork_label_for(self, instance):
-        base = getattr(instance.product, 'productdescbase', None) if instance.product_id else None
-        return (base.title if base and base.title else 'variant')
-
-    def artwork_code_for(self, instance):
-        return instance.supplier_code or str(instance.pk)
-
 
     class Meta:
         model = OcTsgProductVariantCore
         fields = '__all__'
-        exclude = ARTWORK_COLUMNS
 
         widgets = {
             'product': forms.HiddenInput,
@@ -253,7 +185,7 @@ class VariantCoreForm(ArtworkUploadMixin, forms.ModelForm):
             'gtin': 'GTIN',
             'bl_live': 'LIVE',
             'cos_details': 'COS Details',
-            'artwork_keep_colours': 'Keep the PDF\'s own colours (photoluminescent)',
+            'artwork': 'Picture (artwork)',
         }
 
         field_classes = {
@@ -262,34 +194,15 @@ class VariantCoreForm(ArtworkUploadMixin, forms.ModelForm):
 
 
 
-class VariantCoreEditForm(ArtworkUploadMixin, forms.ModelForm):
+class VariantCoreEditForm(ArtworkChoiceMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(VariantCoreEditForm, self).__init__(*args, **kwargs)
-        self._add_artwork_field()
+        self._limit_artwork_choices()
         self.fields['supplier'].empty_label = None
-
-    apply_same_shape = forms.BooleanField(
-        required=False, initial=True, label='Also use for this product\'s other variants of the same shape',
-        help_text='For example 150x200 and 450x600 are the same shape. Variants that already have new '
-                  'images, and photoluminescent ones, are left alone.')
-
-    def artwork_saved(self, instance):
-        self.shared_with = 0
-        if self.cleaned_data.get('apply_same_shape') and instance.product_id:
-            self.shared_with = artwork_service.share_with_same_shape(instance)
-
-    def artwork_label_for(self, instance):
-        base = getattr(instance.product, 'productdescbase', None) if instance.product_id else None
-        return (base.title if base and base.title else 'variant')
-
-    def artwork_code_for(self, instance):
-        return instance.supplier_code or str(instance.pk)
-
 
     class Meta:
         model = OcTsgProductVariantCore
         fields = '__all__'
-        exclude = ARTWORK_COLUMNS
 
         widgets = {
             'product': forms.HiddenInput,
@@ -304,7 +217,7 @@ class VariantCoreEditForm(ArtworkUploadMixin, forms.ModelForm):
             'gtin': 'GTIN ',
             'bl_live': 'LIVE',
             'cos_details': 'COS Details',
-            'artwork_keep_colours': 'Keep the PDF\'s own colours (photoluminescent)',
+            'artwork': 'Picture (artwork)',
         }
 
 

@@ -22,6 +22,7 @@ from apps.category.models import OcTsgCategoryParent
 from apps.orders.models import OcOrderProduct
 from apps.products.models import (
     OcProductImage,
+    OcTsgProductArtwork,
     OcProductToStore,
     OcTsgProductToCategory,
     OcTsgProductVariantCore,
@@ -216,10 +217,16 @@ def build_offers(store, product_ids=None):
         core.pk: core
         for core in (OcTsgProductVariantCore.objects
                      .filter(product_id__in=pids)
-                     .select_related('product',
+                     .select_related('product', 'artwork',
                                      'size_material__product_size',
                                      'size_material__product_material'))
     }
+    # each core carries its own copy of its product; give them the main artwork up front so the
+    # image lookup in the loop below costs no query per variant
+    main_artworks = {a.product_id: a for a in OcTsgProductArtwork.objects.filter(product_id__in=pids, is_main=True)}
+    for core in cores.values():
+        core.product.__dict__['main_artwork'] = main_artworks.get(core.product_id)
+
     store_variants = defaultdict(list)
     for sv in (OcTsgProductVariants.objects
                .filter(store=store, isdeleted=False, prod_var_core_id__in=list(cores))):

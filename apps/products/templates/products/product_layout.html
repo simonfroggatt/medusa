@@ -70,9 +70,13 @@
                             </li>
 
                             <li>
+                                <a class="nav-link" id="product-artwork-tab" data-bs-toggle="tab" href="#tab-artwork-list" role="tab">
+                                    <i class="fa-solid fa-folder-open"></i> Artwork</a>
+                            </li>
+                            <li>
                                 <a class="nav-link" id="artwork-tab" data-bs-toggle="tab" href="#tab-artwork"
                                    role="tab">
-                                    <i class="fa-solid fa-folder-open"></i> Artwork</a>
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Bespoke recreation</a>
                             </li>
                             <li>
                                 <a class="nav-link" id="document-tab" data-bs-toggle="tab" href="#tab-documents"
@@ -114,6 +118,12 @@
                             <div role="tabpanel" id="tab-symbols" class="tab-pane fade">
                                 <div class="panel-body">
                                     {% include 'products/sub_layout/product-base-symbols.html' %}
+                                </div>
+                            </div>
+                            {# The product's print-ready PDFs and the pictures made from them (artwork_views.artwork_list). #}
+                            <div role="tabpanel" id="tab-artwork-list" class="tab-pane fade">
+                                <div class="panel-body" id="tab-artwork-list_contents">
+                                    <p class="text-muted">Loading…</p>
                                 </div>
                             </div>
                             {# The sign's own artwork: loaded when the tab is first opened, because it carries the designer with it. #}
@@ -184,6 +194,14 @@
                     }
                 });
             };
+
+            // The Artwork tab (the product's PDFs) is fetched the first time it is opened.
+            var artworkListLoaded = false;
+            $('#product-artwork-tab').on('shown.bs.tab', function () {
+                if (artworkListLoaded) return;
+                artworkListLoaded = true;
+                $('#tab-artwork-list_contents').load("{% url 'product_artwork-list' product_obj.product_id %}");
+            });
 
             $('#artwork-tab').on('shown.bs.tab', function () {
                 if (!loaded) window.loadArtworkTab();

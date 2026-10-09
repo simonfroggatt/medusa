@@ -3,7 +3,7 @@ from os.path import exists
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
-from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, \
+from .models import OcProduct, OcProductDescriptionBase, OcTsgProductVariantCore, OcTsgProductArtwork, \
     OcTsgProductVariants, OcProductToStore, OcProductToCategory, OcProductRelated, \
     OcProductImage, OcStoreProductImages, OcTsgProductDocuments, OcTsgProductToCategory, OcTsgProductStandard
 # OcTsgProductVariantOptions, OcTsgDepOptionClass,\
@@ -2032,9 +2032,6 @@ def _product_duplicate(product_id):
         # Duplicate OcProduct
         new_product = OcProduct.objects.create(
             image=original.image,
-            image_feed=original.image_feed,
-            image_page=original.image_page,
-            image_tile=original.image_tile,
             tax_class=original.tax_class,
             sort_order=original.sort_order,
             status=False,  # Start as inactive
@@ -2107,6 +2104,15 @@ def _product_duplicate(product_id):
 
     #Duplicate OcTsgProductVariantCore and OcTsgProductVariants
 
+        # the artworks come across too (sharing the same image files), so the copy's variants keep their pictures
+        artwork_map = {}
+        for art in original.artworks.all():
+            artwork_map[art.pk] = OcTsgProductArtwork.objects.create(
+                product=new_product, label=art.label, is_main=art.is_main, shape_ratio=art.shape_ratio,
+                keep_colours=art.keep_colours, image_feed=art.image_feed, image_page=art.image_page,
+                image_tile=art.image_tile, drive_id=art.drive_id, drive_filename=art.drive_filename,
+                checks=art.checks)
+
         core_mapping = {}
         for core in original.corevariants.all():
             new_core = OcTsgProductVariantCore.objects.create(
@@ -2117,6 +2123,7 @@ def _product_duplicate(product_id):
                 supplier_price=core.supplier_price,
                 exclude_fpnp=core.exclude_fpnp,
                 variant_image=core.variant_image,
+                artwork=artwork_map.get(core.artwork_id),
                 gtin=None,  # Don't copy GTIN
                 shipping_cost=core.shipping_cost,
                 bl_live=True,

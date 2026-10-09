@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.functional import cached_property
 from medusa.models import OcTsgCategoryTypes, OcLanguage
 from apps.sites.models import OcStore
 from django.conf import settings
@@ -34,15 +35,6 @@ class OcTsgBespokeTemplates(models.Model):
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
-    # New images made from the print-ready PDF (apps/products/artwork_service.py). Plain paths,
-    # relative to the media root like `image`. `image` stays as the fallback.
-    image_feed = models.CharField(max_length=255, blank=True, null=True)
-    image_page = models.CharField(max_length=255, blank=True, null=True)
-    image_tile = models.CharField(max_length=255, blank=True, null=True)
-    artwork_drive_id = models.CharField(max_length=100, blank=True, null=True)
-    artwork_filename = models.CharField(max_length=255, blank=True, null=True)
-    artwork_checks = models.CharField(max_length=500, blank=True, null=True)
-    artwork_date = models.DateTimeField(blank=True, null=True)
     tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING)
     sort_order = models.IntegerField()
     status = models.BooleanField()
@@ -69,10 +61,15 @@ class OcProduct(models.Model):
         else:
             return f"{settings.MEDIA_URL}no-image.png"
 
+    @cached_property
+    def main_artwork(self):
+        """The artwork flagged as this product's main picture, or None."""
+        return self.artworks.filter(is_main=True).first()
+
     def image_url_for(self, kind):
-        """The product's picture for 'feed', 'page' or 'tile': the new one if it has it, else the old image."""
-        new = getattr(self, f'image_{kind}', None)
-        return f"{settings.MEDIA_URL}{new}" if new else self.image_url
+        """The product's picture for 'feed', 'page' or 'tile': its main artwork's, else the old image."""
+        art = self.main_artwork
+        return art.image_url_for(kind) if art and art.image_url_for(kind) else self.image_url
 
     class Meta:
         managed = False
@@ -163,6 +160,40 @@ class OcTsgProductSizes(models.Model):
 
 
 
+class OcTsgProductArtwork(models.Model):
+    """One print-ready PDF of a product and the three pictures made from it (apps/products/artwork_service.py).
+
+    The picture follows the shape of the sign, not the size or material, so a product has a handful of
+    these (landscape, portrait, photoluminescent) and its variants pick one.
+    """
+    artwork_id = models.AutoField(primary_key=True)
+    product = models.ForeignKey(OcProduct, models.DO_NOTHING, related_name='artworks')
+    label = models.CharField(max_length=100)
+    is_main = models.BooleanField(default=False)
+    shape_ratio = models.DecimalField(max_digits=8, decimal_places=4, blank=True, null=True)
+    keep_colours = models.BooleanField(default=False)
+    image_feed = models.CharField(max_length=255, blank=True, null=True)
+    image_page = models.CharField(max_length=255, blank=True, null=True)
+    image_tile = models.CharField(max_length=255, blank=True, null=True)
+    drive_id = models.CharField(max_length=100, blank=True, null=True)
+    drive_filename = models.CharField(max_length=255, blank=True, null=True)
+    checks = models.CharField(max_length=500, blank=True, null=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_product_artwork'
+        ordering = ['-is_main', 'label']
+
+    def __str__(self):
+        return self.label
+
+    def image_url_for(self, kind):
+        path = getattr(self, f'image_{kind}', None)
+        return f"{settings.MEDIA_URL}{path}" if path else None
+
+
 class OcTsgProductVariantCore(models.Model):
     prod_variant_core_id = models.AutoField(primary_key=True)
     product = models.ForeignKey(OcProduct, models.DO_NOTHING, blank=True, null=True, related_name='corevariants')
@@ -172,15 +203,8 @@ class OcTsgProductVariantCore(models.Model):
     supplier_price = models.DecimalField(max_digits=5, decimal_places=2)
     exclude_fpnp = models.BooleanField()
     variant_image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
-    # New images made from the variant's own print PDF (photoluminescent, portrait ...). Same as OcProduct.
-    image_feed = models.CharField(max_length=255, blank=True, null=True)
-    image_page = models.CharField(max_length=255, blank=True, null=True)
-    image_tile = models.CharField(max_length=255, blank=True, null=True)
-    artwork_drive_id = models.CharField(max_length=100, blank=True, null=True)
-    artwork_filename = models.CharField(max_length=255, blank=True, null=True)
-    artwork_checks = models.CharField(max_length=500, blank=True, null=True)
-    artwork_date = models.DateTimeField(blank=True, null=True)
-    artwork_keep_colours = models.BooleanField(default=False)
+    # Which of the product's artworks this variant shows. NULL = the product's main artwork.
+    artwork = models.ForeignKey('OcTsgProductArtwork', models.DO_NOTHING, blank=True, null=True, related_name='variants')
     gtin = models.CharField(max_length=255, blank=True, null=True)
     shipping_cost = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     bl_live = models.BooleanField()
@@ -204,15 +228,17 @@ class OcTsgProductVariantCore(models.Model):
             return self.product.image_url
 
     def image_url_for(self, kind):
-        """'feed', 'page' or 'tile' picture for this variant. In order: the variant's new image, the
-        variant's old image (an orientation or photoluminescent picture keeps showing until someone
-        uploads a PDF for it), the product's new image, the product's old image."""
-        new = getattr(self, f'image_{kind}', None)
-        if new:
-            return f"{settings.MEDIA_URL}{new}"
+        """'feed', 'page' or 'tile' picture for this variant. In order: the variant's artwork, the
+        variant's old image (an orientation or photoluminescent picture keeps showing until it gets an
+        artwork), the product's main artwork, the product's old image."""
+        if self.artwork_id:
+            url = self.artwork.image_url_for(kind)
+            if url:
+                return url
         if self.variant_image:
             return f"{settings.MEDIA_URL}{self.variant_image}"
         return self.product.image_url_for(kind)
+
 
 
 
