@@ -218,3 +218,81 @@ class SerializerFieldTests(SimpleTestCase):
         core = OcTsgProductVariantCore(product=OcProduct(image='stores/products/old.gif'))
         core.product.__dict__['main_artwork'] = None
         self.assertTrue(CoreVariantSerializer().get_variant_image_url(core).endswith('stores/products/old.gif'))
+
+
+class TakeOverTests(SimpleTestCase):
+    """The artwork's page picture is written into the existing image field; the old value is remembered."""
+
+    def test_taking_over_remembers_the_old_image(self):
+        self.assertEqual(artwork_service.take_over('stores/products/old.gif', None, 'v2/new.webp'),
+                         ('v2/new.webp', 'stores/products/old.gif'))
+
+    def test_an_empty_field_is_remembered_as_empty_not_as_untouched(self):
+        self.assertEqual(artwork_service.take_over('', None, 'v2/new.webp'), ('v2/new.webp', ''))
+        self.assertEqual(artwork_service.take_over(None, None, 'v2/new.webp'), ('v2/new.webp', ''))
+
+    def test_a_second_artwork_keeps_the_original_old_image(self):
+        self.assertEqual(artwork_service.take_over('v2/first.webp', 'stores/products/old.gif', 'v2/second.webp'),
+                         ('v2/second.webp', 'stores/products/old.gif'))
+
+    def test_removing_the_artwork_puts_the_old_image_back(self):
+        self.assertEqual(artwork_service.take_over('v2/new.webp', 'stores/products/old.gif', None),
+                         ('stores/products/old.gif', None))
+
+    def test_removing_the_artwork_from_an_empty_field_leaves_it_empty(self):
+        self.assertEqual(artwork_service.take_over('v2/new.webp', '', None), (None, None))
+
+    def test_no_artwork_and_nothing_taken_over_changes_nothing(self):
+        self.assertEqual(artwork_service.take_over('stores/products/old.gif', None, None),
+                         ('stores/products/old.gif', None))
+
+
+class WriteThroughSyncTests(SimpleTestCase):
+    """sync_product / sync_variants only write when something changes, and never touch the old files."""
+
+    def _product(self, image, previous=None):
+        product = mock.MagicMock()
+        product.image.name = image
+        product.image.__bool__ = lambda s: bool(image)
+        product.previous_image = previous
+        return product
+
+    def _sync_product(self, product, main):
+        with mock.patch('apps.products.models.OcProduct.objects') as products, \
+                mock.patch('apps.products.models.OcTsgProductArtwork.objects') as artworks:
+            products.get.return_value = product
+            artworks.filter.return_value.exclude.return_value.exclude.return_value.first.return_value = main
+            changed = artwork_service.sync_product(7)
+        return changed, products.filter.return_value.update
+
+    def test_a_main_artwork_writes_its_page_picture_into_image(self):
+        changed, update = self._sync_product(self._product('stores/products/old.gif'),
+                                             OcTsgProductArtwork(image_page='v2/main-page.webp'))
+        self.assertTrue(changed)
+        self.assertEqual(update.call_args.kwargs['image'], 'v2/main-page.webp')
+        self.assertEqual(update.call_args.kwargs['previous_image'], 'stores/products/old.gif')
+
+    def test_nothing_is_written_when_it_is_already_in_sync(self):
+        changed, update = self._sync_product(self._product('v2/main-page.webp', 'stores/products/old.gif'),
+                                             OcTsgProductArtwork(image_page='v2/main-page.webp'))
+        self.assertFalse(changed)
+        update.assert_not_called()
+
+    def test_no_main_artwork_restores_the_old_image(self):
+        changed, update = self._sync_product(self._product('v2/main-page.webp', 'stores/products/old.gif'), None)
+        self.assertTrue(changed)
+        self.assertEqual(update.call_args.kwargs['image'], 'stores/products/old.gif')
+        self.assertIsNone(update.call_args.kwargs['previous_image'])
+
+
+class VariantFormGuardTests(SimpleTestCase):
+    def test_variant_forms_never_post_the_remembered_old_image(self):
+        for form_class in (VariantCoreForm, VariantCoreEditForm):
+            self.assertNotIn('previous_variant_image', form_class().fields)
+
+    def test_saving_a_variant_form_writes_the_artwork_picture_through(self):
+        form = VariantCoreEditForm(instance=OcTsgProductVariantCore(prod_variant_core_id=15, product_id=1))
+        with mock.patch('django.forms.ModelForm.save', return_value=form.instance), \
+                mock.patch('apps.products.forms.artwork_service.sync_variants') as sync:
+            form.save()
+        sync.assert_called_once_with([15])

@@ -2034,6 +2034,7 @@ def _product_duplicate(product_id):
         # Duplicate OcProduct
         new_product = OcProduct.objects.create(
             image=original.image,
+            previous_image=original.previous_image,
             tax_class=original.tax_class,
             sort_order=original.sort_order,
             status=False,  # Start as inactive
@@ -2125,6 +2126,7 @@ def _product_duplicate(product_id):
                 supplier_price=core.supplier_price,
                 exclude_fpnp=core.exclude_fpnp,
                 variant_image=core.variant_image,
+                previous_variant_image=core.previous_variant_image,
                 artwork=artwork_map.get(core.artwork_id),
                 gtin=None,  # Don't copy GTIN
                 shipping_cost=core.shipping_cost,

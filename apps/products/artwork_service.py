@@ -13,6 +13,12 @@ Two steps so a bad PDF is turned down before anything is saved:
 `artwork` is an OcTsgProductArtwork row. A product has a few of these (one per shape), and its
 variants pick one: see variants_for_artwork.
 
+Write-through: the artwork's page picture is also written into the existing image fields
+(oc_product.image for the main artwork, oc_tsg_product_variant_core.variant_image for a variant's
+artwork), so everything that already reads those fields (the shop, carts, orders, emails, paperwork)
+shows it with no change. What the field held is remembered in previous_image / previous_variant_image
+and put back when the artwork is removed. See take_over and the sync_* functions.
+
 New files get new names and never replace an existing file (the media storage does not
 overwrite), so the old image and any earlier artwork stay where they are.
 """
@@ -145,6 +151,62 @@ def variants_for_artwork(art):
     return same_shape_ids(art.shape_ratio, art.keep_colours, candidates)
 
 
+def take_over(current, previous, new):
+    """The image field's new value and its remembered previous value, as (value, previous).
+
+    current:  the path the field holds now ('' or None when empty)
+    previous: NULL (None) when no artwork has taken the field over, else what it held before ('' = empty)
+    new:      the artwork's page picture, or None when no artwork should be showing
+    """
+    if new:
+        return new, (previous if previous is not None else (current or ''))
+    if previous is not None:
+        return (previous or None), None
+    return current, None
+
+
+def sync_product(product_id):
+    """Put the product's main artwork picture into oc_product.image (or restore the old one)."""
+    from django.utils import timezone
+
+    from apps.products.models import OcProduct, OcTsgProductArtwork
+
+    product = OcProduct.objects.get(pk=product_id)
+    main = (OcTsgProductArtwork.objects.filter(product_id=product_id, is_main=True)
+            .exclude(image_page__isnull=True).exclude(image_page='').first())
+    current = product.image.name if product.image else ''
+    value, previous = take_over(current, product.previous_image, main.image_page if main else None)
+    if (value or '') != (current or '') or previous != product.previous_image:
+        OcProduct.objects.filter(pk=product_id).update(image=value, previous_image=previous,
+                                                       date_modified=timezone.now())
+        return True
+    return False
+
+
+def sync_variants(core_ids):
+    """Put each variant's artwork picture into its variant_image (or restore the old one)."""
+    from apps.products.models import OcTsgProductVariantCore
+
+    changed = 0
+    for core in OcTsgProductVariantCore.objects.filter(pk__in=list(core_ids)).select_related('artwork'):
+        art = core.artwork
+        new = art.image_page if art and art.image_page else None
+        current = core.variant_image.name if core.variant_image else ''
+        value, previous = take_over(current, core.previous_variant_image, new)
+        if (value or '') != (current or '') or previous != core.previous_variant_image:
+            OcTsgProductVariantCore.objects.filter(pk=core.pk).update(variant_image=value, previous_variant_image=previous)
+            changed += 1
+    return changed
+
+
+def sync_artwork(art):
+    """After an artwork's images or main flag changed: update the product image and the variants using it."""
+    from apps.products.models import OcTsgProductVariantCore
+
+    sync_product(art.product_id)
+    sync_variants(OcTsgProductVariantCore.objects.filter(artwork_id=art.pk).values_list('pk', flat=True))
+
+
 def assign_to_matching_variants(art):
     """Point the matching variants at this artwork. Returns how many were changed."""
     from apps.products.models import OcTsgProductVariantCore
@@ -152,4 +214,6 @@ def assign_to_matching_variants(art):
     ids = variants_for_artwork(art)
     if not ids:
         return 0
-    return OcTsgProductVariantCore.objects.filter(pk__in=ids).update(artwork=art)
+    changed = OcTsgProductVariantCore.objects.filter(pk__in=ids).update(artwork=art)
+    sync_variants(ids)
+    return changed

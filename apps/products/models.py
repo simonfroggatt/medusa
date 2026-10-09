@@ -35,6 +35,8 @@ class OcTsgBespokeTemplates(models.Model):
 class OcProduct(models.Model):
     product_id = models.AutoField(primary_key=True)
     image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
+    # What `image` held before the main artwork took it over (apps/products/artwork_service.py). NULL = not taken over.
+    previous_image = models.CharField(max_length=255, blank=True, null=True)
     tax_class = models.ForeignKey(OcTaxClass, models.DO_NOTHING)
     sort_order = models.IntegerField()
     status = models.BooleanField()
@@ -208,6 +210,8 @@ class OcTsgProductVariantCore(models.Model):
     supplier_price = models.DecimalField(max_digits=5, decimal_places=2)
     exclude_fpnp = models.BooleanField()
     variant_image = models.ImageField( upload_to='stores/products/', null=True, blank=True)
+    # What `variant_image` held before the variant's artwork took it over. NULL = it is the variant's own.
+    previous_variant_image = models.CharField(max_length=255, blank=True, null=True)
     # Which of the product's artworks this variant shows. NULL = the product's main artwork.
     artwork = models.ForeignKey('OcTsgProductArtwork', models.DO_NOTHING, blank=True, null=True, related_name='variants')
     gtin = models.CharField(max_length=255, blank=True, null=True)

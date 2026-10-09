@@ -5,6 +5,7 @@ from apps.products.models import OcProduct, OcProductDescriptionBase, OcProductT
 
 from apps.options.models import OcTsgProductVariantCoreOptions, OcTsgProductVariantOptions,  OcTsgProductOption, OcTsgProductOptionValues
 
+from apps.products import artwork_service
 from tinymce.widgets import TinyMCE
 from django_svg_image_form_field import SvgAndImageFormField
 from crispy_bootstrap5.bootstrap5 import FloatingField
@@ -161,6 +162,13 @@ class ArtworkChoiceMixin:
         field.required = False
         field.help_text = 'Which picture this variant shows. Leave as the default unless it has its own shape or colours.'
 
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        if commit:
+            # write-through: the chosen artwork's picture goes into variant_image (or the old one comes back)
+            artwork_service.sync_variants([instance.pk])
+        return instance
+
 
 class VariantCoreForm(ArtworkChoiceMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -171,6 +179,8 @@ class VariantCoreForm(ArtworkChoiceMixin, forms.ModelForm):
     class Meta:
         model = OcTsgProductVariantCore
         fields = '__all__'
+        # written only by the artwork write-through (artwork_service); a form post would blank it
+        exclude = ['previous_variant_image']
 
         widgets = {
             'product': forms.HiddenInput,
@@ -203,6 +213,8 @@ class VariantCoreEditForm(ArtworkChoiceMixin, forms.ModelForm):
     class Meta:
         model = OcTsgProductVariantCore
         fields = '__all__'
+        # written only by the artwork write-through (artwork_service); a form post would blank it
+        exclude = ['previous_variant_image']
 
         widgets = {
             'product': forms.HiddenInput,

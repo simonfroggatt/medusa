@@ -70,6 +70,7 @@ def artwork_save(request, product_id):
         if prepared:
             title = getattr(getattr(product, 'productdescbase', None), 'title', '') or 'product'
             artwork_service.save_prepared(art, prepared, f'{title} {label}', str(product.pk))
+        artwork_service.sync_artwork(art)   # write-through into oc_product.image / variant_image
     return JsonResponse({'ok': True, 'problems': prepared.problems if prepared else []})
 
 
@@ -80,6 +81,7 @@ def artwork_set_main(request, pk):
     with transaction.atomic():
         OcTsgProductArtwork.objects.filter(product_id=art.product_id).update(is_main=False)
         OcTsgProductArtwork.objects.filter(pk=art.pk).update(is_main=True)
+        artwork_service.sync_product(art.product_id)
     return JsonResponse({'ok': True})
 
 
@@ -94,7 +96,12 @@ def artwork_assign(request, pk):
 @login_required
 @require_POST
 def artwork_delete(request, pk):
-    """Remove the artwork row. The image files stay in storage; variants using it go back to the main artwork."""
+    """Remove the artwork row. The image files stay in storage; variants using it go back to their old image, or the main artwork."""
     art = get_object_or_404(OcTsgProductArtwork, pk=pk)
-    art.delete()
+    product_id = art.product_id
+    core_ids = list(art.variants.values_list('pk', flat=True))
+    with transaction.atomic():
+        art.delete()   # the variants using it go back to no artwork (foreign key SET NULL)
+        artwork_service.sync_variants(core_ids)   # ... and get their old image back
+        artwork_service.sync_product(product_id)
     return JsonResponse({'ok': True})
