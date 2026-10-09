@@ -1,0 +1,138 @@
+{% load static %}
+{# The product's artworks: one per shape. Loaded into the Artwork tab (artwork_views.artwork_list). #}
+<div id="artwork-panel" data-product="{{ product_id }}">
+    {% csrf_token %}
+    <p class="text-muted small mb-3">
+        Upload the print-ready PDF for each shape of this sign (landscape, portrait, photoluminescent ...).
+        The website pictures are made from it. Each variant picks one of these on its own edit form;
+        a variant with none shows the <strong>main</strong> artwork.
+        {% if artworks %}{{ variants_total }} variant{{ variants_total|pluralize }} on this product.{% endif %}
+    </p>
+    <div id="artwork-message" class="alert d-none" role="alert"></div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for art in artworks %}
+            <div class="col">
+                <div class="card h-100 {% if art.is_main %}border-success{% endif %}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>{{ art.label }}</strong>
+                        <span>
+                            {% if art.is_main %}<span class="badge bg-success">Main</span>{% endif %}
+                            {% if art.keep_colours %}<span class="badge bg-info text-dark" title="Own colours kept">Photoluminescent</span>{% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if art.image_page %}
+                            <img src="{% get_media_prefix %}{{ art.image_page }}" class="img-thumbnail mb-2" style="max-height:140px;max-width:100%" alt="">
+                            <img src="{% get_media_prefix %}{{ art.image_tile }}" class="img-thumbnail mb-2" style="height:80px" alt="" title="grid tile">
+                        {% else %}
+                            <p class="text-muted">No images made yet.</p>
+                        {% endif %}
+                        <div class="small text-muted">
+                            Shape {{ art.shape_ratio|default_if_none:"?" }} : 1 &middot;
+                            used by {{ art.used_by }} variant{{ art.used_by|pluralize }}
+                            {% if art.date_modified %}&middot; made {{ art.date_modified|date:"d M Y" }}{% endif %}
+                        </div>
+                        {% if art.checks %}<div class="small text-warning mt-1">Needs a look: {{ art.checks }}</div>{% endif %}
+                        {% if art.drive_filename %}<div class="small text-muted mt-1">On Drive: {{ art.drive_filename }}</div>{% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if not art.is_main %}
+                                <button type="button" class="btn btn-outline-success btn-sm js-artwork-main" data-url="{% url 'product_artwork-main' art.pk %}">Make main</button>
+                            {% endif %}
+                            {% if art.matching %}
+                                <button type="button" class="btn btn-outline-primary btn-sm js-artwork-assign" data-url="{% url 'product_artwork-assign' art.pk %}"
+                                        title="Variants of the same shape that have no artwork yet">Use for {{ art.matching }} matching variant{{ art.matching|pluralize }}</button>
+                            {% endif %}
+                            <button type="button" class="btn btn-outline-secondary btn-sm js-artwork-replace" data-id="{{ art.pk }}" data-label="{{ art.label }}"
+                                    data-main="{{ art.is_main|yesno:'1,0' }}" data-keep="{{ art.keep_colours|yesno:'1,0' }}">Replace PDF / rename</button>
+                            <button type="button" class="btn btn-outline-danger btn-sm js-artwork-delete" data-url="{% url 'product_artwork-delete' art.pk %}"
+                                    data-used="{{ art.used_by }}">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <div class="col">
+            <div class="card h-100">
+                <form id="artwork-form" enctype="multipart/form-data" action="{% url 'product_artwork-save' product_id %}">
+                    <input type="hidden" name="artwork_id" value="">
+                    <div class="card-header"><strong id="artwork-form-title">Add artwork</strong></div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <label class="form-label small mb-0">Label</label>
+                            <input type="text" name="label" class="form-control form-control-sm" maxlength="100" placeholder="e.g. Landscape, Portrait 2:3, Photoluminescent">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-0">Print-ready PDF</label>
+                            <input type="file" name="pdf" class="form-control form-control-sm" accept="application/pdf">
+                        </div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="is_main" id="artwork-is-main"><label class="form-check-label small" for="artwork-is-main">This is the product's main artwork</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="keep_colours" id="artwork-keep"><label class="form-check-label small" for="artwork-keep">Photoluminescent: keep the PDF's own colours</label></div>
+                    </div>
+                    <div class="card-footer d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-sm" id="artwork-submit"><i class="fa-regular fa-arrow-up"></i> Make the images</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="artwork-cancel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var panel = document.getElementById('artwork-panel');
+    var csrf = panel.querySelector('[name=csrfmiddlewaretoken]').value;
+    var listUrl = "{% url 'product_artwork-list' product_id %}";
+    var box = panel.querySelector('#artwork-message');
+
+    function say(text, kind) { box.className = 'alert alert-' + kind; box.textContent = text; }
+    function reload(then) { $('#tab-artwork-list_contents').load(listUrl, then); }
+    function post(url, body) {
+        body = body || new FormData();
+        body.append('csrfmiddlewaretoken', csrf);
+        return fetch(url, {method: 'POST', body: body, credentials: 'same-origin'}).then(function (r) {
+            return r.json().catch(function () { return {ok: false, error: 'The server did not accept that (are you logged in?).'}; });
+        });
+    }
+
+    panel.addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        if (b.classList.contains('js-artwork-main')) {
+            post(b.dataset.url).then(function () { reload(); });
+        } else if (b.classList.contains('js-artwork-assign')) {
+            post(b.dataset.url).then(function (d) { reload(function () { say('Now used by ' + d.changed + ' more variant(s).', 'success'); }); });
+        } else if (b.classList.contains('js-artwork-delete')) {
+            var n = parseInt(b.dataset.used, 10);
+            if (confirm('Delete this artwork?' + (n ? ' ' + n + ' variant(s) will go back to the main artwork.' : '') + ' The image files are kept.')) {
+                post(b.dataset.url).then(function () { reload(); });
+            }
+        } else if (b.classList.contains('js-artwork-replace')) {
+            var f = panel.querySelector('#artwork-form');
+            f.artwork_id.value = b.dataset.id; f.label.value = b.dataset.label;
+            f.is_main.checked = b.dataset.main === '1'; f.keep_colours.checked = b.dataset.keep === '1';
+            panel.querySelector('#artwork-form-title').textContent = 'Change "' + b.dataset.label + '" (choose a PDF only to replace it)';
+            panel.querySelector('#artwork-cancel').classList.remove('d-none');
+            f.scrollIntoView({behavior: 'smooth', block: 'center'});
+        } else if (b.id === 'artwork-cancel') {
+            reload();
+        }
+    });
+
+    panel.querySelector('#artwork-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var f = e.target, submit = panel.querySelector('#artwork-submit');
+        submit.disabled = true; say('Making the images…', 'info');
+        post(f.action, new FormData(f)).then(function (d) {
+            if (!d.ok) { submit.disabled = false; say(d.error, 'danger'); return; }
+            reload(function () {
+                if (d.problems && d.problems.length) say('Saved. Needs a look: ' + d.problems.join('; '), 'warning');
+                else say('Saved.', 'success');
+            });
+        });
+    });
+})();
+</script>

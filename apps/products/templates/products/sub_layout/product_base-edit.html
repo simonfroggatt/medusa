@@ -32,22 +32,6 @@
                             <div class="col-1" >{{ form_product.status|as_crispy_field }}</div>
                             <div class="col-1">{{ form_product.mib_logo|as_crispy_field }}</div>
                         </div>
-                        <div class="row mt-2">
-                            <div class="col-6">{{ form_product.artwork_pdf|as_crispy_field }}</div>
-                            <div class="col-6">
-                                {% if form_product.instance.image_feed %}
-                                    <div class="d-flex gap-2 align-items-end">
-                                        <img class="img-thumbnail" style="height:90px" src="{% get_media_prefix %}{{ form_product.instance.image_tile }}" title="tile">
-                                        <img class="img-thumbnail" style="height:90px" src="{% get_media_prefix %}{{ form_product.instance.image_page }}" title="product page">
-                                    </div>
-                                    <small class="text-muted">New images made {{ form_product.instance.artwork_date|date:"d M Y H:i" }}</small>
-                                    {% if form_product.instance.artwork_checks %}
-                                        <div class="text-warning small">Needs a look: {{ form_product.instance.artwork_checks }}</div>
-                                    {% endif %}
-                                {% else %}
-                                    <small class="text-muted">No new images yet. The old image above is still used.</small>
-                                {% endif %}
-                            </div>
                         </div>
 
                     </div>

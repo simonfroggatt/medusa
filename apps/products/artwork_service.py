@@ -8,7 +8,16 @@ Google Drive, and the columns on the product or variant.
 Two steps so a bad PDF is turned down before anything is saved:
 
     prepared = prepare(pdf_bytes, keep_colours=False)      # raises ArtworkError; saves nothing
-    save_prepared(instance, prepared, label='Fire exit arrow left sign')
+    save_prepared(artwork, prepared, label='Fire exit arrow left sign')
+
+`artwork` is an OcTsgProductArtwork row. A product has a few of these (one per shape), and its
+variants pick one: see variants_for_artwork.
+
+Write-through: the artwork's page picture is also written into the existing image fields
+(oc_product.image for the main artwork, oc_tsg_product_variant_core.variant_image for a variant's
+artwork), so everything that already reads those fields (the shop, carts, orders, emails, paperwork)
+shows it with no change. What the field held is remembered in previous_image / previous_variant_image
+and put back when the artwork is removed. See take_over and the sync_* functions.
 
 New files get new names and never replace an existing file (the media storage does not
 overwrite), so the old image and any earlier artwork stay where they are.
@@ -33,7 +42,7 @@ MAX_PDF_BYTES = 30 * 1024 * 1024
 FOLDER = 'stores/products/v2/'
 EXTENSIONS = {'feed': 'jpg', 'page': 'webp', 'tile': 'webp'}
 
-Prepared = namedtuple('Prepared', 'pdf_bytes versions problems keep_colours')
+Prepared = namedtuple('Prepared', 'pdf_bytes versions problems keep_colours ratio')
 
 
 def slugify_name(text, fallback='product'):
@@ -51,7 +60,8 @@ def prepare(pdf_bytes, filename='', keep_colours=False):
     problems = artwork.check_master(master)
     if 'photolum' in (filename or '').lower() and not keep_colours:
         problems.append('The file name says photoluminescent but "keep original colours" is off.')
-    return Prepared(pdf_bytes, artwork.make_versions(master), problems, keep_colours)
+    ratio = round(master.width / master.height, 4)
+    return Prepared(pdf_bytes, artwork.make_versions(master), problems, keep_colours, ratio)
 
 
 def upload_to_drive(name, pdf_bytes):
@@ -76,13 +86,12 @@ def upload_to_drive(name, pdf_bytes):
         return None
 
 
-def save_prepared(instance, prepared, label, code=''):
-    """Write the images and the PDF, then record them on the product or variant.
+def save_prepared(art, prepared, label, code=''):
+    """Write the images and the PDF, then record them on the OcTsgProductArtwork row.
 
-    instance: an OcProduct or OcTsgProductVariantCore (both have the same artwork columns).
-    label:    words for the file names, e.g. the product title.
-    code:     the product or variant code, used in the file names and the Drive name.
-    Returns the Drive file id or None.
+    label: words for the file names, e.g. the product title and the artwork's label.
+    code:  the product code, used in the file names and the Drive name.
+    Returns the Drive file id or None. The caller has already saved `art` (it needs an id).
     """
     base = slugify_name(f'{label} {code}' if code else label)
     paths = {}
@@ -93,61 +102,118 @@ def save_prepared(instance, prepared, label, code=''):
     drive_name = f'{(code or "").strip()} {label} website upload {stamp}.pdf'.strip()
     drive_id = upload_to_drive(drive_name, prepared.pdf_bytes)
 
-    instance.image_feed, instance.image_page, instance.image_tile = paths['feed'], paths['page'], paths['tile']
-    instance.artwork_checks = ('; '.join(prepared.problems))[:500] or None
-    instance.artwork_date = timezone.now()
-    fields = ['image_feed', 'image_page', 'image_tile', 'artwork_checks', 'artwork_date']
+    art.image_feed, art.image_page, art.image_tile = paths['feed'], paths['page'], paths['tile']
+    art.shape_ratio = prepared.ratio
+    art.keep_colours = prepared.keep_colours
+    art.checks = ('; '.join(prepared.problems))[:500] or None
+    fields = ['image_feed', 'image_page', 'image_tile', 'shape_ratio', 'keep_colours', 'checks', 'date_modified']
     if drive_id:
-        instance.artwork_drive_id = drive_id
-        instance.artwork_filename = drive_name[:255]
-        fields += ['artwork_drive_id', 'artwork_filename']
-    instance.save(update_fields=fields)
+        art.drive_id = drive_id
+        art.drive_filename = drive_name[:255]
+        fields += ['drive_id', 'drive_filename']
+    art.save(update_fields=fields)
     return drive_id
 
 
 SHAPE_TOLERANCE = 0.015   # width/height ratios within 1.5% are the same shape (150x200 = 450x600)
 
 
-def same_shape_ids(source, candidates):
-    """Which of a product's other variants should share this variant's new images.
+def same_shape_ids(ratio, keep_colours, candidates):
+    """Which variants should use an artwork of this shape.
 
-    source / candidates are (id, width, height, material_name, has_new_images) tuples, with the
-    source first. A candidate shares when it has the same shape, has no new images of its own, and is
-    not a photoluminescent material (those keep their own colours, so need their own PDF).
+    ratio:        the artwork's width / height
+    keep_colours: True for a photoluminescent artwork, which suits only photoluminescent materials;
+                  a normal artwork never goes onto a photoluminescent material
+    candidates:   (variant id, width, height, material name) of the variants with no artwork yet
     """
-    sid, sw, sh = source[0], source[1], source[2]
-    if not sw or not sh:
+    if not ratio:
         return []
-    ratio = sw / sh
     ids = []
-    for cid, w, h, material, has_new in candidates:
-        if cid == sid or has_new or not w or not h:
+    for vid, w, h, material in candidates:
+        if not w or not h:
             continue
-        if 'photo' in (material or '').lower():
+        photo = 'photo' in (material or '').lower()
+        if photo != bool(keep_colours):
             continue
-        if abs((w / h) / ratio - 1) <= SHAPE_TOLERANCE:
-            ids.append(cid)
+        if abs((w / h) / float(ratio) - 1) <= SHAPE_TOLERANCE:
+            ids.append(vid)
     return ids
 
 
-def share_with_same_shape(core):
-    """Give the variant's new images to the product's other variants of the same shape.
-
-    Returns how many were updated. The files are shared, not copied.
-    """
+def variants_for_artwork(art):
+    """The product's variants with no artwork yet that match this artwork's shape (ids)."""
     from apps.products.models import OcTsgProductVariantCore
 
-    rows = (OcTsgProductVariantCore.objects.filter(product_id=core.product_id)
+    rows = (OcTsgProductVariantCore.objects.filter(product_id=art.product_id, artwork__isnull=True)
             .select_related('size_material__product_size', 'size_material__product_material'))
-    def row(c):
-        size = c.size_material.product_size
-        return (c.pk, size.size_width, size.size_height, c.size_material.product_material.material_name,
-                bool(c.image_feed))
-    all_rows = {c.pk: row(c) for c in rows}
-    source = all_rows.get(core.pk) or row(core)
-    ids = same_shape_ids(source, list(all_rows.values()))
+    candidates = [(c.pk, c.size_material.product_size.size_width, c.size_material.product_size.size_height,
+                   c.size_material.product_material.material_name) for c in rows]
+    return same_shape_ids(art.shape_ratio, art.keep_colours, candidates)
+
+
+def take_over(current, previous, new):
+    """The image field's new value and its remembered previous value, as (value, previous).
+
+    current:  the path the field holds now ('' or None when empty)
+    previous: NULL (None) when no artwork has taken the field over, else what it held before ('' = empty)
+    new:      the artwork's page picture, or None when no artwork should be showing
+    """
+    if new:
+        return new, (previous if previous is not None else (current or ''))
+    if previous is not None:
+        return (previous or None), None
+    return current, None
+
+
+def sync_product(product_id):
+    """Put the product's main artwork picture into oc_product.image (or restore the old one)."""
+    from django.utils import timezone
+
+    from apps.products.models import OcProduct, OcTsgProductArtwork
+
+    product = OcProduct.objects.get(pk=product_id)
+    main = (OcTsgProductArtwork.objects.filter(product_id=product_id, is_main=True)
+            .exclude(image_page__isnull=True).exclude(image_page='').first())
+    current = product.image.name if product.image else ''
+    value, previous = take_over(current, product.previous_image, main.image_page if main else None)
+    if (value or '') != (current or '') or previous != product.previous_image:
+        OcProduct.objects.filter(pk=product_id).update(image=value, previous_image=previous,
+                                                       date_modified=timezone.now())
+        return True
+    return False
+
+
+def sync_variants(core_ids):
+    """Put each variant's artwork picture into its variant_image (or restore the old one)."""
+    from apps.products.models import OcTsgProductVariantCore
+
+    changed = 0
+    for core in OcTsgProductVariantCore.objects.filter(pk__in=list(core_ids)).select_related('artwork'):
+        art = core.artwork
+        new = art.image_page if art and art.image_page else None
+        current = core.variant_image.name if core.variant_image else ''
+        value, previous = take_over(current, core.previous_variant_image, new)
+        if (value or '') != (current or '') or previous != core.previous_variant_image:
+            OcTsgProductVariantCore.objects.filter(pk=core.pk).update(variant_image=value, previous_variant_image=previous)
+            changed += 1
+    return changed
+
+
+def sync_artwork(art):
+    """After an artwork's images or main flag changed: update the product image and the variants using it."""
+    from apps.products.models import OcTsgProductVariantCore
+
+    sync_product(art.product_id)
+    sync_variants(OcTsgProductVariantCore.objects.filter(artwork_id=art.pk).values_list('pk', flat=True))
+
+
+def assign_to_matching_variants(art):
+    """Point the matching variants at this artwork. Returns how many were changed."""
+    from apps.products.models import OcTsgProductVariantCore
+
+    ids = variants_for_artwork(art)
     if not ids:
         return 0
-    return OcTsgProductVariantCore.objects.filter(pk__in=ids).update(
-        image_feed=core.image_feed, image_page=core.image_page, image_tile=core.image_tile,
-        artwork_checks=core.artwork_checks, artwork_date=core.artwork_date)
+    changed = OcTsgProductVariantCore.objects.filter(pk__in=ids).update(artwork=art)
+    sync_variants(ids)
+    return changed

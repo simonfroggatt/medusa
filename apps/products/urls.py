@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from apps.products import views
+from apps.products import views, artwork_views
 from rest_framework import routers
 from django.urls import include
 
@@ -109,6 +109,11 @@ urlpatterns = [
 
 
     #product docuements
+    path('<int:product_id>/artwork', artwork_views.artwork_list, name='product_artwork-list'),
+    path('<int:product_id>/artwork/save', artwork_views.artwork_save, name='product_artwork-save'),
+    path('artwork/<int:pk>/main', artwork_views.artwork_set_main, name='product_artwork-main'),
+    path('artwork/<int:pk>/assign', artwork_views.artwork_assign, name='product_artwork-assign'),
+    path('artwork/<int:pk>/delete', artwork_views.artwork_delete, name='product_artwork-delete'),
     path('document/upload', views.product_document_upload, name='product_document-upload'),
     path('<int:product_id>/document/fetch', views.product_document_fetch, name='fetch_product_documents'),
     path('document/<pk>/download', views.product_document_download, name='product_document-download'),
