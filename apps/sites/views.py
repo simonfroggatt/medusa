@@ -1,8 +1,12 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from apps.sites.models import OcStore
+from apps.sites.models import OcStore, OcTsgSearchRule
 from apps.sites.serializers import StoreSerializer
-from apps.sites.forms import StoreEditForm
+from apps.sites.forms import StoreEditForm, SearchRuleForm
+from django.shortcuts import get_object_or_404, redirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_POST
+from django.contrib import messages
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -134,3 +138,51 @@ def search_terms_report(request):
             raise
         context['table_missing'] = True
     return render(request, 'sites/search_terms.html', context)
+
+
+@group_required('superuser')
+def search_rules_list(request):
+    """Ranking rules the storefront search uses (pushing NHS/Prestige/etc. signs down)."""
+    stores = dict(OcStore.objects.filter(store_id__gt=0).values_list('store_id', 'name'))
+    try:
+        rules = list(OcTsgSearchRule.objects.order_by('rule_type', 'label'))
+        table_missing = False
+    except ProgrammingError as error:
+        if not error.args or error.args[0] != 1146:
+            raise
+        rules, table_missing = [], True
+    for rule in rules:
+        rule.store_name = stores.get(rule.store_id, 'All stores')
+    context = {'pageview': 'Search Rules', 'heading': 'Search Rules',
+               'breadcrumbs': [{'name': 'Admin', 'url': '#'}],
+               'rules': rules, 'table_missing': table_missing}
+    return render(request, 'sites/search_rules.html', context)
+
+
+def _search_rule_form(request, rule=None):
+    form = SearchRuleForm(request.POST or None, instance=rule)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Search rule saved. The storefront picks it up within the hour.')
+        return redirect('searchrules')
+    context = {'pageview': 'Search Rules', 'heading': 'Search rule', 'form': form, 'rule': rule,
+               'breadcrumbs': [{'name': 'Search Rules', 'url': reverse_lazy('searchrules')}]}
+    return render(request, 'sites/search_rule_form.html', context)
+
+
+@group_required('superuser')
+def search_rule_create(request):
+    return _search_rule_form(request)
+
+
+@group_required('superuser')
+def search_rule_edit(request, pk):
+    return _search_rule_form(request, get_object_or_404(OcTsgSearchRule, pk=pk))
+
+
+@group_required('superuser')
+@require_POST
+def search_rule_delete(request, pk):
+    get_object_or_404(OcTsgSearchRule, pk=pk).delete()
+    messages.success(request, 'Search rule deleted.')
+    return redirect('searchrules')

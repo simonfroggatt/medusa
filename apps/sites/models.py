@@ -139,3 +139,41 @@ class OcTsgCustomerIntent(models.Model):
 
     def __str__(self):
         return self.intent_text
+
+
+class OcTsgSearchRule(models.Model):
+    """A storefront search ranking rule (see sql/2026-10-09_search_rules.sql). Read by tsg_store."""
+    DEMOTE_ONLY = 'demote_only'
+    DEMOTE_ANY = 'demote_any'
+    IGNORE_WORD = 'ignore_word'
+    RULE_TYPES = [
+        (DEMOTE_ONLY, 'Push down products that are only in these categories'),
+        (DEMOTE_ANY, 'Push down products in any of these categories'),
+        (IGNORE_WORD, 'Ignore these words when ranking'),
+    ]
+
+    rule_id = models.AutoField(primary_key=True)
+    store_id = models.SmallIntegerField(default=0)
+    rule_type = models.CharField(max_length=20, choices=RULE_TYPES)
+    label = models.CharField(max_length=100)
+    category_patterns = models.CharField(max_length=1000, blank=True, null=True)
+    trigger_words = models.CharField(max_length=500, blank=True, null=True)
+    penalty = models.SmallIntegerField(default=300)
+    status = models.BooleanField(default=True)
+    date_added = models.DateTimeField(blank=True, null=True)
+    date_modified = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_search_rule'
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def patterns_list(self):
+        return [p.strip() for p in (self.category_patterns or '').splitlines() if p.strip()]
+
+    @property
+    def words_list(self):
+        return [w.strip() for w in (self.trigger_words or '').split(',') if w.strip()]

@@ -1,0 +1,75 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <p class="mb-0 text-muted" style="max-width: 60rem;">
+                            These rules shape the order of the storefront search. A rule can push certain signs down
+                            (for example NHS-style or Prestige versions) so the standard sign leads, unless the visitor's
+                            search asks for them. Changes reach the website within about an hour.
+                        </p>
+                        {% if not table_missing %}
+                        <a class="btn {{ BUTTON_ADD }}" role="button" href="{% url 'searchrulecreate' %}"><i class="fa-solid fa-plus"></i> New Rule</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if table_missing %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox"><div class="ibox-content">
+                <p class="mb-0"><strong>The search rules table doesn't exist on this database yet.</strong>
+                    Run <code>sql/2026-10-09_search_rules.sql</code> to create it. Until then the website search uses its
+                    built-in rules, which are the same six that file adds.</p>
+            </div></div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <table class="table table-hover table-striped align-middle table-sm" style="width:100%">
+                        <thead><tr>
+                            <th>Name</th><th>What it does</th><th>Store</th><th>Categories</th><th>Words</th>
+                            <th class="text-end">Push down</th><th>Active</th><th></th>
+                        </tr></thead>
+                        <tbody>
+                        {% for rule in rules %}
+                            <tr{% if not rule.status %} class="text-muted"{% endif %}>
+                                <td>{{ rule.label }}</td>
+                                <td>{{ rule.get_rule_type_display }}</td>
+                                <td>{{ rule.store_name }}</td>
+                                <td>{% for pattern in rule.patterns_list %}<div>{{ pattern }}</div>{% empty %}&ndash;{% endfor %}</td>
+                                <td>{{ rule.words_list|join:", " }}</td>
+                                <td class="text-end">{% if rule.rule_type == 'ignore_word' %}&ndash;{% else %}{{ rule.penalty }}{% endif %}</td>
+                                <td>{% if rule.status %}Yes{% else %}No{% endif %}</td>
+                                <td class="text-end text-nowrap">
+                                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'searchruleedit' rule.rule_id %}">Edit</a>
+                                    <form method="post" action="{% url 'searchruledelete' rule.rule_id %}" class="d-inline"
+                                          onsubmit="return confirm('Delete the rule &quot;{{ rule.label|escapejs }}&quot;?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="8" class="text-muted">No rules. The website search is not pushing anything down.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}
