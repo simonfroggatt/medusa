@@ -35,6 +35,21 @@ images are below that. Google recommends ~1500 x 1500 and the product filling 75
   would be usable, but they are skipped for now. If ever needed: export from CorelDRAW to PDF/SVG on his
   laptop; do not rely on parsing CDR (Inkscape/libcdr is unreliable on newer files).
 
+## Source priority (revised 2026-10-09 after a matching test)
+Simon's view that `Digital/` is the better source was right. A crude test (strip any leading `#order` number from the
+filename, read the product code at the start, compare with live variant/supplier codes) gave, for the 4,123 live products:
+- `Digital/` PDFs: **1,791 products (43%)** match a file by full code (type+number+letter); 2,103 (51%) at type+number.
+- `SSAN/website_images` AI: only **452 products** match by full code (1,133 at type+number) despite 1,247 files.
+- Either source: 1,921 (46%) exact, 2,300 (55%) at type+number. AI adds only 130 products that Digital lacks.
+- ~1,259 live products have no parseable code at all (newer 40xxx-41xxx products, DOT signs, wording-only products, supplier
+  items like TT 760 T): those need name/title matching, or have no in-house artwork.
+- Of the 25,544 PDFs in `Digital/`, 16,843 are `#order`-number job files (the code is often still in the name), ~8,700 are not;
+  about 7,200 carry a code-like name once the order number is stripped. Ignore layups and one-off job names.
+- Typical product file names: `WS 41 B 200x300mm.pdf`, `PS 139 K 150X50MM NO SMOKING SIGN.pdf`, `#33740 IMSK 48 250mm x 65mm.pdf`.
+  Matching is crude (simple regex), so a proper matcher should do better than these figures.
+So: **`Digital/` PDFs first** (all orientations/sizes), AI originals only where they add something (cleaner vector, no
+bleed/crop marks, or products Digital lacks). Digital also carries the orientation variants the AI files lack.
+
 ## Where the source artwork is
 Google Drive for Desktop is mounted at
 `/Users/simonfroggatt/Library/CloudStorage/GoogleDrive-safetysignsandnotices@googlemail.com/My Drive`
