@@ -18,8 +18,19 @@
                 </div>
                 <hr>
                 <div class="row">
-                    <div class="col-12 col-md-6">{{ form.image|as_crispy_field }}</div>
-                    <div class="col-12 col-md-6">{{ form.image_mobile|as_crispy_field }}</div>
+                    {# Rendered without crispy: its file-input markup builds the (broken) .url link itself #}
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label" for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
+                        {{ form.image }}
+                        {% for error in form.image.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        <div class="form-text">{{ form.image.help_text }}</div>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label" for="{{ form.image_mobile.id_for_label }}">{{ form.image_mobile.label }}</label>
+                        {{ form.image_mobile }}
+                        {% for error in form.image_mobile.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        <div class="form-text">{{ form.image_mobile.help_text }}</div>
+                    </div>
                     <div class="col-12">{{ form.alt_text|as_crispy_field }}</div>
                 </div>
                 <hr>

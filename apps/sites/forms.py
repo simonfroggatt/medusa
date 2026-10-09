@@ -76,6 +76,12 @@ class SearchRuleForm(forms.ModelForm):
         }
 
 
+class MediaImageInput(forms.ClearableFileInput):
+    """File input that shows the current image as a thumbnail. Django's own .url is wrong for
+    Medusa's S3 media domain (it comes out as 'https//https://...'), so build it from the media prefix."""
+    template_name = 'sites/widgets/media_image_input.html'
+
+
 class BannerForm(forms.ModelForm):
     store_id = forms.TypedChoiceField(coerce=int, label='Store')
 
@@ -117,6 +123,8 @@ class BannerForm(forms.ModelForm):
         }
         widgets = {
             'status': forms.CheckboxInput,
+            'image': MediaImageInput,
+            'image_mobile': MediaImageInput,
             'bg_from': forms.TextInput(attrs={'type': 'color'}),
             'bg_to': forms.TextInput(attrs={'type': 'color'}),
             'date_start': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),

@@ -47,7 +47,7 @@
                         <tbody>
                         {% for banner in banners %}
                             <tr{% if not banner.showing_now %} class="text-muted"{% endif %}>
-                                <td>{% if banner.image %}<img src="{{ banner.image.url }}" alt="" style="width:128px;height:32px;object-fit:cover;border-radius:3px;">
+                                <td>{% if banner.image %}<img src="{% get_media_prefix %}{{ banner.image.name }}" alt="" style="width:128px;height:32px;object-fit:cover;border-radius:3px;">
                                     {% else %}<span style="display:inline-block;width:128px;height:32px;border-radius:3px;background:linear-gradient(135deg,{{ banner.bg_from }},{{ banner.bg_to }});"></span>{% endif %}</td>
                                 <td>{{ banner.store_name }}</td>
                                 <td class="text-end">{{ banner.sort_order }}</td>

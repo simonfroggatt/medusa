@@ -352,6 +352,22 @@ class BannerPageTests(SimpleTestCase):
         self.assertIn('/sites/banners/1/delete', html)
         self.assertIn('Always', html)
 
+    def test_list_builds_the_image_address_from_the_media_prefix(self):
+        banner = make_banner(image='stores/banners/lss-banner.jpg')
+        html = render_page('sites/banners.html', fake_request('/sites/banners/'), banners=[banner],
+                           stores=[], site_id=0, table_missing=False)
+        self.assertIn('stores/banners/lss-banner.jpg', html)
+        self.assertNotIn('https//https', html)
+
+    def test_form_shows_a_thumbnail_and_a_remove_box_for_the_current_image(self):
+        with mock.patch('apps.sites.forms.OcStore.objects') as stores:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = [(4, 'Imo signs')]
+            form = BannerForm(instance=make_banner(image='stores/banners/lss-banner.jpg'))
+        html = render_page('sites/banner_form.html', fake_request('/sites/banners/1/edit'), form=form)
+        self.assertIn('stores/banners/lss-banner.jpg', html)
+        self.assertIn('name="image-clear"', html)
+        self.assertNotIn('https//https', html)
+
     def test_list_marks_a_banner_outside_its_dates(self):
         banner = make_banner(date_end=date.today() - timedelta(days=3))
         html = render_page('sites/banners.html', fake_request('/sites/banners/'), banners=[banner],
