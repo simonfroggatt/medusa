@@ -8,6 +8,7 @@ from datetime import datetime, timezone as dt_timezone
 from types import SimpleNamespace
 from unittest import mock
 
+from django.db.utils import ProgrammingError
 from django.template.loader import render_to_string
 from django.test import RequestFactory, SimpleTestCase
 
@@ -43,10 +44,11 @@ def sample_report(**overrides):
 
 
 class SearchTermsViewTests(SimpleTestCase):
-    def render(self, report):
+    def render(self, report, **extra):
         context = {'pageview': 'Search Terms', 'heading': 'Search Terms', 'site_id': 1, 'days': 30,
                    'periods': search_terms.PERIODS, 'stores': [(1, 'Safety Signs and Notices')],
                    'report': report}
+        context.update(extra)
         request = RequestFactory().get('/sites/search-terms/')
         request.user = SimpleNamespace(
             is_authenticated=True, is_superuser=True, username='test', first_name='Test', last_name='User',
@@ -80,6 +82,32 @@ class SearchTermsViewTests(SimpleTestCase):
         html = self.render(report)
         self.assertNotIn('<script>alert(1)</script>', html)
         self.assertIn('&lt;script&gt;', html)
+
+    def test_missing_table_shows_a_message_not_a_500(self):
+        request = RequestFactory().get('/sites/search-terms/')
+        request.user = SimpleNamespace(is_authenticated=True, is_superuser=True,
+                                       groups=SimpleNamespace(filter=lambda **kw: []))
+        missing = ProgrammingError(1146, "Table 'x.oc_tsg_customer_intent' doesn't exist")
+        with mock.patch.object(search_terms, 'build_report', side_effect=missing), \
+                mock.patch.object(search_terms, 'store_choices', return_value=[]), \
+                mock.patch.object(views, 'render', return_value=mock.sentinel.response) as render:
+            views.search_terms_report(request)
+        context = render.call_args[0][2]
+        self.assertTrue(context['table_missing'])
+        self.assertNotIn('report', context)
+
+    def test_other_database_errors_still_raise(self):
+        request = RequestFactory().get('/sites/search-terms/')
+        request.user = SimpleNamespace(is_authenticated=True, is_superuser=True,
+                                       groups=SimpleNamespace(filter=lambda **kw: []))
+        with mock.patch.object(search_terms, 'build_report', side_effect=ProgrammingError(1064, 'syntax')), \
+                mock.patch.object(search_terms, 'store_choices', return_value=[]):
+            with self.assertRaises(ProgrammingError):
+                views.search_terms_report(request)
+
+    def test_missing_table_message_names_the_sql_file(self):
+        html = self.render(None, table_missing=True)
+        self.assertIn('customer_intent_tables.sql', html)
 
     def test_view_passes_filters_to_report(self):
         request = RequestFactory().get('/sites/search-terms/', {'site': '2', 'days': '7'})

@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.template.loader import render_to_string
+from django.db.utils import ProgrammingError
 from medusa.decorators import group_required
 from apps.sites import search_terms
 
@@ -124,6 +125,12 @@ def search_terms_report(request):
         'days': days,
         'periods': search_terms.PERIODS,
         'stores': search_terms.store_choices(),
-        'report': search_terms.build_report(site_id, days),
     }
+    try:
+        context['report'] = search_terms.build_report(site_id, days)
+    except ProgrammingError as error:
+        # 1146 = table doesn't exist: the log table hasn't been created on this database yet
+        if not error.args or error.args[0] != 1146:
+            raise
+        context['table_missing'] = True
     return render(request, 'sites/search_terms.html', context)
