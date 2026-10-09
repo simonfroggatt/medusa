@@ -103,3 +103,51 @@ def save_prepared(instance, prepared, label, code=''):
         fields += ['artwork_drive_id', 'artwork_filename']
     instance.save(update_fields=fields)
     return drive_id
+
+
+SHAPE_TOLERANCE = 0.015   # width/height ratios within 1.5% are the same shape (150x200 = 450x600)
+
+
+def same_shape_ids(source, candidates):
+    """Which of a product's other variants should share this variant's new images.
+
+    source / candidates are (id, width, height, material_name, has_new_images) tuples, with the
+    source first. A candidate shares when it has the same shape, has no new images of its own, and is
+    not a photoluminescent material (those keep their own colours, so need their own PDF).
+    """
+    sid, sw, sh = source[0], source[1], source[2]
+    if not sw or not sh:
+        return []
+    ratio = sw / sh
+    ids = []
+    for cid, w, h, material, has_new in candidates:
+        if cid == sid or has_new or not w or not h:
+            continue
+        if 'photo' in (material or '').lower():
+            continue
+        if abs((w / h) / ratio - 1) <= SHAPE_TOLERANCE:
+            ids.append(cid)
+    return ids
+
+
+def share_with_same_shape(core):
+    """Give the variant's new images to the product's other variants of the same shape.
+
+    Returns how many were updated. The files are shared, not copied.
+    """
+    from apps.products.models import OcTsgProductVariantCore
+
+    rows = (OcTsgProductVariantCore.objects.filter(product_id=core.product_id)
+            .select_related('size_material__product_size', 'size_material__product_material'))
+    def row(c):
+        size = c.size_material.product_size
+        return (c.pk, size.size_width, size.size_height, c.size_material.product_material.material_name,
+                bool(c.image_feed))
+    all_rows = {c.pk: row(c) for c in rows}
+    source = all_rows.get(core.pk) or row(core)
+    ids = same_shape_ids(source, list(all_rows.values()))
+    if not ids:
+        return 0
+    return OcTsgProductVariantCore.objects.filter(pk__in=ids).update(
+        image_feed=core.image_feed, image_page=core.image_page, image_tile=core.image_tile,
+        artwork_checks=core.artwork_checks, artwork_date=core.artwork_date)

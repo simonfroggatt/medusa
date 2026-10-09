@@ -66,7 +66,10 @@ def render_master(pdf_bytes, keep_colours=False):
 
     The palette is applied unless keep_colours (photoluminescent artwork keeps its own colours).
     """
-    import pymupdf  # imported here so the rest of Medusa does not need it to start
+    try:
+        import pymupdf  # imported here so the rest of Medusa does not need it to start
+    except ImportError as exc:
+        raise ArtworkError('PDF rendering is not installed on this server (pip install PyMuPDF).') from exc
 
     try:
         doc = pymupdf.open(stream=pdf_bytes, filetype='pdf')

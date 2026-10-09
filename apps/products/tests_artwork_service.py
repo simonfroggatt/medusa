@@ -139,3 +139,33 @@ class FormGuardTests(SimpleTestCase):
         for column in ARTWORK_COLUMNS:
             self.assertNotIn(column, fields)
         self.assertIn('artwork_pdf', fields)
+
+
+class SameShapeTests(SimpleTestCase):
+    # (id, width, height, material, has_new_images)
+    SOURCE = (1, 150, 200, '1mm Rigid', False)
+
+    def ids(self, *candidates):
+        return artwork_service.same_shape_ids(self.SOURCE, [self.SOURCE, *candidates])
+
+    def test_150x200_and_450x600_are_the_same_shape(self):
+        self.assertEqual(self.ids((2, 450, 600, '3mm Foamex', False)), [2])
+
+    def test_a_different_shape_is_not_shared(self):
+        self.assertEqual(self.ids((2, 200, 300, '1mm Rigid', False), (3, 300, 100, '1mm Rigid', False)), [])
+
+    def test_the_other_orientation_is_not_shared(self):
+        self.assertEqual(self.ids((2, 200, 150, '1mm Rigid', False)), [])
+
+    def test_variants_with_their_own_new_images_are_left_alone(self):
+        self.assertEqual(self.ids((2, 450, 600, '3mm Foamex', True)), [])
+
+    def test_photoluminescent_is_left_alone(self):
+        self.assertEqual(self.ids((2, 300, 400, 'Photoluminescent Rigid', False)), [])
+
+    def test_the_source_itself_is_never_included(self):
+        self.assertEqual(artwork_service.same_shape_ids(self.SOURCE, [self.SOURCE]), [])
+
+    def test_a_zero_size_is_ignored(self):
+        self.assertEqual(self.ids((2, 0, 0, '1mm Rigid', False)), [])
+        self.assertEqual(artwork_service.same_shape_ids((1, 0, 0, 'x', False), [(2, 1, 1, 'x', False)]), [])

@@ -55,6 +55,7 @@ class ArtworkUploadMixin:
         if commit and prepared:
             artwork_service.save_prepared(instance, prepared, self.artwork_label_for(instance),
                                           self.artwork_code_for(instance))
+            self.artwork_saved(instance)
         return instance
 
     def artwork_label_for(self, instance):
@@ -62,6 +63,9 @@ class ArtworkUploadMixin:
 
     def artwork_code_for(self, instance):
         return self.artwork_code
+
+    def artwork_saved(self, instance):
+        """Hook: called after new images were written to the instance."""
 
 
 class ProductForm(ArtworkUploadMixin, forms.ModelForm):
@@ -213,6 +217,16 @@ class VariantCoreForm(ArtworkUploadMixin, forms.ModelForm):
         self._add_artwork_field()
         self.fields['supplier'].empty_label = None
 
+    apply_same_shape = forms.BooleanField(
+        required=False, initial=True, label='Also use for this product\'s other variants of the same shape',
+        help_text='For example 150x200 and 450x600 are the same shape. Variants that already have new '
+                  'images, and photoluminescent ones, are left alone.')
+
+    def artwork_saved(self, instance):
+        self.shared_with = 0
+        if self.cleaned_data.get('apply_same_shape') and instance.product_id:
+            self.shared_with = artwork_service.share_with_same_shape(instance)
+
     def artwork_label_for(self, instance):
         base = getattr(instance.product, 'productdescbase', None) if instance.product_id else None
         return (base.title if base and base.title else 'variant')
@@ -253,6 +267,16 @@ class VariantCoreEditForm(ArtworkUploadMixin, forms.ModelForm):
         super(VariantCoreEditForm, self).__init__(*args, **kwargs)
         self._add_artwork_field()
         self.fields['supplier'].empty_label = None
+
+    apply_same_shape = forms.BooleanField(
+        required=False, initial=True, label='Also use for this product\'s other variants of the same shape',
+        help_text='For example 150x200 and 450x600 are the same shape. Variants that already have new '
+                  'images, and photoluminescent ones, are left alone.')
+
+    def artwork_saved(self, instance):
+        self.shared_with = 0
+        if self.cleaned_data.get('apply_same_shape') and instance.product_id:
+            self.shared_with = artwork_service.share_with_same_shape(instance)
 
     def artwork_label_for(self, instance):
         base = getattr(instance.product, 'productdescbase', None) if instance.product_id else None
