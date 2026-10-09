@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 from django.db.models.functions import Now
 from django.conf import settings
@@ -186,3 +188,49 @@ class OcTsgSearchRule(models.Model):
     @property
     def words_list(self):
         return [w.strip() for w in (self.trigger_words or '').split(',') if w.strip()]
+
+
+class OcTsgBanner(models.Model):
+    """A homepage banner slide for one store (see sql/2026-10-09_banners.sql). Read by tsg_store."""
+    BUTTON_STYLES = [('outline', 'Outline'), ('solid', 'Solid')]
+
+    banner_id = models.AutoField(primary_key=True)
+    store_id = models.SmallIntegerField()
+    status = models.BooleanField(default=True)
+    sort_order = models.SmallIntegerField(default=0)
+    image = models.ImageField(upload_to='stores/banners/', blank=True, null=True)
+    image_mobile = models.ImageField(upload_to='stores/banners/', blank=True, null=True)
+    alt_text = models.CharField(max_length=150, blank=True, null=True)
+    tag = models.CharField(max_length=100, blank=True, null=True)
+    title = models.CharField(max_length=150, blank=True, null=True)
+    subtitle = models.CharField(max_length=400, blank=True, null=True)
+    link = models.CharField(max_length=255, blank=True, null=True)
+    button_text = models.CharField(max_length=60, blank=True, null=True)
+    button_style = models.CharField(max_length=10, choices=BUTTON_STYLES, default='outline')
+    bg_from = models.CharField(max_length=7, default='#0B2545')
+    bg_to = models.CharField(max_length=7, default='#1a3a5c')
+    date_start = models.DateField(blank=True, null=True)
+    date_end = models.DateField(blank=True, null=True)
+    date_added = models.DateTimeField(blank=True, null=True)
+    date_modified = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'oc_tsg_banner'
+        ordering = ['store_id', 'sort_order', 'banner_id']
+
+    def __str__(self):
+        return self.title or self.alt_text or 'Banner %s' % self.banner_id
+
+    @property
+    def showing_now(self):
+        today = date.today()
+        return bool(self.status) and (not self.date_start or self.date_start <= today) \
+            and (not self.date_end or self.date_end >= today)
+
+    def save(self, *args, **kwargs):
+        # Same as OcTsgSearchRule: let the database clock stamp the dates.
+        if self._state.adding and not self.date_added:
+            self.date_added = Now()
+        self.date_modified = Now()
+        super().save(*args, **kwargs)

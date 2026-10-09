@@ -1,5 +1,5 @@
 from django import forms
-from apps.sites.models import OcStore, OcTsgSearchRule
+from apps.sites.models import OcStore, OcTsgSearchRule, OcTsgBanner
 from tinymce.widgets import TinyMCE
 
 
@@ -73,4 +73,53 @@ class SearchRuleForm(forms.ModelForm):
         widgets = {
             'category_patterns': forms.Textarea(attrs={'rows': 4}),
             'status': forms.CheckboxInput,
+        }
+
+
+class BannerForm(forms.ModelForm):
+    store_id = forms.TypedChoiceField(coerce=int, label='Store')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['store_id'].choices = list(
+            OcStore.objects.filter(store_id__gt=0).order_by('name').values_list('store_id', 'name'))
+
+    def clean(self):
+        cleaned = super().clean()
+        has_image = bool(cleaned.get('image')) or bool(self.instance.pk and self.instance.image
+                                                       and not self.data.get('image-clear'))
+        if not has_image and not (cleaned.get('title') or '').strip():
+            raise forms.ValidationError('A banner needs an image, a heading, or both.')
+        start, end = cleaned.get('date_start'), cleaned.get('date_end')
+        if start and end and end < start:
+            self.add_error('date_end', 'The end date is before the start date.')
+        return cleaned
+
+    class Meta:
+        model = OcTsgBanner
+        fields = ['store_id', 'status', 'sort_order', 'image', 'image_mobile', 'alt_text', 'tag', 'title',
+                  'subtitle', 'link', 'button_text', 'button_style', 'bg_from', 'bg_to', 'date_start', 'date_end']
+        labels = {
+            'status': 'Active', 'sort_order': 'Order', 'image': 'Image', 'image_mobile': 'Phone image (optional)',
+            'alt_text': 'Image description', 'tag': 'Small label above the heading', 'title': 'Heading',
+            'subtitle': 'Text under the heading', 'link': 'Link', 'button_text': 'Button text',
+            'button_style': 'Button style', 'bg_from': 'Background colour (from)', 'bg_to': 'Background colour (to)',
+            'date_start': 'Show from (optional)', 'date_end': 'Show until (optional)',
+        }
+        help_texts = {
+            'image': 'Wide image, about 1920 x 400 px. Leave the heading empty to show the picture as it is.',
+            'image_mobile': 'A taller crop for phones. If empty, the main image is used.',
+            'alt_text': 'For screen readers, and shown if the image fails. Important when the picture has the text in it.',
+            'link': 'Where the banner or button goes, e.g. /fire-exit-signs. With no button text the whole banner is the link.',
+            'sort_order': 'Lowest first.',
+            'bg_from': 'Shown behind the image, and instead of it if there is none.',
+            'date_end': 'Last day it shows.',
+        }
+        widgets = {
+            'status': forms.CheckboxInput,
+            'bg_from': forms.TextInput(attrs={'type': 'color'}),
+            'bg_to': forms.TextInput(attrs={'type': 'color'}),
+            'date_start': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'date_end': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'subtitle': forms.Textarea(attrs={'rows': 2}),
         }

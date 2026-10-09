@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from apps.sites.models import OcStore, OcTsgSearchRule
+from apps.sites.models import OcStore, OcTsgSearchRule, OcTsgBanner
 from apps.sites.serializers import StoreSerializer
-from apps.sites.forms import StoreEditForm, SearchRuleForm
+from apps.sites.forms import StoreEditForm, SearchRuleForm, BannerForm
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -186,3 +186,65 @@ def search_rule_delete(request, pk):
     get_object_or_404(OcTsgSearchRule, pk=pk).delete()
     messages.success(request, 'Search rule deleted.')
     return redirect('searchrules')
+
+
+def _banner_store_filter(params):
+    try:
+        return max(int(params.get('site', 0)), 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+@group_required('superuser')
+def banners_list(request):
+    """Homepage banners for each store."""
+    site_id = _banner_store_filter(request.GET)
+    stores = list(OcStore.objects.filter(store_id__gt=0).order_by('name').values_list('store_id', 'name'))
+    names = dict(stores)
+    try:
+        banners = OcTsgBanner.objects.all()
+        if site_id:
+            banners = banners.filter(store_id=site_id)
+        banners = list(banners)
+        table_missing = False
+    except ProgrammingError as error:
+        if not error.args or error.args[0] != 1146:
+            raise
+        banners, table_missing = [], True
+    for banner in banners:
+        banner.store_name = names.get(banner.store_id, 'Store %s' % banner.store_id)
+    context = {'pageview': 'Banners', 'heading': 'Banners', 'breadcrumbs': [{'name': 'Sites', 'url': reverse_lazy('allsites')}],
+               'banners': banners, 'stores': stores, 'site_id': site_id, 'table_missing': table_missing}
+    return render(request, 'sites/banners.html', context)
+
+
+def _banner_form(request, banner=None):
+    initial = {}
+    if banner is None:
+        initial = {'store_id': _banner_store_filter(request.GET) or None}
+    form = BannerForm(request.POST or None, request.FILES or None, instance=banner, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Banner saved.')
+        return redirect('banners')
+    context = {'pageview': 'Banners', 'heading': 'Banner', 'form': form, 'banner': banner,
+               'breadcrumbs': [{'name': 'Banners', 'url': reverse_lazy('banners')}]}
+    return render(request, 'sites/banner_form.html', context)
+
+
+@group_required('superuser')
+def banner_create(request):
+    return _banner_form(request)
+
+
+@group_required('superuser')
+def banner_edit(request, pk):
+    return _banner_form(request, get_object_or_404(OcTsgBanner, pk=pk))
+
+
+@group_required('superuser')
+@require_POST
+def banner_delete(request, pk):
+    get_object_or_404(OcTsgBanner, pk=pk).delete()
+    messages.success(request, 'Banner deleted.')
+    return redirect('banners')

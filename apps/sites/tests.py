@@ -270,3 +270,134 @@ class SearchRulePageTests(SimpleTestCase):
             response = views.search_rule_delete(request, 1)
         rule.delete.assert_called_once()
         self.assertEqual(response.status_code, 302)
+
+
+# ---- Banners -------------------------------------------------------------
+from datetime import date, timedelta
+
+from apps.sites.forms import BannerForm
+from apps.sites.models import OcTsgBanner
+
+
+def make_banner(**fields):
+    values = dict(banner_id=1, store_id=4, status=True, sort_order=1, title='Trade Accounts Available',
+                  tag='Maritime Resellers', link='/index.php?route=account/register', button_text='Request Account',
+                  button_style='solid', bg_from='#0B2545', bg_to='#3D5A80')
+    values.update(fields)
+    banner = OcTsgBanner(**values)
+    banner.store_name = 'Imo signs'
+    return banner
+
+
+class BannerModelTests(SimpleTestCase):
+    def test_showing_now_follows_status_and_dates(self):
+        today = date.today()
+        self.assertTrue(make_banner().showing_now)
+        self.assertFalse(make_banner(status=False).showing_now)
+        self.assertTrue(make_banner(date_start=today, date_end=today).showing_now)
+        self.assertFalse(make_banner(date_start=today + timedelta(days=1)).showing_now)
+        self.assertFalse(make_banner(date_end=today - timedelta(days=1)).showing_now)
+
+    def test_save_stamps_dates_from_the_database_clock(self):
+        from django.db.models.functions import Now
+        banner = make_banner()
+        with mock.patch('django.db.models.Model.save'):
+            banner.save()
+        self.assertIsInstance(banner.date_added, Now)
+        self.assertIsInstance(banner.date_modified, Now)
+
+    def test_str_falls_back_when_there_is_no_heading(self):
+        self.assertEqual(str(make_banner(title='')), 'Banner 1')
+        self.assertEqual(str(make_banner(title='', alt_text='Spring sale')), 'Spring sale')
+
+
+class BannerFormTests(SimpleTestCase):
+    def form(self, **overrides):
+        data = {'store_id': '4', 'status': 'on', 'sort_order': '1', 'title': 'Hello', 'button_style': 'outline',
+                'bg_from': '#0B2545', 'bg_to': '#1a3a5c'}
+        data.update(overrides)
+        with mock.patch('apps.sites.forms.OcStore.objects') as stores:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = [(1, 'SSAN'), (4, 'Imo signs')]
+            return BannerForm(data)
+
+    def test_text_only_banner_is_valid(self):
+        form = self.form()
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['store_id'], 4)
+
+    def test_needs_an_image_or_a_heading(self):
+        form = self.form(title='  ')
+        self.assertFalse(form.is_valid())
+        self.assertIn('image, a heading', str(form.non_field_errors()))
+
+    def test_end_date_cannot_precede_start(self):
+        form = self.form(date_start='2026-12-25', date_end='2026-12-01')
+        self.assertFalse(form.is_valid())
+        self.assertIn('date_end', form.errors)
+
+    def test_dates_are_optional(self):
+        self.assertTrue(self.form(date_start='', date_end='').is_valid())
+
+    def test_unknown_store_is_rejected(self):
+        self.assertFalse(self.form(store_id='99').is_valid())
+
+
+class BannerPageTests(SimpleTestCase):
+    def test_list_shows_banners(self):
+        html = render_page('sites/banners.html', fake_request('/sites/banners/'), banners=[make_banner()],
+                           stores=[(4, 'Imo signs')], site_id=0, table_missing=False)
+        self.assertIn('Trade Accounts Available', html)
+        self.assertIn('Maritime Resellers', html)
+        self.assertIn('/sites/banners/1/edit', html)
+        self.assertIn('/sites/banners/1/delete', html)
+        self.assertIn('Always', html)
+
+    def test_list_marks_a_banner_outside_its_dates(self):
+        banner = make_banner(date_end=date.today() - timedelta(days=3))
+        html = render_page('sites/banners.html', fake_request('/sites/banners/'), banners=[banner],
+                           stores=[], site_id=0, table_missing=False)
+        self.assertIn('outside dates', html)
+
+    def test_list_escapes_text(self):
+        html = render_page('sites/banners.html', fake_request('/sites/banners/'),
+                           banners=[make_banner(title='<img src=x onerror=alert(1)>')],
+                           stores=[], site_id=0, table_missing=False)
+        self.assertNotIn('<img src=x', html)
+
+    def test_list_names_the_sql_file_when_the_table_is_missing(self):
+        html = render_page('sites/banners.html', fake_request('/sites/banners/'), banners=[], stores=[],
+                           site_id=0, table_missing=True)
+        self.assertIn('2026-10-09_banners.sql', html)
+        self.assertNotIn('New Banner', html)
+
+    def test_view_survives_a_missing_table(self):
+        missing = ProgrammingError(1146, "Table 'x.oc_tsg_banner' doesn't exist")
+        with mock.patch.object(views.OcTsgBanner, 'objects') as objects, \
+                mock.patch.object(views.OcStore, 'objects') as stores, \
+                mock.patch.object(views, 'render', return_value=mock.sentinel.response) as render:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = []
+            objects.all.side_effect = missing
+            views.banners_list(fake_request('/sites/banners/'))
+        self.assertTrue(render.call_args[0][2]['table_missing'])
+
+    def test_form_page_renders_as_multipart(self):
+        with mock.patch('apps.sites.forms.OcStore.objects') as stores:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = [(4, 'Imo signs')]
+            form = BannerForm(instance=make_banner())
+        html = render_page('sites/banner_form.html', fake_request('/sites/banners/1/edit'), form=form)
+        self.assertIn('multipart/form-data', html)
+        self.assertIn('Trade Accounts Available', html)
+
+    def test_delete_refuses_get(self):
+        with mock.patch.object(views, 'get_object_or_404') as lookup:
+            response = views.banner_delete(fake_request('/sites/banners/1/delete'), 1)
+        self.assertEqual(response.status_code, 405)
+        lookup.assert_not_called()
+
+    def test_delete_post_deletes_and_redirects(self):
+        banner = mock.Mock()
+        request = fake_request('/sites/banners/1/delete', method='post')
+        with mock.patch.object(views, 'get_object_or_404', return_value=banner), mock.patch.object(views, 'messages'):
+            response = views.banner_delete(request, 1)
+        banner.delete.assert_called_once()
+        self.assertEqual(response.status_code, 302)

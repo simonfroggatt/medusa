@@ -1,0 +1,46 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+    <div class="ibox">
+        <div class="ibox-content">
+            <form method="post" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                <div class="row">
+                    <div class="col-6 col-md-4">{{ form.store_id|as_crispy_field }}</div>
+                    <div class="col-3 col-md-2">{{ form.sort_order|as_crispy_field }}</div>
+                    <div class="col-3 col-md-2">{{ form.status|as_crispy_field }}</div>
+                    <div class="col-6 col-md-2">{{ form.date_start|as_crispy_field }}</div>
+                    <div class="col-6 col-md-2">{{ form.date_end|as_crispy_field }}</div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-12 col-md-6">{{ form.image|as_crispy_field }}</div>
+                    <div class="col-12 col-md-6">{{ form.image_mobile|as_crispy_field }}</div>
+                    <div class="col-12">{{ form.alt_text|as_crispy_field }}</div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-12 col-md-4">{{ form.tag|as_crispy_field }}</div>
+                    <div class="col-12 col-md-8">{{ form.title|as_crispy_field }}</div>
+                    <div class="col-12">{{ form.subtitle|as_crispy_field }}</div>
+                    <div class="col-12 col-md-6">{{ form.link|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.button_text|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.button_style|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.bg_from|as_crispy_field }}</div>
+                    <div class="col-6 col-md-3">{{ form.bg_to|as_crispy_field }}</div>
+                    <div class="col-12">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a class="btn {{ BUTTON_CANCEL }}" href="{% url 'banners' %}">Cancel</a>
+                            <button type="submit" class="btn {{ BUTTON_ADD }}">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

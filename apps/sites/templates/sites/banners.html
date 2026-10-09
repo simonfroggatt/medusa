@@ -1,0 +1,79 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+                        <form method="get" class="d-flex gap-2 align-items-end">
+                            <div>
+                                <label for="site" class="form-label mb-0">Store</label>
+                                <select name="site" id="site" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="0">All stores</option>
+                                    {% for store_id, store_name in stores %}
+                                        <option value="{{ store_id }}"{% if store_id == site_id %} selected{% endif %}>{{ store_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </form>
+                        {% if not table_missing %}
+                        <a class="btn {{ BUTTON_ADD }}" role="button" href="{% url 'bannercreate' %}{% if site_id %}?site={{ site_id }}{% endif %}"><i class="fa-solid fa-plus"></i> New Banner</a>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted mt-2 mb-0">The slides at the top of each website's home page. Lowest order shows first.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if table_missing %}
+    <div class="row"><div class="col-lg-12"><div class="ibox"><div class="ibox-content">
+        <p class="mb-0"><strong>The banners table doesn't exist on this database yet.</strong>
+            Run <code>sql/2026-10-09_banners.sql</code> to create it.</p>
+    </div></div></div></div>
+    {% else %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <table class="table table-hover table-striped align-middle table-sm" style="width:100%">
+                        <thead><tr>
+                            <th style="width:140px">Image</th><th>Store</th><th class="text-end">Order</th><th>Heading</th>
+                            <th>Link</th><th>Runs</th><th>Showing</th><th></th>
+                        </tr></thead>
+                        <tbody>
+                        {% for banner in banners %}
+                            <tr{% if not banner.showing_now %} class="text-muted"{% endif %}>
+                                <td>{% if banner.image %}<img src="{{ banner.image.url }}" alt="" style="width:128px;height:32px;object-fit:cover;border-radius:3px;">
+                                    {% else %}<span style="display:inline-block;width:128px;height:32px;border-radius:3px;background:linear-gradient(135deg,{{ banner.bg_from }},{{ banner.bg_to }});"></span>{% endif %}</td>
+                                <td>{{ banner.store_name }}</td>
+                                <td class="text-end">{{ banner.sort_order }}</td>
+                                <td>{% if banner.title %}{{ banner.title }}{% if banner.tag %}<div class="small text-muted">{{ banner.tag }}</div>{% endif %}
+                                    {% else %}<em>{{ banner.alt_text|default:"Picture only" }}</em>{% endif %}</td>
+                                <td>{{ banner.link|default:"–" }}</td>
+                                <td class="text-nowrap">{% if banner.date_start or banner.date_end %}{{ banner.date_start|date:"d M Y"|default:"…" }} – {{ banner.date_end|date:"d M Y"|default:"…" }}{% else %}Always{% endif %}</td>
+                                <td>{% if banner.showing_now %}Yes{% elif not banner.status %}No (off){% else %}No (outside dates){% endif %}</td>
+                                <td class="text-end text-nowrap">
+                                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'banneredit' banner.banner_id %}">Edit</a>
+                                    <form method="post" action="{% url 'bannerdelete' banner.banner_id %}" class="d-inline"
+                                          onsubmit="return confirm('Delete this banner?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="8" class="text-muted">No banners{% if site_id %} for this store{% endif %}. The home page shows none.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}
