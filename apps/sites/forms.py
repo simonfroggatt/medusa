@@ -136,6 +136,7 @@ class BannerForm(forms.ModelForm):
             'image_mobile': 'A taller crop for phones. If empty, the main image is used.',
             'alt_text': 'For screen readers, and shown if the image fails. Important when the picture has the text in it.',
             'link': 'Where the banner or button goes, e.g. /fire-exit-signs. With no button text the whole banner is the link.',
+            'subtitle': 'Press Enter for a new line, and it shows as a new line on the banner.',
             'sort_order': 'Lowest first.',
             'text_align': 'Where the text sits on the banner.',
             'bg_from': 'Shown behind the image, and instead of it if there is none.',
