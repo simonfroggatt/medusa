@@ -1,3 +1,4 @@
+import io
 from unittest import mock
 
 from django.http import QueryDict
@@ -43,10 +44,10 @@ class SavePreparedTests(SimpleTestCase):
             drive_id = artwork_service.save_prepared(art, self.prepared, 'Fire exit arrow left sign Landscape', **kwargs)
         return storage, save, drive_id
 
-    def test_writes_three_new_files_under_v2_and_records_them(self):
+    def test_writes_three_new_images_under_v2_and_records_them(self):
         art = OcTsgProductArtwork(artwork_id=1)
         storage, _, _ = self._save(art, code='593')
-        self.assertEqual(storage.call_count, 3)
+        self.assertEqual(storage.call_count, 4)   # three images and the print PDF
         self.assertEqual(art.image_feed, 'stores/products/v2/fire-exit-arrow-left-sign-landscape-593-feed.jpg')
         self.assertEqual(art.image_page, 'stores/products/v2/fire-exit-arrow-left-sign-landscape-593-page.webp')
         self.assertEqual(art.image_tile, 'stores/products/v2/fire-exit-arrow-left-sign-landscape-593-tile.webp')
@@ -56,7 +57,8 @@ class SavePreparedTests(SimpleTestCase):
         art = OcTsgProductArtwork(artwork_id=1)
         _, save, _ = self._save(art)
         self.assertEqual(set(save.call_args.kwargs['update_fields']),
-                         {'image_feed', 'image_page', 'image_tile', 'shape_ratio', 'keep_colours', 'checks', 'date_modified'})
+                         {'image_feed', 'image_page', 'image_tile', 'pdf_path', 'shape_ratio', 'keep_colours', 'checks',
+                          'date_modified'})
 
     @override_settings(ARTWORK_DRIVE_FOLDER=None)
     def test_without_a_drive_folder_no_drive_id_is_recorded(self):
@@ -296,3 +298,49 @@ class VariantFormGuardTests(SimpleTestCase):
                 mock.patch('apps.products.forms.artwork_service.sync_variants') as sync:
             form.save()
         sync.assert_called_once_with([15])
+
+
+class PdfCopyTests(SimpleTestCase):
+    """The print PDF is kept in the media storage, outside the public images folder, and can be downloaded."""
+
+    def setUp(self):
+        self.prepared = artwork_service.prepare(sign_pdf(300, 100))
+
+    def _save(self, art):
+        with mock.patch.object(artwork_service.default_storage, 'save', side_effect=lambda n, c: n) as storage, \
+                mock.patch.object(art, 'save'):
+            artwork_service.save_prepared(art, self.prepared, 'Fire exit Landscape', code='593')
+        return storage
+
+    def test_the_pdf_is_saved_under_medusa_product_artwork_with_the_bytes_intact(self):
+        art = OcTsgProductArtwork(artwork_id=1)
+        storage = self._save(art)
+        self.assertEqual(art.pdf_path, 'medusa/product/artwork/fire-exit-landscape-593-print.pdf')
+        pdf_call = [c for c in storage.call_args_list if c.args[0].endswith('.pdf')][0]
+        self.assertEqual(pdf_call.args[1].read(), self.prepared.pdf_bytes)
+
+    def test_the_pdf_is_not_in_the_public_images_folder(self):
+        art = OcTsgProductArtwork(artwork_id=1)
+        self._save(art)
+        self.assertFalse(art.pdf_path.startswith('stores/'))
+
+    def test_download_serves_the_stored_pdf_as_an_attachment(self):
+        art = OcTsgProductArtwork(artwork_id=1, pdf_path='medusa/product/artwork/x-print.pdf')
+        request = RequestFactory().get('/x')
+        request.user = mock.Mock(is_authenticated=True)
+        with mock.patch('apps.products.artwork_views.get_object_or_404', return_value=art), \
+                mock.patch.object(artwork_views.default_storage, 'exists', return_value=True), \
+                mock.patch.object(artwork_views.default_storage, 'open', return_value=io.BytesIO(b'%PDF-1')):
+            resp = artwork_views.artwork_pdf_download(request, 1)
+        self.assertIn('attachment', resp['Content-Disposition'])
+        self.assertIn('x-print.pdf', resp['Content-Disposition'])
+        self.assertEqual(b''.join(resp.streaming_content), b'%PDF-1')
+
+    def test_download_without_a_kept_pdf_is_a_404(self):
+        from django.http import Http404
+        art = OcTsgProductArtwork(artwork_id=1, pdf_path=None)
+        request = RequestFactory().get('/x')
+        request.user = mock.Mock(is_authenticated=True)
+        with mock.patch('apps.products.artwork_views.get_object_or_404', return_value=art):
+            with self.assertRaises(Http404):
+                artwork_views.artwork_pdf_download(request, 1)

@@ -8,9 +8,12 @@ what every variant with no artwork of its own shows.
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count
-from django.http import JsonResponse
+from django.core.files.storage import default_storage
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
+
+import os
 
 from apps.products import artwork_service
 from apps.products.artwork import ArtworkError
@@ -105,3 +108,13 @@ def artwork_delete(request, pk):
         artwork_service.sync_variants(core_ids)   # ... and get their old image back
         artwork_service.sync_product(product_id)
     return JsonResponse({'ok': True})
+
+
+@login_required
+def artwork_pdf_download(request, pk):
+    """Download the print PDF an artwork was made from. Goes through Medusa, so the file has no public link."""
+    art = get_object_or_404(OcTsgProductArtwork, pk=pk)
+    if not art.pdf_path or not default_storage.exists(art.pdf_path):
+        raise Http404('No PDF was kept for this artwork.')
+    return FileResponse(default_storage.open(art.pdf_path, 'rb'), as_attachment=True,
+                        filename=os.path.basename(art.pdf_path), content_type='application/pdf')
