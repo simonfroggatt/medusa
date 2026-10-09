@@ -1,0 +1,32 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="wrapper wrapper-content layout-details">
+    <div class="ibox">
+        <div class="ibox-content">
+            <form method="post" action="">
+                {% csrf_token %}
+                {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                <div class="row">
+                    <div class="col-12 col-md-6">{{ form.category_id|as_crispy_field }}</div>
+                    <div class="col-12 col-md-6">{{ form.bespoke_product_id|as_crispy_field }}</div>
+                    <div class="col-12 col-md-4">{{ form.type_label|as_crispy_field }}</div>
+                    <div class="col-12 col-md-8">{{ form.prefill|as_crispy_field }}</div>
+                    <div class="col-12 col-md-6">{{ form.headline|as_crispy_field }}</div>
+                    <div class="col-12 col-md-6">{{ form.text|as_crispy_field }}</div>
+                    <div class="col-12 col-md-9">{{ form.note|as_crispy_field }}</div>
+                    <div class="col-12 col-md-3">{{ form.status|as_crispy_field }}</div>
+                    <div class="col-12">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a class="btn {{ BUTTON_CANCEL }}" href="{% url 'bespokeoffers' %}">Cancel</a>
+                            <button type="submit" class="btn {{ BUTTON_ADD }}">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

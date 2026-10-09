@@ -471,3 +471,147 @@ class BannerPageTests(SimpleTestCase):
             response = views.banner_delete(request, 1)
         banner.delete.assert_called_once()
         self.assertEqual(response.status_code, 302)
+
+
+# ---- Bespoke offers (the "make your own" card on category pages) -----------
+from apps.sites import bespoke_offers
+from apps.sites.forms import CategoryBespokeForm
+from apps.sites.models import OcTsgCategoryBespoke
+
+
+def make_offer(category_id=250, product=41077, status=True, **fields):
+    values = dict(id=category_id, category_id=category_id, bespoke_product_id=product, type_label='prohibition',
+                  status=status, note='')
+    values.update(fields)
+    return OcTsgCategoryBespoke(**values)
+
+
+# tree:  249 Prohibition -> 250 No Smoking -> 905 (a grandchild);  249 -> 255 Tie tags;  300 General (no parent rule)
+PARENTS = {249: None, 250: 249, 255: 249, 905: 250, 300: None}
+
+
+class BespokeOfferResolveTests(SimpleTestCase):
+    def rules(self, *offers):
+        return {o.category_id: o for o in offers}
+
+    def test_a_child_inherits_its_parents_offer(self):
+        kind, row, source = bespoke_offers.resolve(250, self.rules(make_offer(249)), PARENTS)
+        self.assertEqual((kind, row.category_id, source), ('offer', 249, 249))
+
+    def test_a_grandchild_inherits_through_the_chain(self):
+        kind, row, source = bespoke_offers.resolve(905, self.rules(make_offer(249)), PARENTS)
+        self.assertEqual((kind, source), ('offer', 249))
+
+    def test_its_own_row_beats_the_parents(self):
+        rules = self.rules(make_offer(249, 41077), make_offer(250, 41079))
+        kind, row, source = bespoke_offers.resolve(250, rules, PARENTS)
+        self.assertEqual((kind, row.bespoke_product_id, source), ('offer', 41079, None))
+
+    def test_no_offer_here_stops_inheriting(self):
+        rules = self.rules(make_offer(249, 41077), make_offer(255, None))
+        self.assertEqual(bespoke_offers.resolve(255, rules, PARENTS)[0], 'none')
+        # ...and so does anything below it
+        parents = {**PARENTS, 906: 255}
+        self.assertEqual(bespoke_offers.resolve(906, rules, parents)[0], 'none')
+        # siblings are unaffected
+        self.assertEqual(bespoke_offers.resolve(250, rules, PARENTS)[0], 'offer')
+
+    def test_a_switched_off_row_is_a_draft_and_does_not_fall_through_to_the_parent(self):
+        rules = self.rules(make_offer(249, 41077), make_offer(250, 41079, status=False))
+        kind, row, _ = bespoke_offers.resolve(250, rules, PARENTS)
+        self.assertEqual((kind, row.bespoke_product_id), ('draft', 41079))
+
+    def test_a_category_with_nothing_up_the_tree_is_unmapped(self):
+        self.assertEqual(bespoke_offers.resolve(300, self.rules(make_offer(249)), PARENTS)[0], 'unmapped')
+
+    def test_a_parent_loop_cannot_hang(self):
+        loop = {1: 2, 2: 1}
+        self.assertEqual(bespoke_offers.resolve(1, {}, loop)[0], 'unmapped')
+
+    def test_tree_rows_are_in_menu_order_with_depth_and_source(self):
+        categories = [(249, 'Prohibition Signs', None), (250, 'No Smoking Signs', 249), (255, 'Tie-Tags', 249), (300, 'General', None)]
+        rules = self.rules(make_offer(249), make_offer(255, None))
+        rows = bespoke_offers.tree_rows(categories, rules, PARENTS)
+        self.assertEqual([(r['name'], r['depth'], r['kind'], r['inherited_from']) for r in rows],
+                         [('Prohibition Signs', 0, 'offer', None), ('No Smoking Signs', 1, 'offer', 249),
+                          ('Tie-Tags', 1, 'none', None), ('General', 0, 'unmapped', None)])
+
+
+class BespokeOfferFormTests(SimpleTestCase):
+    CATEGORIES = [(250, 'No Smoking Signs'), (255, 'Tie-Tags')]
+    PRODUCTS = [(41077, 'Custom Prohibition Sign'), (41079, 'Custom Warning Sign')]
+
+    def form(self, instance=None, **data):
+        values = {'category_id': '250', 'bespoke_product_id': '41077', 'type_label': 'prohibition', 'status': 'on'}
+        values.update(data)
+        return CategoryBespokeForm(values, instance=instance, categories=self.CATEGORIES, products=self.PRODUCTS)
+
+    def test_a_normal_offer_is_valid(self):
+        form = self.form()
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['bespoke_product_id'], 41077)
+        self.assertEqual(form.cleaned_data['category_id'], 250)
+
+    def test_no_offer_here_saves_a_null_product(self):
+        form = self.form(bespoke_product_id='', type_label='')
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data['bespoke_product_id'])
+
+    def test_no_offer_cannot_carry_wording(self):
+        form = self.form(bespoke_product_id='', headline='Make your own')
+        self.assertFalse(form.is_valid())
+        self.assertIn('bespoke_product_id', form.errors)
+
+    def test_unknown_designer_or_category_is_rejected(self):
+        self.assertFalse(self.form(bespoke_product_id='99999').is_valid())
+        self.assertFalse(self.form(category_id='1').is_valid())
+
+    def test_editing_keeps_the_category_fixed(self):
+        form = CategoryBespokeForm(instance=make_offer(250), categories=self.CATEGORIES, products=self.PRODUCTS)
+        self.assertTrue(form.fields['category_id'].disabled)
+
+
+class BespokeOfferPageTests(SimpleTestCase):
+    def rows(self):
+        categories = [(249, 'Prohibition Signs', None), (250, 'No Smoking Signs', 249), (255, 'Tie-Tags', 249)]
+        rules = {249: make_offer(249, note='type of the main category'), 255: make_offer(255, None, note='NO OFFER: Tie tags')}
+        rows = bespoke_offers.tree_rows(categories, rules, PARENTS)
+        for row in rows:
+            row['product_title'] = 'Custom Prohibition Sign' if row['effective'] and row['effective'].bespoke_product_id else None
+            row['inherited_name'] = 'Prohibition Signs' if row['inherited_from'] else None
+        return rows
+
+    def test_the_tree_shows_offers_inheritance_and_no_offer(self):
+        html = render_page('sites/bespoke_offers.html', fake_request('/sites/bespoke-offers/'), rows=self.rows(),
+                           counts={'offer': 2, 'none': 1}, stores=[(1, 'SSAN')], site_id=1, table_missing=False)
+        self.assertIn('No Smoking Signs', html)
+        self.assertIn('From Prohibition Signs', html)
+        self.assertIn('No offer here', html)
+        self.assertIn('NO OFFER: Tie tags', html)
+        self.assertIn('/sites/bespoke-offers/new?category=250', html)       # an inheriting category can be overridden
+        self.assertIn('/sites/bespoke-offers/249/edit', html)
+
+    def test_the_page_names_the_sql_file_when_the_table_is_missing(self):
+        html = render_page('sites/bespoke_offers.html', fake_request('/sites/bespoke-offers/'), rows=[], counts={},
+                           stores=[], site_id=1, table_missing=True)
+        self.assertIn('2026-10-09_category_bespoke_offer.sql', html)
+
+    def test_the_view_survives_a_missing_table(self):
+        missing = ProgrammingError(1146, "Table 'x.oc_tsg_category_bespoke' doesn't exist")
+        with mock.patch.object(views.OcTsgCategoryBespoke, 'objects') as objects, \
+                mock.patch.object(views.OcStore, 'objects') as stores, \
+                mock.patch.object(views, 'render', return_value=mock.sentinel.response) as render:
+            stores.filter.return_value.order_by.return_value.values_list.return_value = []
+            objects.all.side_effect = missing
+            views.bespoke_offers_list(fake_request('/sites/bespoke-offers/'))
+        self.assertTrue(render.call_args[0][2]['table_missing'])
+
+    def test_remove_refuses_get_and_post_deletes(self):
+        with mock.patch.object(views, 'get_object_or_404') as lookup:
+            self.assertEqual(views.bespoke_offer_delete(fake_request('/x'), 1).status_code, 405)
+            lookup.assert_not_called()
+        offer = mock.Mock()
+        with mock.patch.object(views, 'get_object_or_404', return_value=offer), mock.patch.object(views, 'messages'):
+            response = views.bespoke_offer_delete(fake_request('/x', method='post'), 1)
+        offer.delete.assert_called_once()
+        self.assertEqual(response.status_code, 302)
