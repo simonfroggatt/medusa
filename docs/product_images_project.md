@@ -41,6 +41,9 @@ Google Drive for Desktop is mounted at
 - **`Digital/`**: every sign ever printed, as resized print PDFs named with job and/or product code
   (e.g. `#37020 SPR 1 B 600x600mm.pdf`). Some are different orientations of the same sign, which is useful
   (pick the orientation that matches the product). Print PDFs may have bleed/crop marks and CMYK colour.
+- Counts (top level, 2026-10-09): `Digital/` **25,794** items = 25,544 PDF, 59 AI, 45 JPG, 43 CDR (and 38 subfolders);
+  `SSAN/website_images` **1,296** items = **1,247 AI**, 35 GIF, 11 PDF, 1 EPS (looks like the AI originals of the
+  website images: the best first source); `PDF's/` 84 PDFs; `IMO Safety Signs/` 4 PDF + 2 CDR.
 - **`SSAN/website_images`**, **`SSAN/DOT`** (Department for Transport signs), **`SSAN/global_harmonization`**
   (also a top-level `Global Harmonization Symbols`), and other `SSAN/*` subfolders: to be surveyed.
 - Top-level `.ai` originals (12 at the top of My Drive) and `PDF's/`, `IMO Safety Signs/`, `IMO Signs/`:
