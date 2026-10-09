@@ -44,6 +44,10 @@ Google Drive for Desktop is mounted at
 - Counts (top level, 2026-10-09): `Digital/` **25,794** items = 25,544 PDF, 59 AI, 45 JPG, 43 CDR (and 38 subfolders);
   `SSAN/website_images` **1,296** items = **1,247 AI**, 35 GIF, 11 PDF, 1 EPS (looks like the AI originals of the
   website images: the best first source); `PDF's/` 84 PDFs; `IMO Safety Signs/` 4 PDF + 2 CDR.
+- `SSAN/DOT` is small (15 top-level items: zip/ttf/pdf/eps plus 8 subfolders), so not a bulk source. The folder is
+  really named `SSAN/global_harmonization_symbols` (not `global_harmonization`). Other `SSAN/*` subfolders worth a
+  look for product images: `new-product-images`, `new_iso`, `alphasigns`, `imo`, `A-Boards`, `Hazard Labels`,
+  `re-cycling signs`, `escalator`, `bespoke_dnds`. (`NEW SIGNS` is out of scope.)
 - **`SSAN/website_images`**, **`SSAN/DOT`** (Department for Transport signs), **`SSAN/global_harmonization`**
   (also a top-level `Global Harmonization Symbols`), and other `SSAN/*` subfolders: to be surveyed.
 - Top-level `.ai` originals (12 at the top of My Drive) and `PDF's/`, `IMO Safety Signs/`, `IMO Signs/`:
