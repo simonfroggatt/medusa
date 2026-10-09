@@ -7,12 +7,14 @@ TEMPLATE_PATHS = ('bespoke/designer_fireaction', 'bespoke/designer_board', 'besp
 
 
 def symbol_options():
-    """Every symbol the designer can open with: [(symbol_id, standard code, name, svg path)], by code."""
+    """Every symbol the designer can open with: [(symbol_id, standard code, name, svg path)], by code.
+    A symbol with no code cannot be passed to the designer, so it is left out."""
     with connection.cursor() as cursor:
         cursor.execute(
             """SELECT s.id, MIN(ss.code), s.referent, s.svg_path
                  FROM oc_tsg_symbols s
                  JOIN oc_tsg_symbol_standard ss ON ss.symbol_id = s.id AND ss.status = 1
+                      AND ss.code IS NOT NULL AND ss.code <> ''
                 GROUP BY s.id, s.referent, s.svg_path
                 ORDER BY MIN(ss.code)""")
         return [(sid, code, (name or '').strip(), svg or '') for sid, code, name, svg in cursor.fetchall()]
