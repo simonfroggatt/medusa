@@ -58,7 +58,7 @@ class SavePreparedTests(SimpleTestCase):
         _, save, _ = self._save(art)
         self.assertEqual(set(save.call_args.kwargs['update_fields']),
                          {'image_feed', 'image_page', 'image_tile', 'pdf_path', 'shape_ratio', 'keep_colours', 'checks',
-                          'date_modified'})
+                          'manifest', 'date_modified'})
 
     @override_settings(ARTWORK_DRIVE_FOLDER=None)
     def test_without_a_drive_folder_no_drive_id_is_recorded(self):
@@ -363,3 +363,55 @@ class ContentTypeTests(SimpleTestCase):
     def test_webp_is_registered_for_a_python_that_does_not_know_it(self):
         import mimetypes
         self.assertEqual(mimetypes.guess_type('x.webp')[0], 'image/webp')
+
+
+class ManifestTests(SimpleTestCase):
+    """Every set of images records how it was made, so a bad batch can be diagnosed and re-made."""
+
+    def setUp(self):
+        self.pdf = sign_pdf(300, 100)
+        self.prepared = artwork_service.prepare(self.pdf, filename='PS 142 A 300x100mm.pdf')
+
+    def test_the_manifest_identifies_the_source_pdf_exactly(self):
+        import hashlib
+        source = self.prepared.manifest['source']
+        self.assertEqual(source['sha256'], hashlib.sha256(self.pdf).hexdigest())
+        self.assertEqual(source['bytes'], len(self.pdf))
+        self.assertEqual(source['filename'], 'PS 142 A 300x100mm.pdf')
+
+    def test_the_manifest_says_which_page_box_and_what_size_was_rendered(self):
+        source = self.prepared.manifest['source']
+        self.assertEqual(source['box_used'], 'page')
+        self.assertEqual(source['box_mm'], [310.0, 110.0])
+        self.assertTrue(source['renderer'].startswith('pymupdf '))
+        self.assertFalse(source['keep_colours'])
+
+    def test_each_output_has_its_size_and_checksum(self):
+        import hashlib
+        outputs = self.prepared.manifest['outputs']
+        self.assertEqual(set(outputs), {'feed', 'page', 'tile'})
+        for kind, facts in outputs.items():
+            self.assertEqual(facts['sha256'], hashlib.sha256(self.prepared.versions[kind]).hexdigest())
+        self.assertEqual(outputs['feed']['px'], [1500, 1500])
+        self.assertEqual(outputs['page']['format'], 'WEBP')
+
+    def test_the_pipeline_version_is_recorded(self):
+        from apps.products import artwork
+        self.assertEqual(self.prepared.manifest['pipeline'], artwork.PIPELINE_VERSION)
+
+    def test_save_writes_the_manifest_as_json_with_the_stored_paths(self):
+        import json
+        art = OcTsgProductArtwork(artwork_id=1)
+        with mock.patch.object(artwork_service.default_storage, 'save', side_effect=lambda n, c: n), \
+                mock.patch.object(art, 'save'):
+            artwork_service.save_prepared(art, self.prepared, 'Fire exit Landscape', code='593')
+        data = json.loads(art.manifest)
+        self.assertEqual(data['stored']['feed'], art.image_feed)
+        self.assertEqual(data['stored']['pdf'], art.pdf_path)
+        self.assertEqual(data['source']['sha256'], self.prepared.manifest['source']['sha256'])
+
+    def test_the_trimbox_is_reported_when_one_is_used(self):
+        from apps.products.tests_artwork import pdf_with_trimbox
+        prepared = artwork_service.prepare(pdf_with_trimbox(300, 100, trim_inset_mm=5))
+        self.assertEqual(prepared.manifest['source']['box_used'], 'trimbox')
+        self.assertAlmostEqual(prepared.manifest['source']['box_mm'][0], 300.0, delta=1)
