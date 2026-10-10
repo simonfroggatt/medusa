@@ -85,17 +85,52 @@ class DriveUploadTests(SimpleTestCase):
 
     @override_settings(ARTWORK_DRIVE_FOLDER='folder123')
     def test_a_drive_error_is_swallowed(self):
-        with mock.patch('apps.bespoke.views._google_auth', side_effect=RuntimeError('no access')):
+        with mock.patch.object(artwork_service, 'drive_service', side_effect=RuntimeError('no access')):
             self.assertIsNone(artwork_service.upload_to_drive('a.pdf', b'%PDF-'))
 
     @override_settings(ARTWORK_DRIVE_FOLDER='folder123')
     def test_creates_the_file_in_the_folder(self):
         service = mock.MagicMock()
         service.files.return_value.create.return_value.execute.return_value = {'id': 'abc'}
-        with mock.patch('apps.bespoke.views._google_auth', return_value=service):
+        with mock.patch.object(artwork_service, 'drive_service', return_value=service):
             self.assertEqual(artwork_service.upload_to_drive('a.pdf', b'%PDF-1'), 'abc')
-        body = service.files.return_value.create.call_args.kwargs['body']
-        self.assertEqual(body, {'name': 'a.pdf', 'parents': ['folder123']})
+        kwargs = service.files.return_value.create.call_args.kwargs
+        self.assertEqual(kwargs['body'], {'name': 'a.pdf', 'parents': ['folder123']})
+
+    def test_the_scope_is_full_drive_so_a_folder_it_did_not_create_works(self):
+        self.assertEqual(artwork_service.DRIVE_SCOPE, 'https://www.googleapis.com/auth/drive')
+
+    @override_settings(ARTWORK_DRIVE_KEY_FILE='/keys/artwork.json')
+    def test_the_key_file_can_be_set(self):
+        self.assertEqual(artwork_service._drive_key_file(), '/keys/artwork.json')
+
+    def test_the_key_file_defaults_to_the_one_the_bespoke_pdfs_use(self):
+        self.assertTrue(artwork_service._drive_key_file().endswith('ssan-bespoke-88bccd81c643.json'))
+
+
+class CheckArtworkDriveCommandTests(SimpleTestCase):
+    @override_settings(ARTWORK_DRIVE_FOLDER=None)
+    def test_it_says_when_no_folder_is_set(self):
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+        with self.assertRaises(CommandError):
+            call_command('check_artwork_drive')
+
+    @override_settings(ARTWORK_DRIVE_FOLDER='folder123')
+    def test_it_writes_a_test_file_and_deletes_it_again(self):
+        from django.core.management import call_command
+        service = mock.MagicMock()
+        files = service.files.return_value
+        files.get.return_value.execute.return_value = {'id': 'folder123', 'name': 'Digital',
+                                                       'mimeType': 'application/vnd.google-apps.folder',
+                                                       'capabilities': {'canAddChildren': True}}
+        files.create.return_value.execute.return_value = {'id': 'testfile'}
+        out = io.StringIO()
+        with mock.patch.object(artwork_service, 'drive_service', return_value=service), \
+                mock.patch.object(artwork_service, '_drive_key_file', return_value='/nope.json'):
+            call_command('check_artwork_drive', stdout=out)
+        files.delete.assert_called_once_with(fileId='testfile', supportsAllDrives=True)
+        self.assertIn('works', out.getvalue())
 
 
 class FallbackOrderTests(SimpleTestCase):

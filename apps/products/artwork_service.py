@@ -97,22 +97,45 @@ def _output_facts(data):
             'sha256': hashlib.sha256(data).hexdigest()}
 
 
+DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive'   # a service account only ever sees what is shared with it
+
+
+def _drive_key_file():
+    """The service-account key: settings.ARTWORK_DRIVE_KEY_FILE, else the one the bespoke PDFs already use."""
+    import os
+
+    configured = getattr(settings, 'ARTWORK_DRIVE_KEY_FILE', None)
+    if configured:
+        return configured
+    return os.path.join(settings.BASE_DIR, 'ssan-bespoke-88bccd81c643.json')
+
+
+def drive_service():
+    """An authenticated Google Drive client for the artwork folder (full scope: it only sees what is shared)."""
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+
+    creds = service_account.Credentials.from_service_account_file(_drive_key_file(), scopes=[DRIVE_SCOPE])
+    return build('drive', 'v3', credentials=creds, cache_discovery=False)
+
+
 def upload_to_drive(name, pdf_bytes):
     """Put the print PDF on the Google Drive and return its file id, or None.
 
-    Off until settings.ARTWORK_DRIVE_FOLDER is set. Never raises: a Drive problem must not
-    stop the images being saved, it is logged and reported back as None.
+    Off until settings.ARTWORK_DRIVE_FOLDER is set (the folder id from its Drive address). The folder must be
+    shared, as Editor, with the service account. Never raises: a Drive problem must not stop the images being
+    saved, it is logged and reported back as None.
     """
     folder = getattr(settings, 'ARTWORK_DRIVE_FOLDER', None)
     if not folder:
         return None
     try:
         from googleapiclient.http import MediaIoBaseUpload
-        from apps.bespoke.views import _google_auth   # same service account the bespoke PDFs use
 
         media = MediaIoBaseUpload(io.BytesIO(pdf_bytes), mimetype='application/pdf')
-        created = _google_auth().files().create(
-            body={'name': name, 'parents': [folder]}, media_body=media, fields='id').execute()
+        created = drive_service().files().create(
+            body={'name': name, 'parents': [folder]}, media_body=media, fields='id',
+            supportsAllDrives=True).execute()
         return created.get('id')
     except Exception:
         logger.exception('Artwork PDF could not be uploaded to the Drive: %s', name)
