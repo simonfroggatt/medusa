@@ -25,7 +25,7 @@ class PrepareTests(SimpleTestCase):
         prepared = artwork_service.prepare(sign_pdf(300, 100))
         self.assertEqual(set(prepared.versions), {'feed', 'page', 'tile'})
         self.assertEqual(prepared.problems, [])
-        self.assertAlmostEqual(float(prepared.ratio), 3.0, delta=0.05)
+        self.assertAlmostEqual(float(prepared.ratio), 310 / 110, delta=0.02)
 
     def test_photolum_file_name_without_keep_colours_is_flagged(self):
         prepared = artwork_service.prepare(sign_pdf(300, 100), filename='FE 1 Photolum 300x100.pdf')
@@ -51,7 +51,7 @@ class SavePreparedTests(SimpleTestCase):
         self.assertEqual(art.image_feed, 'stores/products/v2/fire-exit-arrow-left-sign-landscape-593-feed.jpg')
         self.assertEqual(art.image_page, 'stores/products/v2/fire-exit-arrow-left-sign-landscape-593-page.webp')
         self.assertEqual(art.image_tile, 'stores/products/v2/fire-exit-arrow-left-sign-landscape-593-tile.webp')
-        self.assertAlmostEqual(float(art.shape_ratio), 3.0, delta=0.05)
+        self.assertAlmostEqual(float(art.shape_ratio), 310 / 110, delta=0.02)
 
     def test_only_the_artwork_columns_are_saved(self):
         art = OcTsgProductArtwork(artwork_id=1)
