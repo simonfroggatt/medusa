@@ -23,7 +23,9 @@ New files get new names and never replace an existing file (the media storage do
 overwrite), so the old image and any earlier artwork stay where they are.
 """
 import datetime
+import hashlib
 import io
+import json
 import logging
 import mimetypes
 import re
@@ -48,7 +50,7 @@ PDF_FOLDER = 'medusa/product/artwork/'   # with the product documents, not in th
 EXTENSIONS = {'feed': 'jpg', 'page': 'webp', 'tile': 'webp'}
 CONTENT_TYPES = {'jpg': 'image/jpeg', 'webp': 'image/webp'}
 
-Prepared = namedtuple('Prepared', 'pdf_bytes versions problems keep_colours ratio')
+Prepared = namedtuple('Prepared', 'pdf_bytes versions problems keep_colours ratio manifest')
 
 
 def _content(data, content_type):
@@ -69,12 +71,30 @@ def prepare(pdf_bytes, filename='', keep_colours=False):
         raise ArtworkError('The PDF is larger than 30 MB.')
     if not pdf_bytes.lstrip()[:5] == b'%PDF-':
         raise ArtworkError('That file is not a PDF.')
-    master = artwork.render_master(pdf_bytes, keep_colours=keep_colours)
+    master, info = artwork.render_master_info(pdf_bytes, keep_colours=keep_colours)
     problems = artwork.check_master(master)
     if 'photolum' in (filename or '').lower() and not keep_colours:
         problems.append('The file name says photoluminescent but "keep original colours" is off.')
+    versions = artwork.make_versions(master)
     ratio = round(master.width / master.height, 4)
-    return Prepared(pdf_bytes, artwork.make_versions(master), problems, keep_colours, ratio)
+    manifest = {
+        'pipeline': artwork.PIPELINE_VERSION,
+        'made': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'source': {'filename': filename or '', 'bytes': len(pdf_bytes),
+                   'sha256': hashlib.sha256(pdf_bytes).hexdigest(), **info},
+        'master_px': list(master.size),
+        'ratio': ratio,
+        'outputs': {kind: _output_facts(data) for kind, data in versions.items()},
+    }
+    return Prepared(pdf_bytes, versions, problems, keep_colours, ratio, manifest)
+
+
+def _output_facts(data):
+    from PIL import Image
+
+    image = Image.open(io.BytesIO(data))
+    return {'format': image.format, 'px': [image.width, image.height], 'bytes': len(data),
+            'sha256': hashlib.sha256(data).hexdigest()}
 
 
 def upload_to_drive(name, pdf_bytes):
@@ -120,11 +140,14 @@ def save_prepared(art, prepared, label, code=''):
     drive_id = upload_to_drive(drive_name, prepared.pdf_bytes)
 
     art.image_feed, art.image_page, art.image_tile = paths['feed'], paths['page'], paths['tile']
+    manifest = dict(prepared.manifest)
+    manifest['stored'] = {**paths, 'pdf': art.pdf_path}
+    art.manifest = json.dumps(manifest, sort_keys=True)
     art.shape_ratio = prepared.ratio
     art.keep_colours = prepared.keep_colours
     art.checks = ('; '.join(prepared.problems))[:500] or None
     fields = ['image_feed', 'image_page', 'image_tile', 'pdf_path', 'shape_ratio', 'keep_colours', 'checks',
-              'date_modified']
+              'manifest', 'date_modified']
     if drive_id:
         art.drive_id = drive_id
         art.drive_filename = drive_name[:255]

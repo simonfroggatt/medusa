@@ -22,6 +22,7 @@ import io
 from PIL import Image, ImageChops, ImageDraw
 
 MASTER_LONG_EDGE = 2000
+PIPELINE_VERSION = '2026-10-10.2'   # whole page, 0.3% outline on the sign's edge, lossless page and tile
 RENDER_LONG_EDGE = 3000
 MIN_FEED_FILL = 0.55   # of the square canvas's long edge; below this the sign looks lost
 OUTLINE_RGB = (35, 31, 32)
@@ -70,10 +71,16 @@ def remap_palette(image):
 
 
 def render_master(pdf_bytes, keep_colours=False):
-    """The sign as an RGB image, long edge 2000 px: the whole PDF page, or its TrimBox when it has one.
+    """The sign as an RGB image, long edge 2000 px (see render_master_info for what was rendered)."""
+    return render_master_info(pdf_bytes, keep_colours)[0]
 
-    Nothing is trimmed away: the white margin inside a print-ready PDF is part of the sign.
-    The palette is applied unless keep_colours (photoluminescent artwork keeps its own colours).
+
+def render_master_info(pdf_bytes, keep_colours=False):
+    """(image, info): the sign as an RGB image, long edge 2000 px, and a dict saying how it was rendered.
+
+    The whole PDF page, or its TrimBox when it has one, is rendered: nothing is trimmed away, because the white
+    margin inside a print-ready PDF is part of the sign. The palette is applied unless keep_colours
+    (photoluminescent artwork keeps its own colours).
     """
     try:
         import pymupdf  # imported here so the rest of Medusa does not need it to start
@@ -87,12 +94,15 @@ def render_master(pdf_bytes, keep_colours=False):
         raise ArtworkError(f'Could not open the PDF: {exc}') from exc
     # the finished size: TrimBox when the file defines one (bleed and crop marks sit outside it)
     box = page.rect
+    box_name = 'page'
     try:
         trim = page.trimbox
         if trim and not trim.is_empty and trim != page.mediabox and trim.width > 1 and trim.height > 1:
             box = trim & page.rect
+            box_name = 'trimbox'
     except Exception:
         box = page.rect
+        box_name = 'page'
     if not box.width or not box.height:
         raise ArtworkError('The PDF page has no size.')
     scale = MASTER_LONG_EDGE / max(box.width, box.height)
@@ -100,7 +110,16 @@ def render_master(pdf_bytes, keep_colours=False):
     image = Image.frombytes('RGB', (pix.width, pix.height), pix.samples)
     if not _ink_bbox(image):
         raise ArtworkError('The PDF page is blank.')
-    return image if keep_colours else remap_palette(image)
+    mm = lambda points: round(points / 72 * 25.4, 1)
+    info = {
+        'pages': len(doc),
+        'page_mm': [mm(page.rect.width), mm(page.rect.height)],
+        'box_used': box_name,
+        'box_mm': [mm(box.width), mm(box.height)],
+        'keep_colours': bool(keep_colours),
+        'renderer': 'pymupdf ' + getattr(pymupdf, '__version__', '?'),
+    }
+    return (image if keep_colours else remap_palette(image)), info
 
 
 def _ink_bbox(image):

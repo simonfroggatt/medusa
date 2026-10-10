@@ -187,6 +187,8 @@ class OcTsgProductArtwork(models.Model):
     drive_id = models.CharField(max_length=100, blank=True, null=True)
     drive_filename = models.CharField(max_length=255, blank=True, null=True)
     checks = models.CharField(max_length=500, blank=True, null=True)
+    # JSON: how the images were made (source PDF checksum, page box, renderer, output checksums)
+    manifest = models.TextField(blank=True, null=True)
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
